@@ -1,6 +1,6 @@
 import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, LayoutResponse, LayoutGenerationSchema } from "../protocols/types";
-import { generateJSON } from "../../lib/openai";
+import { generateJSON } from "../../lib/claude";
 import { z } from "zod";
 
 export class SpreadsheetLayoutAgent extends BaseAgent<IntentResponse, LayoutResponse> {
@@ -19,7 +19,6 @@ export class SpreadsheetLayoutAgent extends BaseAgent<IntentResponse, LayoutResp
       throw new Error("Invalid input: missing intent metadata");
     }
 
-    console.log("Spreadsheet Layout Agent Processing:", input.metadata.type);
 
     const systemPrompt = `
       Your mission: Define a container for a spreadsheet workbook tailored EXACTLY to the user's request.

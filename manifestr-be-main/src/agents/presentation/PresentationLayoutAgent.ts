@@ -1,6 +1,6 @@
 import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, LayoutResponse, LayoutGenerationSchema } from "../protocols/types";
-import { generateJSON } from "../../lib/openai";
+import { generateJSON } from "../../lib/claude";
 import { z } from "zod";
 
 export class PresentationLayoutAgent extends BaseAgent<IntentResponse, LayoutResponse> {
@@ -19,7 +19,12 @@ export class PresentationLayoutAgent extends BaseAgent<IntentResponse, LayoutRes
       throw new Error("Invalid input: missing intent metadata");
     }
 
-    console.log("Presentation Layout Agent Processing:", input.metadata.type);
+    
+    // ENFORCE SLIDE LIMIT (safety check)
+    if (input.structurePlan && input.structurePlan.length > 12) {
+      input.structurePlan = input.structurePlan.slice(0, 12);
+    }
+    
 
     const systemPrompt = `
       You are a WORLD-CLASS Design Director at Pentagram/IDEO/Apple Design.

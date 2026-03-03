@@ -117,15 +117,11 @@ export class VaultController extends BaseController {
      */
     private createItem = async (req: AuthRequest, res: Response) => {
         try {
-            console.log('[Vault] createItem START');
-            console.log('[Vault] User:', req.user);
-            console.log('[Vault] Body:', req.body);
 
             const userId = req.user!.userId;
             const { title, fileKey, parentId, status, project, size, thumbnailUrl } = req.body;
 
             if (!title || !fileKey) {
-                console.log('[Vault] Missing required fields');
                 return res.status(400).json({ status: "error", message: "Title and fileKey are required" });
             }
 
@@ -133,12 +129,10 @@ export class VaultController extends BaseController {
             if (parentId === 'root') {
                 validatedParentId = null;
             } else if (parentId && !uuidValidate(parentId)) {
-                console.log('[Vault] Invalid parentId:', parentId);
                 return res.status(400).json({ status: "error", message: "Invalid parentId" });
             }
 
             // Create vault item using Supabase
-            console.log('[Vault] Creating item...');
             const newItem = await SupabaseDB.createVaultItem(userId, {
                 title,
                 type: 'file',
@@ -150,12 +144,9 @@ export class VaultController extends BaseController {
                 thumbnail_url: thumbnailUrl
             });
 
-            console.log('[Vault] Item created:', newItem.id);
             return res.status(201).json({ status: "success", data: newItem });
 
         } catch (error: any) {
-            console.error('[Vault] createItem CRITICAL ERROR:', error);
-            console.error('[Vault] Error Stack:', error.stack);
             if (error.code === '23503') {
                 return res.status(400).json({ status: "error", message: "User not found or Invalid References" });
             }
@@ -192,7 +183,6 @@ export class VaultController extends BaseController {
      */
     private createFolder = async (req: AuthRequest, res: Response) => {
         try {
-            console.log('[Vault] createFolder:', req.body);
             const userId = req.user!.userId;
             const { title, parentId, project } = req.body;
 
@@ -219,7 +209,6 @@ export class VaultController extends BaseController {
             return res.status(201).json({ status: "success", data: newItem });
 
         } catch (error) {
-            console.error('[Vault] createFolder Error:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }
@@ -285,7 +274,6 @@ export class VaultController extends BaseController {
             return res.json({ status: "success", data: updatedItem });
 
         } catch (error) {
-            console.error('[Vault] updateItem Error:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }
@@ -325,7 +313,6 @@ export class VaultController extends BaseController {
                 try {
                     await s3Util.deleteFile(item.file_key);
                 } catch (e) {
-                    console.warn(`Failed to delete S3 file: ${item.file_key}`, e);
                 }
             }
 

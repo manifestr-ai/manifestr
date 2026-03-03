@@ -1,0 +1,87 @@
+import Anthropic from '@anthropic-ai/sdk';
+import { ZodError } from 'zod';
+
+export const claude = new Anthropic({
+    apiKey: process.env.CLAUDE_API_KEY,
+});
+
+export async function generateJSON<T>(schema: any, systemPrompt: string, userPrompt: string, maxRetries: number = 10): Promise<T> {
+    let attempt = 0;
+
+    // Initialize conversation history
+    const messages: Anthropic.MessageParam[] = [
+        { role: "user", content: userPrompt }
+    ];
+
+    const fullSystemPrompt = systemPrompt + "\n\nCRITICAL: You MUST respond with ONLY valid JSON. No explanation, no markdown code blocks, just pure JSON.";
+
+    while (attempt < maxRetries) {
+        attempt++;
+        let rawContent: string | null = null;
+
+        try {
+            const completion = await claude.messages.create({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 8000,
+                system: fullSystemPrompt,
+                messages: messages,
+            });
+
+            // Extract text content from Claude's response
+            const textBlock: any = completion.content.find((block: any) => block.type === 'text');
+            rawContent = textBlock?.text || null;
+
+            if (!rawContent) {
+                throw new Error("No content generated");
+            }
+
+            // 1. Parse JSON
+            let json;
+            try {
+                json = JSON.parse(rawContent);
+            } catch (jsonError) {
+                throw new Error(`Invalid JSON format: ${(jsonError as Error).message}`);
+            }
+
+            // 2. Validate with Schema
+            if (schema && typeof schema.parse === 'function') {
+                const parsed = schema.parse(json);
+                return parsed;
+            }
+
+            return json as T;
+
+        } catch (e) {
+            // Prepare for retry: Feed back the error to Claude
+            let errorMessage = (e as Error).message;
+            if (e instanceof ZodError) {
+                // Format Zod errors to be more readable for Claude
+                const issues = e.issues.map(err => ({
+                    path: err.path.join('.'),
+                    message: err.message,
+                    expected: (err as any).expected,
+                    received: (err as any).received
+                }));
+                
+                errorMessage = `Schema Validation Failed: ${e.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ')}`;
+            }
+
+            // If we've reached max retries, throw the final error
+            if (attempt >= maxRetries) {
+                throw new Error(`Failed to generate/validate JSON after ${maxRetries} attempts. Last error: ${errorMessage}`);
+            }
+
+            // Append the bad response and the error to the history
+            if (rawContent) {
+                messages.push({ role: "assistant", content: rawContent });
+            }
+
+            messages.push({
+                role: "user",
+                content: `The previous response was invalid. Please fix the following errors and return ONLY the valid JSON:\n\nError: ${errorMessage}`
+            });
+        }
+    }
+
+    throw new Error("Unexpected loop exit");
+}

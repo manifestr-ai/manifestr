@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import fs from 'fs';
+import path from 'path';
 import { setupSwagger } from './lib/swagger';
 import { supabaseAdmin } from './lib/supabase';
 import { BaseController } from './controllers/base.controller';
@@ -50,13 +52,52 @@ class App {
                     }
                 },
                 credentials: true,
-                methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+                methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
                 allowedHeaders: ['Content-Type', 'Authorization'],
             })
         );
 
-        this.app.use(express.json());
+        this.app.use(express.json({ limit: '50mb' }));
+        this.app.use(express.urlencoded({ limit: '50mb', extended: true }));
         this.app.use(cookieParser());
+
+        // ─────────────────────────────────────────────────────────────
+        // LOCAL FILE STORAGE (Replaces S3)
+        // ─────────────────────────────────────────────────────────────
+        
+        // 1. Serve static files (GET)
+        const uploadDir = path.join(process.cwd(), 'public/uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        this.app.use('/uploads', express.static(uploadDir));
+
+        // 2. Handle direct uploads (PUT) - mimics S3 presigned URL upload
+        this.app.put('/uploads/*', (req, res) => {
+            const key = (req.params as any)[0]; // The wildcard part after /uploads/
+            if (!key) return res.status(400).send('Missing file key');
+
+            const filePath = path.join(uploadDir, key);
+            
+            // Ensure directory exists for nested keys
+            const dir = path.dirname(filePath);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+
+            // Stream request body to file
+            const fileStream = fs.createWriteStream(filePath);
+            req.pipe(fileStream);
+
+            fileStream.on('finish', () => {
+                res.status(200).send('Uploaded successfully');
+            });
+
+            fileStream.on('error', (err) => {
+                console.error('Upload error:', err);
+                res.status(500).send('Upload failed');
+            });
+        });
     }
 
     private initializeControllers() {

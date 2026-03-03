@@ -1,16 +1,49 @@
-import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import SupabaseDB from "../lib/supabase-db";
 import { UserPrompt } from "../agents/protocols/types";
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { fetchUnsplashImage } from "../utils/image.util";
 
+// Import Agents
+import { IntentAgent } from "../agents/intent/IntentAgent";
+import { PresentationLayoutAgent } from "../agents/presentation/PresentationLayoutAgent";
+import { PresentationContentAgent } from "../agents/presentation/PresentationContentAgent";
+import { DocumentLayoutAgent } from "../agents/document/DocumentLayoutAgent";
+import { DocumentContentAgent } from "../agents/document/DocumentContentAgent";
+import { SpreadsheetLayoutAgent } from "../agents/spreadsheet/SpreadsheetLayoutAgent";
+import { SpreadsheetContentAgent } from "../agents/spreadsheet/SpreadsheetContentAgent";
+import { RenderingAgent } from "../agents/rendering/RenderingAgent";
+
 export class AIOrchestrator {
-    private sqsClient: SQSClient;
-    private openai: OpenAI;
+    private claude: Anthropic;
+    
+    // Agents
+    private intentAgent: IntentAgent;
+    private renderingAgent: RenderingAgent;
+    
+    private presLayout: PresentationLayoutAgent;
+    private presContent: PresentationContentAgent;
+    
+    private docLayout: DocumentLayoutAgent;
+    private docContent: DocumentContentAgent;
+    
+    private sheetLayout: SpreadsheetLayoutAgent;
+    private sheetContent: SpreadsheetContentAgent;
 
     constructor() {
-        this.sqsClient = new SQSClient({ region: process.env.AWS_REGION });
-        this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        this.claude = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+        
+        // Initialize Agents (No SQS needed anymore!)
+        this.intentAgent = new IntentAgent();
+        this.renderingAgent = new RenderingAgent();
+        
+        this.presLayout = new PresentationLayoutAgent();
+        this.presContent = new PresentationContentAgent();
+        
+        this.docLayout = new DocumentLayoutAgent();
+        this.docContent = new DocumentContentAgent();
+        
+        this.sheetLayout = new SpreadsheetLayoutAgent();
+        this.sheetContent = new SpreadsheetContentAgent();
     }
 
     /**
@@ -27,7 +60,6 @@ export class AIOrchestrator {
                 fetchUnsplashImage(promptData.prompt!)
             ]);
         } catch (error) {
-            console.error("Error generating metadata:", error);
         }
 
         // 2. Create Job Entry using Supabase
@@ -44,48 +76,90 @@ export class AIOrchestrator {
             status: 'queued'
         });
 
-        // 2. Push to First Queue (Intent)
-        // Construct the payload for the first agent
-        const payload: UserPrompt = {
-            prompt: promptData.prompt!,
-            style_guide_id: promptData.style_guide_id,
-            output: promptData.output,
-            meta: promptData.meta,
-            userId: userId,
-            jobId: job.id,
-        };
-
-        // 3. Push to SQS Queue (Optional - graceful fallback if AWS not configured)
-        const useAWS = process.env.USE_AWS_SQS === 'true';
-
-        if (useAWS && process.env.SQS_QUEUE_INTENT_URL && process.env.AWS_ACCESS_KEY_ID) {
-            try {
-                await this.sqsClient.send(new SendMessageCommand({
-                    QueueUrl: process.env.SQS_QUEUE_INTENT_URL!,
-                    MessageBody: JSON.stringify({ jobId: job.id }),
-                    MessageGroupId: job.id,
-                    MessageDeduplicationId: `${job.id}-${Date.now()}`,
-                }));
-
-                console.log(`✅ [Orchestrator] Job ${job.id} pushed to AWS SQS Intent Queue`);
-
-            } catch (e: any) {
-                console.error("❌ Failed to push to SQS:", e.message);
-
-                // Update job status to failed but don't crash
-                await SupabaseDB.updateGenerationJob(job.id, userId, {
-                    status: 'failed',
-                    error: `AWS SQS Error: ${e.message}. Check AWS credentials in .env`
-                });
-
-                console.warn(`⚠️  Job ${job.id} failed to queue - check AWS credentials`);
-            }
-        } else {
-            console.log(`ℹ️  AWS SQS disabled - Job ${job.id} created but not queued`);
-            console.log(`ℹ️  Set USE_AWS_SQS=true in .env to enable background processing`);
-        }
+        // 3. Start the Agent Flow (Async - Fire and Forget)
+        // We don't await this so the API returns immediately
+        this.runJobFlow(job.id, userId).catch(err => {
+            console.error(`❌ Job Flow Failed for ${job.id}:`, err);
+        });
 
         return job;
+    }
+
+    /**
+     * Orchestrates the agent chain directly in-memory
+     */
+    private async runJobFlow(jobId: string, userId: string) {
+        console.log(`\n🚀 Starting Job Flow: ${jobId}`);
+        
+        // 1. Fetch fresh job
+        let job = await SupabaseDB.getGenerationJobById(jobId, userId);
+        if (!job) {
+            console.error(`❌ Job ${jobId} not found in DB`);
+            return;
+        }
+
+        try {
+            // ─────────────────────────────────────────────────────────────
+            // STEP 1: INTENT AGENT
+            // ─────────────────────────────────────────────────────────────
+            const intentOutput = await this.intentAgent.run(job);
+            
+            // Update local job state for next step
+            job.result = intentOutput;
+            job.current_step_data = intentOutput;
+            
+            const format = intentOutput.metadata.outputFormat || 'presentation';
+
+            // ─────────────────────────────────────────────────────────────
+            // STEP 2: BRANCHING LOGIC
+            // ─────────────────────────────────────────────────────────────
+            
+            if (format === 'presentation') {
+                // 🚀 PRESENTATION BYPASS: Skip Layout/Content -> Go Direct to Rendering
+                console.log(`⏩ Presentation detected: Bypassing Layout/Content agents.`);
+                
+                // RenderingAgent handles the IntentResponse via the adapter we added
+                await this.renderingAgent.run(job);
+                
+            } else if (format === 'document') {
+                // Document Flow: Layout -> Content -> Render
+                
+                // Layout
+                const layoutOutput = await this.docLayout.run(job);
+                job.result = layoutOutput;
+                job.current_step_data = layoutOutput;
+                
+                // Content
+                const contentOutput = await this.docContent.run(job);
+                job.result = contentOutput;
+                job.current_step_data = contentOutput;
+                
+                // Render
+                await this.renderingAgent.run(job);
+                
+            } else if (format === 'spreadsheet') {
+                // Spreadsheet Flow: Layout -> Content -> Render
+                
+                // Layout
+                const layoutOutput = await this.sheetLayout.run(job);
+                job.result = layoutOutput;
+                job.current_step_data = layoutOutput;
+                
+                // Content
+                const contentOutput = await this.sheetContent.run(job);
+                job.result = contentOutput;
+                job.current_step_data = contentOutput;
+                
+                // Render
+                await this.renderingAgent.run(job);
+            }
+
+            console.log(`✅ Job Flow Complete: ${jobId}\n`);
+
+        } catch (error) {
+            console.error(`❌ Job Flow Error:`, error);
+            // Error handling is done inside BaseAgent.run(), so DB should be updated already
+        }
     }
 
     async getJobStatus(jobId: string, userId: string) {
@@ -106,18 +180,18 @@ export class AIOrchestrator {
 
     private async generateTitle(prompt: string): Promise<string> {
         try {
-            const response = await this.openai.chat.completions.create({
-                model: "gpt-4o",
+            const response = await this.claude.messages.create({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 20,
+                temperature: 0.7,
+                system: "Generate a concise 3-4 word title for this user request. No quotes. Do not use 'Presentation for' or 'Guide for' prefixes unless necessary, just the topic.",
                 messages: [
-                    { role: "system", content: "Generate a concise 3-4 word title for this user request. No quotes. Do not use 'Presentation for' or 'Guide for' prefixes unless necessary, just the topic." },
                     { role: "user", content: prompt }
-                ],
-                max_tokens: 15,
-                temperature: 0.7
+                ]
             });
-            return response.choices[0].message.content?.replace(/^"|"$/g, '').trim() || "New Generation";
+            const textBlock: any = response.content.find((block: any) => block.type === 'text');
+            return textBlock?.text?.replace(/^"|"$/g, '').trim() || "New Generation";
         } catch (e) {
-            console.error("Failed to generate title", e);
             return "New Generation";
         }
     }

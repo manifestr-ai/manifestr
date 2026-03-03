@@ -82,7 +82,6 @@ export class EarlyAccessController extends BaseController {
                 email
             });
 
-            console.log('New early access registration:', email);
 
             return this.sendResponse(res, 201, 'success', 'Successfully registered for early access! We will notify you when access is available.', {
                 id: earlyAccessEntry.id,
@@ -93,7 +92,6 @@ export class EarlyAccessController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Early access registration error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error', error instanceof Error ? error.message : String(error));
         }
     };
@@ -109,7 +107,6 @@ export class EarlyAccessController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Error fetching early access list:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error', error instanceof Error ? error.message : String(error));
         }
     };

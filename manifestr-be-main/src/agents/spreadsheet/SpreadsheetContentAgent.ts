@@ -1,6 +1,6 @@
 import { BaseAgent } from "../core/BaseAgent";
 import { LayoutResponse, ContentResponse, ContentGenerationSchema } from "../protocols/types";
-import { generateJSON } from "../../lib/openai";
+import { generateJSON } from "../../lib/claude";
 import { z } from "zod";
 
 export class SpreadsheetContentAgent extends BaseAgent<LayoutResponse, ContentResponse> {
@@ -18,7 +18,6 @@ export class SpreadsheetContentAgent extends BaseAgent<LayoutResponse, ContentRe
     if (!input || !input.blocks) {
       throw new Error("Invalid Input: LayoutResponse is missing 'blocks'. Ensure LayoutAgent completed successfully.");
     }
-    console.log("Spreadsheet Content Agent Generating Text for:", input.blocks.length, "blocks");
 
     const systemPrompt = `
       You are an ADVANCED EXPERT in FINANCIAL MODELING and Univer/Spreadsheet JSON Structure.

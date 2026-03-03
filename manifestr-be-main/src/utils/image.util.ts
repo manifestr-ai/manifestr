@@ -12,7 +12,6 @@ export const fetchUnsplashImage = async (query: string): Promise<string> => {
             return data.results[0].urls.regular;
         }
     } catch (e) {
-        console.error("Unsplash fetch failed", e);
     }
     return fallback;
 };

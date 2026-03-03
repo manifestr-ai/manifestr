@@ -230,7 +230,6 @@ export class AuthController extends BaseController {
                 if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
                     return this.sendResponse(res, 409, 'error', 'User already exists');
                 }
-                console.error('❌ Supabase signup error:', authError);
                 return this.sendResponse(res, 400, 'error', authError.message);
             }
 
@@ -238,7 +237,6 @@ export class AuthController extends BaseController {
                 return this.sendResponse(res, 400, 'error', 'Failed to create user');
             }
 
-            console.log('User created in Supabase (email auto-verified):', authData.user.id);
 
             // Create user record in our database using Supabase
             const user = await SupabaseDB.createUser({
@@ -259,7 +257,6 @@ export class AuthController extends BaseController {
             });
 
             if (sessionError || !sessionData.session) {
-                console.error('Failed to create session after signup:', sessionError);
                 // User created but login failed - return success anyway
                 return this.sendResponse(res, 201, 'success', 'Account created! Please log in.', {
                     user: this.sanitizeUser(user),
@@ -267,7 +264,6 @@ export class AuthController extends BaseController {
                 });
             }
 
-            console.log('User logged in automatically after signup');
 
             return this.sendResponse(res, 201, 'success', 'Account created and logged in successfully!', {
                 user: this.sanitizeUser(user),
@@ -277,7 +273,6 @@ export class AuthController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Signup error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error', error instanceof Error ? error.message : String(error));
         }
     };
@@ -310,7 +305,6 @@ export class AuthController extends BaseController {
 
             // If user doesn't exist in our DB, create it
             if (!user) {
-                console.log('Creating user record for existing Supabase auth user:', data.user.id);
                 user = await SupabaseDB.createUser({
                     id: data.user.id,
                     email: data.user.email!,
@@ -329,7 +323,6 @@ export class AuthController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Login error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error', error instanceof Error ? error.message : String(error));
         }
     };
@@ -355,7 +348,6 @@ export class AuthController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Refresh token error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error');
         }
     };
@@ -375,7 +367,6 @@ export class AuthController extends BaseController {
             });
 
             if (error || !data.user) {
-                console.error('Email verification error:', error);
                 return this.sendResponse(res, 400, 'error', 'Invalid or expired verification token');
             }
 
@@ -388,7 +379,6 @@ export class AuthController extends BaseController {
                 }
             } catch (err) {
                 // User might not exist yet
-                console.log('User not found in DB:', err);
             }
 
             return this.sendResponse(res, 200, 'success', 'Email verified successfully', {
@@ -398,7 +388,6 @@ export class AuthController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Verify email error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error');
         }
     };
@@ -421,17 +410,14 @@ export class AuthController extends BaseController {
             });
 
             if (error) {
-                console.error('❌ Resend verification error:', error);
                 // Don't reveal if user exists or not for security
                 return this.sendResponse(res, 200, 'success', 'If an account exists with this email, a verification email has been sent');
             }
 
-            console.log('✅ Verification email re-sent to:', email);
 
             return this.sendResponse(res, 200, 'success', 'Verification email sent successfully');
 
         } catch (error) {
-            console.error('Resend verification error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error');
         }
     };
@@ -474,7 +460,6 @@ export class AuthController extends BaseController {
             return this.sendResponse(res, 200, 'success', 'Onboarding completed', { user: this.sanitizeUser(user) });
 
         } catch (error) {
-            console.error('Onboarding error:', error);
             return this.sendResponse(res, 500, 'error', 'Internal server error', error instanceof Error ? error.message : String(error));
         }
     };
@@ -501,7 +486,6 @@ export class AuthController extends BaseController {
             return this.sendResponse(res, 200, 'success', 'User profile retrieved', { user: this.sanitizeUser(user) });
 
         } catch (error) {
-            console.error('Get me error:', error);
             return this.sendResponse(res, 401, 'error', 'Unauthorized or invalid token');
         }
     };

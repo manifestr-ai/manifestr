@@ -1,0 +1,121 @@
+{
+  "deck1": {
+    "filename": "Deck.1.polotno.json",
+    "pageCount": 11,
+    "layoutPatterns": ["single-column", "context-driven"],
+    "slideTypes": ["presentation title", "context", "detail", "information spotlight", "statement", "end slide"],
+    "primaryDomains": ["corporate strategy", "executive briefings", "high-level overviews"],
+    "secondaryDomains": ["technology consulting", "business transformation", "organizational change"],
+    "industries": ["consulting", "technology/software", "financial services", "professional services", "corporate training"],
+    "presentationTypes": ["executive briefing", "board meeting", "strategic overview", "annual review", "stakeholder update", "management consulting presentation"],
+    "audiences": ["C-suite/executives", "board members", "senior management", "investors/stakeholders"],
+    "contentFocus": ["narrative storytelling", "strategic context", "high-level frameworks", "executive summaries"],
+    "whenToUse": "Use this deck when presenting strategic, high-level information to executives who need context and overview without heavy data.",
+    "avoidWhen": "Avoid this deck when you need detailed comparisons, timelines, or heavy data visualization."
+  },
+
+  "deck2": {
+    "filename": "Deck.2.polotno.json",
+    "pageCount": 19,
+    "layoutPatterns": ["multi-column", "timeline/roadmap", "data-visualization", "comparison"],
+    "slideTypes": ["agenda", "divider", "context", "problem", "insight", "recommendation", "supporting detail", "data", "process", "timeline", "case study", "comparison", "cta", "thank you"],
+    "primaryDomains": ["comprehensive business analysis", "strategic consulting", "product strategy", "market analysis"],
+    "secondaryDomains": ["competitive intelligence", "business development", "partnership proposals", "go-to-market strategy"],
+    "industries": ["consulting", "technology/software", "financial services", "venture capital", "corporate strategy"],
+    "presentationTypes": ["comprehensive business proposal", "strategic consulting deck", "competitive analysis", "market entry strategy", "partnership proposal", "RFP response", "investor deep-dive"],
+    "audiences": ["C-suite/executives", "venture capital investors", "board members", "strategic partners", "enterprise clients"],
+    "contentFocus": ["comprehensive analysis", "problem-solution frameworks", "side-by-side comparisons", "multi-phase timelines", "case studies", "competitive positioning", "data-driven insights"],
+    "whenToUse": "Use this deck when you need the MOST COMPREHENSIVE presentation with every type of slide: problems, solutions, comparisons, timelines, case studies, and data.",
+    "avoidWhen": "Avoid this deck for quick updates or simple presentations — it's designed for in-depth strategic analysis."
+  },
+
+  "deck3": {
+    "filename": "Deck.5.poltno.json",
+    "pageCount": 15,
+    "layoutPatterns": ["multi-column", "timeline/roadmap", "data-visualization", "comparison"],
+    "slideTypes": ["agenda / overview", "divider", "context", "problem / challenge", "insight / opportunity", "solution / recommendation", "supporting detail", "data / charts", "process / framework", "timeline / roadmap", "case study / example", "comparison / options", "next steps / call to action"],
+    "primaryDomains": ["product launches", "solution presentations", "innovation showcases", "technology demonstrations"],
+    "secondaryDomains": ["SaaS products", "platform releases", "feature announcements", "technical solutions"],
+    "industries": ["technology/software", "SaaS", "product companies", "startups", "innovation/R&D"],
+    "presentationTypes": ["product launch", "feature release", "solution presentation", "technical demo", "innovation showcase", "platform overview", "product roadmap presentation"],
+    "audiences": ["product managers", "customers/prospects", "technical teams", "sales teams", "investors", "early adopters"],
+    "contentFocus": ["product features", "solution architecture", "roadmap/timelines", "comparison with competitors", "use case demonstrations"],
+    "whenToUse": "Use this deck for PRODUCT-FOCUSED presentations: launches, feature releases, solution demos, or product roadmaps.",
+    "avoidWhen": "Avoid this deck for financial reports, academic research, or presentations without a product/solution focus."
+  },
+
+  "deck4": {
+    "filename": "Deck.6.polotno.json",
+    "pageCount": 15,
+    "layoutPatterns": ["multi-column", "data-visualization", "comparison"],
+    "slideTypes": ["agenda / overview", "divider", "context", "problem / challenge", "insight", "solution / recommendation", "supporting detail / features", "data / charts", "process / framework", "timeline / roadmap", "case study / example", "comparison", "call to action"],
+    "primaryDomains": ["data analytics", "performance metrics", "business intelligence", "quantitative analysis"],
+    "secondaryDomains": ["KPI reporting", "dashboard presentations", "metrics review", "data-driven decision making"],
+    "industries": ["technology/software", "financial services", "analytics companies", "consulting", "e-commerce", "marketing"],
+    "presentationTypes": ["quarterly business review", "metrics/KPI review", "performance analysis", "data insights presentation", "analytics deep-dive", "A/B test results", "growth analysis"],
+    "audiences": ["C-suite/executives", "data teams", "operations managers", "marketing leaders", "investors"],
+    "contentFocus": ["heavy quantitative data/metrics", "charts and graphs", "performance comparisons", "trend analysis", "data visualization"],
+    "whenToUse": "Use this deck when presenting DATA-HEAVY content: metrics, KPIs, performance analysis, or quantitative business insights.",
+    "avoidWhen": "Avoid this deck for conceptual/strategic content without substantial data or for creative/narrative presentations."
+  },
+
+  "deck5": {
+    "filename": "Deck.7.poltno.json",
+    "pageCount": 16,
+    "layoutPatterns": ["comparison", "clean-minimal"],
+    "slideTypes": ["agenda", "update", "comparison"],
+    "primaryDomains": ["project updates", "status reports", "progress tracking", "team communication"],
+    "secondaryDomains": ["sprint reviews", "milestone presentations", "internal communications", "operational updates"],
+    "industries": ["technology/software", "project management", "consulting", "internal corporate", "agile teams"],
+    "presentationTypes": ["project status update", "sprint review", "progress report", "team standup presentation", "milestone review", "internal update meeting", "retrospective"],
+    "audiences": ["internal teams", "project stakeholders", "managers", "product owners", "scrum teams"],
+    "contentFocus": ["progress updates", "status comparisons (before/after)", "milestone tracking", "blockers/challenges", "next steps"],
+    "whenToUse": "Use this deck for INTERNAL UPDATES and PROJECT STATUS presentations focused on progress and comparisons.",
+    "avoidWhen": "Avoid this deck for external audiences, investor pitches, or presentations requiring extensive data/analysis."
+  },
+
+  "deck6": {
+    "filename": "Deck.8.polotno.json",
+    "pageCount": 15,
+    "layoutPatterns": ["multi-column", "timeline/roadmap", "data-visualization", "comparison"],
+    "slideTypes": ["agenda / overview", "divider", "context", "problem / challenge", "insight / opportunity", "solution / recommendation", "supporting detail", "data / charts", "process / framework", "timeline / roadmap", "case study / example", "comparison / options", "next steps / call to action"],
+    "primaryDomains": ["investor pitches", "funding rounds", "venture capital", "startup growth"],
+    "secondaryDomains": ["Series A/B/C presentations", "pitch decks", "fundraising", "valuation discussions"],
+    "industries": ["startups", "venture-backed companies", "technology/software", "fintech", "high-growth companies"],
+    "presentationTypes": ["Series A/B/C investor pitch", "VC pitch deck", "fundraising presentation", "investor day", "demo day presentation", "seed round pitch"],
+    "audiences": ["venture capital investors", "angel investors", "investment committees", "accelerator programs"],
+    "contentFocus": ["market opportunity", "competitive positioning", "business model", "financial projections", "traction metrics", "team credentials", "funding ask"],
+    "whenToUse": "Use this deck for INVESTOR PITCHES and FUNDRAISING presentations where you need to show opportunity, traction, and financial projections.",
+    "avoidWhen": "Avoid this deck for internal updates, academic presentations, or non-investment-focused content."
+  },
+
+  "deck7": {
+    "filename": "Deck.11.poltno.json",
+    "pageCount": 6,
+    "layoutPatterns": ["data-visualization", "minimal-concise"],
+    "slideTypes": ["agenda", "context", "problem", "insight", "objective"],
+    "primaryDomains": ["quick briefings", "executive summaries", "concise updates", "elevator pitches"],
+    "secondaryDomains": ["5-minute presentations", "rapid overviews", "time-constrained pitches"],
+    "industries": ["all industries - universal"],
+    "presentationTypes": ["quick executive briefing", "5-minute pitch", "elevator pitch", "rapid update", "pre-meeting overview", "concept introduction", "fast decision request"],
+    "audiences": ["busy executives", "time-constrained stakeholders", "drop-in meetings", "initial pitch meetings"],
+    "contentFocus": ["concise messaging", "core problem/solution only", "high-impact insights", "minimal detail", "fast consumption"],
+    "whenToUse": "Use this deck for SHORT, TIME-CONSTRAINED presentations (5-10 minutes) where brevity is critical.",
+    "avoidWhen": "Avoid this deck when you need comprehensive detail, multiple case studies, or extensive data analysis — it only has 6 slides."
+  },
+
+  "deck8": {
+    "filename": "Deck.15.polotno.json",
+    "pageCount": 15,
+    "layoutPatterns": ["timeline/roadmap", "data-visualization", "comparison"],
+    "slideTypes": ["agenda / overview", "section divider", "context / background", "problem / challenge", "insight / opportunity", "solution / recommendation", "supporting detail / features", "data / charts", "process / framework", "timeline / roadmap", "case study / example", "comparison / options", "next steps / call to action"],
+    "primaryDomains": ["formal corporate communications", "annual reports", "public filings", "official announcements"],
+    "secondaryDomains": ["investor relations", "PR announcements", "regulatory presentations", "formal disclosures"],
+    "industries": ["public companies", "financial services", "corporate communications", "legal/compliance", "investor relations"],
+    "presentationTypes": ["annual shareholder meeting", "earnings presentation", "official company announcement", "regulatory briefing", "public investor presentation", "IPO roadshow", "formal corporate update"],
+    "audiences": ["shareholders", "public investors", "regulators", "media/press", "analyst community", "board of directors"],
+    "contentFocus": ["formal disclosures", "financial data", "compliance information", "official statements", "company performance", "forward guidance"],
+    "whenToUse": "Use this deck for FORMAL CORPORATE presentations requiring official branding, dates, and professional polish for external stakeholders.",
+    "avoidWhen": "Avoid this deck for internal meetings, casual updates, or creative/conceptual presentations without formal structure."
+  }
+}

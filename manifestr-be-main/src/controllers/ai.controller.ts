@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import SupabaseDB from '../lib/supabase-db';
 import { AIOrchestrator } from '../services/ai-orchestrator.service';
 import { UserPromptSchema } from '../agents/protocols/types';
@@ -9,13 +9,13 @@ import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 
 export class AIController extends BaseController {
     public basePath = '/ai';
-    private openai: OpenAI;
+    private claude: Anthropic;
     private orchestrator: AIOrchestrator;
 
     constructor() {
         super();
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
+        this.claude = new Anthropic({
+            apiKey: process.env.CLAUDE_API_KEY
         });
         this.orchestrator = new AIOrchestrator();
     }
@@ -31,7 +31,75 @@ export class AIController extends BaseController {
             { verb: 'GET', path: '/generations', handler: this.getUserGenerations, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/recent-generations', handler: this.getRecentGenerations, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/generation/:id', handler: this.getGenerationDetails, middlewares: [authenticateToken] },
+            { verb: 'PATCH', path: '/generation/:id', handler: this.updateGeneration, middlewares: [authenticateToken] },
         ];
+    }
+
+    /**
+     * @swagger
+     * /ai/generation/{id}:
+     *   patch:
+     *     summary: Update generation content (Auto-save)
+     *     tags: [AI]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: string
+     *           format: uuid
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               content:
+     *                 type: object
+     *                 description: The new JSON content
+     *     responses:
+     *       200:
+     *         description: Content updated
+     *       404:
+     *         description: Job not found
+     */
+    private updateGeneration = async (req: AuthRequest, res: Response) => {
+        try {
+            const { id } = req.params;
+            const userId = req.user!.userId;
+            const { content } = req.body;
+
+            if (!content) {
+                return res.status(400).json({ status: "error", message: "Content is required" });
+            }
+
+            // Update directly via SupabaseDB
+            // We store the content in `result.editorState` or just `result` depending on how frontend reads it.
+            // Based on useGenerationLoader: 
+            // let rawContent = data.result?.editorState || data.current_step_data?.editorState;
+            // The loader expects { editorState: JSON } or just uses result if it has editorState.
+            
+            // We will save it as { editorState: content } inside the `result` column.
+            const updated = await SupabaseDB.updateGenerationJob(id, userId, {
+                result: { editorState: content }
+            });
+
+            if (!updated) {
+                 return res.status(404).json({ status: "error", message: "Job not found or access denied" });
+            }
+
+            return res.json({
+                status: "success",
+                message: "Generation updated",
+                data: updated
+            });
+
+        } catch (error) {
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
     }
 
     /**
@@ -104,7 +172,6 @@ export class AIController extends BaseController {
                 });
             } catch (awsError: any) {
                 // If AWS fails, still return success but with warning
-                console.error('AWS SQS Error:', awsError.message);
                 return res.json({
                     status: "success",
                     message: "Job created (AWS SQS unavailable)",
@@ -117,7 +184,6 @@ export class AIController extends BaseController {
             }
 
         } catch (error) {
-            console.error('Error starting generation:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }
@@ -365,18 +431,19 @@ export class AIController extends BaseController {
                 });
             }
 
-            // Generate fresh quote with OpenAI
-            console.log('Generating fresh motivation quote with OpenAI...');
-            const completion = await this.openai.chat.completions.create({
-                messages: [
-                    { role: "system", content: "You are a motivation engine. Generate a short motivational quote (43-50 chars), ending with a VERB. No quotes." },
-                    { role: "user", content: "Inspire me now." }
-                ],
-                model: "gpt-4o",
+            // Generate fresh quote with Claude
+            const completion = await this.claude.messages.create({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 100,
                 temperature: 0.9,
+                system: "You are a motivation engine. Generate a short motivational quote (43-50 chars), ending with a VERB. No quotes.",
+                messages: [
+                    { role: "user", content: "Inspire me now." }
+                ]
             });
 
-            const content = completion.choices[0].message.content?.trim() || "Rise up every morning to actively learn";
+            const textBlock: any = completion.content.find((block: any) => block.type === 'text');
+            const content = textBlock?.text?.trim() || "Rise up every morning to actively learn";
 
             return res.status(200).json({
                 status: "success",
@@ -385,7 +452,6 @@ export class AIController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Error serving quote:', error);
             // Return fallback quote instead of error
             return res.status(200).json({
                 status: "success",

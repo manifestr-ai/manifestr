@@ -14,15 +14,12 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
         { role: "user", content: userPrompt }
     ];
 
-    console.log(`[OpenAI Input] System Prompt (first 100 chars): ${systemPrompt?.substring(0, 100) || 'N/A'}...`);
-    console.log(`[OpenAI User] User Prompt (first 100 chars): ${userPrompt?.substring(0, 100) || 'N/A'}...`);
 
     while (attempt < maxRetries) {
         attempt++;
         let rawContent: string | null = null;
 
         try {
-            console.log(`[OpenAI] Attempt ${attempt}/${maxRetries}...`);
 
             const completion = await openai.chat.completions.create({
                 model: "gpt-4o-2024-08-06",
@@ -47,25 +44,30 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
             // 2. Validate with Schema
             if (schema && typeof schema.parse === 'function') {
                 const parsed = schema.parse(json);
-                console.log(`[OpenAI Output] Valid JSON generated on attempt ${attempt}`);
                 return parsed;
             }
 
             return json as T;
 
         } catch (e) {
-            console.error(`[OpenAI] specific error on attempt ${attempt}:`, e);
-
-            // If we've reached max retries, throw the final error
-            if (attempt >= maxRetries) {
-                throw new Error(`Failed to generate/validate JSON after ${maxRetries} attempts. Last error: ${(e as Error).message}`);
-            }
-
             // Prepare for retry: Feed back the error to the AI
             let errorMessage = (e as Error).message;
             if (e instanceof ZodError) {
                 // Format Zod errors to be more readable for the AI
+                const issues = e.issues.map(err => ({
+                    path: err.path.join('.'),
+                    message: err.message,
+                    expected: (err as any).expected,
+                    received: (err as any).received
+                }));
+                
                 errorMessage = `Schema Validation Failed: ${e.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ')}`;
+            } else {
+            }
+
+            // If we've reached max retries, throw the final error
+            if (attempt >= maxRetries) {
+                throw new Error(`Failed to generate/validate JSON after ${maxRetries} attempts. Last error: ${errorMessage}`);
             }
 
             // Append the bad response and the error to the history
@@ -78,7 +80,6 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
                 content: `The previous response was invalid. Please fix the following errors and return ONLY the valid JSON:\n\nError: ${errorMessage}`
             });
 
-            console.log(`[OpenAI] Retrying with error feedback...`);
         }
     }
 
