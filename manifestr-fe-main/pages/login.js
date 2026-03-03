@@ -56,13 +56,10 @@ export default function Login() {
       setIsSubmitting(true)
 
       try {
-        console.log(' Login attempt started...')
         await login(email, password)
-        console.log(' Login successful!')
 
         // Success - AuthContext handles redirect to /home
         if (AppToaster) {
-          console.log('Showing success toast')
           AppToaster.show({
             message: 'Welcome back! Redirecting...',
             intent: Intent.SUCCESS,
@@ -71,13 +68,9 @@ export default function Login() {
           })
         }
       } catch (err) {
-        console.log(' LOGIN ERROR CAUGHT:', err)
-        console.log(' Error status:', err.response?.status)
-        console.log(' Error message:', err.response?.data?.message)
 
         // Always reset submitting state on error
         setIsSubmitting(false)
-        console.log(' Button state reset to "Sign in"')
 
         let errorMessage = 'Something went wrong. Please try again.'
         let isEmailNotVerified = false
@@ -91,12 +84,10 @@ export default function Login() {
             errorMessage = message
             isEmailNotVerified = true
             setEmailNotVerified(true)
-            console.log(' Email not verified!')
           } else {
             // Invalid credentials
             errorMessage = 'Incorrect password or email! Please login with correct credentials.'
             setEmailNotVerified(false)
-            console.log(' 401 Error - Wrong credentials!')
           }
         } else if (err.response?.data?.message) {
           // Server provided a specific message
@@ -108,11 +99,9 @@ export default function Login() {
           setEmailNotVerified(false)
         }
 
-        console.log('📢 Error message:', errorMessage)
 
         // Show beautiful toast notification
         if (AppToaster) {
-          console.log('🍞 Showing toast with AppToaster:', AppToaster)
           try {
             AppToaster.show({
               message: errorMessage,
@@ -120,21 +109,17 @@ export default function Login() {
               icon: 'error',
               timeout: 5000,
             })
-            console.log('✅ Toast shown successfully!')
           } catch (toastError) {
-            console.error('❌ Toast error:', toastError)
             // Fallback: at least show alert
             alert(errorMessage)
           }
         } else {
-          console.error('❌ AppToaster is null!')
           // Fallback: show alert
           alert(errorMessage)
         }
 
         // Also set server error for the inline display
         setServerError(errorMessage)
-        console.log('📝 Server error set:', errorMessage)
       }
     }
   }

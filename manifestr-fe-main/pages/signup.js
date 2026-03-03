@@ -168,7 +168,6 @@ export default function SignUp() {
           setShowOnboarding(true)
         }
       } catch (err) {
-        console.error('Signup error:', err)
         if (err.response?.status === 409) {
           setServerError('This email is already registered. Please log in instead.')
         } else {
@@ -189,9 +188,7 @@ export default function SignUp() {
       setUser(updatedUser)
       // Finished!
     } catch (error) {
-      console.error('Onboarding submission error:', error)
       if (error.response?.status === 400) {
-        console.error('Validation details:', error.response.data)
       }
       throw error
     }
@@ -208,7 +205,6 @@ export default function SignUp() {
         if (setUser) setUser(updatedUser)
       }
     } catch (e) {
-      console.error("Error skipping onboarding", e)
     }
     router.push('/home')
   }

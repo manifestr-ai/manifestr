@@ -140,7 +140,6 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
         })
         onClose()
       } catch (error) {
-        console.error("Upload error in modal", error)
         // Error is handled by alert in parent, but we stop loading here
       } finally {
         setIsUploading(false)

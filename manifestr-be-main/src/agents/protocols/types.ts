@@ -31,6 +31,8 @@ export const IntentResponseSchema = z.object({
         size: z.string(),
         itemCount: z.string().optional().describe("Quantifier from user prompt e.g. '100+ tasks', '50 rows', '10 years'"),
         outputFormat: z.enum(["presentation", "document", "spreadsheet"]),
+        selectedTemplate: z.string().optional().describe("The deck template filename selected by TemplateSelector"),
+        templateReasoning: z.string().optional().describe("Why this template was selected"),
     }),
     styleGuide: z.any().nullable().optional(),
     userPreferences: z.object({

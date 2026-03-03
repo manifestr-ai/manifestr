@@ -164,7 +164,6 @@ export default function Step2({ email, onNext }) {
               className="text-l2-medium text-zinc-900 hover:opacity-80 px-1"
               onClick={() => {
                 // Handle resend logic
-                console.log('Resend code')
               }}
             >
               Resend

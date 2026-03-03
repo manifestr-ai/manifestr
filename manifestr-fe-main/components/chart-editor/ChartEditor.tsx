@@ -67,7 +67,6 @@ export default function ChartEditor() {
                     });
                 }
             } catch (error) {
-                console.error('Failed to initialize Chart Editor:', error);
             }
         };
 

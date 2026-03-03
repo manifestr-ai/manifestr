@@ -56,7 +56,6 @@ export default function useGenerationLoader() {
                                 }
                             }
                         } catch (e) {
-                            console.error("Failed to parse editorState JSON:", e);
                             // Keep as string if parsing fails, though likely an issue
                         }
                     }
@@ -70,7 +69,6 @@ export default function useGenerationLoader() {
                     return false; // continue polling
                 }
             } catch (err) {
-                console.error("Error fetching generation:", err);
                 // If 404 or other hard error, might want to fail. 
                 // For now, retry a few times? Or just fail.
                 // If it's a network error, maybe keep polling. 

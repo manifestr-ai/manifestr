@@ -172,7 +172,6 @@ export default function OnboardingFlow({ onComplete, onSkip }) {
       setIsSubmitting(true)
       try {
         if (onComplete) {
-          console.log(updatedData);
           await onComplete({
             expertise: updatedData.expertise,
             job_title: updatedData.jobTitle,
@@ -185,7 +184,6 @@ export default function OnboardingFlow({ onComplete, onSkip }) {
         // Show step 4 (Success)
         setOnboardingStep(4)
       } catch (error) {
-        console.error("Onboarding submission failed", error)
         // Handle error (maybe show toast)
       } finally {
         setIsSubmitting(false)

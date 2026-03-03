@@ -6,14 +6,6 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY; // Use service key 
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY; // Use anon key for auth operations
 
 if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('\n❌ Missing Supabase environment variables!');
-    console.error('SUPABASE_URL:', supabaseUrl ? '✓ Set' : '✗ Missing');
-    console.error('SUPABASE_SERVICE_KEY:', supabaseServiceKey ? '✓ Set' : '✗ Missing');
-    console.error('SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓ Set' : '✗ Missing');
-    console.error('\n📝 Make sure your .env file exists in manifestr-be-main/ and contains:');
-    console.error('   SUPABASE_URL=https://your-project.supabase.co');
-    console.error('   SUPABASE_SERVICE_KEY=your-service-role-key');
-    console.error('   SUPABASE_ANON_KEY=your-anon-key\n');
     throw new Error('Missing Supabase environment variables');
 }
 

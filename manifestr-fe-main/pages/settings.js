@@ -3581,7 +3581,6 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                         key={action.id}
                         onClick={() => {
                           // Handle memory clearing action
-                          console.log(`Clearing ${action.id}`)
                         }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -3737,7 +3736,6 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                       <motion.button
                         onClick={() => {
                           // Handle save action
-                          console.log('Save & Apply to Workspace')
                         }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -4880,7 +4878,6 @@ function LogoutButton() {
       try {
         await logout()
       } catch (error) {
-        console.error('Logout error:', error)
         setIsLoggingOut(false)
       }
     }

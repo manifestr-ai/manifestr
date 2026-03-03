@@ -26,7 +26,6 @@ export default function ThreadsPage() {
 
   const handleSave = (data) => {
     // Handle save logic
-    console.log('Saving thread:', data)
   }
 
   return (

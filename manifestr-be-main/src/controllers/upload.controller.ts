@@ -67,7 +67,6 @@ export class UploadController extends BaseController {
             });
 
         } catch (error) {
-            console.error('Presign error:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }

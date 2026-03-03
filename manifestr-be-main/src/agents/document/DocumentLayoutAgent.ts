@@ -1,6 +1,6 @@
 import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, LayoutResponse, LayoutGenerationSchema } from "../protocols/types";
-import { generateJSON } from "../../lib/openai";
+import { generateJSON } from "../../lib/claude";
 import { z } from "zod";
 
 export class DocumentLayoutAgent extends BaseAgent<IntentResponse, LayoutResponse> {
@@ -19,7 +19,6 @@ export class DocumentLayoutAgent extends BaseAgent<IntentResponse, LayoutRespons
             throw new Error("Invalid input: missing intent metadata");
         }
 
-        console.log("Document Layout Agent Processing:", input.metadata.type);
 
         const systemPrompt = `
       You are a SENIOR ART DIRECTOR for High-End Publishing (New York Times, Monocle, HBR).

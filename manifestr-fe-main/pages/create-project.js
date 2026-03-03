@@ -240,7 +240,6 @@ export default function CreateProject() {
 
   const updateProjectData = (updates) => {
     setProjectData((prev) => ({ ...prev, ...updates }))
-    console.log('Project Data Updated:', updates)
   }
 
   // Get selected tool object
@@ -248,17 +247,14 @@ export default function CreateProject() {
 
   const handleToolSelect = (toolId) => {
     setSelectedToolId(toolId)
-    console.log('Selected tool:', toolId)
   }
 
   const handleDocumentSelect = (documentId) => {
     setSelectedDocument(documentId)
-    console.log('Selected document:', documentId)
   }
 
   const handleStyleSelect = (styleId) => {
     setSelectedStyle(styleId)
-    console.log('Selected style:', styleId)
   }
 
   const handleBack = () => {
@@ -292,10 +288,8 @@ export default function CreateProject() {
           const data = await response.json()
           updateProjectData(data)
         } else {
-          console.error("Generation failed")
         }
       } catch (error) {
-        console.error("API Call failed", error)
       } finally {
         setIsGenerating(false)
         setCurrentStep(5)
@@ -340,17 +334,14 @@ export default function CreateProject() {
             setCurrentStep(6)
           }
         } else {
-          console.error("Failed to start generation", response.data)
         }
       } catch (err) {
-        console.error("Gen API error", err)
       } finally {
         setIsGenerating(false)
       }
 
     } else if (currentStep === 6) {
       // TODO: Navigate to editor or final page
-      console.log('Complete')
     }
   }
 
@@ -401,7 +392,6 @@ export default function CreateProject() {
   }
 
   const handleFilesChange = (files) => {
-    console.log('Files changed:', files)
     setUploadedFiles(files)
   }
 

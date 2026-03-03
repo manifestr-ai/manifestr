@@ -30,12 +30,9 @@ export default function Home() {
         const res = await api.get('/ai/recent-generations');
         if (res.data.status === 'success') {
           const projects = res.data.data.slice(0, 3);
-          console.log('📦 Recent projects from API:', projects);
-          console.log('🔍 First project structure:', projects[0]);
           setRecentProjects(projects);
         }
       } catch (err) {
-        console.error("Failed to fetch recent projects", err);
       } finally {
         setIsLoadingProjects(false);
       }
@@ -44,7 +41,6 @@ export default function Home() {
   }, []);
 
   const handleProjectClick = (project) => {
-    console.log('🎯 CLICK! Project data:', JSON.stringify(project, null, 2));
 
     // AGGRESSIVE type detection - check EVERY possible location
     const type = (
@@ -57,28 +53,16 @@ export default function Home() {
       'document'
     ).toLowerCase();
 
-    console.log('✅ DETECTED TYPE:', type);
-    console.log('📋 All type fields:', {
-      'project.type': project.type,
-      'project.output_type': project.output_type,
-      'project.input_data?.output': project.input_data?.output,
-      'project.result?.outputFormat': project.result?.outputFormat
-    });
-
     // Smart routing based on type
     let path;
     if (type.includes('presentation')) {
       path = `/presentation-editor?id=${project.id}`;
-      console.log('🎨 → PRESENTATION EDITOR');
     } else if (type.includes('spreadsheet') || type.includes('sheet')) {
       path = `/spreadsheet-editor?id=${project.id}`;
-      console.log('📊 → SPREADSHEET EDITOR');
     } else {
       path = `/docs-editor?id=${project.id}`;
-      console.log('📄 → DOCUMENT EDITOR (default)');
     }
 
-    console.log('🚀 Navigating to:', path);
     router.push(path);
   };
 
@@ -87,7 +71,6 @@ export default function Home() {
       setIsFocused(false)
     },
     onGenerate: async (args) => {
-      console.log("[Home] onGenerate triggered with:", args);
 
       if (isGenerating) return; // Prevent double trigger
       setIsGenerating(true);
@@ -100,7 +83,6 @@ export default function Home() {
       disconnect();
 
       try {
-        console.log("[Home] Calling Backend API...");
 
         // Use the authenticated API client
         // This will send the request to NEXT_PUBLIC_API_URL/ai/generate with the Bearer token
@@ -110,10 +92,8 @@ export default function Home() {
           meta: args.meta
         });
 
-        console.log("[Home] API Response Status:", response.status);
 
         const result = response.data; // Axios puts body in .data
-        console.log("[Home] API Result:", result);
 
         if (result.status === 'success' && result.data.jobId) {
           const finalJobId = result.data.jobId;
@@ -125,7 +105,6 @@ export default function Home() {
             path = `/spreadsheet-editor?id=${finalJobId}`;
           }
 
-          console.log("[Home] Redirecting to:", path);
 
           // Add a small delay for "aesthetic" feeling (so user sees the "Creating" screen)
           setTimeout(() => {
@@ -133,12 +112,10 @@ export default function Home() {
           }, 1000);
 
         } else {
-          console.error("Invalid API response format", result);
           setIsGenerating(false);
           alert("Generation failed to start. Please try again.");
         }
       } catch (error) {
-        console.error("Generation failed", error);
         setIsGenerating(false);
         alert(`Error connecting to generation service: ${error.response?.data?.message || error.message}`);
       }

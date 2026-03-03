@@ -29,23 +29,19 @@ export default function AuthGuard({ children }) {
             const isGuestOnly = GUEST_ONLY_ROUTES.includes(router.pathname);
 
             if (now - lastRedirectTime.current < 2000 && lastRedirectPath.current === router.pathname) {
-                console.warn(' AuthGuard: Preventing rapid redirect loop');
                 return;
             }
 
             if (user && typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
-                console.warn(' User object exists but no token - clearing stale auth');
                 localStorage.removeItem('user');
                 return;
             }
 
             if (!isUnprotected && !user) {
-                console.log('Protected route without auth - redirecting to login');
                 lastRedirectTime.current = now;
                 lastRedirectPath.current = '/login';
                 router.replace('/login');
             } else if (isGuestOnly && user) {
-                console.log('Authenticated user on guest-only route - redirecting to home');
                 lastRedirectTime.current = now;
                 lastRedirectPath.current = '/home';
                 router.replace('/home');

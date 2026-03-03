@@ -122,7 +122,6 @@ export function useOpenAIRealtime({
                 analyserRef.current = analyser;
                 audioContextRef.current = audioCtx;
             } catch (e) {
-                console.error("Audio Context Error", e);
             }
 
             if (!isActiveRef.current) { // Abort if disconnected
@@ -207,12 +206,10 @@ CONSTRAINTS:
                         if (item.name === 'generate_document') {
                             try {
                                 const args = JSON.parse(item.arguments);
-                                console.log("[App] Generating:", args);
                                 if (callbacksRef.current.onGenerate) {
                                     callbacksRef.current.onGenerate(args);
                                 }
                             } catch (err) {
-                                console.error("Error parsing function args", err);
                             }
                         }
                     }
@@ -256,7 +253,6 @@ CONSTRAINTS:
             }
 
         } catch (err) {
-            console.error('Realtime connection failed:', err);
             disconnect();
         } finally {
             isConnectingRef.current = false;

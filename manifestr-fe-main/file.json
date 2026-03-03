@@ -1,0 +1,57 @@
+{
+  "width": 1280,
+  "height": 720,
+  "background": "#ffffff",
+  "children": [
+    {
+      "type": "text",
+      "text": "AI Campaign Insights",
+      "x": 80,
+      "y": 80,
+      "fontSize": 60,
+      "fontWeight": "bold",
+      "fill": "#111827",
+      "width": 1000
+    },
+
+    {
+      "type": "text",
+      "text": "Performance Summary",
+      "x": 80,
+      "y": 160,
+      "fontSize": 30,
+      "fill": "#6b7280",
+      "width": 800
+    },
+
+    {
+      "type": "text",
+      "text": "• CTR increased by 22%\n• Conversion Rate improved by 15%\n• CPC reduced by 18%\n• ROAS improved across all segments",
+      "x": 80,
+      "y": 280,
+      "fontSize": 28,
+      "fill": "#111827",
+      "width": 600,
+      "lineHeight": 1.5
+    },
+
+    {
+      "type": "rect",
+      "x": 700,
+      "y": 260,
+      "width": 400,
+      "height": 240,
+      "fill": "#e5e7eb",
+      "cornerRadius": 20
+    },
+
+    {
+      "type": "text",
+      "text": "Insert Graph / Image",
+      "x": 760,
+      "y": 360,
+      "fontSize": 22,
+      "fill": "#374151"
+    }
+  ]
+}

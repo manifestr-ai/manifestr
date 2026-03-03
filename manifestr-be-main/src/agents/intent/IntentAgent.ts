@@ -1,23 +1,13 @@
 import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, IntentResponseSchema, UserPrompt } from "../protocols/types";
-import { generateJSON } from "../../lib/openai";
+    import { generateJSON } from "../../lib/claude";
+import { selectTemplate } from "../presentation/TemplateSelector";
+import { initGenerationLog, appendLog } from "../presentation/GenerationLogger";
 
 export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
-    private layoutQueues: Record<string, string>;
 
-    constructor(intentQueueUrl: string, layoutQueues: Record<string, string>) {
-        super(intentQueueUrl);
-        this.layoutQueues = layoutQueues;
-    }
-
-    protected getNextQueueUrl(job: any, output: IntentResponse): string | undefined {
-        const format = output.metadata.outputFormat || 'presentation';
-        const queue = this.layoutQueues[format];
-        if (!queue) {
-            console.warn(`No layout queue found for format: ${format}. Defaulting to presentation.`);
-            return this.layoutQueues['presentation'];
-        }
-        return queue;
+    constructor() {
+        super();
     }
 
     getProcessingStatus(): string {
@@ -39,7 +29,42 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
     }
 
     async process(input: UserPrompt, job: any): Promise<IntentResponse> {
-        console.log("Intent Agent Processing:", input.prompt);
+
+        // ─────────────────────────────────────────────────────────────
+        // INITIALIZE GENERATION LOG FILE
+        // ─────────────────────────────────────────────────────────────
+        const topicSummary = (input.meta?.title || input.prompt)
+            .split(/[.!?\n]/)[0]
+            .replace(/^(Specific Requirements:|Objective:)/i, '')
+            .trim()
+            .substring(0, 60);
+        initGenerationLog(input.jobId, topicSummary);
+
+        // ─────────────────────────────────────────────────────────────
+        // STEP 1: SELECT OPTIMAL TEMPLATE DECK
+        // ─────────────────────────────────────────────────────────────
+        let templateSelection;
+        try {
+            if (input.output === 'presentation') {
+                templateSelection = await selectTemplate(input.prompt, input.meta || {});
+            } else {
+                templateSelection = null;
+            }
+        } catch (err) {
+            appendLog(`❌ Template selector error: ${err}`);
+            templateSelection = null;
+        }
+        
+        // Fallback for non-presentation or errors
+        if (!templateSelection) {
+            templateSelection = {
+                selectedDeck: 'Deck.1.polotno.json',
+                deckIndex: 0,
+                reasoning: 'Default template',
+                matchScore: 0.5,
+                alternativeDecks: [],
+            };
+        }
 
         const systemPrompt = `
       You are a STRATEGIC CREATIVE DIRECTOR at a world-class agency (Ogilvy/Pentagram/IDEO).
@@ -49,12 +74,17 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
       This is extra data provided by the user. PRIORITIZE this over generic inference.
       ${JSON.stringify(input.meta || {}, null, 2)}
 
-      ### CRITICAL REQUIREMENTS (UPDATED):
-      1. **SLIDE COUNT**: STRICTLY generate between **10 to 20 slides**.
-         - Less than 10 is FAILURE. 
-         - A standard request should default to **12-15 slides**.
-      2. **COMPREHENSIVE COVERAGE**: Every topic must be broken down. Do not compress complex topics into one slide.
-      3. **STRATEGIC NARRATIVE**: Build a complete story: Problem -> Agitation -> Solution -> Evidence -> Action.
+      ### ⚠️ CRITICAL REQUIREMENTS - FAILURE TO FOLLOW = REJECTED ⚠️
+      
+      1. **SLIDE COUNT (ABSOLUTE REQUIREMENT)**:
+         - MINIMUM: 10 slides
+         - MAXIMUM: 12 slides  
+         - DEFAULT: 10-11 slides
+         - If you generate 13+ slides, they will be CUT OFF
+         - If you generate <10 slides, it's a FAILURE
+         
+      2. **COMPREHENSIVE COVERAGE**: Every topic must be broken down. Cover all key aspects thoroughly.
+      3. **STRATEGIC NARRATIVE**: Build a complete story: Hook -> Problem -> Solution -> Proof -> Execution -> Action.
 
       ### 1. DEEP AUDIENCE & CONTEXT ANALYSIS
       - **Audience Psychology**: Who are we REALLY talking to? What keeps them up at night?
@@ -63,19 +93,21 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
       - **Goal Precision**: What specific action should the audience take after viewing?
 
       ### 2. COMPREHENSIVE STRUCTURE PLANNING
-      Create a DETAILED narrative arc with 10-20 items.
+      Create a COMPLETE narrative arc with EXACTLY 10-12 items (no more, no less).
 
-      **Universal Structure (Adapt but keep length):**
+      **Recommended Structure (DEFAULT: 11 slides):**
       1.  **Title & Hook**: The Big Idea (1 Slide)
-      2.  **Executive Summary**: The "Too Long; Didn't Read" (1 Slide)
-      3.  **The Problem/Context**: Current state, pain points, market gaps (2-3 Slides)
-      4.  **The Solution/Product**: How it works, key features, magic moment (3-4 Slides)
-      5.  **Market & Validation**: Size, trends, testimonials, metrics (2-3 Slides)
-      6.  **Business/Strategy**: Revenue, go-to-market, timeline (2-3 Slides)
-      7.  **Team & Vision**: Why us, where we are going (1-2 Slides)
-      8.  **The Ask/Conclusion**: Clear next steps (1 Slide)
+      2.  **Executive Summary**: Quick overview (1 Slide)
+      3.  **The Problem**: Current pain points, market gaps (1-2 Slides)
+      4.  **The Solution**: Core offering, how it works (2 Slides)
+      5.  **Key Features**: Unique capabilities (1 Slide)
+      6.  **Validation**: Market evidence, metrics, testimonials (1 Slide)
+      7.  **Business Model**: Revenue strategy (1 Slide)
+      8.  **Go-to-Market**: Execution plan (1 Slide)
+      9.  **Team**: Why us, credentials (1 Slide)
+      10. **The Ask**: Clear next steps (1 Slide)
       
-      *Total: ~13-18 slides*
+      *Total: 10-12 slides*
 
       ### 3. SECTION NAMING EXCELLENCE
       - Use COMPELLING, SPECIFIC titles (not generic labels)
@@ -83,7 +115,9 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
       - Good: "The $10B Problem Nobody's Solving", "Why Traditional Solutions Fail", "Our Unfair Advantage"
 
       ### 5. OUTPUT FORMAT
-      Return valid JSON matching \`IntentResponseSchema\`. ensure structurePlan has 10-20 items.
+      Return valid JSON matching \`IntentResponseSchema\`.
+      
+      **ABSOLUTE REQUIREMENT**: structurePlan array MUST have between 10-12 items. COUNT THEM!!
       {
         "styleGuide": null,
         "jobId": "${input.jobId}",
@@ -96,18 +130,42 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
           "audience": "Stakeholders",
           "depth": "Deep",
           "scope": "Comprehensive",
-          "size": "Medium-Large (10-20 slides)",
+          "size": "Standard (10-12 slides)",
           "outputFormat": "presentation"
         },
-        "designPreferences": { ... },
+        "designPreferences": {
+          "hasCharts": false,
+          "hasTables": false,
+          "hasImages": true,
+          "colorTheme": "Modern Blue",
+          "mood": "Professional"
+        },
         "structurePlan": [
-           "1. The New Reality: Market Shift",
-           "2. Why Existing Tools Fail",
-           ... (at least 10 items) ...
+           "1. The Big Idea",
+           "2. Executive Summary",
+           "3. The Problem",
+           "4. Market Context",
+           "5. Our Solution",
+           "6. Key Features",
+           "7. Market Validation",
+           "8. Business Model",
+           "9. Go-to-Market",
+           "10. The Team",
+           "11. Next Steps"
         ]
       }
 
-      **REMEMBER**: You MUST generate at least 10 slides. Depth is key.
+      **CRITICAL - REQUIRED FIELDS (NEVER OMIT THESE)**:
+      - designPreferences.hasCharts (boolean, REQUIRED)
+      - designPreferences.hasImages (boolean, REQUIRED)
+      - structurePlan MUST have EXACTLY 10-12 items
+      
+      ⚠️ FINAL CHECK BEFORE RETURNING ⚠️:
+      1. Count structurePlan items - is it between 10-12? If not, FIX IT NOW!
+      2. Did you include hasCharts and hasImages booleans? If not, ADD THEM!
+      3. Does each slide have a compelling title? Generic titles = FAILURE!
+      
+      **SLIDE COUNT VERIFICATION**: Your structurePlan has ___ items. (Must be 10-12)
     `;
 
         // In a real app, use the Zod Schema to validate specifically, or use LangChain structured output
@@ -117,6 +175,39 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
         if (input.output && response.metadata.outputFormat !== input.output) {
             response.metadata.outputFormat = input.output;
         }
+
+        // Attach template selection to response
+        response.metadata.selectedTemplate = templateSelection.selectedDeck;
+        response.metadata.templateReasoning = templateSelection.reasoning;
+        
+        // LOG TEMPLATE SELECTION RESULTS TO FILE
+        appendLog('\n╔══════════════════════════════════════════════════════════════════╗');
+        appendLog('║             🎯 TEMPLATE SELECTOR - FINAL DECISION              ║');
+        appendLog('╚══════════════════════════════════════════════════════════════════╝');
+        appendLog(`\n📝 USER PROMPT: "${input.prompt.substring(0, 100)}${input.prompt.length > 100 ? '...' : ''}"`);
+        appendLog(`📋 OUTPUT TYPE: ${response.metadata.outputFormat}`);
+        appendLog(`👥 AUDIENCE: ${response.metadata.audience}`);
+        appendLog(`🎭 TONE: ${response.metadata.tone}`);
+        appendLog(`🎯 GOAL: ${response.metadata.goal}`);
+        appendLog('\n' + '─'.repeat(68));
+        appendLog(`\n✅ SELECTED TEMPLATE: ${templateSelection.selectedDeck}`);
+        appendLog(`📊 CONFIDENCE SCORE: ${(templateSelection.matchScore * 100).toFixed(0)}%`);
+        appendLog(`\n💡 REASONING:\n   ${templateSelection.reasoning}`);
+        if (templateSelection.alternativeDecks?.length) {
+            appendLog(`\n🔄 ALTERNATIVES CONSIDERED: ${templateSelection.alternativeDecks.join(', ')}`);
+        }
+        appendLog('\n' + '═'.repeat(68) + '\n');
+
+        // CRITICAL ENFORCEMENT: Limit slides to 10-12 MAX
+        
+        if (response.structurePlan && response.structurePlan.length > 12) {
+            response.structurePlan = response.structurePlan.slice(0, 12);
+        } else if (response.structurePlan && response.structurePlan.length < 10) {
+        } else {
+        }
+        
+        response.structurePlan?.forEach((item: string, idx: number) => {
+        });
 
         return response;
     }

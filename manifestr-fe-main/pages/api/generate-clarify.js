@@ -59,7 +59,6 @@ export default async function handler(req, res) {
         const data = await response.json()
 
         if (!data.choices || !data.choices[0]) {
-            console.error('OpenAI Error:', data)
             return res.status(500).json({ message: 'Failed to generate content' })
         }
 
@@ -71,14 +70,12 @@ export default async function handler(req, res) {
             const cleanContent = content.replace(/```json/g, '').replace(/```/g, '').trim();
             parsedContent = JSON.parse(cleanContent);
         } catch (e) {
-            console.error("Failed to parse AI response", content);
             return res.status(500).json({ message: 'Failed to generate valid JSON' });
         }
 
         res.status(200).json(parsedContent)
 
     } catch (error) {
-        console.error(error)
         res.status(500).json({ message: 'Internal Server Error' })
     }
 }

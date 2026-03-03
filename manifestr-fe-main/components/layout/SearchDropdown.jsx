@@ -114,7 +114,6 @@ export default function SearchDropdown({ isOpen, onClose }) {
       } else if (e.key === 'Enter' && filteredResults.length > 0) {
         e.preventDefault()
         // Handle selection
-        console.log('Selected:', filteredResults[selectedIndex])
       }
     }
 
@@ -125,7 +124,6 @@ export default function SearchDropdown({ isOpen, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (filteredResults.length > 0) {
-      console.log('Selected:', filteredResults[selectedIndex])
     }
   }
 

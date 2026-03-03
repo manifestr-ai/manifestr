@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import {
     Home,
     ChevronDown,
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function TopHeader() {
+    const router = useRouter();
     const [status, setStatus] = useState('In Progress');
     const [mode, setMode] = useState('Editing');
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -17,6 +19,10 @@ export default function TopHeader() {
 
     const statusDropdownRef = useRef(null);
     const modeDropdownRef = useRef(null);
+    
+    const handleLogoClick = () => {
+        router.push('/home');
+    };
 
     const statuses = ['In Progress', 'Draft', 'Final', 'Archived'];
     const modes = ['Editing', 'Suggesting', 'Viewing'];
@@ -40,7 +46,7 @@ export default function TopHeader() {
         <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
             {/* Left: Logo & Title */}
             <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleLogoClick}>
                     <img src="/assets/logos/text-logo.svg" alt="Manifestr Logo" className="h-6" />
                 </div>
                 <div className="flex items-center gap-2">

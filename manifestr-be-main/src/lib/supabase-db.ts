@@ -322,7 +322,6 @@ export class SupabaseDB {
                 .limit(10);
 
             if (error) {
-                console.log('Motivation quotes table not found or error:', error.message);
                 return null;
             }
 
@@ -331,7 +330,6 @@ export class SupabaseDB {
             // Return random one from results
             return data[Math.floor(Math.random() * data.length)];
         } catch (err) {
-            console.log('Error fetching motivation quote:', err);
             return null;
         }
     }

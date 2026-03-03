@@ -178,7 +178,6 @@ GENERATE THE JSON NOW.
             return res.json(jsonResponse);
 
         } catch (error) {
-            console.error('Error generating document:', error);
             return res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : String(error) });
         }
     }

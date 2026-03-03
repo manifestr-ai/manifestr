@@ -155,13 +155,11 @@ export default function ForgotPassword() {
 
   const handleStep2Next = (code) => {
     // Move to step 3
-    console.log('Verification code is correct:', code)
     showLoader('Verifying code...', 3, 2000)
   }
 
   const handleStep3Next = (passwordData) => {
     // Move to step 4 (success/completion step)
-    console.log('Password reset successful:', passwordData)
     showLoader('Changing your password', 4, 2000)
   }
 

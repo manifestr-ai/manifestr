@@ -90,10 +90,10 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } catch (err) {
                 processQueue(err, null);
-                // Logout user if refresh fails - use replace to avoid stacking URLs
+                
+                // SILENT LOGOUT - Don't show error popup to user
                 if (typeof window !== 'undefined' && !isRedirectingToLogin) {
                     isRedirectingToLogin = true;
-                    console.error('Auth refresh failed - redirecting to login');
 
                     // Clear ALL auth data
                     localStorage.removeItem('accessToken');
@@ -102,7 +102,7 @@ api.interceptors.response.use(
                     localStorage.removeItem('pendingUser');
                     localStorage.removeItem('pendingVerificationEmail');
 
-                    // Use replace instead of push to avoid /home/login/home/login loop
+                    // Use replace to avoid stacking URLs
                     Router.replace('/login');
 
                     // Reset flag after redirect
@@ -110,7 +110,11 @@ api.interceptors.response.use(
                         isRedirectingToLogin = false;
                     }, 1000);
                 }
-                return Promise.reject(err);
+                
+                // DON'T reject - return a resolved promise to prevent error popup
+                return Promise.resolve({
+                    data: { status: 'error', message: 'Session expired' }
+                });
             } finally {
                 isRefreshing = false;
             }
@@ -119,7 +123,6 @@ api.interceptors.response.use(
         // If we get 401 on auth requests themselves, clear everything and redirect
         if (error.response?.status === 401 && isAuthRequest && typeof window !== 'undefined' && !isRedirectingToLogin) {
             isRedirectingToLogin = true;
-            console.error('🚨 Auth endpoint returned 401 - clearing session');
 
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
@@ -132,6 +135,11 @@ api.interceptors.response.use(
             setTimeout(() => {
                 isRedirectingToLogin = false;
             }, 1000);
+            
+            // Return resolved promise to prevent error popup
+            return Promise.resolve({
+                data: { status: 'error', message: 'Session expired' }
+            });
         }
 
         return Promise.reject(error);

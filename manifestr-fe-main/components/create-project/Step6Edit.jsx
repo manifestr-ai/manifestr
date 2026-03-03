@@ -43,37 +43,27 @@ export default function Step6Edit({ generationId, outputType }) {
         const pollStatus = async () => {
             try {
                 const res = await api.get(`/ai/status/${generationId}`)
-                console.log('📊 Poll response:', res.data);
 
                 if (res.data && res.data.status === 'success') {
                     const data = res.data.data
-                    console.log('📋 Job data:', { status: data.status, type: data.type, progress: data.progress });
 
                     // Normalize status to UPPERCASE to match statusOrder array
                     const normalizedStatus = data.status?.toUpperCase() || 'QUEUED'
-                    console.log('🔄 Normalized status:', normalizedStatus);
                     setCurrentStatus(normalizedStatus)
 
                     if (normalizedStatus === 'COMPLETED') {
-                        console.log('🎉 JOB COMPLETED! Starting redirect...');
-                        console.log('📝 Output Type:', outputType);
-                        console.log('🆔 Generation ID:', generationId);
 
                         // Redirect IMMEDIATELY based on output type
                         if (outputType === 'presentation') {
-                            console.log('✅ Redirecting to PRESENTATION editor');
                             router.push(`/presentation-editor?id=${generationId}`)
                         } else if (outputType === 'spreadsheet') {
-                            console.log('✅ Redirecting to SPREADSHEET editor');
                             router.push(`/spreadsheet-editor?id=${generationId}`)
                         } else {
-                            console.log('✅ Redirecting to DOCUMENT editor (default)');
                             router.push(`/docs-editor?id=${generationId}`)
                         }
                     }
                 }
             } catch (e) {
-                console.error("❌ Polling error", e)
             }
         }
 

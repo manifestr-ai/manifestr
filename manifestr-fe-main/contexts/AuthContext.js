@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
         if (isRedirectingRef.current) return; // Already redirecting, skip
 
         isRedirectingRef.current = true;
-        console.log('Force logout - clearing all auth state');
 
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
@@ -39,8 +38,8 @@ export function AuthProvider({ children }) {
             setUser(updatedUser)
             return updatedUser
         } catch (error) {
-            console.error('Failed to refresh profile:', error)
-            throw error
+            // DON'T THROW - Just log and return null to prevent error popup
+            return null
         }
     }
 
@@ -54,17 +53,14 @@ export function AuthProvider({ children }) {
                 if (storedUser && storedToken) {
                     setUser(JSON.parse(storedUser))
                     // Fetch fresh profile in background to validate
-                    try {
-                        await refreshProfile()
-                    } catch (e) {
-                        console.error("Session validation failed on load:", e)
+                    const result = await refreshProfile()
+                    if (!result) {
                         localStorage.removeItem('user')
                         localStorage.removeItem('accessToken')
                         setUser(null)
                     }
                 }
             } catch (error) {
-                console.error('Failed to parse user from local storage:', error)
                 localStorage.removeItem('user')
                 localStorage.removeItem('accessToken')
             } finally {
@@ -77,16 +73,16 @@ export function AuthProvider({ children }) {
         // Periodic check every 5 minutes
         const intervalId = setInterval(async () => {
             if (localStorage.getItem('accessToken') && !isRedirectingRef.current) {
-                try {
-                    await refreshProfile()
-                    console.log("Periodic session check: OK")
-                } catch (error) {
-                    console.error("Periodic session check failed - logging out:", error)
-                    // If periodic check fails, it means token is invalid
-                    // The API interceptor will handle redirect, but we clear state here
-                    localStorage.removeItem('accessToken')
-                    localStorage.removeItem('user')
-                    setUser(null)
+                const result = await refreshProfile()
+                if (result) {
+                } else {
+                    // Session expired - logout silently without error popup
+
+                    if (!isRedirectingRef.current) {
+                        localStorage.removeItem('accessToken')
+                        localStorage.removeItem('user')
+                        setUser(null)
+                    }
                 }
             }
         }, 5 * 60 * 1000)
@@ -170,7 +166,6 @@ export function AuthProvider({ children }) {
         try {
             // Optional: Call revoke session endpoint
         } catch (error) {
-            console.error("Logout error", error)
         } finally {
             isRedirectingRef.current = true;
             localStorage.removeItem('accessToken')

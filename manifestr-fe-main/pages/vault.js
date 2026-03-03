@@ -54,7 +54,6 @@ export default function Vault() {
 
         setItems(mappedItems)
       } catch (err) {
-        console.error('Failed to fetch vault items:', err)
       } finally {
         setIsLoading(false)
       }
@@ -104,7 +103,6 @@ export default function Vault() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={(data) => {
-          console.log('Creating new collab:', data)
           // Handle collab creation - in a real app, this would make an API call
         }}
       />
@@ -114,7 +112,6 @@ export default function Vault() {
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
         onUpload={async (data) => {
-          console.log('Uploading files:', data)
           try {
             // Import services dynamically if not already imported at top level
             // but for cleaner code let's assume we can reuse the logic or imports
@@ -179,7 +176,6 @@ export default function Vault() {
             setIsLoading(false)
 
           } catch (err) {
-            console.error('Upload failed:', err)
             alert('Upload failed. Please try again.')
             setIsLoading(false) // ensuring loading stops
             throw err // Re-throw to let modal know it failed if needed (though we handle close manually)

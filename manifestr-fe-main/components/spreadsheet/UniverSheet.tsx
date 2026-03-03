@@ -60,11 +60,9 @@ const UniverSheet = forwardRef<any, UniverSheetProps>(({ onAPIReady, data }, ref
             (workbookData.sheets || workbookData.sheetOrder);
 
         if (!isValid) {
-            console.warn("Received invalid or empty workbook data, falling back to dummy.", workbookData);
             workbookData = WORKBOOK_DATA;
         }
 
-        console.log("UniverSheet initializing with data:", workbookData);
 
         // Sanitization: Ensure strict consistency between sheetOrder and sheets
         if (workbookData && workbookData.sheets) {
@@ -79,7 +77,6 @@ const UniverSheet = forwardRef<any, UniverSheetProps>(({ onAPIReady, data }, ref
 
                 // If mismatch found (e.g. validOrder is empty but we have sheets), fix it
                 if (validOrder.length === 0 && sheetKeys.length > 0) {
-                    console.warn("Sheet order mismatch detected. Resetting to all available sheets.");
                     workbookData.sheetOrder = sheetKeys;
                 } else {
                     workbookData.sheetOrder = validOrder;
@@ -88,17 +85,14 @@ const UniverSheet = forwardRef<any, UniverSheetProps>(({ onAPIReady, data }, ref
 
             // Ensure at least one sheet exists
             if (workbookData.sheetOrder.length === 0) {
-                console.warn("No valid sheets found. Falling back to dummy.");
                 workbookData = WORKBOOK_DATA;
             }
         }
 
-        console.log("UniverSheet initializing with sanitized data:", workbookData);
 
         try {
             univerAPI.createWorkbook(workbookData);
         } catch (e) {
-            console.error("Univer failed to create workbook:", e);
         }
 
         // Notify parent that API is ready
@@ -114,7 +108,6 @@ const UniverSheet = forwardRef<any, UniverSheetProps>(({ onAPIReady, data }, ref
                 univerAPI?.dispose();
                 univerAPIRef.current = null;
             } catch (cleanupError) {
-                console.error("Univer disposal error:", cleanupError);
             }
         };
     }, []);

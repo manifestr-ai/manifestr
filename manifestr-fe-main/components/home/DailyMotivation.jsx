@@ -42,7 +42,6 @@ export default function DailyMotivation() {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch motivation quote:', error)
       } finally {
         setLoading(false)
       }

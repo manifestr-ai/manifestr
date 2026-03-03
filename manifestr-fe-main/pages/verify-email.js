@@ -93,7 +93,6 @@ export default function VerifyEmail() {
                 throw new Error('Failed to fetch user profile')
             }
         } catch (error) {
-            console.error('Verification error:', error)
             setVerificationStatus('error')
             setVerificationMessage('Verification successful but failed to load profile. Please try logging in.')
 
@@ -121,7 +120,6 @@ export default function VerifyEmail() {
                 router.push('/login')
             }, 2000)
         } catch (error) {
-            console.error('Verification error:', error)
             setVerificationStatus('error')
             setVerificationMessage(
                 error.response?.data?.message || 'Verification failed. The link may be expired or invalid.'

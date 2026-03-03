@@ -6,6 +6,5 @@ import App from './app';
 // No TypeORM initialization needed - using Supabase directly!
 const app = new App();
 app.listen(() => {
-  console.log(`✅ App is running on port ${app.port}`);
-  console.log(`✅ Using Supabase for all database operations`);
+    console.log('🔑 CLAUDE_API_KEY:', process.env.CLAUDE_API_KEY ? `Found (${process.env.CLAUDE_API_KEY.substring(0, 15)}...)` : ' MISSING');
 });
