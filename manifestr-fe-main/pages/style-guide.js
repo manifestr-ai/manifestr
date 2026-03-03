@@ -49,7 +49,6 @@ export default function StyleGuide() {
         })
         setStyleGuides(mappedGuides)
       } catch (err) {
-        console.error('Failed to fetch style guides:', err)
       } finally {
         setIsLoading(false)
       }
@@ -181,7 +180,6 @@ export default function StyleGuide() {
                     index={index}
                     onClick={() => {
                       // Handle card click
-                      console.log('Clicked:', guide.title)
                     }}
                   />
                 ))}
@@ -197,7 +195,6 @@ export default function StyleGuide() {
                     className="bg-white rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between hover:shadow-lg transition-shadow cursor-pointer gap-4 md:gap-0"
                     onClick={() => {
                       // Handle card click
-                      console.log('Clicked:', guide.title)
                     }}
                   >
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 flex-1 w-full md:w-auto">

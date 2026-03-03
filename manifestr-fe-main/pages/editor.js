@@ -56,15 +56,12 @@ export default function Editor() {
   }
 
   const handleUndo = () => {
-    console.log('Undo')
   }
 
   const handleRedo = () => {
-    console.log('Redo')
   }
 
   const handleShareExport = () => {
-    console.log('Share & Export')
   }
 
   const handleSlideSelect = (index) => {
@@ -309,7 +306,6 @@ export default function Editor() {
   }
 
   const handleSearch = (searchType, query) => {
-    console.log('Search:', searchType, query)
     // Implement search functionality
     setActivePanel(null)
   }
@@ -499,7 +495,6 @@ export default function Editor() {
   }
 
   const handleAIGenerate = async (prompt) => {
-    console.log('AI Generate:', prompt)
     // Implement AI generation logic
     // For now, just add a text element with the prompt
     const newText = {

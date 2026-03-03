@@ -1,6 +1,7 @@
 import Logo from '../logo/Logo'
 import Button from '../ui/Button'
 import { Check } from 'lucide-react'
+import { useRouter } from 'next/router'
 
 const stepLabels = [
   'TOOLKIT',
@@ -67,6 +68,12 @@ function Step({ stepNumber, label, isCurrent, isCompleted }) {
 }
 
 export default function StepperHeader({ step = 1, totalSteps = 6, onSaveExit, sidebarVisible = false }) {
+  const router = useRouter()
+  
+  const handleLogoClick = () => {
+    router.push('/home')
+  }
+  
   return (
     <div className="w-full">
       {/* Fixed Section: Header Navigation + Progress Tracker */}
@@ -76,7 +83,7 @@ export default function StepperHeader({ step = 1, totalSteps = 6, onSaveExit, si
         {/* Header Navigation */}
         <div className="bg-white flex flex-col items-center overflow-hidden w-full">
           <div className="flex h-[72px] items-center justify-between max-w-[1280px] w-full px-8">
-            <Logo size="md" />
+            <Logo size="md" onClick={handleLogoClick} />
             <div className="flex gap-6 items-center justify-end">
               <Button
                 variant="secondary"

@@ -1,82 +1,79 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
+import { useEffect, useRef, useState } from "react";
+import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 
 // --- Tiptap Core Extensions ---
-import { StarterKit } from "@tiptap/starter-kit"
-import { Image } from "@tiptap/extension-image"
-import { TaskItem, TaskList } from "@tiptap/extension-list"
-import { TextAlign } from "@tiptap/extension-text-align"
-import { Typography } from "@tiptap/extension-typography"
-import { Highlight } from "@tiptap/extension-highlight"
-import { Subscript } from "@tiptap/extension-subscript"
-import { Superscript } from "@tiptap/extension-superscript"
-import { Selection } from "@tiptap/extensions"
+import { StarterKit } from "@tiptap/starter-kit";
+import { Image } from "@tiptap/extension-image";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Typography } from "@tiptap/extension-typography";
+import { Highlight } from "@tiptap/extension-highlight";
+import { Subscript } from "@tiptap/extension-subscript";
+import { Superscript } from "@tiptap/extension-superscript";
+import { Selection } from "@tiptap/extensions";
 
 // --- UI Primitives ---
-import { Button } from "../../tiptap-ui-primitive/button"
-import { Spacer } from "../../tiptap-ui-primitive/spacer"
+import { Button } from "../../tiptap-ui-primitive/button";
+import { Spacer } from "../../tiptap-ui-primitive/spacer";
 import {
   Toolbar,
   ToolbarGroup,
   ToolbarSeparator,
-} from "../../tiptap-ui-primitive/toolbar"
+} from "../../tiptap-ui-primitive/toolbar";
 
 // --- Tiptap Node ---
-import { ImageUploadNode } from "../../tiptap-node/image-upload-node/image-upload-node-extension"
-import { HorizontalRule } from "../../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension"
-
+import { ImageUploadNode } from "../../tiptap-node/image-upload-node/image-upload-node-extension";
+import { HorizontalRule } from "../../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 
 // --- Tiptap UI ---
-import { HeadingDropdownMenu } from "../../tiptap-ui/heading-dropdown-menu"
-import { ImageUploadButton } from "../../tiptap-ui/image-upload-button"
-import { ListDropdownMenu } from "../../tiptap-ui/list-dropdown-menu"
-import { BlockquoteButton } from "../../tiptap-ui/blockquote-button"
-import { CodeBlockButton } from "../../tiptap-ui/code-block-button"
+import { HeadingDropdownMenu } from "../../tiptap-ui/heading-dropdown-menu";
+import { ImageUploadButton } from "../../tiptap-ui/image-upload-button";
+import { ListDropdownMenu } from "../../tiptap-ui/list-dropdown-menu";
+import { BlockquoteButton } from "../../tiptap-ui/blockquote-button";
+import { CodeBlockButton } from "../../tiptap-ui/code-block-button";
 import {
   ColorHighlightPopover,
   ColorHighlightPopoverContent,
   ColorHighlightPopoverButton,
-} from "../../tiptap-ui/color-highlight-popover"
+} from "../../tiptap-ui/color-highlight-popover";
 import {
   LinkPopover,
   LinkContent,
   LinkButton,
-} from "../../tiptap-ui/link-popover"
-import { MarkButton } from "../../tiptap-ui/mark-button"
-import { TextAlignButton } from "../../tiptap-ui/text-align-button"
-import { UndoRedoButton } from "../../tiptap-ui/undo-redo-button"
+} from "../../tiptap-ui/link-popover";
+import { MarkButton } from "../../tiptap-ui/mark-button";
+import { TextAlignButton } from "../../tiptap-ui/text-align-button";
+import { UndoRedoButton } from "../../tiptap-ui/undo-redo-button";
 
 // --- Icons ---
-import { ArrowLeftIcon } from "../../tiptap-icons/arrow-left-icon"
-import { HighlighterIcon } from "../../tiptap-icons/highlighter-icon"
-import { LinkIcon } from "../../tiptap-icons/link-icon"
+import { ArrowLeftIcon } from "../../tiptap-icons/arrow-left-icon";
+import { HighlighterIcon } from "../../tiptap-icons/highlighter-icon";
+import { LinkIcon } from "../../tiptap-icons/link-icon";
 
 // --- Hooks ---
-import { useIsBreakpoint } from "../../../hooks/use-is-breakpoint"
-import { useWindowSize } from "../../../hooks/use-window-size"
-import { useCursorVisibility } from "../../../hooks/use-cursor-visibility"
+import { useIsBreakpoint } from "../../../hooks/use-is-breakpoint";
+import { useWindowSize } from "../../../hooks/use-window-size";
+import { useCursorVisibility } from "../../../hooks/use-cursor-visibility";
 
 // --- Components ---
 
-
 // --- Lib ---
-import { handleImageUpload, MAX_FILE_SIZE } from "../../../lib/tiptap-utils"
+import { handleImageUpload, MAX_FILE_SIZE } from "../../../lib/tiptap-utils";
 
 // --- Styles ---
 
-
-import content from "../../tiptap-templates/simple/data/content.json"
+import content from "../../tiptap-templates/simple/data/content.json";
 
 const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
   isMobile,
 }: {
-  onHighlighterClick: () => void
-  onLinkClick: () => void
-  isMobile: boolean
+  onHighlighterClick: () => void;
+  onLinkClick: () => void;
+  isMobile: boolean;
 }) => {
   return (
     <>
@@ -138,18 +135,16 @@ const MainToolbarContent = ({
       </ToolbarGroup>
 
       <Spacer />
-
-
     </>
-  )
-}
+  );
+};
 
 const MobileToolbarContent = ({
   type,
   onBack,
 }: {
-  type: "highlighter" | "link"
-  onBack: () => void
+  type: "highlighter" | "link";
+  onBack: () => void;
 }) => (
   <>
     <ToolbarGroup>
@@ -171,15 +166,21 @@ const MobileToolbarContent = ({
       <LinkContent />
     )}
   </>
-)
+);
 
-export function SimpleEditor({ onUpdate, content: providedContent }: { onUpdate?: (content: string) => void, content?: any }) {
-  const isMobile = useIsBreakpoint()
-  const { height } = useWindowSize()
+export function SimpleEditor({
+  onUpdate,
+  content: providedContent,
+}: {
+  onUpdate?: (content: string) => void;
+  content?: any;
+}) {
+  const isMobile = useIsBreakpoint();
+  const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
-    "main"
-  )
-  const toolbarRef = useRef<HTMLDivElement>(null)
+    "main",
+  );
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -215,21 +216,21 @@ export function SimpleEditor({ onUpdate, content: providedContent }: { onUpdate?
         maxSize: MAX_FILE_SIZE,
         limit: 3,
         upload: handleImageUpload,
-        onError: (error) => console.error("Upload failed:", error),
+        onError: (_error) => {},
       }),
     ],
     content: providedContent || content,
     onUpdate({ editor }) {
       if (onUpdate) {
-        onUpdate(editor.getHTML())
+        onUpdate(editor.getHTML());
       }
-    }
-  })
+    },
+  });
 
   // Update editor content if providedContent changes
   useEffect(() => {
     if (editor && providedContent) {
-      // Compare to avoid resetting cursor or history purely on reference change if possible, 
+      // Compare to avoid resetting cursor or history purely on reference change if possible,
       // but typically setContent matches the logic needed for external load.
       // We only set it if the editor is empty or we want to force load.
       // For this showcase, simply setting it is safest to ensure it loads.
@@ -238,22 +239,23 @@ export function SimpleEditor({ onUpdate, content: providedContent }: { onUpdate?
       // DIFFERENT APPROACH: The issue might be next.js fast refresh or strict mode.
       // The 'dependencies' arg of useEditor is empty [], so it never re-initializes.
       // We must manually set content if providedContent changes.
-      if (editor.isEmpty) { // Only set if empty or forcing? No, we want to replace default.
-        editor.commands.setContent(providedContent)
+      if (editor.isEmpty) {
+        // Only set if empty or forcing? No, we want to replace default.
+        editor.commands.setContent(providedContent);
       }
     }
-  }, [editor, providedContent])
+  }, [editor, providedContent]);
 
   const rect = useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
-  })
+  });
 
   useEffect(() => {
     if (!isMobile && mobileView !== "main") {
-      setMobileView("main")
+      setMobileView("main");
     }
-  }, [isMobile, mobileView])
+  }, [isMobile, mobileView]);
 
   return (
     <div className="simple-editor-wrapper">
@@ -263,8 +265,8 @@ export function SimpleEditor({ onUpdate, content: providedContent }: { onUpdate?
           style={{
             ...(isMobile
               ? {
-                bottom: `calc(100% - ${height - rect.y}px)`,
-              }
+                  bottom: `calc(100% - ${height - rect.y}px)`,
+                }
               : {}),
           }}
         >
@@ -289,5 +291,5 @@ export function SimpleEditor({ onUpdate, content: providedContent }: { onUpdate?
         />
       </EditorContext.Provider>
     </div>
-  )
+  );
 }

@@ -587,7 +587,6 @@ export default function TeamMemberDetails() {
         member={member}
         onSave={(formData) => {
           // Handle save - in a real app, this would make an API call
-          console.log('Saving team member:', formData)
           // You could update the member state here or refetch data
         }}
       />

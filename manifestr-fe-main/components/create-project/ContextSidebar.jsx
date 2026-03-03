@@ -48,7 +48,6 @@ export default function ContextSidebar() {
   }
 
   const handleSave = () => {
-    console.log('Save context inputs')
     // Handle save logic
   }
 

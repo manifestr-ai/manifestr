@@ -52,7 +52,6 @@ export default function FormulaBar({ univerAPI }) {
                     setFormulaValue(cellData?.toString() || '');
                 }
             } catch (error) {
-                console.error('Error updating formula bar:', error);
             }
         };
 
@@ -113,7 +112,6 @@ export default function FormulaBar({ univerAPI }) {
             setIsEditing(false);
             inputRef.current?.blur();
         } catch (error) {
-            console.error('Error applying formula:', error);
         }
     };
 

@@ -77,7 +77,6 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext }
       updateData({ logos: [...uploadedFiles, ...newFiles] })
 
     } catch (err) {
-      console.error("Logo upload failed", err)
       // Fallback: just store local preview/file if upload fails, or alert user
       alert("Failed to upload logo. Please try again.")
     }

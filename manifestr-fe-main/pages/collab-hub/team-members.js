@@ -276,7 +276,6 @@ export default function TeamMembers() {
         member={null}
         onSave={(formData) => {
           // Handle save - in a real app, this would make an API call
-          console.log('Adding team member:', formData)
           // You could add the member to the list here or refetch data
           setShowAddModal(false)
         }}
@@ -289,7 +288,6 @@ export default function TeamMembers() {
         member={editingMember}
         onSave={(formData) => {
           // Handle save - in a real app, this would make an API call
-          console.log('Updating team member:', formData)
           // You could update the member in the list here or refetch data
           setEditingMember(null)
         }}

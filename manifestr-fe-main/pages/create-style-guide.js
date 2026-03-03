@@ -197,7 +197,6 @@ export default function CreateStyleGuide() {
       await createStyleGuide(payload)
       setShowCompletionModal(true)
     } catch (error) {
-      console.error("Failed to create style guide:", error)
       alert("Failed to save style guide. Please try again.")
     } finally {
       setIsSubmitting(false)

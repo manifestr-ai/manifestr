@@ -39,7 +39,6 @@ export default function Onboarding() {
       // But wait, if I don't update context, `AuthGuard` or `Home` might redirect back to Onboarding if they check that flag.
       // So I MUST update context.
     } catch (error) {
-      console.error('Onboarding error:', error)
       throw error // Re-throw so OnboardingFlow knows it failed
     }
   }

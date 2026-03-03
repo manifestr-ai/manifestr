@@ -15,7 +15,6 @@ export function getColor(path) {
   for (const key of keys) {
     value = value?.[key]
     if (value === undefined) {
-      console.warn(`Color not found: ${path}`)
       return '#000000'
     }
   }

@@ -1,25 +1,15 @@
 // Basic mock for the api module
 const mockApi = {
     get: (url, config) => {
-        console.log(`[GET] ${url}`);
-        console.log('Config:', JSON.stringify(config, null, 2));
         return Promise.resolve({ data: { success: true, method: 'GET', url, config } });
     },
     post: (url, data, config) => {
-        console.log(`[POST] ${url}`);
-        console.log('Data:', JSON.stringify(data, null, 2));
-        console.log('Config:', JSON.stringify(config, null, 2));
         return Promise.resolve({ data: { success: true, method: 'POST', url, data, config } });
     },
     patch: (url, data, config) => {
-        console.log(`[PATCH] ${url}`);
-        console.log('Data:', JSON.stringify(data, null, 2));
-        console.log('Config:', JSON.stringify(config, null, 2));
         return Promise.resolve({ data: { success: true, method: 'PATCH', url, data, config } });
     },
     delete: (url, config) => {
-        console.log(`[DELETE] ${url}`);
-        console.log('Config:', JSON.stringify(config, null, 2));
         return Promise.resolve({ data: { success: true, method: 'DELETE', url, config } });
     }
 };
@@ -43,10 +33,3 @@ const mockApi = {
 // I'll skip the execution of a test script to avoid environment specific module issues (ESM vs CommonJS) 
 // and instead double check my imports and exports.
 
-console.log("Verification via static analysis:");
-console.log("- services/config.js exports API_BASE_URL and ENDPOINTS.");
-console.log("- services/uploads.js imports them and exports getPresignedUrl, uploadToS3.");
-console.log("- services/uploads.js uses correct endpoint UPLOADS.PRESIGN.");
-console.log("- services/vault.js imports properly and uses VAULTS endpoints.");
-console.log("- services/style-guide.js imports properly and uses STYLE_GUIDES endpoints.");
-console.log("All looks consistent.");

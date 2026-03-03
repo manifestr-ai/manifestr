@@ -257,7 +257,6 @@ export default function VaultCollabs() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={(data) => {
-          console.log('Creating new collab:', data)
           // Handle collab creation - in a real app, this would make an API call
         }}
       />
@@ -267,7 +266,6 @@ export default function VaultCollabs() {
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}
         onUpload={(data) => {
-          console.log('Uploading files:', data)
           // Handle file upload - in a real app, this would make an API call
         }}
       />
