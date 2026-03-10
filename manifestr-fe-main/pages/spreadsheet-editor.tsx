@@ -156,10 +156,10 @@ export default function SpreadsheetEditor() {
                                 const borders: Partial<ExcelJS.Borders> = {};
                                 // Univer bd format: { t: { s: 1, cl: { rgb: ... } }, ... } (top, bottom, left, right)
                                 // s: style (0: none, 1: thin, etc.)
-                                const mapBorder = (bdSide) => {
+                                const mapBorder = (bdSide: any): Partial<ExcelJS.Border> | undefined => {
                                     if (!bdSide) return undefined;
                                     return {
-                                        style: 'thin', // Simplify to thin for now unless we map style codes
+                                        style: 'thin' as any,
                                         color: bdSide.cl?.rgb ? { argb: 'FF' + bdSide.cl.rgb.replace('#', '') } : undefined
                                     };
                                 };
