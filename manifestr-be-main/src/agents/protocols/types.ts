@@ -85,6 +85,9 @@ export const LayoutResponseSchema = z.object({
             body: z.string(),
         }),
     }).optional(),
+    // 🆕 NEW: Semantic document support (flexible schema generation)
+    documentType: z.string().optional().describe("Type of document detected: business_letter, checklist, run_sheet, invoice, etc."),
+    semanticSchema: z.any().optional().describe("Flexible JSON schema matching the document type structure"),
 });
 
 export const LayoutGenerationSchema = LayoutResponseSchema.omit({ jobId: true, intent: true });

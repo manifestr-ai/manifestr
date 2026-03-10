@@ -19,66 +19,48 @@ export class SpreadsheetLayoutAgent extends BaseAgent<IntentResponse, LayoutResp
       throw new Error("Invalid input: missing intent metadata");
     }
 
-
     const systemPrompt = `
-      Your mission: Define a container for a spreadsheet workbook tailored EXACTLY to the user's request.
-
-      ### 1. LAYOUT STRATEGY
-      - Spreadsheets are monolithic structures, not linear slides.
-      - We will use a SINGLE "Workbook Container" block to hold the entire state.
+      Your mission: Define the ARCHITECTURE for a complex, multi-sheet spreadsheet application.
       
-      ### 2. INTENT ANALYSIS & SHEET STRATEGY
+      ### 1. PHILOSOPHY: "The Spreadsheet App"
+      - We do NOT build simple lists. We build **Systems**.
+      - The output must be a SINGLE "Workbook Master" block that describes the entire system.
+      
+      ### 2. INTENT ANALYSIS
       - **Goal**: ${input.metadata.goal}
       - **Type**: ${input.metadata.type}
       
-      **CRITICAL STRATEGY**:
-      - **MODELING BEST PRACTICES**: Separate Inputs from Outputs.
-      - **Finance**: 
-          1. "Assumptions" (Drivers, Growth Rates).
-          2. "Financial Model" (Calculations driven by formulas).
-          3. "Dashboard" (Summary Charts).
-      - **Gantt/Project**: 
-          1. "Project Tracker" (The massive data sheet).
-          2. "Dashboard" (Executive Summary).
+      **ARCHITECTURAL PATTERNS**:
+      - **Finance**: [Dashboard] -> [Assumptions] -> [Monthly Model] -> [Summary]
+      - **Project**: [Gantt View] -> [Task Database] -> [Team Utilization] -> [Settings]
+      - **Inventory**: [Stock Dashboard] -> [In/Out Log] -> [Product Master] -> [Suppliers]
       
-      **CONSOLIDATION RULE**: 
-      - Keep all raw data in ONE place.
-      - Never create fragmentation (e.g. "Jan", "Feb", "Mar" sheets). Use columns instead.
-
       ### 3. OUTPUT STRUCTURE
-      Return a JSON object with a "blocks" array.
+      Return a JSON object with a **SINGLE** block representing the Workbook.
       
-      ** NEGATIVE CONSTRAINTS **:
-    - DO NOT flatten the structure. 
-      - The Root Object must NOT contain "component" or "components". 
-      - The Root Object must NOT contain "layoutType".
-      - These belong INSIDE the "blocks" array items.
+      **CRITICAL**: 
+      - The 'constraints.description' field MUST contain the detailed "Blueprint" for the Content Agent.
+      - List exactly which sheets to create and their purpose in the description.
 
       ** REQUIRED JSON **:
-    {
-      "blocks": [
-        {
-          "id": "workbook-container",
-          "type": "sheet",
-          "title": "${input.title || "Workbook"}",
-          "layoutType": "spreadsheet-master",
-          "components": [
-            {
-              "id": "workbook",
-              "role": "table",
-              "constraints": {
-                 "suggestedData": "Create 2 sheets max. Main Sheet MUST have ${input.metadata.itemCount || '50+'} rows/items. Dashboard separates visuals."
-              }
-            }
-          ]
-        }
-      ]
-    }
-
-      ### 4. COMPONENT ROLES
-      - "title", "subtitle", "body", "image", "chart", "table", "caption", "header", "row", "column", "cell", "footer", "timeline", "task".
-
-       Return valid JSON per LayoutGenerationSchema.
+      {
+        "blocks": [
+          {
+            "id": "workbook-master",
+            "type": "sheet",
+            "title": "${input.title || "Master Workbook"}",
+            "layoutType": "spreadsheet-app",
+            "components": [
+               { 
+                 "role": "table", 
+                 "constraints": { 
+                    "description": "Create a multi-sheet workbook with: 1. Executive Dashboard (KPIs, Charts). 2. Detailed Analysis (Complex Formulas). 3. Raw Data (Clean database format). Ensure sheets are linked via VLOOKUP/SUMIFS." 
+                 } 
+               }
+            ]
+          }
+        ]
+      }
       `;
 
     const generatedData = await generateJSON<z.infer<typeof LayoutGenerationSchema>>(

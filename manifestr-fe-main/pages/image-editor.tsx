@@ -20,7 +20,7 @@ export default function ImageEditor() {
 
             {/* Top Section */}
             <div className="flex-none z-30">
-                <TopHeader />
+                <TopHeader editorType="document" />
             </div>
 
             {/* Main Content Area */}

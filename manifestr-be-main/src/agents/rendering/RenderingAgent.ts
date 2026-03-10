@@ -50,23 +50,27 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
             throw new Error("Invalid input: missing layout data");
         }
 
-        if (!input.layout.blocks || !Array.isArray(input.layout.blocks)) {
-            throw new Error("Invalid input: layout.blocks is missing or not an array");
-        }
-        
-        
-        // Validate content mapping
-        if (!input.generatedContent || input.generatedContent.length === 0) {
-        } else {
+        // Check if this is a semantic document (skip block validation)
+        const firstBlock = input.generatedContent?.[0];
+        const isSemantic = firstBlock?.content?.semanticDocument;
+
+        if (!isSemantic) {
+            if (!input.layout.blocks || !Array.isArray(input.layout.blocks)) {
+                throw new Error("Invalid input: layout.blocks is missing or not an array");
+            }
             
-            // Check for mismatches
-            const contentIds = new Set(input.generatedContent.map((c: any) => c.blockId));
-            const layoutIds = new Set(input.layout.blocks.map((b: any) => b.id));
-            
-            input.layout.blocks.forEach((block: any) => {
-                if (!contentIds.has(block.id)) {
-                }
-            });
+            // Validate content mapping for legacy block-based documents
+            if (!input.generatedContent || input.generatedContent.length === 0) {
+            } else {
+                // Check for mismatches
+                const contentIds = new Set(input.generatedContent.map((c: any) => c.blockId));
+                const layoutIds = new Set(input.layout.blocks.map((b: any) => b.id));
+                
+                input.layout.blocks.forEach((block: any) => {
+                    if (!contentIds.has(block.id)) {
+                    }
+                });
+            }
         }
 
         const format = input.layout.intent.metadata.outputFormat;
@@ -75,7 +79,13 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
         if (format === 'presentation') {
             editorState = await this.convertToPolotno(input);
         } else if (format === 'document') {
-            editorState = await this.convertToTiptap(input); // Tiptap JSON
+            // Check if this is a semantic document
+            const firstBlock = input.generatedContent?.[0];
+            if (firstBlock?.content?.semanticDocument) {
+                editorState = await this.convertSemanticToTiptap(firstBlock.content);
+            } else {
+                editorState = await this.convertToTiptap(input); // Legacy Tiptap JSON
+            }
         } else {
             editorState = this.convertToUniver(input);
         }
@@ -416,5 +426,268 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
             styles: styles,
             resources: []
         };
+    }
+
+    /**
+     * 🆕 NEW METHOD: Convert semantic document JSON to Tiptap format for display
+     */
+    private async convertSemanticToTiptap(content: any): Promise<any> {
+        const { documentType, semanticDocument } = content;
+        const contentNodes: any[] = [];
+
+        // Add document title/header
+        contentNodes.push({
+            type: "heading",
+            attrs: { level: 1 },
+            content: [{ type: "text", text: this.extractDocumentTitle(semanticDocument, documentType) }]
+        });
+
+        // Add spacing
+        contentNodes.push({ type: "paragraph", content: [] });
+        
+        // Add horizontal rule for visual separation
+        contentNodes.push({ type: "horizontalRule" });
+        
+        // Add spacing
+        contentNodes.push({ type: "paragraph", content: [] });
+
+        // Convert semantic structure to readable Tiptap format
+        this.convertObjectToTiptap(semanticDocument, contentNodes, 2);
+
+        return {
+            type: "doc",
+            content: contentNodes
+        };
+    }
+
+    /**
+     * Recursively convert semantic object to Tiptap nodes with enhanced formatting
+     */
+    private convertObjectToTiptap(obj: any, nodes: any[], headingLevel: number = 2): void {
+        if (!obj || typeof obj !== 'object') return;
+
+        for (const [key, value] of Object.entries(obj)) {
+            // Skip internal fields
+            if (key === 'documentType' || key === 'id' || key === '_internal') continue;
+
+            const displayKey = this.formatKey(key);
+
+            if (Array.isArray(value)) {
+                // Handle arrays (items, clauses, schedule, etc.)
+                nodes.push({
+                    type: "heading",
+                    attrs: { level: Math.min(headingLevel, 4) },
+                    content: [{ type: "text", text: displayKey, marks: [{ type: "bold" }] }]
+                });
+
+                // Add spacing
+                nodes.push({ type: "paragraph", content: [] });
+
+                // Convert array items to table if they're objects
+                if (value.length > 0 && typeof value[0] === 'object') {
+                    const table = this.arrayToTable(value);
+                    if (table) {
+                        nodes.push(table);
+                        // Add spacing after table
+                        nodes.push({ type: "paragraph", content: [] });
+                    } else {
+                        // Fallback: render as structured list
+                        value.forEach((item, index) => {
+                            nodes.push({
+                                type: "heading",
+                                attrs: { level: Math.min(headingLevel + 1, 5) },
+                                content: [{ type: "text", text: `${index + 1}. ${displayKey.slice(0, -1)}` }]
+                            });
+                            this.convertObjectToTiptap(item, nodes, headingLevel + 2);
+                            nodes.push({ type: "paragraph", content: [] }); // Spacing
+                        });
+                    }
+                } else {
+                    // Simple array values - render as bullet list
+                    value.forEach(item => {
+                        nodes.push({
+                            type: "paragraph",
+                            content: [{ type: "text", text: `• ${String(item)}` }]
+                        });
+                    });
+                    nodes.push({ type: "paragraph", content: [] }); // Spacing
+                }
+            } else if (typeof value === 'object' && value !== null) {
+                // Handle nested objects
+                nodes.push({
+                    type: "heading",
+                    attrs: { level: Math.min(headingLevel, 4) },
+                    content: [{ type: "text", text: displayKey, marks: [{ type: "bold" }] }]
+                });
+                nodes.push({ type: "paragraph", content: [] }); // Spacing
+                this.convertObjectToTiptap(value, nodes, headingLevel + 1);
+            } else {
+                // Handle primitive values with markdown-style formatting
+                const formattedContent = this.parseMarkdownText(String(value));
+                
+                // If it's a short label-value pair
+                if (String(value).length < 200) {
+                    nodes.push({
+                        type: "paragraph",
+                        content: [
+                            { type: "text", text: `${displayKey}: `, marks: [{ type: "bold" }] },
+                            ...formattedContent
+                        ]
+                    });
+                } else {
+                    // Long content - separate heading from content
+                    nodes.push({
+                        type: "heading",
+                        attrs: { level: Math.min(headingLevel, 4) },
+                        content: [{ type: "text", text: displayKey }]
+                    });
+                    
+                    // Split long content into paragraphs
+                    const paragraphs = String(value).split('\n\n');
+                    paragraphs.forEach(para => {
+                        if (para.trim()) {
+                            const paraContent = this.parseMarkdownText(para.trim());
+                            nodes.push({
+                                type: "paragraph",
+                                content: paraContent
+                            });
+                        }
+                    });
+                    nodes.push({ type: "paragraph", content: [] }); // Spacing
+                }
+            }
+        }
+    }
+
+    /**
+     * Parse markdown-style text formatting (**bold**, *italic*)
+     */
+    private parseMarkdownText(text: string): any[] {
+        const content: any[] = [];
+        
+        // Simple regex-based markdown parser
+        const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+        
+        parts.forEach(part => {
+            if (!part) return;
+            
+            if (part.startsWith('**') && part.endsWith('**')) {
+                // Bold text
+                content.push({
+                    type: "text",
+                    text: part.slice(2, -2),
+                    marks: [{ type: "bold" }]
+                });
+            } else if (part.startsWith('*') && part.endsWith('*')) {
+                // Italic text
+                content.push({
+                    type: "text",
+                    text: part.slice(1, -1),
+                    marks: [{ type: "italic" }]
+                });
+            } else {
+                // Regular text
+                content.push({
+                    type: "text",
+                    text: part
+                });
+            }
+        });
+        
+        return content.length > 0 ? content : [{ type: "text", text: text }];
+    }
+
+    /**
+     * Convert array of objects to Tiptap table with enhanced formatting
+     */
+    private arrayToTable(items: any[]): any | null {
+        if (!items || items.length === 0 || typeof items[0] !== 'object') return null;
+
+        // Extract headers from first object
+        const headers = Object.keys(items[0]).filter(k => !k.startsWith('_') && !k.startsWith('id'));
+        if (headers.length === 0) return null;
+
+        const tableRows: any[] = [];
+
+        // Header row with bold formatting
+        const headerCells = headers.map(h => ({
+            type: "tableHeader",
+            attrs: { colspan: 1, rowspan: 1, colwidth: null },
+            content: [{
+                type: "paragraph",
+                content: [{
+                    type: "text",
+                    text: this.formatKey(h),
+                    marks: [{ type: "bold" }]
+                }]
+            }]
+        }));
+        tableRows.push({ type: "tableRow", content: headerCells });
+
+        // Data rows with proper formatting
+        items.forEach((item, rowIndex) => {
+            const cells = headers.map(h => {
+                const value = item[h];
+                const displayValue = this.formatCellValue(value);
+                
+                return {
+                    type: "tableCell",
+                    attrs: { colspan: 1, rowspan: 1, colwidth: null },
+                    content: [{
+                        type: "paragraph",
+                        content: displayValue ? [{
+                            type: "text",
+                            text: displayValue
+                        }] : []
+                    }]
+                };
+            });
+            tableRows.push({ type: "tableRow", content: cells });
+        });
+
+        return {
+            type: "table",
+            content: tableRows
+        };
+    }
+
+    /**
+     * Format cell value for display
+     */
+    private formatCellValue(value: any): string {
+        if (value === null || value === undefined) return '';
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+        if (typeof value === 'number') {
+            // Format numbers with commas for thousands
+            return value.toLocaleString();
+        }
+        if (typeof value === 'object') {
+            // Handle nested objects
+            return JSON.stringify(value);
+        }
+        return String(value);
+    }
+
+    /**
+     * Extract document title from semantic structure
+     */
+    private extractDocumentTitle(doc: any, docType: string): string {
+        // Try common title fields
+        if (doc.title) return doc.title;
+        if (doc.name) return doc.name;
+        if (doc.subject) return doc.subject;
+        if (doc.event?.name) return doc.event.name;
+        
+        // Generate from document type
+        return this.formatKey(docType);
+    }
+
+    /**
+     * Format snake_case keys to Title Case
+     */
+    private formatKey(key: string): string {
+        return key
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
     }
 }

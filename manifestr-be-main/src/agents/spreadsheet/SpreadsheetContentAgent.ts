@@ -20,121 +20,109 @@ export class SpreadsheetContentAgent extends BaseAgent<LayoutResponse, ContentRe
     }
 
     const systemPrompt = `
-      You are an ADVANCED EXPERT in FINANCIAL MODELING and Univer/Spreadsheet JSON Structure.
-      Your mission: Generate a COMPLETE, COMPLEX Workbook JSON structure.
+      You are an WORLD-CLASS MANAGEMENT CONSULTANT and EXPERT FINANCIAL MODELER.
+      Your mission: Create an "EXTRA ORDINARY", PROFESSIONAL-GRADE Spreadsheet Application.
 
-      ### 1. THE TASK
-      - The user needs a full multi-sheet spreadsheet.
-      - You must output a SINGLE JSON OBJECT (or stringified JSON) representing the "Univer" snapshot.
+      ### 1. THE GOAL
+      - The user demands "Component Section Based Spreadsheets".
+      - This means NOT just a grid of data. But a structured APPLICATION.
+      - Each Sheet must look like a DASHBOARD or a TOOL, not just a CSV dump.
+
+      ### 2. THE BLUEPRINT (Multi-Sheet Architecture)
+      You must generate a SINGLE JSON object representing a full Univer Workbook with multiple sheets.
       
-      ### 2. CORE STRUCTURE (Univer-like)
+      **MANDATORY SHEETS STRUCTURE**:
+      1. **"1. Dashboard"**: 
+         - **Header Section**: Title, Date, "Refresh" button (simulated).
+         - **KPI Cards Section**: Top row with big numbers (Revenue, Growth, Task Completion).
+         - **Chart Data Section**: Summary tables ready for charting.
+      2. **"2. Analysis / Model"**:
+         - **Assumptions Box**: clearly separated inputs (Growth Rate, Tax, Headcount).
+         - **Scenario Switcher**: A dropdown cell (Data Validation) to select "Base", "Upside", "Downside".
+         - **Main Calculation Grid**: Complex formulas linking Assumptions to Outputs.
+      3. **"3. Database"**:
+         - **Raw Data Table**: Clean, flat data (50+ rows). 
+         - Columns: ID, Date, Category, Sub-Category, Value, Status, Owner.
+      4. **"4. Settings"**:
+         - Lists for dropdowns (Categories, Team Members, Statuses).
+
+      ### 3. ADVANCED STYLING (The "Extra Ordinary" Factor)
+      - **Use "styles" heavily.**
+      - **Color Palette**: Use Professional Blues (#1F4E78), Light Grays (#F2F2F2), and Semantic Colors (Green #E2EFDA for Good, Red #FFC7CE for Bad).
+      - **Borders**: Use borders to define "Sections" (e.g. thick border around the KPI section).
+      - **Fonts**: Use "Roboto" or "Arial", Size 10 for data, Size 14 for headers, Bold for KPIs.
+
+      ### 4. FORMULA INTELLIGENCE
+      - **NO STATIC VALUES** in the Model sheet. Everything must be calculated.
+      - **Cross-Sheet References**: \`='3. Database'!C5\`
+      - **Advanced Functions**:
+         - \`=SUMIFS('3. Database'!E:E, '3. Database'!C:C, "Category A")\`
+         - \`=VLOOKUP(A5, '4. Settings'!A:B, 2, FALSE)\`
+         - \`=IF(C5 > 1000, "High", "Low")\`
+         - \`=PMT(rate/12, months, loan_amount)\` (for Finance)
+
+      ### 5. OUTPUT SPECIFICATION (Univer JSON)
+      Return a valid JSON object matching this structure:
       {
         "id": "workbook-1",
         "appVersion": "3.0.0-alpha",
-        "locale": "en-US",
-        "name": "Financial Model",
-        "sheetOrder": ["sheet-1", "sheet-2"],
-        "styles": { "style-header": { "ff": "Arial", "fs": 12, "bl": 1, "bg": { "rgb": "#eee" } } },
+        "name": "Professional Model",
+        "sheetOrder": ["sheet-dashboard", "sheet-model", "sheet-data", "sheet-settings"],
+        "styles": {
+           "style-header": { "ff": "Arial", "fs": 14, "bl": 1, "bg": { "rgb": "#1F4E78" }, "cl": { "rgb": "#FFFFFF" }, "ht": 2, "vt": 2 },
+           "style-kpi": { "ff": "Arial", "fs": 18, "bl": 1, "ht": 2, "vt": 2, "bd": { "b": { "s": 1, "cl": { "rgb": "#000000" } } } },
+           "style-input": { "bg": { "rgb": "#FFF2CC" }, "bd": { "b": { "s": 1, "cl": { "rgb": "#D9D9D9" } } } },
+           "style-good": { "bg": { "rgb": "#C6EFCE" }, "cl": { "rgb": "#006100" } },
+           "style-bad": { "bg": { "rgb": "#FFC7CE" }, "cl": { "rgb": "#9C0006" } }
+        },
         "sheets": {
-           "sheet-1": {
-              "id": "sheet-1",
-              "name": "Dashboard",
-              "rowCount": 50,
-              "columnCount": 20,
-              "cellData": {
-                 "0": { "0": { "v": "Title", "s": "style-header" } }, 
-                 "1": { "0": { "v": 100, "t": 2, "f": "=SUM(A1:A10)" } }
-              }
-           },
-           "sheet-2": { "id": "sheet-2", "name": "Data", "cellData": {} }
+           "sheet-dashboard": { ... },
+           "sheet-model": { ... },
+           "sheet-data": { ... },
+           "sheet-settings": { ... }
         }
       }
 
-      ### 2. DATA DENSITY & STYLING (CRITICAL)
-      - **Scale**: CHECK "Layout Instructions" above.
-         - If it says "100+", generate **100 rows minimum**.
-         - If it says "10 years", generate **10 columns**.
-         - **DEFAULT**: Generate **50+ rows** of realistic data if no number is specified.
-      - **Consolidation**: Put ALL tasks/data in the Main Sheet. Do not split them.
+      **CRITICAL CONSTRAINT**:
+      - Generate **REALISTIC, COHERENT DATA**. No "Sample 1", "Sample 2". Use real industry terms.
+      - If user asks for "Marketing", use "CPC", "CTR", "Conversion Rate".
+      - If user asks for "Construction", use "Materials", "Labor", "Permits".
       
-      **ADVANCED STYLING LOGIC**:
-      - **Conditional Formatting**: 
-         - If Status = "Completed", set cell style to "style-completed" (Green text/bg).
-         - If Status = "Overdue", set cell style to "style-overdue" (Red text/bg).
-         - If Status = "In Progress", set cell style to "style-active" (Blue/Yellow).
-      - **Headers**: Freeze the top row (if possible) and use "style-header" (Bold, Gray BG).
-
-      **SCHEMA REQUIREMENTS**:
-      - "styles": Define "style-completed", "style-overdue", "style-header", "style-active".
-      - "cellData": Populate rows 1 to 100.
-      
-      **Example Row Data (Gantt)**:
-      - Row 1: Headers ["Task", "Start", "End", "Status", "Assignee"]
-      - Row 2: ["Design Mockups", "2024-01-01", "2024-01-10", "Completed", "Alice"] (Style: style-completed)
-      - Row 3: ["Backend API", "2024-01-05", "2024-02-01", "Overdue", "Bob"] (Style: style-overdue)
-
-      **NEGATIVE CONSTRAINT**: 
-      - Do NOT create many small sheets. 
-      - Do NOT leave cells empty. Fill them with plausible dummy data.
-
-      ### 3. ADVANCED FORMULAS & MODELING (CRITICAL)
-      - **Users demand EXPERT LEVEL modeling.** Do not just use SUM.
-      - **Project Management formulas**:
-         - Duration: \`=DATEDIF(B2,C2,"d")\`
-         - Workdays: \`=NETWORKDAYS(B2,C2)\`
-         - Status Checks: \`=IF(C2<TODAY(),"Overdue","On Track")\`
-         - Progress bars: (Simulate with conditional formatting or sparklines if supported).
-      - **Financial formulas**:
-         - Growth: \`=(C2-B2)/B2\`
-         - NPV: \`=NPV(0.1, D2:D10)\`
-         - LOOKUPS: Use \`=VLOOKUP(A2, 'Data'!A:B, 2, FALSE)\` for cross-sheet references.
-
-      ### 4. REQUIREMENTS
-      - **CRITICAL**: 'sheetOrder' array MUST match the keys in 'sheets'.
-      - **MANDATORY**: Every calculated column MUST use a formula "f": "..." attribute.
-      - Use STYLES heavily (Bold headers, Currency formatting ($), Status Colors).
-      - REALISTIC DATA based on intent.
-
-      ### 5. OUTPUT FORMAT
-      Return valid JSON matching \`ContentGenerationSchema\`:
-      {
-         "generatedContent": [
-           {
-             "blockId": "workbook-container",
-             "content": {
-               "workbook": <THE FULL VALID JSON OBJECT>
-             }
-           }
-         ]
-      }
+      ### 6. RETURN FORMAT
+      Return the JSON inside a "content.workbook" field.
       `;
 
-    // BYPASS VALIDATION - accept anything from OpenAI
+    // BYPASS VALIDATION - accept complex object
     const generatedData: any = await generateJSON<any>(
       null,
       systemPrompt,
       JSON.stringify(input.blocks)
     );
 
-    let contentArray = generatedData.generatedContent || generatedData.content ||
-      generatedData.blocks || Object.values(generatedData)[0];
+    // Ensure we handle the response correctly.
+    // The AI might return { workbook: ... } or just the workbook directly if forced.
+    // Our prompt asks for { content: { workbook: ... } } structure via schema (implicitly) or prompt.
+    // Let's normalize.
 
-    if (!Array.isArray(contentArray)) contentArray = [];
+    let workbook = generatedData.content?.workbook || generatedData.workbook || generatedData;
+    
+    // Safety check: if it's stringified, parse it
+    if (typeof workbook === 'string') {
+        try { workbook = JSON.parse(workbook); } catch (e) {}
+    }
 
-    generatedData.generatedContent = input.blocks.map((block: any, index: number) => {
-      const aiContent = contentArray[index] || {};
-      return {
-        blockId: block.id,
-        content: typeof aiContent.content === 'string'
-          ? { text: aiContent.content }
-          : (aiContent.content || aiContent || {})
-      };
-    });
+    // Assign to the FIRST block (Master Block)
+    const processedContent = [{
+        blockId: input.blocks[0].id,
+        content: {
+            workbook: workbook
+        }
+    }];
 
     const response: ContentResponse = {
       jobId: input.jobId,
       layout: input,
-      ...generatedData
+      generatedContent: processedContent
     };
 
     return response;

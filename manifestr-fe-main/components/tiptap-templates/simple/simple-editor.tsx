@@ -13,6 +13,10 @@ import { Highlight } from "@tiptap/extension-highlight";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Selection } from "@tiptap/extensions";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 
 // --- UI Primitives ---
 import { Button } from "../../tiptap-ui-primitive/button";
@@ -211,6 +215,12 @@ export function SimpleEditor({
       Superscript,
       Subscript,
       Selection,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
@@ -220,6 +230,12 @@ export function SimpleEditor({
       }),
     ],
     content: providedContent || content,
+    onCreate({ editor }) {
+      // Call onUpdate when editor is first created with content
+      if (onUpdate) {
+        onUpdate(editor.getHTML());
+      }
+    },
     onUpdate({ editor }) {
       if (onUpdate) {
         onUpdate(editor.getHTML());

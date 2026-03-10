@@ -36,7 +36,7 @@ export default function PresentationEditorPage() {
 
         {/* Top Section */}
         <div className="flex-none z-30">
-          <TopHeader />
+          <TopHeader editorType="presentation" />
         </div>
 
         {/* Main Content Area */}
