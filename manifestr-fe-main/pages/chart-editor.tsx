@@ -14,7 +14,7 @@ export default function ChartEditorPage() {
 
             {/* Top Section */}
             <div className="flex-none z-30">
-                <TopHeader />
+                <TopHeader editorType="document" />
             </div>
 
             {/* Main Content Area */}

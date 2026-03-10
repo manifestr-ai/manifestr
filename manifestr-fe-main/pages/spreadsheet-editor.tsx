@@ -196,7 +196,7 @@ export default function SpreadsheetEditor() {
 
                 {/* Top Section */}
                 <div className="flex-none z-30">
-                    <TopHeader onDownload={handleDownload} />
+                    <TopHeader editorType="spreadsheet" />
                     {/* Using Univer's native formula bar instead */}
                 </div>
 
@@ -205,6 +205,21 @@ export default function SpreadsheetEditor() {
                     {/* Grid Container (Card) */}
                     <div className="flex-grow bg-white rounded-lg shadow-sm overflow-hidden relative z-10">
                         <UniverSheet ref={univerRef} onAPIReady={setUniverAPI} data={data} />
+                        
+                        {/* Download Button - Positioned like Presentation Editor */}
+                        <div className="absolute top-4 right-20 z-10">
+                            <button
+                                onClick={handleDownload}
+                                className="bg-gray-900 text-white border-none hover:bg-gray-800 px-4 py-2 rounded-md font-medium text-sm flex items-center gap-2 shadow-lg"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download XLSX
+                            </button>
+                        </div>
                     </div>
 
                     {/* Right Sidebar (Floating over grid on the right) */}
