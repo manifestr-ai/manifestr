@@ -7,10 +7,11 @@ import {
     Redo2,
     History,
     Share,
-    Plus
+    Plus,
+    Download
 } from 'lucide-react';
 
-export default function TopHeader() {
+export default function TopHeader({ onDownload }) {
     const router = useRouter();
     const [status, setStatus] = useState('In Progress');
     const [mode, setMode] = useState('Editing');
@@ -136,9 +137,16 @@ export default function TopHeader() {
                         <Plus size={16} className="text-gray-600" />
                     </button>
                 </div>
+                <button 
+                    onClick={onDownload}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium transition-colors"
+                >
+                    <Download size={16} />
+                    Download XLSX
+                </button>
                 <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium">
                     <Share size={16} />
-                    Share & Export
+                    Share
                 </button>
             </div>
         </div>
