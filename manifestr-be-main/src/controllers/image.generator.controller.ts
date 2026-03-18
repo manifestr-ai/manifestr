@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
 import SupabaseDB from '../lib/supabase-db';
-import { s3Util } from '../utils/s3.util';
+import { supabaseAdmin } from '../lib/supabase';
 import axios from 'axios';
-import * as fs from 'fs';
-import * as path from 'path';
 import { generateJSON } from '../lib/claude';
 
 interface GenerateImageRequest {
@@ -134,18 +132,32 @@ export class ImageGeneratorController extends BaseController {
 
             console.log(`✅ Image generated successfully via Gemini (Imagen 4)! Saving...`);
 
-            // 4. Save image to AWS S3 for production accessibility
+            // 4. Save image to Supabase Storage
             const imageFileName = `${job.id}.png`;
             const imageBuffer = Buffer.from(base64Image, 'base64');
             
-            // Upload to storage (S3 or local depending on environment)
-            const imageKey = `vaults/generations/${jobUserId}/images/${imageFileName}`;
-            await s3Util.uploadFile(imageKey, imageBuffer, 'image/png');
+            // Upload to Supabase Storage (bucket: 'generated-images')
+            const imagePath = `${jobUserId}/images/${imageFileName}`;
+            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                .from('generated-images')
+                .upload(imagePath, imageBuffer, {
+                    contentType: 'image/png',
+                    upsert: true
+                });
+
+            if (uploadError) {
+                console.error('❌ Failed to upload to Supabase Storage:', uploadError);
+                throw new Error(`Supabase upload failed: ${uploadError.message}`);
+            }
+
+            // Get Supabase public URL
+            const { data: urlData } = supabaseAdmin.storage
+                .from('generated-images')
+                .getPublicUrl(imagePath);
             
-            // Get public URL
-            const imageUrl = s3Util.getFileUrl(imageKey);
-            console.log(`💾 Image saved to storage!`);
-            console.log(`📍 Image URL: ${imageUrl}`);
+            const imageUrl = urlData.publicUrl;
+            console.log(`💾 Image saved to Supabase Storage!`);
+            console.log(`📍 Supabase URL: ${imageUrl}`);
 
             // 6. Save result to database
             const result = {
@@ -162,26 +174,35 @@ export class ImageGeneratorController extends BaseController {
                 tokensUsed: 0
             };
 
-            // 7. Save JSON to storage
+            // 7. Save JSON to Supabase Storage
             const jsonContent = JSON.stringify(result);
-            const fileKey = `vaults/generations/${jobUserId}/${job.id}.json`;
-            await s3Util.uploadFile(fileKey, jsonContent, 'application/json');
+            const jsonPath = `${jobUserId}/metadata/${job.id}.json`;
+            await supabaseAdmin.storage
+                .from('generated-images')
+                .upload(jsonPath, jsonContent, {
+                    contentType: 'application/json',
+                    upsert: true
+                });
 
             // 8. Update job as completed
+            const { data: jsonUrlData } = supabaseAdmin.storage
+                .from('generated-images')
+                .getPublicUrl(jsonPath);
+            
             await SupabaseDB.updateGenerationJob(job.id, jobUserId, {
                 status: 'completed',
                 result: result,
                 progress: 100,
-                final_url: s3Util.getFileUrl(fileKey)
+                final_url: jsonUrlData.publicUrl
             });
 
-            // 9. Create vault item with S3 URL for thumbnail
+            // 9. Create vault item with Supabase URL for thumbnail
             await SupabaseDB.createVaultItem(jobUserId, {
                 title: prompt.substring(0, 100) || 'AI Generated Image',
                 type: 'file',
                 status: 'Final',
-                file_key: fileKey,
-                thumbnail_url: imageUrl, // S3 URL for production!
+                file_key: jsonPath,
+                thumbnail_url: imageUrl, // Supabase URL!
                 project: 'Generations',
                 size: Buffer.byteLength(jsonContent),
                 meta: {

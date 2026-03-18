@@ -2,7 +2,7 @@ import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, RenderResponse } from "../protocols/types";
 import { generateJSON } from "../../lib/claude";
 import axios from "axios";
-import { s3Util } from "../../utils/s3.util";
+import { supabaseAdmin } from "../../lib/supabase";
 
 /**
  * ImageGenerationAgent
@@ -99,19 +99,36 @@ export class ImageGenerationAgent extends BaseAgent<IntentResponse, RenderRespon
                 throw new Error("No image data returned from Gemini API");
             }
 
-            // Save image to AWS S3 for production accessibility
+            // Save image to Supabase Storage
             const imageFileName = `${input.jobId}.png`;
             const imageBuffer = Buffer.from(base64Image, 'base64');
             
-            // Extract userId from job (need to get it from the job object)
+            // Extract userId from job
             const userId = (job as any).user_id || (job as any).userId || 'default';
-            const imageKey = `vaults/generations/${userId}/images/${imageFileName}`;
+            const imagePath = `${userId}/images/${imageFileName}`;
             
-            await s3Util.uploadFile(imageKey, imageBuffer, 'image/png');
-            const imageUrl = s3Util.getFileUrl(imageKey);
+            // Upload to Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                .from('generated-images')
+                .upload(imagePath, imageBuffer, {
+                    contentType: 'image/png',
+                    upsert: true
+                });
 
-            console.log(`✅ Image generated successfully and saved to storage!`);
-            console.log(`📍 Image URL: ${imageUrl}`);
+            if (uploadError) {
+                console.error('❌ Failed to upload to Supabase Storage:', uploadError);
+                throw new Error(`Supabase upload failed: ${uploadError.message}`);
+            }
+
+            // Get Supabase public URL
+            const { data: urlData } = supabaseAdmin.storage
+                .from('generated-images')
+                .getPublicUrl(imagePath);
+            
+            const imageUrl = urlData.publicUrl;
+
+            console.log(`✅ Image generated successfully and saved to Supabase Storage!`);
+            console.log(`📍 Supabase URL: ${imageUrl}`);
 
             // Return the image URL in the response
             const renderResponse: RenderResponse = {
