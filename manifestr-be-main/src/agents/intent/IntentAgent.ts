@@ -1,8 +1,9 @@
 import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, IntentResponseSchema, UserPrompt } from "../protocols/types";
-    import { generateJSON } from "../../lib/claude";
+import { generateJSON } from "../../lib/claude";
 import { selectTemplate } from "../presentation/TemplateSelector";
 import { initGenerationLog, appendLog } from "../presentation/GenerationLogger";
+import { selectLogicFramework, LogicFramework } from "../frameworks/LogicFrameworks";
 
 export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
 
@@ -41,7 +42,21 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
         initGenerationLog(input.jobId, topicSummary);
 
         // ─────────────────────────────────────────────────────────────
-        // STEP 1: SELECT OPTIMAL TEMPLATE DECK
+        // STEP 1: SELECT DOCUMENT LOGIC FRAMEWORK
+        // ─────────────────────────────────────────────────────────────
+        const logicFramework: LogicFramework = selectLogicFramework(input.prompt, input.meta || {});
+        
+        appendLog('\n╔══════════════════════════════════════════════════════════════════╗');
+        appendLog('║          📋 DOCUMENT LOGIC FRAMEWORK - SELECTED                ║');
+        appendLog('╚══════════════════════════════════════════════════════════════════╝');
+        appendLog(`\n🎯 FRAMEWORK: ${logicFramework.name}`);
+        appendLog(`📝 DESCRIPTION: ${logicFramework.description}`);
+        appendLog(`📊 BEST FOR: ${logicFramework.bestFor.join(', ')}`);
+        appendLog(`📈 STRUCTURE STEPS: ${logicFramework.structure.length}`);
+        appendLog('\n' + '═'.repeat(68) + '\n');
+
+        // ─────────────────────────────────────────────────────────────
+        // STEP 2: SELECT OPTIMAL TEMPLATE DECK (FOR PRESENTATIONS)
         // ─────────────────────────────────────────────────────────────
         let templateSelection;
         try {
@@ -67,8 +82,25 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
         }
 
         const systemPrompt = `
-      You are a STRATEGIC CREATIVE DIRECTOR at a world-class agency (Ogilvy/Pentagram/IDEO).
-      Your mission: Transform the user's request into a COMPREHENSIVE, STRATEGIC creative brief for a premium presentation.
+      You are a STRATEGIC CREATIVE DIRECTOR at a world-class consultancy (McKinsey/BCG/Bain).
+      Your mission: Transform the user's request into a COMPREHENSIVE, STRATEGIC creative brief following proven professional frameworks.
+
+      ### 🎯 DOCUMENT LOGIC FRAMEWORK (CRITICAL - MUST FOLLOW)
+      You MUST structure this document using the "${logicFramework.name}" framework:
+      
+      **Framework:** ${logicFramework.name}
+      **Purpose:** ${logicFramework.description}
+      **Best For:** ${logicFramework.bestFor.join(', ')}
+      
+      **REQUIRED STRUCTURE (Follow this EXACTLY):**
+      ${logicFramework.structure.map((step, idx) => `
+      ${idx + 1}. **${step.step}**
+         - Description: ${step.description}
+         - Purpose: ${step.purpose}
+         - Slides: ${step.slides || '1'}
+      `).join('\n')}
+      
+      **TOTAL SLIDES: ${logicFramework.totalSlides}**
 
       ### USER METADATA (CRITICAL CONTEXT)
       This is extra data provided by the user. PRIORITIZE this over generic inference.
@@ -76,15 +108,17 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
 
       ### ⚠️ CRITICAL REQUIREMENTS - FAILURE TO FOLLOW = REJECTED ⚠️
       
-      1. **SLIDE COUNT (ABSOLUTE REQUIREMENT)**:
-         - MINIMUM: 10 slides
-         - MAXIMUM: 12 slides  
-         - DEFAULT: 10-11 slides
-         - If you generate 13+ slides, they will be CUT OFF
-         - If you generate <10 slides, it's a FAILURE
+      1. **FOLLOW THE LOGIC FRAMEWORK (ABSOLUTE REQUIREMENT)**:
+         - Your structurePlan MUST match the ${logicFramework.name} framework above
+         - Each section must serve its intended purpose
+         - Maintain the strategic flow: ${logicFramework.structure.map(s => s.step).join(' → ')}
          
-      2. **COMPREHENSIVE COVERAGE**: Every topic must be broken down. Cover all key aspects thoroughly.
-      3. **STRATEGIC NARRATIVE**: Build a complete story: Hook -> Problem -> Solution -> Proof -> Execution -> Action.
+      2. **SLIDE COUNT (ABSOLUTE REQUIREMENT)**:
+         - REQUIRED RANGE: ${logicFramework.totalSlides}
+         - If you generate outside this range, it's a FAILURE
+         
+      3. **COMPREHENSIVE COVERAGE**: Every framework step must be thoroughly developed.
+      4. **STRATEGIC NARRATIVE**: Follow the logic framework's narrative arc perfectly.
 
       ### 1. DEEP AUDIENCE & CONTEXT ANALYSIS
       - **Audience Psychology**: Who are we REALLY talking to? What keeps them up at night?
@@ -93,79 +127,67 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
       - **Goal Precision**: What specific action should the audience take after viewing?
 
       ### 2. COMPREHENSIVE STRUCTURE PLANNING
-      Create a COMPLETE narrative arc with EXACTLY 10-12 items (no more, no less).
+      Create a COMPLETE narrative arc following the ${logicFramework.name} framework EXACTLY.
 
-      **Recommended Structure (DEFAULT: 11 slides):**
-      1.  **Title & Hook**: The Big Idea (1 Slide)
-      2.  **Executive Summary**: Quick overview (1 Slide)
-      3.  **The Problem**: Current pain points, market gaps (1-2 Slides)
-      4.  **The Solution**: Core offering, how it works (2 Slides)
-      5.  **Key Features**: Unique capabilities (1 Slide)
-      6.  **Validation**: Market evidence, metrics, testimonials (1 Slide)
-      7.  **Business Model**: Revenue strategy (1 Slide)
-      8.  **Go-to-Market**: Execution plan (1 Slide)
-      9.  **Team**: Why us, credentials (1 Slide)
-      10. **The Ask**: Clear next steps (1 Slide)
+      **YOUR STRUCTURE MUST BE (based on ${logicFramework.name}):**
+      ${logicFramework.structure.map((step, idx) => `${idx + 1}. **${step.step}**: ${step.description} (${step.slides || '1'} slides)`).join('\n      ')}
       
-      *Total: 10-12 slides*
+      **CRITICAL:** Your structurePlan array MUST have ${logicFramework.structure.length} main sections minimum.
+      Each section can expand to multiple slides if needed, but the LOGIC FLOW must be maintained.
 
       ### 3. SECTION NAMING EXCELLENCE
-      - Use COMPELLING, SPECIFIC titles (not generic labels)
+      - Use COMPELLING, SPECIFIC titles based on the user's actual content
       - Bad: "Introduction", "Overview", "Conclusion"
       - Good: "The $10B Problem Nobody's Solving", "Why Traditional Solutions Fail", "Our Unfair Advantage"
+      - Each title should be UNIQUE to this specific ${input.output} about "${input.prompt.substring(0, 60)}..."
 
       ### 5. OUTPUT FORMAT
       Return valid JSON matching \`IntentResponseSchema\`.
       
-      **ABSOLUTE REQUIREMENT**: structurePlan array MUST have between 10-12 items. COUNT THEM!!
+      **ABSOLUTE REQUIREMENT**: structurePlan must follow the ${logicFramework.name} framework!
       {
         "styleGuide": null,
         "jobId": "${input.jobId}",
         "originalPrompt": "${input.prompt}",
         "title": "Project Title",
+        "logicFramework": "${logicFramework.name}",
         "metadata": {
-          "type": "Presentation",
-          "tone": "Professional",
-          "goal": "Persuade",
-          "audience": "Stakeholders",
+          "type": "${(input.output || 'presentation').charAt(0).toUpperCase() + (input.output || 'presentation').slice(1)}",
+          "tone": "${input.meta?.tone || 'Professional'}",
+          "goal": "${input.meta?.goal || 'Inform'}",
+          "audience": "${input.meta?.primaryAudience || 'Stakeholders'}",
           "depth": "Deep",
           "scope": "Comprehensive",
-          "size": "Standard (10-12 slides)",
-          "outputFormat": "presentation"
+          "size": "${logicFramework.totalSlides}",
+          "outputFormat": "${input.output}",
+          "appliedLogic": "${logicFramework.name}"
         },
         "designPreferences": {
           "hasCharts": false,
           "hasTables": false,
           "hasImages": true,
-          "colorTheme": "Modern Blue",
+          "colorTheme": "Modern Professional",
           "mood": "Professional"
         },
         "structurePlan": [
-           "1. The Big Idea",
-           "2. Executive Summary",
-           "3. The Problem",
-           "4. Market Context",
-           "5. Our Solution",
-           "6. Key Features",
-           "7. Market Validation",
-           "8. Business Model",
-           "9. Go-to-Market",
-           "10. The Team",
-           "11. Next Steps"
+           ${logicFramework.structure.map((step, idx) => `"${idx + 1}. ${step.step}: [Your compelling, specific title here]"`).join(',\n           ')}
         ]
       }
 
       **CRITICAL - REQUIRED FIELDS (NEVER OMIT THESE)**:
+      - logicFramework: "${logicFramework.name}" (REQUIRED)
+      - metadata.appliedLogic: "${logicFramework.name}" (REQUIRED)
       - designPreferences.hasCharts (boolean, REQUIRED)
       - designPreferences.hasImages (boolean, REQUIRED)
-      - structurePlan MUST have EXACTLY 10-12 items
+      - structurePlan MUST follow ${logicFramework.name} framework structure
       
       ⚠️ FINAL CHECK BEFORE RETURNING ⚠️:
-      1. Count structurePlan items - is it between 10-12? If not, FIX IT NOW!
+      1. Does your structurePlan follow the ${logicFramework.name} framework? Check each section!
       2. Did you include hasCharts and hasImages booleans? If not, ADD THEM!
-      3. Does each slide have a compelling title? Generic titles = FAILURE!
+      3. Does each section have a compelling, specific title? Generic titles = FAILURE!
+      4. Is the narrative flow logical: ${logicFramework.structure.map(s => s.step).join(' → ')}
       
-      **SLIDE COUNT VERIFICATION**: Your structurePlan has ___ items. (Must be 10-12)
+      **LOGIC FRAMEWORK VERIFICATION**: Your structurePlan follows "${logicFramework.name}" framework.
     `;
 
         // In a real app, use the Zod Schema to validate specifically, or use LangChain structured output
@@ -176,13 +198,15 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
             response.metadata.outputFormat = input.output;
         }
 
-        // Attach template selection to response
+        // Attach logic framework and template selection to response
+        response.metadata.appliedLogic = logicFramework.name;
+        response.metadata.logicFrameworkId = logicFramework.id;
         response.metadata.selectedTemplate = templateSelection.selectedDeck;
         response.metadata.templateReasoning = templateSelection.reasoning;
         
         // LOG TEMPLATE SELECTION RESULTS TO FILE
         appendLog('\n╔══════════════════════════════════════════════════════════════════╗');
-        appendLog('║             🎯 TEMPLATE SELECTOR - FINAL DECISION              ║');
+        appendLog('║          🎯 STRATEGIC BRIEF - FINAL CONFIGURATION               ║');
         appendLog('╚══════════════════════════════════════════════════════════════════╝');
         appendLog(`\n📝 USER PROMPT: "${input.prompt.substring(0, 100)}${input.prompt.length > 100 ? '...' : ''}"`);
         appendLog(`📋 OUTPUT TYPE: ${response.metadata.outputFormat}`);
@@ -190,6 +214,9 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
         appendLog(`🎭 TONE: ${response.metadata.tone}`);
         appendLog(`🎯 GOAL: ${response.metadata.goal}`);
         appendLog('\n' + '─'.repeat(68));
+        appendLog(`\n🧠 APPLIED LOGIC: ${logicFramework.name}`);
+        appendLog(`📐 FRAMEWORK: ${logicFramework.description}`);
+        appendLog(`📊 STRUCTURE: ${response.structurePlan?.length || 0} sections`);
         appendLog(`\n✅ SELECTED TEMPLATE: ${templateSelection.selectedDeck}`);
         appendLog(`📊 CONFIDENCE SCORE: ${(templateSelection.matchScore * 100).toFixed(0)}%`);
         appendLog(`\n💡 REASONING:\n   ${templateSelection.reasoning}`);

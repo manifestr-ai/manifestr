@@ -240,7 +240,8 @@ export class AIController extends BaseController {
                     id: job.id,
                     status: job.status,
                     tokensUsed: job.tokens_used,
-                    errorMessage: job.error_message
+                    errorMessage: job.error_message,
+                    result: job.result  // ← ADD THIS! Return the full result including imageUrl
                 }
             });
         } catch (error) {

@@ -9,6 +9,7 @@ import { BaseController } from './controllers/base.controller';
 import { AuthController } from './controllers/auth.controller';
 import { AIController } from './controllers/ai.controller';
 import { DocumentGeneratorController } from './controllers/document.generator.controller';
+import { ImageGeneratorController } from './controllers/image.generator.controller';
 import { UploadController } from './controllers/upload.controller';
 import { VaultController } from './controllers/vault.controller';
 import { StyleGuideController } from './controllers/style-guide.controller';
@@ -104,6 +105,7 @@ class App {
         const controllers: BaseController[] = [
             new AuthController(),
             new DocumentGeneratorController(),
+            new ImageGeneratorController(),
             new AIController(),
             new UploadController(),
             new VaultController(),
