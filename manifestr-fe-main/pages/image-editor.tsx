@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import TopHeader from '../components/spreadsheet/TopHeader';
 import RightSidebar from '../components/spreadsheet/RightSidebar';
 import BottomToolbar from '../components/spreadsheet/BottomToolbar';
 import dynamic from 'next/dynamic';
 import { FloatingSheetTab, FloatingFAB } from '../components/spreadsheet/FloatingElements';
+import api from '../lib/api';
 
 const PhotoEditor = dynamic(() => import('../components/image-editor/PhotoEditor'), {
     ssr: false,
@@ -12,6 +14,65 @@ const PhotoEditor = dynamic(() => import('../components/image-editor/PhotoEditor
 });
 
 export default function ImageEditor() {
+    const router = useRouter();
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    
+    useEffect(() => {
+        // CASE 1: Direct URL parameter (immediate generation)
+        const urlParam = router.query.url as string;
+        if (urlParam) {
+            const decodedUrl = decodeURIComponent(urlParam);
+            setImageUrl(decodedUrl);
+            setLoading(false);
+            return;
+        }
+
+        // CASE 2: Job ID parameter (fetch from backend with auth)
+        const jobId = router.query.id as string;
+        if (jobId) {
+            setLoading(true);
+            
+            api.get(`/ai/status/${jobId}`)
+                .then(response => {
+                    const data = response.data;
+                    
+                    // Try multiple possible paths for image URL
+                    let generatedImageUrl = null;
+                    
+                    // Path 1: Direct from result.editorState
+                    if (data.data?.result?.editorState?.imageUrl) {
+                        generatedImageUrl = data.data.result.editorState.imageUrl;
+                    }
+                    // Path 2: From result (for image jobs)
+                    else if (data.data?.result?.imageUrl) {
+                        generatedImageUrl = data.data.result.imageUrl;
+                    }
+                    // Path 3: Direct in data
+                    else if (data.data?.imageUrl) {
+                        generatedImageUrl = data.data.imageUrl;
+                    }
+                    
+                    if (generatedImageUrl) {
+                        setImageUrl(generatedImageUrl);
+                    } else {
+                        console.error('❌ No image URL found in job result');
+                        setImageUrl('/assets/dummy/dummy-trainer.jpg');
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ Failed to fetch job:', err);
+                    setImageUrl('/assets/dummy/dummy-trainer.jpg');
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        } else {
+            // No params - use default
+            setImageUrl('/assets/dummy/dummy-trainer.jpg');
+            setLoading(false);
+        }
+    }, [router.query]);
     return (
         <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
             <Head>
@@ -27,7 +88,26 @@ export default function ImageEditor() {
             <div className="flex-grow flex relative overflow-hidden bg-gray-100">
                 {/* Grid Container (Full Size) */}
                 <div className="flex-grow overflow-hidden relative z-10">
-                    <PhotoEditor />
+                    {loading ? (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <div className="text-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                                <p className="text-gray-600 text-lg">Loading AI-generated image...</p>
+                                <p className="text-gray-400 text-sm mt-2">Please wait...</p>
+                            </div>
+                        </div>
+                    ) : imageUrl && imageUrl !== '/assets/dummy/dummy-trainer.jpg' ? (
+                        <PhotoEditor key={imageUrl} imageSrc={imageUrl} />
+                    ) : imageUrl ? (
+                        <PhotoEditor key="default" imageSrc={imageUrl} />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                            <div className="text-center">
+                                <p className="text-gray-600 text-lg">No image loaded</p>
+                                <p className="text-gray-400 text-sm mt-2">Go to Create Project → DESIGN studio to generate an AI image</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Sidebar (Floating over grid on the right) */}

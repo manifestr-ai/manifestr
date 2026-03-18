@@ -73,17 +73,17 @@ Outputs: Complex spreadsheets with automated formulas`,
   {
     id: 'design-studio',
     title: 'DESIGN studio',
-    subtitle: 'Creative Portfolios • Visual Styles',
+    subtitle: 'AI Image Generation • Visual Creation',
     imageSrc: '/assets/dummy/tool-card-4.jpg',
-    outputType: 'presentation',
+    outputType: 'image',
     description: {
-      title: 'Creative Design Suite',
-      content: `Purpose: Showcase visual work in a stunning format.
+      title: 'AI-Powered Image Studio',
+      content: `Purpose: Generate stunning AI images from text descriptions.
 
-Best For: Portfolios • Brand Guidelines • Mood Boards
+Best For: Marketing Visuals • Social Media • Creative Concepts • Product Mockups
 
-Outputs: Visually heavy, aesthetic presentations`,
-      quickTip: 'Upload your assets - DESIGN STUDIO arranges them beautifully.',
+Outputs: High-quality AI-generated images ready for editing`,
+      quickTip: 'Describe your vision - DESIGN STUDIO creates it visually.',
     },
   },
   // Row 2
@@ -260,6 +260,9 @@ export default function CreateProject() {
   const handleBack = () => {
     if (currentStep === 1) {
       router.push('/home')
+    } else if (currentStep === 3 && selectedTool?.outputType === 'image') {
+      // If on Step 3 with image tool, go back to Step 1 (skip Step 2)
+      setCurrentStep(1)
     } else {
       setCurrentStep(currentStep - 1)
     }
@@ -267,7 +270,12 @@ export default function CreateProject() {
 
   const handleNext = async () => {
     if (currentStep === 1 && selectedToolId) {
-      setCurrentStep(2)
+      // Skip Step 2 (document selection) for image generation
+      if (selectedTool.outputType === 'image') {
+        setCurrentStep(3)
+      } else {
+        setCurrentStep(2)
+      }
     } else if (currentStep === 2 && selectedDocument) {
       setCurrentStep(3)
     } else if (currentStep === 3 && selectedStyle) {
@@ -306,25 +314,52 @@ export default function CreateProject() {
       - Structure: ${projectData.structure}`
 
       // Sanitize output type to match backend enum
-      const validOutputTypes = ['presentation', 'document', 'spreadsheet']
+      const validOutputTypes = ['presentation', 'document', 'spreadsheet', 'image']
       const outputType = validOutputTypes.includes(selectedTool.outputType)
         ? selectedTool.outputType
         : 'presentation'
 
-      const payload = {
-        prompt: combinedPrompt,
-        output: outputType,
-        meta: {
-          tone: projectData.tone,
-          audience: projectData.primaryAudience,
-          brand: projectData.projectBrandName,
-          budget: projectData.budget,
-          timeline: projectData.timeline
-        },
-        // style_guide_id: null
-      }
-
       try {
+        // 🎨 SPECIAL HANDLING FOR IMAGE GENERATION - IMMEDIATE!
+        if (outputType === 'image') {
+          console.log('🎨 Generating image immediately...')
+          
+          const imageResponse = await api.post('/image-generator/generate', {
+            prompt: combinedPrompt,
+            meta: {
+              tone: projectData.tone,
+              audience: projectData.primaryAudience,
+              brand: projectData.projectBrandName
+            }
+          })
+
+          if (imageResponse.data && imageResponse.data.status === 'success') {
+            const jobId = imageResponse.data.data.jobId
+            console.log('✅ Image generated! Job ID:', jobId)
+            
+            // Redirect to image editor with job ID (will be saved in vault!)
+            router.push(`/image-editor?id=${jobId}`)
+          } else {
+            alert('Failed to generate image. Please try again.')
+          }
+          setIsGenerating(false)
+          return
+        }
+
+        // NORMAL FLOW FOR DOCUMENTS/PRESENTATIONS/SPREADSHEETS
+        const payload = {
+          prompt: combinedPrompt,
+          output: outputType,
+          meta: {
+            tone: projectData.tone,
+            audience: projectData.primaryAudience,
+            brand: projectData.projectBrandName,
+            budget: projectData.budget,
+            timeline: projectData.timeline
+          },
+          // style_guide_id: null
+        }
+
         const response = await api.post('/ai/generate', payload)
 
         if (response.data && response.data.status === 'success') {
@@ -336,6 +371,8 @@ export default function CreateProject() {
         } else {
         }
       } catch (err) {
+        console.error('Generation error:', err)
+        alert('Generation failed. Please try again.')
       } finally {
         setIsGenerating(false)
       }
