@@ -99,36 +99,40 @@ export class ImageGenerationAgent extends BaseAgent<IntentResponse, RenderRespon
                 throw new Error("No image data returned from Gemini API");
             }
 
-            // Save image to Supabase Storage
+            // Save image with Supabase Storage fallback
             const imageFileName = `${input.jobId}.png`;
             const imageBuffer = Buffer.from(base64Image, 'base64');
-            
-            // Extract userId from job
             const userId = (job as any).user_id || (job as any).userId || 'default';
-            const imagePath = `${userId}/images/${imageFileName}`;
+            let imageUrl: string;
             
-            // Upload to Supabase Storage
-            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-                .from('generated-images')
-                .upload(imagePath, imageBuffer, {
-                    contentType: 'image/png',
-                    upsert: true
-                });
+            // Try Supabase Storage first
+            try {
+                const imagePath = `${userId}/images/${imageFileName}`;
+                const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                    .from('generated-images')
+                    .upload(imagePath, imageBuffer, {
+                        contentType: 'image/png',
+                        upsert: true
+                    });
 
-            if (uploadError) {
-                console.error('❌ Failed to upload to Supabase Storage:', uploadError);
-                throw new Error(`Supabase upload failed: ${uploadError.message}`);
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                // Get Supabase public URL
+                const { data: urlData } = supabaseAdmin.storage
+                    .from('generated-images')
+                    .getPublicUrl(imagePath);
+                
+                imageUrl = urlData.publicUrl;
+                console.log(`✅ Image saved to Supabase Storage!`);
+                console.log(`📍 Supabase URL: ${imageUrl}`);
+            } catch (supabaseError: any) {
+                // Fallback to base64 data URL (works everywhere)
+                console.log(`⚠️ Supabase Storage unavailable (${supabaseError.message}), using data URL...`);
+                imageUrl = `data:image/png;base64,${base64Image}`;
+                console.log(`💾 Using base64 data URL (fallback)`);
             }
-
-            // Get Supabase public URL
-            const { data: urlData } = supabaseAdmin.storage
-                .from('generated-images')
-                .getPublicUrl(imagePath);
-            
-            const imageUrl = urlData.publicUrl;
-
-            console.log(`✅ Image generated successfully and saved to Supabase Storage!`);
-            console.log(`📍 Supabase URL: ${imageUrl}`);
 
             // Return the image URL in the response
             const renderResponse: RenderResponse = {

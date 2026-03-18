@@ -132,32 +132,52 @@ export class ImageGeneratorController extends BaseController {
 
             console.log(`✅ Image generated successfully via Gemini (Imagen 4)! Saving...`);
 
-            // 4. Save image to Supabase Storage
+            // 4. Save image with Supabase Storage fallback to local
             const imageFileName = `${job.id}.png`;
             const imageBuffer = Buffer.from(base64Image, 'base64');
+            let imageUrl: string;
             
-            // Upload to Supabase Storage (bucket: 'generated-images')
-            const imagePath = `${jobUserId}/images/${imageFileName}`;
-            const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-                .from('generated-images')
-                .upload(imagePath, imageBuffer, {
-                    contentType: 'image/png',
-                    upsert: true
-                });
+            // Try Supabase Storage first
+            try {
+                const imagePath = `${jobUserId}/images/${imageFileName}`;
+                const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                    .from('generated-images')
+                    .upload(imagePath, imageBuffer, {
+                        contentType: 'image/png',
+                        upsert: true
+                    });
 
-            if (uploadError) {
-                console.error('❌ Failed to upload to Supabase Storage:', uploadError);
-                throw new Error(`Supabase upload failed: ${uploadError.message}`);
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                // Get Supabase public URL
+                const { data: urlData } = supabaseAdmin.storage
+                    .from('generated-images')
+                    .getPublicUrl(imagePath);
+                
+                imageUrl = urlData.publicUrl;
+                console.log(`💾 Image saved to Supabase Storage!`);
+                console.log(`📍 Supabase URL: ${imageUrl}`);
+            } catch (supabaseError: any) {
+                // Fallback to local storage
+                console.log(`⚠️ Supabase Storage unavailable (${supabaseError.message}), using local storage...`);
+                
+                const fs = require('fs');
+                const path = require('path');
+                const localDir = path.join(process.cwd(), 'public/uploads/images');
+                if (!fs.existsSync(localDir)) {
+                    fs.mkdirSync(localDir, { recursive: true });
+                }
+                
+                const localPath = path.join(localDir, imageFileName);
+                fs.writeFileSync(localPath, imageBuffer);
+                
+                const baseUrl = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 8000}/uploads`;
+                imageUrl = `${baseUrl}/images/${imageFileName}`;
+                console.log(`💾 Image saved to local storage (fallback)!`);
+                console.log(`📍 Local URL: ${imageUrl}`);
             }
-
-            // Get Supabase public URL
-            const { data: urlData } = supabaseAdmin.storage
-                .from('generated-images')
-                .getPublicUrl(imagePath);
-            
-            const imageUrl = urlData.publicUrl;
-            console.log(`💾 Image saved to Supabase Storage!`);
-            console.log(`📍 Supabase URL: ${imageUrl}`);
 
             // 6. Save result to database
             const result = {
@@ -174,26 +194,42 @@ export class ImageGeneratorController extends BaseController {
                 tokensUsed: 0
             };
 
-            // 7. Save JSON to Supabase Storage
+            // 7. Save JSON to Supabase Storage (with fallback)
             const jsonContent = JSON.stringify(result);
             const jsonPath = `${jobUserId}/metadata/${job.id}.json`;
-            await supabaseAdmin.storage
-                .from('generated-images')
-                .upload(jsonPath, jsonContent, {
-                    contentType: 'application/json',
-                    upsert: true
-                });
+            let jsonUrl: string;
+            
+            try {
+                await supabaseAdmin.storage
+                    .from('generated-images')
+                    .upload(jsonPath, jsonContent, {
+                        contentType: 'application/json',
+                        upsert: true
+                    });
+                
+                const { data: jsonUrlData } = supabaseAdmin.storage
+                    .from('generated-images')
+                    .getPublicUrl(jsonPath);
+                jsonUrl = jsonUrlData.publicUrl;
+            } catch (error) {
+                // Fallback: Use local storage
+                const fs = require('fs');
+                const path = require('path');
+                const localJsonDir = path.join(process.cwd(), 'public/uploads/metadata');
+                if (!fs.existsSync(localJsonDir)) {
+                    fs.mkdirSync(localJsonDir, { recursive: true });
+                }
+                fs.writeFileSync(path.join(localJsonDir, `${job.id}.json`), jsonContent);
+                const baseUrl = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 8000}/uploads`;
+                jsonUrl = `${baseUrl}/metadata/${job.id}.json`;
+            }
 
             // 8. Update job as completed
-            const { data: jsonUrlData } = supabaseAdmin.storage
-                .from('generated-images')
-                .getPublicUrl(jsonPath);
-            
             await SupabaseDB.updateGenerationJob(job.id, jobUserId, {
                 status: 'completed',
                 result: result,
                 progress: 100,
-                final_url: jsonUrlData.publicUrl
+                final_url: jsonUrl
             });
 
             // 9. Create vault item with Supabase URL for thumbnail
