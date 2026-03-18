@@ -2,6 +2,7 @@ import { BaseAgent } from "../core/BaseAgent";
 import { IntentResponse, RenderResponse } from "../protocols/types";
 import { generateJSON } from "../../lib/claude";
 import axios from "axios";
+import { s3Util } from "../../utils/s3.util";
 
 /**
  * ImageGenerationAgent
@@ -98,11 +99,19 @@ export class ImageGenerationAgent extends BaseAgent<IntentResponse, RenderRespon
                 throw new Error("No image data returned from Gemini API");
             }
 
-            // Since this agent doesn't have access to express's req/res for writing files directly
-            // We'll return the base64 URL format which works perfectly in browsers
-            const imageUrl = `data:image/jpeg;base64,${base64Image}`;
+            // Save image to AWS S3 for production accessibility
+            const imageFileName = `${input.jobId}.png`;
+            const imageBuffer = Buffer.from(base64Image, 'base64');
+            
+            // Extract userId from job (need to get it from the job object)
+            const userId = (job as any).user_id || (job as any).userId || 'default';
+            const imageKey = `vaults/generations/${userId}/images/${imageFileName}`;
+            
+            await s3Util.uploadFile(imageKey, imageBuffer, 'image/png');
+            const imageUrl = s3Util.getFileUrl(imageKey);
 
-            console.log(`✅ Image generated successfully via Gemini (Imagen 3)!`);
+            console.log(`✅ Image generated successfully and saved to storage!`);
+            console.log(`📍 Image URL: ${imageUrl}`);
 
             // Return the image URL in the response
             const renderResponse: RenderResponse = {

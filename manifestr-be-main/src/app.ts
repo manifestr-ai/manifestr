@@ -9,8 +9,8 @@ import { BaseController } from './controllers/base.controller';
 import { AuthController } from './controllers/auth.controller';
 import { AIController } from './controllers/ai.controller';
 import { DocumentGeneratorController } from './controllers/document.generator.controller';
-import { ImageGeneratorController } from './controllers/image.generator.controller';
 import { UploadController } from './controllers/upload.controller';
+import { ImageGeneratorController } from './controllers/image.generator.controller';
 import { VaultController } from './controllers/vault.controller';
 import { StyleGuideController } from './controllers/style-guide.controller';
 import { EarlyAccessController } from './controllers/early-access.controller';
@@ -66,12 +66,19 @@ class App {
         // LOCAL FILE STORAGE (Replaces S3)
         // ─────────────────────────────────────────────────────────────
         
-        // 1. Serve static files (GET)
+        // 1. Serve static files (GET) with CORS headers for images
         const uploadDir = path.join(process.cwd(), 'public/uploads');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
-        this.app.use('/uploads', express.static(uploadDir));
+        
+        // Add CORS headers for static files
+        this.app.use('/uploads', (req, res, next) => {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+            res.header('Access-Control-Allow-Headers', 'Content-Type');
+            next();
+        }, express.static(uploadDir));
 
         // 2. Handle direct uploads (PUT) - mimics S3 presigned URL upload
         this.app.put('/uploads/*', (req, res) => {

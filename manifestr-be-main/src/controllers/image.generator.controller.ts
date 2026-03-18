@@ -134,29 +134,25 @@ export class ImageGeneratorController extends BaseController {
 
             console.log(`✅ Image generated successfully via Gemini (Imagen 4)! Saving...`);
 
-            // 4. Save image to FRONTEND's public/generated-images folder
-            // Backend is in manifestr-be-main, Frontend is in manifestr-fe-main (sibling folder)
-            const frontendPublicDir = path.join(process.cwd(), '..', 'manifestr-fe-main', 'public', 'generated-images');
-            if (!fs.existsSync(frontendPublicDir)) {
-                fs.mkdirSync(frontendPublicDir, { recursive: true });
-            }
-            
+            // 4. Save image to AWS S3 for production accessibility
             const imageFileName = `${job.id}.png`;
-            const imageFilePath = path.join(frontendPublicDir, imageFileName);
+            const imageBuffer = Buffer.from(base64Image, 'base64');
             
-            // Write base64 directly to file
-            fs.writeFileSync(imageFilePath, Buffer.from(base64Image, 'base64'));
+            // Upload to storage (S3 or local depending on environment)
+            const imageKey = `vaults/generations/${jobUserId}/images/${imageFileName}`;
+            await s3Util.uploadFile(imageKey, imageBuffer, 'image/png');
             
-            // 5. Create URL accessible from frontend (localhost:3001)
-            const localImageUrl = `/generated-images/${imageFileName}`;
-            console.log(`💾 Image saved to frontend public folder: ${localImageUrl}`);
+            // Get public URL
+            const imageUrl = s3Util.getFileUrl(imageKey);
+            console.log(`💾 Image saved to storage!`);
+            console.log(`📍 Image URL: ${imageUrl}`);
 
             // 6. Save result to database
             const result = {
                 jobId: job.id,
                 outputFormat: 'image',
                 editorState: {
-                    imageUrl: localImageUrl,  // Use LOCAL URL!
+                    imageUrl: imageUrl,  // Use S3 URL for production!
                     prompt: optimizedPrompt,
                     model: 'imagen-4.0-generate-001',
                     size: '1024x1024',
@@ -179,19 +175,19 @@ export class ImageGeneratorController extends BaseController {
                 final_url: s3Util.getFileUrl(fileKey)
             });
 
-            // 9. Create vault item with FRONTEND URL for thumbnail
+            // 9. Create vault item with S3 URL for thumbnail
             await SupabaseDB.createVaultItem(jobUserId, {
                 title: prompt.substring(0, 100) || 'AI Generated Image',
                 type: 'file',
                 status: 'Final',
                 file_key: fileKey,
-                thumbnail_url: `http://localhost:3001${localImageUrl}`, // FRONTEND URL!
+                thumbnail_url: imageUrl, // S3 URL for production!
                 project: 'Generations',
                 size: Buffer.byteLength(jsonContent),
                 meta: {
                     generationJobId: job.id,
                     outputType: 'image',
-                    imageUrl: localImageUrl
+                    imageUrl: imageUrl
                 }
             });
 
@@ -201,7 +197,7 @@ export class ImageGeneratorController extends BaseController {
                 status: 'success',
                 data: {
                     jobId: job.id,
-                    imageUrl: localImageUrl,  // Return LOCAL URL!
+                    imageUrl: imageUrl,  // Return S3 URL for production!
                     prompt: prompt,
                     model: 'imagen-4.0-generate-001',
                     size: '1024x1024',
@@ -218,3 +214,5 @@ export class ImageGeneratorController extends BaseController {
         }
     }
 }
+
+export default ImageGeneratorController;
