@@ -1,0 +1,262 @@
+import { useState, useRef } from 'react'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import PlaybookTabs from './PlaybookTabs'
+
+const HERO_BG = 'https://www.figma.com/api/mcp/asset/e0828001-540f-4c84-b828-57390f35f40b'
+const CTA_BG = 'https://www.figma.com/api/mcp/asset/7adf3647-c549-4907-83ee-1baaa6b47e0c'
+
+const GLOSSARY = {
+  A: [
+    { term: 'API', def: 'Application Programming Interface \u2013 A set of protocols and tools for building software applications, allowing different programs to communicate with each other.' },
+    { term: 'Asset Library', def: 'A centralized repository where all your design assets, components, and resources are stored and organized for easy access.' },
+  ],
+  B: [
+    { term: 'Branching', def: 'The process of creating a separate line of development to work on features or fixes without affecting the main project.' },
+  ],
+  C: [
+    { term: 'Component', def: 'A reusable building block of a design system that can be used across multiple projects and screens.' },
+    { term: 'Collaboration Hub', def: 'A centralized space where team members can work together, share feedback, and track project progress in real-time.' },
+  ],
+  D: [
+    { term: 'Design System', def: 'A collection of reusable components, patterns, and guidelines that ensure consistency across all product experiences.' },
+  ],
+  F: [
+    { term: 'Frame', def: 'A container that holds design elements and defines the boundaries of a screen or component in your project.' },
+  ],
+  I: [
+    { term: 'Integration', def: 'The connection between MANIFESTR and other tools or services to streamline your workflow.' },
+  ],
+  L: [
+    { term: 'Layer', def: 'Individual elements stacked on the canvas that can be organized, grouped, and manipulated independently.' },
+  ],
+  M: [
+    { term: 'Merge', def: 'Combining changes from different branches into a single unified version of your project.' },
+  ],
+  P: [
+    { term: 'Prototype', def: 'An interactive mockup that demonstrates how your design will function, including transitions and user flows.' },
+  ],
+  S: [
+    { term: 'Style Guide', def: 'Documentation that defines the visual and interaction standards for your brand or product.' },
+  ],
+  V: [
+    { term: 'Vault', def: 'A secure storage space for your important design assets and project files.' },
+    { term: 'Version Control', def: 'A system that tracks changes to your project over time, allowing you to revert to previous versions if needed.' },
+  ],
+  W: [
+    { term: 'Workspace', def: 'Your main working environment in MANIFESTR where you create, edit, and manage projects.' },
+  ],
+}
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+const ACTIVE_LETTERS = Object.keys(GLOSSARY)
+
+export default function Glossary() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeLetter, setActiveLetter] = useState('A')
+  const contentRef = useRef(null)
+
+  const handleLetterClick = (letter) => {
+    if (!ACTIVE_LETTERS.includes(letter)) return
+    setActiveLetter(letter)
+    const el = document.getElementById(`glossary-${letter}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const filteredGlossary = searchQuery
+    ? Object.fromEntries(
+        Object.entries(GLOSSARY)
+          .map(([letter, terms]) => [
+            letter,
+            terms.filter(
+              (t) =>
+                t.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                t.def.toLowerCase().includes(searchQuery.toLowerCase())
+            ),
+          ])
+          .filter(([, terms]) => terms.length > 0)
+      )
+    : GLOSSARY
+
+  return (
+    <>
+      {/* ─── Breadcrumb ─── */}
+      <div className="w-full bg-white border-t border-b border-[#e5e7eb] px-6 md:px-[80px]">
+        <div className="flex items-center gap-[8px] h-[54px]">
+          <Link
+            href="/playbook"
+            className="text-[14px] leading-[21px] text-[#52525b] hover:underline"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Playbook
+          </Link>
+          <svg className="w-[16px] h-[16px] text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span
+            className="text-[14px] leading-[21px] font-medium text-[#18181b]"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Glossary of Terms
+          </span>
+        </div>
+      </div>
+
+      {/* ─── Hero ─── */}
+      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+          <img src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/20" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="relative z-10 flex flex-col items-center gap-[32px] w-full max-w-[545px]"
+        >
+          {/* Heading + subtitle */}
+          <div className="flex flex-col items-center gap-[20px] text-center">
+            <h1
+              className="text-[42px] md:text-[72px] leading-[1.1] md:leading-[90px] tracking-[-1.44px] text-white whitespace-nowrap"
+            >
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Glossary of </span>
+              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Terms</span>
+            </h1>
+            <p
+              className="text-[18px] leading-[28px] text-white"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+            >
+              MANIFESTR key terms and concepts, clearly defined.
+            </p>
+          </div>
+
+          {/* Search */}
+          <div className="bg-white border border-[#d5d7da] rounded-[6px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-full max-w-[449px]">
+            <svg className="w-[20px] h-[20px] text-[#71717a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Quick lookup"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] outline-none bg-transparent"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            />
+          </div>
+
+          {/* CTA */}
+          <Link
+            href="/signup"
+            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Enter MANIFESTR
+          </Link>
+        </motion.div>
+      </section>
+
+      {/* ─── Tabs ─── */}
+      <PlaybookTabs />
+
+      {/* ─── Alphabet Bar ─── */}
+      <div className="w-full bg-white border-t border-b border-[#e5e7eb] px-6 md:px-[112px] py-[20px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] sticky top-[76px] z-20">
+        <div className="flex gap-[8px] flex-wrap">
+          {ALPHABET.map((letter) => {
+            const hasTerms = ACTIVE_LETTERS.includes(letter)
+            const isActive = activeLetter === letter
+            return (
+              <button
+                key={letter}
+                onClick={() => handleLetterClick(letter)}
+                className={`w-[33px] h-[33px] rounded-[6px] flex items-center justify-center text-[14px] leading-[21px] font-medium transition-colors ${
+                  isActive
+                    ? 'bg-[#18181b] text-white'
+                    : hasTerms
+                    ? 'text-[#3f3f46] hover:bg-[#f4f4f5]'
+                    : 'text-[#d4d4d8] cursor-default'
+                }`}
+                style={{ fontFamily: 'Inter, sans-serif' }}
+                disabled={!hasTerms}
+              >
+                {letter}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ─── Glossary Content ─── */}
+      <section ref={contentRef} className="w-full bg-white px-6 md:px-[112px] pt-[32px] pb-[96px]">
+        <div className="flex flex-col gap-[48px]">
+          {Object.entries(filteredGlossary).map(([letter, terms]) => (
+            <div key={letter} id={`glossary-${letter}`} className="flex flex-col gap-[24px]">
+              <div className="border-b border-[#cbd5e1] pb-[14px]">
+                <h2
+                  className="text-[36px] leading-[44px] tracking-[-0.72px] text-[#0b091e]"
+                  style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 400 }}
+                >
+                  {letter}
+                </h2>
+              </div>
+
+              <div className="flex flex-col gap-[32px]">
+                {terms.map((item) => (
+                  <div key={item.term} className="border-l-2 border-[#e5e7eb] pl-[24px]">
+                    <h3
+                      className="text-[24px] leading-[32px] text-[#1d293d] mb-[8px]"
+                      style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 400 }}
+                    >
+                      {item.term}
+                    </h3>
+                    <p
+                      className="text-[16px] leading-[26px] text-[#52525b] max-w-[800px]"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {item.def}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Need More Help? ─── */}
+      <section className="w-full relative h-[380px] md:h-[414px] overflow-hidden">
+        <img src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col items-center gap-[30px] px-6 text-center"
+          >
+            <div className="flex flex-col items-center gap-[16px]">
+              <h2 className="text-[36px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-1.2px] text-black">
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Need More </span>
+                <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Help?</span>
+              </h2>
+              <p
+                className="text-[16px] leading-[24px] text-[#52525b] max-w-[603px]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {"Can't find what you're looking for? Our support team is here to help you succeed with MANIFESTR."}
+              </p>
+            </div>
+            <Link
+              href="/contact"
+              className="h-[44px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Submit a Support Ticket
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+    </>
+  )
+}

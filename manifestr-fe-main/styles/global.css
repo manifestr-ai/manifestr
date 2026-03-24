@@ -52,6 +52,45 @@
   --font-family-ivy-presto: 'IvyPresto Headline', serif;
 }
 
+/* IvyPresto Headline – local font */
+@font-face {
+  font-family: 'IvyPresto Headline';
+  src: url('/fonts/IvyPresto Headline/IvyPrestoHeadline-SemiBoldItalic.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IvyPresto Headline';
+  src: url('/fonts/IvyPresto Headline/IvyPrestoHeadline-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IvyPresto Headline';
+  src: url('/fonts/IvyPresto Headline/IvyPrestoDisplay-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IvyPresto Headline';
+  src: url('/fonts/IvyPresto Headline/IvyPrestoDisplay-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Spin animation for rotating elements */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 /* Marquee animations for seamless looping - using will-change for smooth performance */
 @keyframes marquee-left {
   0% {
