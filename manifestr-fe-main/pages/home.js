@@ -59,7 +59,11 @@ export default function Home() {
     let path;
     if (type.includes('presentation')) {
       path = `/presentation-editor?id=${project.id}`;
+    } else if (type.includes('chart')) {
+      // THE analyser shows auto-generated charts
+      path = `/chart-viewer?id=${project.id}`;
     } else if (type.includes('spreadsheet') || type.includes('sheet')) {
+      // Other spreadsheet tools open spreadsheet editor
       path = `/spreadsheet-editor?id=${project.id}`;
     } else if (type.includes('image')) {
       path = `/image-editor?id=${project.id}`;
