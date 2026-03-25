@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
 import Anthropic from '@anthropic-ai/sdk';
 import SupabaseDB from '../lib/supabase-db';
+import { supabaseAdmin } from '../lib/supabase';
 import { AIOrchestrator } from '../services/ai-orchestrator.service';
 import { UserPromptSchema } from '../agents/protocols/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -76,19 +77,51 @@ export class AIController extends BaseController {
                 return res.status(400).json({ status: "error", message: "Content is required" });
             }
 
-            // Update directly via SupabaseDB
-            // We store the content in `result.editorState` or just `result` depending on how frontend reads it.
-            // Based on useGenerationLoader: 
-            // let rawContent = data.result?.editorState || data.current_step_data?.editorState;
-            // The loader expects { editorState: JSON } or just uses result if it has editorState.
-            
-            // We will save it as { editorState: content } inside the `result` column.
-            const updated = await SupabaseDB.updateGenerationJob(id, userId, {
-                result: { editorState: content }
-            });
+            // Auto-save (silent)
 
+            // FIRST: Try to update as owner (wrap in try-catch because it throws on 0 rows)
+            let updated = null;
+            try {
+                updated = await SupabaseDB.updateGenerationJob(id, userId, {
+                    result: { editorState: content }
+                });
+            } catch (ownerError: any) {
+                // Not owner, check collaborator access
+            }
+
+            // If not owner, check if user is a collaborator with edit rights
             if (!updated) {
-                 return res.status(404).json({ status: "error", message: "Job not found or access denied" });
+                const { data: collaborators } = await supabaseAdmin
+                    .from('document_collaborators')
+                    .select('role, user_id')
+                    .eq('document_id', id)
+                    .eq('user_id', userId)
+                    .eq('status', 'accepted')
+                    .in('role', ['owner', 'editor']);
+
+                const collaboration = collaborators && collaborators.length > 0 ? collaborators[0] : null;
+
+                if (collaboration) {
+                    
+                    // Update directly without userId check
+                    const { data: jobData, error: updateError } = await supabaseAdmin
+                        .from('generation_jobs')
+                        .update({
+                            result: { editorState: content },
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', id)
+                        .select();
+
+                    if (updateError || !jobData || jobData.length === 0) {
+                        console.error('❌ Failed to update:', updateError);
+                        return res.status(500).json({ status: "error", message: "Failed to save changes", details: updateError?.message });
+                    }
+
+                    updated = jobData[0];
+                } else {
+                    return res.status(403).json({ status: "error", message: "No edit access to this document" });
+                }
             }
 
             return res.json({
@@ -385,15 +418,56 @@ export class AIController extends BaseController {
             const { id } = req.params;
             const userId = req.user!.userId;
 
-            const job = await this.orchestrator.getJobStatus(id, userId);
+            // Try to get job (owner check)
+            let job = await this.orchestrator.getJobStatus(id, userId);
 
-            if (!job) return res.status(404).json({ status: "error", message: "Job not found" });
+            // If not found, check if user is a collaborator
+            if (!job) {
+                console.log(`📊 User ${userId} is not owner, checking collaboration access...`);
+                
+                const { data: collaboration, error: collabError } = await supabaseAdmin
+                    .from('document_collaborators')
+                    .select('role, status, user_id')
+                    .eq('document_id', id)
+                    .eq('user_id', userId)
+                    .eq('status', 'accepted')
+                    .single();
+
+                console.log(`🔍 Collaboration check result:`, { collaboration, collabError });
+
+                if (collaboration) {
+                    console.log(` User is collaborator (${collaboration.role}), allowing access`);
+                    
+                    // Get job without user_id check (collaborator access)
+                    const { data: jobData } = await supabaseAdmin
+                        .from('generation_jobs')
+                        .select('*')
+                        .eq('id', id)
+                        .single();
+                    
+                    job = jobData;
+                } else {
+                    // DEBUG: Show all collaborators for this document
+                    const { data: allCollabs } = await supabaseAdmin
+                        .from('document_collaborators')
+                        .select('user_id, role, status')
+                        .eq('document_id', id);
+                    
+                    console.log(`❌ User not found as collaborator. All collaborators for this doc:`, allCollabs);
+                    console.log(`   Looking for user_id: ${userId}`);
+                }
+            }
+
+            if (!job) {
+                return res.status(404).json({ status: "error", message: "Job not found" });
+            }
 
             return res.json({
                 status: "success",
                 data: job
             });
         } catch (error) {
+            console.error('❌ getGenerationDetails error:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }

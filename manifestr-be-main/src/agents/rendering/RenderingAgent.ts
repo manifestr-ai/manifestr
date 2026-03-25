@@ -86,7 +86,12 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
             } else {
                 editorState = await this.convertToTiptap(input); // Legacy Tiptap JSON
             }
+        } else if (format === 'spreadsheet' || format === 'chart') {
+            // Both spreadsheet and chart use Univer format (data grid)
+            // Frontend will render charts in chart-editor, spreadsheets in spreadsheet-editor
+            editorState = this.convertToUniver(input);
         } else {
+            // Fallback
             editorState = this.convertToUniver(input);
         }
 
@@ -701,7 +706,7 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
     }
 
     /**
-     * Parse HTML string and convert to Tiptap nodes
+     * Parse HTML string and convert to Tiptap nodes (ENHANCED)
      */
     private parseHTMLToTiptap(html: string, nodes: any[], sectionLabel?: string, headingLevel: number = 2): void {
         // Add section label if provided
@@ -713,17 +718,17 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
             });
         }
 
-        // Simple HTML parser - handle common tags
         const htmlContent = html.trim();
         
-        // Extract tags with regex patterns
-        const tagPattern = /<(\w+)([^>]*)>(.*?)<\/\1>|<(\w+)([^>]*)\s*\/>/gs;
-        let lastIndex = 0;
+        // Split by top-level tags and process each
+        const elementPattern = /<(h[1-6]|p|ul|ol|table|blockquote|pre|div)([^>]*)>([\s\S]*?)<\/\1>/gi;
+        let processedAny = false;
         let match;
-
-        while ((match = tagPattern.exec(htmlContent)) !== null) {
-            const tag = (match[1] || match[4]).toLowerCase();
-            const content = match[3] || '';
+        
+        while ((match = elementPattern.exec(htmlContent)) !== null) {
+            processedAny = true;
+            const tag = match[1].toLowerCase();
+            const content = match[3];
             
             switch (tag) {
                 case 'h1':
@@ -763,71 +768,145 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
                     break;
                     
                 case 'blockquote':
+                    const quoteContent = this.parseInlineHTML(content);
                     nodes.push({
                         type: "blockquote",
                         content: [{
                             type: "paragraph",
-                            content: [{ type: "text", text: this.stripHTML(content) }]
+                            content: quoteContent
                         }]
                     });
                     break;
                     
                 case 'pre':
-                    const codeContent = content.replace(/<\/?code[^>]*>/g, '');
+                    const codeMatch = /<code[^>]*>([\s\S]*?)<\/code>/i.exec(content);
+                    const codeText = codeMatch ? codeMatch[1] : content;
                     nodes.push({
                         type: "codeBlock",
-                        content: [{ type: "text", text: this.stripHTML(codeContent) }]
+                        content: [{ type: "text", text: this.stripHTML(codeText) }]
                     });
                     break;
+                    
+                case 'div':
+                    // Handle special div classes (callout, stat, etc.)
+                    const classMatch = /class=['"]([^'"]+)['"]/i.exec(match[2]);
+                    const className = classMatch ? classMatch[1] : '';
+                    
+                    if (className.includes('callout')) {
+                        const calloutContent = this.parseInlineHTML(content);
+                        nodes.push({
+                            type: "paragraph",
+                            content: calloutContent
+                        });
+                    } else {
+                        // Generic div - parse content
+                        this.parseHTMLToTiptap(content, nodes, undefined, headingLevel);
+                    }
+                    break;
             }
-            
-            lastIndex = match.index + match[0].length;
         }
         
-        // Add spacing
-        nodes.push({ type: "paragraph", content: [] });
+        // If no matches found, treat as plain text or inline HTML
+        if (!processedAny && htmlContent) {
+            const inlineContent = this.parseInlineHTML(htmlContent);
+            if (inlineContent.length > 0) {
+                nodes.push({
+                    type: "paragraph",
+                    content: inlineContent
+                });
+            }
+        }
     }
 
     /**
-     * Parse inline HTML elements (strong, em, code) within text
+     * Parse inline HTML elements (strong, em, code) within text (ENHANCED)
      */
     private parseInlineHTML(html: string): any[] {
         const result: any[] = [];
-        const inlinePattern = /<(strong|em|code)>(.*?)<\/\1>|([^<]+)/g;
-        let match;
         
-        while ((match = inlinePattern.exec(html)) !== null) {
-            if (match[1]) {
-                // Tagged content
-                const tag = match[1];
-                const text = this.stripHTML(match[2]);
+        // First strip all tags and check if we have content
+        const strippedText = this.stripHTML(html).trim();
+        if (!strippedText) {
+            return [{ type: "text", text: "" }];
+        }
+        
+        // If no HTML tags, return as plain text
+        if (!html.includes('<')) {
+            return [{ type: "text", text: strippedText }];
+        }
+        
+        // Parse with better regex that handles nested content
+        let currentPos = 0;
+        const tagPattern = /<(strong|em|code|b|i)([^>]*)>(.*?)<\/\1>/gi;
+        let lastMatch: RegExpExecArray | null = null;
+        
+        // Reset regex
+        tagPattern.lastIndex = 0;
+        
+        while (true) {
+            const match = tagPattern.exec(html);
+            if (!match) break;
+            
+            // Add text before the tag
+            if (match.index > currentPos) {
+                const beforeText = html.substring(currentPos, match.index);
+                const cleaned = this.stripHTML(beforeText).trim();
+                if (cleaned) {
+                    result.push({ type: "text", text: cleaned });
+                }
+            }
+            
+            // Add tagged content
+            const tag = match[1].toLowerCase();
+            const innerContent = this.stripHTML(match[3]).trim();
+            if (innerContent) {
                 const marks: any[] = [];
-                
-                if (tag === 'strong') marks.push({ type: "bold" });
-                else if (tag === 'em') marks.push({ type: "italic" });
+                if (tag === 'strong' || tag === 'b') marks.push({ type: "bold" });
+                else if (tag === 'em' || tag === 'i') marks.push({ type: "italic" });
                 else if (tag === 'code') marks.push({ type: "code" });
                 
-                result.push({ type: "text", text: text, marks: marks.length > 0 ? marks : undefined });
-            } else if (match[3]) {
-                // Plain text
-                const text = match[3].trim();
-                if (text) result.push({ type: "text", text: text });
+                result.push({ 
+                    type: "text", 
+                    text: innerContent, 
+                    marks: marks.length > 0 ? marks : undefined 
+                });
+            }
+            
+            currentPos = match.index + match[0].length;
+            lastMatch = match;
+        }
+        
+        // Add remaining text after last tag
+        if (currentPos < html.length) {
+            const afterText = html.substring(currentPos);
+            const cleaned = this.stripHTML(afterText).trim();
+            if (cleaned) {
+                result.push({ type: "text", text: cleaned });
             }
         }
         
-        return result.length > 0 ? result : [{ type: "text", text: this.stripHTML(html) }];
+        return result.length > 0 ? result : [{ type: "text", text: strippedText }];
     }
 
     /**
-     * Parse HTML list (ul/ol) to Tiptap format
+     * Parse HTML list (ul/ol) to Tiptap format (ENHANCED)
      */
     private parseList(html: string, nodes: any[], listType: 'bulletList' | 'orderedList'): void {
         const items: any[] = [];
-        const liPattern = /<li>(.*?)<\/li>/gs;
+        const liPattern = /<li[^>]*>([\s\S]*?)<\/li>/gi;
         let match;
         
         while ((match = liPattern.exec(html)) !== null) {
-            const content = this.parseInlineHTML(match[1]);
+            const itemHTML = match[1].trim();
+            
+            // Parse list item content (might contain HTML)
+            let content: any[];
+            if (itemHTML.includes('<') && itemHTML.includes('>')) {
+                content = this.parseInlineHTML(itemHTML);
+            } else {
+                content = itemHTML ? [{ type: "text", text: itemHTML }] : [{ type: "text", text: "" }];
+            }
+            
             items.push({
                 type: "listItem",
                 content: [{
@@ -846,26 +925,36 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
     }
 
     /**
-     * Parse HTML table to Tiptap format
+     * Parse HTML table to Tiptap format (ENHANCED)
      */
     private parseHTMLTable(html: string, nodes: any[]): void {
         const tableRows: any[] = [];
         
         // Extract thead
-        const theadMatch = /<thead>(.*?)<\/thead>/s.exec(html);
+        const theadMatch = /<thead[^>]*>([\s\S]*?)<\/thead>/i.exec(html);
         if (theadMatch) {
             const headerRow = this.parseTableRow(theadMatch[1], true);
             if (headerRow) tableRows.push(headerRow);
         }
         
         // Extract tbody
-        const tbodyMatch = /<tbody>(.*?)<\/tbody>/s.exec(html);
+        const tbodyMatch = /<tbody[^>]*>([\s\S]*?)<\/tbody>/i.exec(html);
         if (tbodyMatch) {
-            const trPattern = /<tr>(.*?)<\/tr>/gs;
+            const trPattern = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
             let match;
             while ((match = trPattern.exec(tbodyMatch[1])) !== null) {
                 const row = this.parseTableRow(match[1], false);
                 if (row) tableRows.push(row);
+            }
+        } else {
+            // No tbody - try to parse tr directly
+            const trPattern = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+            let match;
+            let firstRow = true;
+            while ((match = trPattern.exec(html)) !== null) {
+                const row = this.parseTableRow(match[1], firstRow);
+                if (row) tableRows.push(row);
+                firstRow = false;
             }
         }
         
@@ -878,21 +967,32 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
     }
 
     /**
-     * Parse table row
+     * Parse table row (ENHANCED to handle HTML in cells)
      */
     private parseTableRow(rowHTML: string, isHeader: boolean): any | null {
         const cells: any[] = [];
-        const cellPattern = isHeader ? /<th>(.*?)<\/th>/g : /<td>(.*?)<\/td>/g;
+        const cellPattern = isHeader ? /<th[^>]*>([\s\S]*?)<\/th>/gi : /<td[^>]*>([\s\S]*?)<\/td>/gi;
         let match;
         
         while ((match = cellPattern.exec(rowHTML)) !== null) {
-            const cellContent = this.parseInlineHTML(match[1]);
+            const cellHTML = match[1].trim();
+            
+            // Parse cell content (might contain HTML)
+            let cellContent: any[];
+            if (cellHTML.includes('<') && cellHTML.includes('>')) {
+                // Cell contains HTML - parse it
+                cellContent = this.parseInlineHTML(cellHTML);
+            } else {
+                // Plain text
+                cellContent = cellHTML ? [{ type: "text", text: cellHTML }] : [{ type: "text", text: "" }];
+            }
+            
             cells.push({
                 type: isHeader ? "tableHeader" : "tableCell",
                 attrs: { colspan: 1, rowspan: 1, colwidth: null },
                 content: [{
                     type: "paragraph",
-                    content: cellContent.length > 0 ? cellContent : [{ type: "text", text: "" }]
+                    content: cellContent
                 }]
             });
         }
