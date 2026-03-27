@@ -12,6 +12,7 @@ import { DocumentContentAgent } from "../agents/document/DocumentContentAgent";
 import { SpreadsheetLayoutAgent } from "../agents/spreadsheet/SpreadsheetLayoutAgent";
 import { SpreadsheetContentAgent } from "../agents/spreadsheet/SpreadsheetContentAgent";
 import { RenderingAgent } from "../agents/rendering/RenderingAgent";
+import { ImageGenerationAgent } from "../agents/image/ImageGenerationAgent";
 
 export class AIOrchestrator {
     private claude: Anthropic;
@@ -28,6 +29,8 @@ export class AIOrchestrator {
     
     private sheetLayout: SpreadsheetLayoutAgent;
     private sheetContent: SpreadsheetContentAgent;
+    
+    private imageAgent: ImageGenerationAgent;
 
     constructor() {
         this.claude = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
@@ -44,8 +47,11 @@ export class AIOrchestrator {
         
         this.sheetLayout = new SpreadsheetLayoutAgent();
         this.sheetContent = new SpreadsheetContentAgent();
+        
+        this.imageAgent = new ImageGenerationAgent();
     }
 
+    
     /**
      * Starts the generation process
      */
@@ -120,6 +126,13 @@ export class AIOrchestrator {
                 
                 // RenderingAgent handles the IntentResponse via the adapter we added
                 await this.renderingAgent.run(job);
+                
+            } else if (format === 'image') {
+                // 🎨 IMAGE GENERATION: Use DALL-E to generate image
+                console.log(`🎨 Image generation detected: Using ImageGenerationAgent.`);
+                
+                // ImageGenerationAgent handles everything - from Intent to final image URL
+                await this.imageAgent.run(job);
                 
             } else if (format === 'document') {
                 // Document Flow: Layout -> Content -> Render

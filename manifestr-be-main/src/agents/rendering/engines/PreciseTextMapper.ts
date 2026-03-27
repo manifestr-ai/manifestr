@@ -1,4 +1,4 @@
-import { openai } from '../../../lib/openai';
+import { generateJSON } from '../../../lib/claude';
 import { appendLog } from '../../presentation/GenerationLogger';
 
 /**
@@ -88,14 +88,16 @@ REPLACEMENT RULES:
 Return ONLY the replacement text, nothing else. No quotes, no explanations.`;
 
     try {
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+        // Use Claude for text generation instead of OpenAI
+        const { claude } = await import('../../../lib/claude');
+        const response = await claude.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: Math.ceil(charCount / 2) + 100,
             messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-            max_tokens: Math.ceil(charCount / 2) + 50,
         });
         
-        let replacement = (response.choices[0].message.content || originalText).trim();
+        const textBlock: any = response.content.find((block: any) => block.type === 'text');
+        let replacement = (textBlock?.text || originalText).trim();
         
         // Enforce strict limits
         const replacementWords = replacement.split(/\s+/).length;

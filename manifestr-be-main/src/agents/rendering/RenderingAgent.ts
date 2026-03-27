@@ -522,38 +522,47 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
                 nodes.push({ type: "paragraph", content: [] }); // Spacing
                 this.convertObjectToTiptap(value, nodes, headingLevel + 1);
             } else {
-                // Handle primitive values with markdown-style formatting
-                const formattedContent = this.parseMarkdownText(String(value));
+                // Handle primitive values - parse HTML if present
+                const valueString = String(value);
                 
-                // If it's a short label-value pair
-                if (String(value).length < 200) {
-                    nodes.push({
-                        type: "paragraph",
-                        content: [
-                            { type: "text", text: `${displayKey}: `, marks: [{ type: "bold" }] },
-                            ...formattedContent
-                        ]
-                    });
+                // Check if content contains HTML tags
+                if (valueString.includes('<') && valueString.includes('>')) {
+                    // Parse HTML content and convert to Tiptap nodes
+                    this.parseHTMLToTiptap(valueString, nodes, displayKey, headingLevel);
                 } else {
-                    // Long content - separate heading from content
-                    nodes.push({
-                        type: "heading",
-                        attrs: { level: Math.min(headingLevel, 4) },
-                        content: [{ type: "text", text: displayKey }]
-                    });
+                    // Handle plain text with markdown-style formatting
+                    const formattedContent = this.parseMarkdownText(valueString);
                     
-                    // Split long content into paragraphs
-                    const paragraphs = String(value).split('\n\n');
-                    paragraphs.forEach(para => {
-                        if (para.trim()) {
-                            const paraContent = this.parseMarkdownText(para.trim());
-                            nodes.push({
-                                type: "paragraph",
-                                content: paraContent
-                            });
-                        }
-                    });
-                    nodes.push({ type: "paragraph", content: [] }); // Spacing
+                    // If it's a short label-value pair
+                    if (valueString.length < 200) {
+                        nodes.push({
+                            type: "paragraph",
+                            content: [
+                                { type: "text", text: `${displayKey}: `, marks: [{ type: "bold" }] },
+                                ...formattedContent
+                            ]
+                        });
+                    } else {
+                        // Long content - separate heading from content
+                        nodes.push({
+                            type: "heading",
+                            attrs: { level: Math.min(headingLevel, 4) },
+                            content: [{ type: "text", text: displayKey }]
+                        });
+                        
+                        // Split long content into paragraphs
+                        const paragraphs = valueString.split('\n\n');
+                        paragraphs.forEach(para => {
+                            if (para.trim()) {
+                                const paraContent = this.parseMarkdownText(para.trim());
+                                nodes.push({
+                                    type: "paragraph",
+                                    content: paraContent
+                                });
+                            }
+                        });
+                        nodes.push({ type: "paragraph", content: [] }); // Spacing
+                    }
                 }
             }
         }
@@ -689,5 +698,212 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
         return key
             .replace(/_/g, ' ')
             .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    /**
+     * Parse HTML string and convert to Tiptap nodes
+     */
+    private parseHTMLToTiptap(html: string, nodes: any[], sectionLabel?: string, headingLevel: number = 2): void {
+        // Add section label if provided
+        if (sectionLabel) {
+            nodes.push({
+                type: "heading",
+                attrs: { level: Math.min(headingLevel, 4) },
+                content: [{ type: "text", text: sectionLabel }]
+            });
+        }
+
+        // Simple HTML parser - handle common tags
+        const htmlContent = html.trim();
+        
+        // Extract tags with regex patterns
+        const tagPattern = /<(\w+)([^>]*)>(.*?)<\/\1>|<(\w+)([^>]*)\s*\/>/gs;
+        let lastIndex = 0;
+        let match;
+
+        while ((match = tagPattern.exec(htmlContent)) !== null) {
+            const tag = (match[1] || match[4]).toLowerCase();
+            const content = match[3] || '';
+            
+            switch (tag) {
+                case 'h1':
+                case 'h2':
+                case 'h3':
+                case 'h4':
+                case 'h5':
+                case 'h6':
+                    const level = parseInt(tag[1]);
+                    nodes.push({
+                        type: "heading",
+                        attrs: { level: level },
+                        content: [{ type: "text", text: this.stripHTML(content) }]
+                    });
+                    break;
+                    
+                case 'p':
+                    const paragraphContent = this.parseInlineHTML(content);
+                    if (paragraphContent.length > 0) {
+                        nodes.push({
+                            type: "paragraph",
+                            content: paragraphContent
+                        });
+                    }
+                    break;
+                    
+                case 'ul':
+                    this.parseList(content, nodes, 'bulletList');
+                    break;
+                    
+                case 'ol':
+                    this.parseList(content, nodes, 'orderedList');
+                    break;
+                    
+                case 'table':
+                    this.parseHTMLTable(content, nodes);
+                    break;
+                    
+                case 'blockquote':
+                    nodes.push({
+                        type: "blockquote",
+                        content: [{
+                            type: "paragraph",
+                            content: [{ type: "text", text: this.stripHTML(content) }]
+                        }]
+                    });
+                    break;
+                    
+                case 'pre':
+                    const codeContent = content.replace(/<\/?code[^>]*>/g, '');
+                    nodes.push({
+                        type: "codeBlock",
+                        content: [{ type: "text", text: this.stripHTML(codeContent) }]
+                    });
+                    break;
+            }
+            
+            lastIndex = match.index + match[0].length;
+        }
+        
+        // Add spacing
+        nodes.push({ type: "paragraph", content: [] });
+    }
+
+    /**
+     * Parse inline HTML elements (strong, em, code) within text
+     */
+    private parseInlineHTML(html: string): any[] {
+        const result: any[] = [];
+        const inlinePattern = /<(strong|em|code)>(.*?)<\/\1>|([^<]+)/g;
+        let match;
+        
+        while ((match = inlinePattern.exec(html)) !== null) {
+            if (match[1]) {
+                // Tagged content
+                const tag = match[1];
+                const text = this.stripHTML(match[2]);
+                const marks: any[] = [];
+                
+                if (tag === 'strong') marks.push({ type: "bold" });
+                else if (tag === 'em') marks.push({ type: "italic" });
+                else if (tag === 'code') marks.push({ type: "code" });
+                
+                result.push({ type: "text", text: text, marks: marks.length > 0 ? marks : undefined });
+            } else if (match[3]) {
+                // Plain text
+                const text = match[3].trim();
+                if (text) result.push({ type: "text", text: text });
+            }
+        }
+        
+        return result.length > 0 ? result : [{ type: "text", text: this.stripHTML(html) }];
+    }
+
+    /**
+     * Parse HTML list (ul/ol) to Tiptap format
+     */
+    private parseList(html: string, nodes: any[], listType: 'bulletList' | 'orderedList'): void {
+        const items: any[] = [];
+        const liPattern = /<li>(.*?)<\/li>/gs;
+        let match;
+        
+        while ((match = liPattern.exec(html)) !== null) {
+            const content = this.parseInlineHTML(match[1]);
+            items.push({
+                type: "listItem",
+                content: [{
+                    type: "paragraph",
+                    content: content
+                }]
+            });
+        }
+        
+        if (items.length > 0) {
+            nodes.push({
+                type: listType,
+                content: items
+            });
+        }
+    }
+
+    /**
+     * Parse HTML table to Tiptap format
+     */
+    private parseHTMLTable(html: string, nodes: any[]): void {
+        const tableRows: any[] = [];
+        
+        // Extract thead
+        const theadMatch = /<thead>(.*?)<\/thead>/s.exec(html);
+        if (theadMatch) {
+            const headerRow = this.parseTableRow(theadMatch[1], true);
+            if (headerRow) tableRows.push(headerRow);
+        }
+        
+        // Extract tbody
+        const tbodyMatch = /<tbody>(.*?)<\/tbody>/s.exec(html);
+        if (tbodyMatch) {
+            const trPattern = /<tr>(.*?)<\/tr>/gs;
+            let match;
+            while ((match = trPattern.exec(tbodyMatch[1])) !== null) {
+                const row = this.parseTableRow(match[1], false);
+                if (row) tableRows.push(row);
+            }
+        }
+        
+        if (tableRows.length > 0) {
+            nodes.push({
+                type: "table",
+                content: tableRows
+            });
+        }
+    }
+
+    /**
+     * Parse table row
+     */
+    private parseTableRow(rowHTML: string, isHeader: boolean): any | null {
+        const cells: any[] = [];
+        const cellPattern = isHeader ? /<th>(.*?)<\/th>/g : /<td>(.*?)<\/td>/g;
+        let match;
+        
+        while ((match = cellPattern.exec(rowHTML)) !== null) {
+            const cellContent = this.parseInlineHTML(match[1]);
+            cells.push({
+                type: isHeader ? "tableHeader" : "tableCell",
+                attrs: { colspan: 1, rowspan: 1, colwidth: null },
+                content: [{
+                    type: "paragraph",
+                    content: cellContent.length > 0 ? cellContent : [{ type: "text", text: "" }]
+                }]
+            });
+        }
+        
+        return cells.length > 0 ? { type: "tableRow", content: cells } : null;
+    }
+
+    /**
+     * Strip all HTML tags from text
+     */
+    private stripHTML(html: string): string {
+        return html.replace(/<[^>]*>/g, '').trim();
     }
 }

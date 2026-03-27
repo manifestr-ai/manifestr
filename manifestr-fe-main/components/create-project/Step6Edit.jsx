@@ -58,6 +58,8 @@ export default function Step6Edit({ generationId, outputType }) {
                             router.push(`/presentation-editor?id=${generationId}`)
                         } else if (outputType === 'spreadsheet') {
                             router.push(`/spreadsheet-editor?id=${generationId}`)
+                        } else if (outputType === 'image') {
+                            router.push(`/image-editor?id=${generationId}`)
                         } else {
                             router.push(`/docs-editor?id=${generationId}`)
                         }

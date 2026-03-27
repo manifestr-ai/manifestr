@@ -35,7 +35,14 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
         ### CRITICAL QUALITY STANDARDS:
         1. **DEPTH & SUBSTANCE**: Users want articles, whitepapers, and reports. ERROR if content is thin or summary-like.
         2. **LONG-FORM**: For 'body' components, write 4-6 PARAGRAPHS (400-600 words per section).
-        3. **STRUCTURED**: Use **Markdown** formatting (bolding, lists, subheaders) within the body text to create readability.
+        3. **PROPER HTML FORMATTING** (CRITICAL - Use HTML, NOT Markdown):
+           - Headings: Use <h1>, <h2>, <h3> tags (NOT # symbols)
+           - Bold: Use <strong> tags (NOT ** symbols)
+           - Italic: Use <em> tags (NOT * symbols)
+           - Paragraphs: Use <p> tags with proper spacing
+           - Lists: Use <ul><li> for bullets, <ol><li> for numbered
+           - Tables: Use proper <table><thead><tr><th></th></tr></thead><tbody><tr><td></td></tr></tbody></table>
+           - Code: Use <pre><code> for code blocks
         4. **PROFESSIONAL TONE**: ${input.intent.metadata.tone || 'Professional & Authoritative'}.
 
         ### 1. CONTENT PRINCIPLES
@@ -47,22 +54,35 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
         ### 2. COMPONENT INSTRUCTIONS
         
         **For "title" components**:
-        - Clear, Descriptive Article Headlines. 
-        - Example: "The Strategic Implications of AI in Enterprise Healthcare"
+        - Use h1 HTML element for main title
+        - Example format: h1 element with title text
         
         **For "author" components**:
-        - Use placeholders: "By [Your Name], [Your Title] | [Your Company]".
+        - Use p HTML element with placeholders
+        - Format: By [Your Name], [Your Title] | [Your Company]
         - Do NOT use fake names.
         
         **For "subtitle" components**:
-        - Detailed Lead/Abstract. 3-4 sentences setting the rich context.
+        - Use h2 HTML element for subtitles
+        - Example: A descriptive subtitle that sets context
         
-        **For "body" components (CRITICAL)**:
-        - This is the core Article Text. 
-        - **MANDATORY**: Write at least 400 words.
-        - Include analysis, context, data points, and future outlook.
-        - Use **Markdown** for emphasis (e.g. **key terms**) and structure.
-      - *Do not* just write a single paragraph. Break it down.
+        **For "body" components (CRITICAL - FORMATTING MATTERS)**:
+        - This is the core Article Text
+        - **MANDATORY**: Write at least 400 words
+        - **USE PROPER HTML FORMATTING**:
+        
+        HTML FORMATTING RULES:
+        - Headings: Use h3, h4 tags for subsections
+        - Paragraphs: Wrap all text in p tags
+        - Bold: Use strong tags for important terms
+        - Italic: Use em tags for emphasis
+        - Lists: Use ul with li tags for bullets, ol with li for numbered
+        - Tables: Use table with thead, tbody, tr, th, td structure
+        - Code: Use pre with code tags for code blocks
+        - Quotes: Use blockquote with cite tags
+        
+        EXAMPLE STRUCTURE:
+        Start with h3 heading, then multiple p paragraphs with strong/em emphasis, then ul list with li items, then table with proper structure, then more p paragraphs for analysis.
       
       **For "image" components**:
       - "Editorial" style photography or data visualization prompts.
@@ -71,20 +91,30 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
       - Return valid JSON string (same as presentation).
       
       **For "table" components**:
-      - Return a JSON string representing the table data.
-      - Structure: { "headers": ["Col1", "Col2"], "rows": [["Val1", "Val2"], ["Val3", "Val4"]] }
+      - Generate HTML table with proper thead, tbody, tr, th, td tags
+      - MINIMUM 5-10 rows with realistic, varied data
+      - Use th tags in thead for headers
+      - Use td tags in tbody for data cells
       - Content must be REALISTIC and RELEVANT.
 
       **For "quote" components**:
-      - MUST use a REAL, VERIFIABLE quote from a credible industry expert, historical figure, or thought leader (e.g. Steve Jobs, Peter Drucker).
-      - Do NOT fabricate quotes.
+      - Use blockquote HTML element with cite for attribution
+      - Format: blockquote wrapping p element for quote text, cite element for source
+      - MUST use REAL, VERIFIABLE quotes from credible sources
+      - Do NOT fabricate quotes
       
       **For "stat" components**:
-      - Generate a BIG NUMBER + Label.
-      - Example: "94% | Growth Year over Year" or "$50M | Total Revenue".
+      - Use div with class stat, strong for value, span for label
+      - Format: Large number display with descriptive label below
       
       **For "callout" components**:
-      - Summarize the key takeaway of the section. 1-2 sentences. "Insight: ...".
+      - Use div with class callout
+      - Format: strong element for heading, then explanation text
+      
+      **For "code" components**:
+      - Use pre wrapping code elements for code blocks
+      - Ensure proper indentation and line breaks
+      - Use monospace-friendly formatting
 
       ### 3. ID MATCHING (CRITICAL)
       - You will receive a list of blocks with components.
@@ -97,20 +127,22 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
       - Audience: ${input.intent.metadata.audience}
       
       ### 5. OUTPUT FORMAT
-      Return valid JSON matching \`ContentGenerationSchema\`.
+      Return valid JSON matching ContentGenerationSchema.
       
-      Example Output:
+      Example Output Structure:
       {
         "generatedContent": [
           {
             "blockId": "section-1",
             "content": {
-               "section-1-title": "The Title",
-               "section-1-body": "## Subheader\\n\\nParagraph 1 text...\\n\\nParagraph 2 text..." 
+               "section-1-title": "h1 element with title",
+               "section-1-body": "h3 element then p elements with strong and em emphasis, then ul with li items, then more p elements" 
             }
           }
         ]
       }
+      
+      REMEMBER: Use HTML elements (h1, p, strong, em, ul, li, table, thead, tbody, tr, th, td) NOT Markdown syntax
             `;
 
         // BYPASS VALIDATION - accept anything from OpenAI
@@ -183,28 +215,33 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
            - For numbers: Use plausible, realistic values
            - For dates: Use appropriate date formats (e.g., "January 15, 2025")
         
-        3. **FORMATTING EXCELLENCE** (CRITICAL):
+        3. **FORMATTING EXCELLENCE - USE PROPER HTML** (CRITICAL):
            
            📊 **TABLE FORMATTING**:
+           - Generate HTML tables with thead, tbody, tr, th, td elements
            - MINIMUM 6-10 rows per table (not just 3-4!)
            - Use VARIED, realistic data - no repetitive patterns
            - Column values should be diverse and meaningful
-           - Proper alignment considerations (numbers right-aligned, text left-aligned)
-           - Clean, consistent formatting across all rows
+           - Header row in thead with th elements
+           - Data rows in tbody with td elements
            
-           📝 **TEXT FORMATTING**:
-           - Use proper paragraph breaks (every 3-4 sentences)
-           - Add spacing between logical sections
-           - Use bullet points for lists (•)
-           - Use numbered lists for sequences (1., 2., 3.)
-           - Bold important terms using **bold syntax**
-           - Italic for emphasis using *italic syntax*
+           📝 **TEXT FORMATTING** (Use HTML tags, NOT Markdown):
+           - Headings: Use h1, h2, h3, h4 elements (NOT Markdown # symbols)
+           - Paragraphs: Wrap all text in p elements
+           - Bold: Use strong elements (NOT Markdown asterisks)
+           - Italic: Use em elements (NOT Markdown underscores)
+           - Bullet lists: Use ul with li elements
+           - Numbered lists: Use ol with li elements
+           - Code blocks: Use pre with code elements
+           - Quotes: Use blockquote with cite elements for attribution
            
            📐 **STRUCTURE**:
-           - Clear visual hierarchy
-           - Consistent formatting patterns
-           - Professional spacing
+           - Clear visual hierarchy using proper heading levels
+           - Consistent HTML formatting patterns
+           - Professional spacing with p elements
            - Logical grouping of related information
+           
+           ⚠️ **CRITICAL**: Use HTML tags ONLY. Do NOT use Markdown syntax like asterisks, hashtags, or underscores
            
         4. **CONTENT DEPTH**:
            ${documentType.includes('article') || documentType.includes('blog') || documentType.includes('report') ? '- This is LONG-FORM content - GO BIG!\n           - Each section should have 4-8 paragraphs\n           - Include examples, data points, analysis\n           - Add context and background\n           - Explain the "why" and "how", not just "what"' : '- Provide comprehensive, detailed information\n           - Include relevant context and examples'}
@@ -217,13 +254,19 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
         
         6. **OUTPUT FORMAT**:
            Return the COMPLETE filled schema as valid JSON. Replace all placeholder descriptions with actual content.
-           Ensure tables have MINIMUM 6-10 rows with varied data.
-           Ensure text sections are comprehensive and well-formatted.
+           
+           **FORMATTING REQUIREMENTS**:
+           - ALL text content MUST use HTML elements (h1, h2, p, strong, em, ul, li, table, etc.)
+           - Do NOT use Markdown syntax (asterisks, hashtags, underscores)
+           - Tables MUST have 6-10 rows minimum with varied, realistic data
+           - Text sections MUST be comprehensive and well-formatted with HTML
+           - Code blocks MUST use pre wrapping code elements
+           - Quotes MUST use blockquote elements
         
         ### 📄 SCHEMA TO FILL:
         ${JSON.stringify(semanticSchema, null, 2)}
         
-        Return ONLY the filled JSON with NO additional text.
+        Return ONLY the filled JSON with proper HTML formatting. NO Markdown syntax.
         `;
 
         // Generate content using the semantic schema

@@ -53,12 +53,16 @@ export default function Home() {
       'document'
     ).toLowerCase();
 
+    console.log('🔍 Opening project:', project.id, 'Type:', type);
+
     // Smart routing based on type
     let path;
     if (type.includes('presentation')) {
       path = `/presentation-editor?id=${project.id}`;
     } else if (type.includes('spreadsheet') || type.includes('sheet')) {
       path = `/spreadsheet-editor?id=${project.id}`;
+    } else if (type.includes('image')) {
+      path = `/image-editor?id=${project.id}`;
     } else {
       path = `/docs-editor?id=${project.id}`;
     }
