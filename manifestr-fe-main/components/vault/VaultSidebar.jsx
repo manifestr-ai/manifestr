@@ -7,21 +7,21 @@ import { Clock, Star, FileText, Users, Archive, Trash2, ChevronDown, Check } fro
 export default function VaultSidebar() {
   const router = useRouter()
   const currentPath = router.pathname
+  // const collabsHref = currentPath.startsWith('/collab-hub') ? '/collab-hub' : '/vault/collabs'
 
   const sidebarItems = [
     { id: 'the-vault', label: 'the vault', icon: null, hasDropdown: true, badge: null, href: '/vault' },
-    { id: 'recents', label: 'Recents', icon: Clock, hasDropdown: false, badge: null, href: '/vault' },
-    { id: 'pinned', label: 'Pinned', icon: Star, hasDropdown: false, badge: null, href: '/vault' },
-    // { id: 'collabs', label: 'Collabs', icon: Users, hasDropdown: false, badge: null, href: '/vault/collabs' },
-    { id: 'archived', label: 'Archived / Completed', icon: Archive, hasDropdown: false, badge: null, href: '/vault' },
-    { id: 'deleted', label: 'DELETED.', icon: Trash2, hasDropdown: false, badge: null, href: '/vault' },
+    { id: 'recents', label: 'Recents', icon: Clock, hasDropdown: false, badge: null, href: '/vault/recents' },
+    { id: 'pinned', label: 'Pinned', icon: Star, hasDropdown: false, badge: null, href: '/vault/pinned' },
+    { id: 'prompts', label: 'Prompts in progress', icon: FileText, hasDropdown: false, badge: '31', href: '/vault/recents' },
+    { id: 'collabs', label: 'Collabs', icon: Users, hasDropdown: false, badge: null, href: '/collab-hub' },
+    { id: 'archived', label: 'Archived / Completed', icon: Archive, hasDropdown: false, badge: null, href: '/vault/archived' },
+    { id: 'deleted', label: 'DELETED.', icon: Trash2, hasDropdown: false, badge: null, href: '/vault/deleted' },
   ]
 
   const isActive = (href) => {
-    if (href === '/vault') {
-      return currentPath === '/vault'
-    }
-    return currentPath === href
+    if (href === '/vault') return currentPath === '/vault'
+    return currentPath === href || currentPath.startsWith(href + '/')
   }
 
   return (
@@ -104,4 +104,3 @@ export default function VaultSidebar() {
     </div>
   )
 }
-
