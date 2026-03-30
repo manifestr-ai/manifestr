@@ -57,69 +57,88 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
         className="flex items-center px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 hover:bg-[#fafafa] transition-colors cursor-pointer group"
         onClick={onClick}
       >
-        {/* Name & Project */}
-        <div className="flex-1 min-w-0 flex items-center gap-3 pl-2">
-          <div className="p-2 bg-[#f4f4f5] rounded text-[#71717a]">
-            <FileText className="w-4 h-4" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-[14px] font-medium text-[#18181b] truncate leading-tight">{card.title}</h3>
-            <p className="text-[12px] text-[#71717a] truncate leading-tight">{card.project}</p>
-          </div>
-        </div>
-
-        {/* Status */}
-        <div className="w-[100px] flex justify-center hidden md:flex">
-          <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${card.collaboratorName
-            ? getCollaboratorBadgeColor(card.collaboratorName)
-            : statusBgColors[card.status] || 'bg-[#dbeafe]'
-            } ${card.collaboratorName
-              ? getCollaboratorTextColor(card.collaboratorName)
-              : statusTextColors[card.status] || 'text-[#1e40af]'
-            }`}>
-            {card.collaboratorName || card.status}
-          </span>
-        </div>
-
-        {/* Collaborators */}
-        <div className="w-[120px] pl-2 hidden md:flex items-center -space-x-2">
-          {card.collaborators && card.collaborators.slice(0, 3).map((collab, idx) => (
-            <div
-              key={idx}
-              className="w-[24px] h-[24px] rounded-full bg-[#f4f4f5] border border-white flex items-center justify-center overflow-hidden shrink-0"
-              style={{ zIndex: 10 - idx }}
-            >
-              {collab.avatar ? (
-                <img src={collab.avatar} alt={collab.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[9px] font-medium text-[#18181b]">
-                  {collab.name.charAt(0).toUpperCase()}
+        <div className="flex-1 min-w-0 flex items-center gap-4">
+          <div className="relative w-[180px] h-[84px] rounded-lg overflow-hidden bg-[#f4f4f5] border border-[#e4e4e7] shrink-0">
+            {!imageError ? (
+              <img
+                src={cardImage}
+                alt={card.title}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#f4f4f5] to-[#e4e4e7]" />
+            )}
+            {(card.status || card.collaboratorName) && (
+              <div className="absolute bottom-2 left-2">
+                <span
+                  className={`px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] ${
+                    card.collaboratorName
+                      ? getCollaboratorBadgeColor(card.collaboratorName)
+                      : statusBgColors[card.status] || 'bg-[#dbeafe]'
+                  } ${
+                    card.collaboratorName
+                      ? getCollaboratorTextColor(card.collaboratorName)
+                      : statusTextColors[card.status] || 'text-[#1e40af]'
+                  }`}
+                >
+                  {card.collaboratorName || card.status}
                 </span>
-              )}
-            </div>
-          ))}
-          {card.collaborators && card.collaborators.length > 3 && (
-            <div className="w-[24px] h-[24px] rounded-full bg-[#f4f4f5] border border-white flex items-center justify-center shrink-0 text-[9px] font-medium text-[#71717a]" style={{ zIndex: 0 }}>
-              +{card.collaborators.length - 3}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <h3 className="text-[16px] font-semibold text-[#18181b] truncate leading-[22px]">
+              {card.title}
+            </h3>
+            <p className="text-[13px] text-[#71717a] truncate leading-[18px]">{card.project}</p>
+            {card.lastEdited && (
+              <p className="text-[12px] text-[#a1a1aa] leading-[16px] mt-1">{card.lastEdited}</p>
+            )}
+          </div>
         </div>
 
-        {/* Last Edited */}
-        <div className="w-[140px] text-right hidden lg:block pr-4 text-[13px] text-[#71717a]">
-          {card.lastEdited}
-        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden md:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            >
+              <FileText className="w-4 h-4 text-[#18181b]" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            >
+              <Pencil className="w-4 h-4 text-[#18181b]" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            >
+              <Share2 className="w-4 h-4 text-[#18181b]" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            >
+              <Download className="w-4 h-4 text-[#18181b]" />
+            </button>
+          </div>
 
-        {/* Actions */}
-        <div className="w-[40px] flex justify-end">
           <button
             onClick={(e) => {
               e.stopPropagation()
               setShowActionsModal(true)
             }}
-            className="p-1.5 hover:bg-[#e4e4e7] rounded text-[#71717a] hover:text-[#18181b] opacity-0 group-hover:opacity-100 transition-opacity"
+            className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
           >
-            <MoreVertical className="w-4 h-4" />
+            <MoreVertical className="w-4 h-4 text-[#18181b]" />
           </button>
         </div>
 

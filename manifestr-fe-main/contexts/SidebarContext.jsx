@@ -36,6 +36,12 @@ export function SidebarProvider({ children }) {
           collabsFolder: false,
         }))
       }
+    } else if (path === '/collab-hub') {
+      setSidebars(prev => ({
+        ...prev,
+        vault: true,
+        collabHub: false,
+      }))
     } else if (path.startsWith('/collab-hub')) {
       setSidebars(prev => ({
         ...prev,
@@ -93,4 +99,3 @@ export function useSidebar() {
   }
   return context
 }
-

@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { Mic, FileText, Upload, Pencil } from 'lucide-react'
+import { Mic, FileText, Upload, Pencil, Sparkles } from 'lucide-react'
 
 const workingStyles = [
 
   {
-    id: 'brief-me',
-    title: 'Brief Me',
-    subtitle: 'STRUCTURED PLANNERS',
-    description: 'Answer a brief to build your document. Every response shapes your document step by step, seamlessly.',
-    icon: FileText,
+    id: 'talk-to-me',
+    title: 'Talk To Me',
+    subtitle: 'VERBAL THINKERS',
+    description: 'Speak your ideas. MANIFESTR turns your words into clear, editable text. Perfect for quick thoughts, brainstorming, and capturing inspiration fast.',
+    icon: Mic,
   },
   {
     id: 'drop-zone',
@@ -16,6 +16,13 @@ const workingStyles = [
     subtitle: 'PREP-HEAVY PERFECTIONISTS',
     description: 'Upload files or decks. MANIFESTR analyzes, refines, and rebuilds them into cohesive, presentation ready outputs.',
     icon: Upload,
+  },
+  {
+    id: 'brief-me',
+    title: 'Brief Me',
+    subtitle: 'STRUCTURED PLANNERS',
+    description: 'Answer a brief to build your document. Every response shapes your document step by step, seamlessly.',
+    icon: Sparkles,
   },
   {
     id: 'free-style',
