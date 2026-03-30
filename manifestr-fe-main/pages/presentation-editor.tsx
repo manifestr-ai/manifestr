@@ -16,6 +16,11 @@ const PresentationEditor = dynamic(
   { ssr: false },
 );
 
+const CollaborativePresentationEditor = dynamic(
+  () => import("../components/presentation-editor/CollaborativePresentationEditor"),
+  { ssr: false },
+);
+
 export default function PresentationEditorPage() {
   const { loading, error, status, content, id } = useGenerationLoader();
   // When AI content arrives, force a full remount of PresentationEditor so the
@@ -27,6 +32,15 @@ export default function PresentationEditorPage() {
     (content as any).pages.length > 0;
   const editorKey = isValidContent ? "ai-generated" : "preview";
 
+  // Ensure generationId is string
+  const actualGenerationId = typeof id === 'string' 
+    ? id 
+    : Array.isArray(id) 
+      ? id[0] 
+      : undefined;
+  
+  const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
+
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
       <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -36,18 +50,31 @@ export default function PresentationEditorPage() {
 
         {/* Top Section */}
         <div className="flex-none z-30">
-          <TopHeader editorType="presentation" />
+          <TopHeader 
+            editorType="presentation"
+            documentId={actualGenerationId}
+            documentTitle={content?.title || "Untitled presentation"}
+            enableCollaboration={useCollaboration}
+          />
         </div>
 
         {/* Main Content Area */}
         <div className="flex-grow flex relative overflow-hidden bg-gray-100">
           {/* Grid Container (Full Size) */}
           <div className="flex-grow overflow-hidden relative z-10 h-full">
-            <PresentationEditor
-              key={editorKey}
-              data={content}
-              generationId={Array.isArray(id) ? id[0] : id}
-            />
+            {useCollaboration && actualGenerationId ? (
+              <CollaborativePresentationEditor
+                key={editorKey}
+                data={content}
+                generationId={actualGenerationId}
+              />
+            ) : (
+              <PresentationEditor
+                key={editorKey}
+                data={content}
+                generationId={actualGenerationId}
+              />
+            )}
           </div>
 
           {/* Right Sidebar (Floating over grid on the right) */}

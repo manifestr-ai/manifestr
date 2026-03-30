@@ -21,15 +21,15 @@ export default function ChartViewer() {
                 console.log('📊 Loading chart data for job:', jobId);
                 
                 // Fetch job data
-                const response = await api.get(`/ai/status/${jobId}`);
-                if (!response.data?.status === 'success') {
+                const response = await api.get(`/ai/generation/${jobId}`);
+                if (response.data?.status !== 'success') {
                     throw new Error('Failed to load chart data');
                 }
 
-                const jobData = response.data.data;
-                const editorState = jobData.result?.editorState;
+                const editorState = response.data.data?.result?.editorState;
 
-                if (!editorState?.sheets) {
+                // Handle both formats: new chartState format AND old sheets format
+                if (!editorState?.sheets && !editorState?.chartState) {
                     throw new Error('No chart data available');
                 }
 
@@ -40,9 +40,18 @@ export default function ChartViewer() {
                 await loadHighcharts();
 
                 // Extract data and create chart
-                const firstSheet = Object.values(editorState.sheets)[0] as any;
-                if (firstSheet?.cellData) {
-                    createChart(firstSheet.cellData, editorState.name || 'AI Generated Chart');
+                // NEW FORMAT: chartState (from collaborative editor)
+                if (editorState.chartState) {
+                    console.log('📊 Loading from chartState format (collaborative editor)');
+                    createChartFromState(editorState.chartState, editorState.name || 'AI Generated Chart');
+                } 
+                // OLD FORMAT: sheets (from original AI generation)
+                else if (editorState.sheets) {
+                    console.log('📊 Loading from sheets format (original AI generation)');
+                    const firstSheet = Object.values(editorState.sheets)[0] as any;
+                    if (firstSheet?.cellData) {
+                        createChart(firstSheet.cellData, editorState.name || 'AI Generated Chart');
+                    }
                 }
 
             } catch (err: any) {
@@ -84,6 +93,33 @@ export default function ChartViewer() {
 
         // Convert cell data to series
         const { categories, series } = convertCellDataToSeries(cellData);
+
+        renderHighcharts(categories, series, title);
+    };
+
+    const createChartFromState = (chartState: any, title: string) => {
+        if (!chartRef.current) return;
+
+        const Highcharts = (window as any).Highcharts;
+        if (!Highcharts) {
+            console.error('Highcharts not loaded');
+            return;
+        }
+
+        // Use data from chart state
+        const categories = chartState.labels || [];
+        const series = (chartState.datasets || []).map((ds: any) => ({
+            name: ds.label,
+            data: ds.data
+        }));
+
+        renderHighcharts(categories, series, chartState.chartTitle || title);
+    };
+
+    const renderHighcharts = (categories: string[], series: any[], title: string) => {
+        if (!chartRef.current) return;
+
+        const Highcharts = (window as any).Highcharts;
 
         // Create container for multiple charts
         chartRef.current.innerHTML = `
