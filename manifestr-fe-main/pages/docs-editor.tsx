@@ -12,7 +12,7 @@ import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 // Dynamically import collaborative editor (uses Y.js)
 const CollaborativeTiptapEditor = dynamic(
   () => import("../components/docs/CollaborativeTiptapEditor"),
-  { ssr: false }
+  { ssr: false },
 );
 import {
   Document,
@@ -159,7 +159,7 @@ export default function DocsEditor() {
         // Handle horizontal rules
         if (tagName === "hr") {
           return new Paragraph({
-            children: [new TextRun({ text: '' })],
+            children: [new TextRun({ text: "" })],
             spacing: { before: 120, after: 120 },
           });
         }
@@ -167,9 +167,11 @@ export default function DocsEditor() {
         // Handle blockquotes
         if (tagName === "blockquote") {
           return new Paragraph({
-            children: [new TextRun({ text: node.textContent || "", italics: true })],
+            children: [
+              new TextRun({ text: node.textContent || "", italics: true }),
+            ],
             spacing: { before: 120, after: 120 },
-            indent: { left: 720 }
+            indent: { left: 720 },
           });
         }
 
@@ -209,14 +211,15 @@ export default function DocsEditor() {
   // Note: TiptapEditor expects 'content' prop.
   // If 'content' from hook is JSON/HTML, we pass it.
   const editorContent = content || docsContent;
-  
+
   // Ensure documentId is string (router.query returns string | string[])
-  const actualDocumentId = typeof (documentId || id) === 'string' 
-    ? (documentId || id) 
-    : Array.isArray(documentId || id) 
-      ? (documentId || id)[0] 
-      : undefined;
-  
+  const actualDocumentId =
+    typeof (documentId || id) === "string"
+      ? documentId || id
+      : Array.isArray(documentId || id)
+        ? (documentId || id)[0]
+        : undefined;
+
   const useCollaboration = !!actualDocumentId; // Enable collaboration if we have a document ID
 
   return (
@@ -228,7 +231,7 @@ export default function DocsEditor() {
 
         {/* Top Section */}
         <div className="flex-none z-30">
-          <TopHeader 
+          <TopHeader
             editorType="document"
             onDownload={handleDownload}
             documentId={actualDocumentId}
@@ -253,7 +256,10 @@ export default function DocsEditor() {
                 onUpdate={extractHeadings}
               />
             ) : (
-              <TiptapEditor onUpdate={extractHeadings} content={editorContent} />
+              <TiptapEditor
+                onUpdate={extractHeadings}
+                content={editorContent}
+              />
             )}
           </div>
 

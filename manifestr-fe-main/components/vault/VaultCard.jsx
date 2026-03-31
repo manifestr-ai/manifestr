@@ -86,13 +86,48 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
                 </span>
               </div>
             )}
+            {/* Shared Badge - Top Left (List View) */}
+            {card.isShared && (
+              <div className="absolute top-2 left-2">
+                <span className="px-2 py-1 rounded-md text-[10px] font-medium leading-[14px] bg-blue-500 text-white shadow-lg">
+                  Shared
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="text-[16px] font-semibold text-[#18181b] truncate leading-[22px]">
               {card.title}
             </h3>
             <p className="text-[13px] text-[#71717a] truncate leading-[18px]">{card.project}</p>
+            
+            {/* Collaborators in List View */}
+            {card.collaborators && card.collaborators.length > 0 && (
+              <div className="flex items-center gap-1 mt-2">
+                {card.collaborators.slice(0, 4).map((collab, idx) => (
+                  <div
+                    key={idx}
+                    className="w-[24px] h-[24px] rounded-full bg-[#f4f4f5] border border-white flex items-center justify-center overflow-hidden shrink-0"
+                    title={collab.name}
+                  >
+                    {collab.avatar ? (
+                      <img src={collab.avatar} alt={collab.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] font-medium text-[#18181b]">
+                        {collab.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {card.collaborators.length > 4 && (
+                  <span className="text-[11px] text-[#71717a] ml-1">
+                    +{card.collaborators.length - 4}
+                  </span>
+                )}
+              </div>
+            )}
+            
             {card.lastEdited && (
               <p className="text-[12px] text-[#a1a1aa] leading-[16px] mt-1">{card.lastEdited}</p>
             )}
@@ -232,6 +267,15 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
                 : statusTextColors[card.status] || 'text-[#1e40af]'
               }`}>
               {card.collaboratorName || card.status}
+            </span>
+          </div>
+        )}
+
+        {/* Shared Badge - Top Left */}
+        {card.isShared && (
+          <div className="absolute top-2 left-2">
+            <span className="px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] bg-blue-500 text-white shadow-lg">
+              Shared with you
             </span>
           </div>
         )}
