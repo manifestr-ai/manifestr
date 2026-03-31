@@ -31,6 +31,7 @@ export class AIController extends BaseController {
             { verb: 'GET', path: '/status/:id', handler: this.getJobStatus, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/generations', handler: this.getUserGenerations, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/recent-generations', handler: this.getRecentGenerations, middlewares: [authenticateToken] },
+            { verb: 'GET', path: '/recent-activity', handler: this.getRecentActivity, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/generation/:id', handler: this.getGenerationDetails, middlewares: [authenticateToken] },
             { verb: 'PATCH', path: '/generation/:id', handler: this.updateGeneration, middlewares: [authenticateToken] },
         ];
@@ -369,7 +370,9 @@ export class AIController extends BaseController {
     private getRecentGenerations = async (req: AuthRequest, res: Response) => {
         try {
             const userId = req.user!.userId;
-            const jobs = await this.orchestrator.getRecentJobs(userId, 3);
+            // Allow client to specify limit, default to 3 for home page, or use a high number for "all"
+            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 3;
+            const jobs = await this.orchestrator.getRecentJobs(userId, limit);
 
             return res.json({
                 status: "success",
@@ -388,6 +391,99 @@ export class AIController extends BaseController {
                 }))
             });
         } catch (error) {
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Get recent activity (last accessed/edited documents)
+     * Sorts by actual usage (last_seen from collaboration_sessions or updated_at)
+     * Returns max 12 items for Recents tab
+     */
+    private getRecentActivity = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const limit = 12; // Fixed limit for Recents tab
+
+            // Get all documents user has access to (owned + shared)
+            const { data: ownedJobs } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('*')
+                .eq('user_id', userId)
+                .order('updated_at', { ascending: false });
+
+            const { data: sharedCollabs } = await supabaseAdmin
+                .from('document_collaborators')
+                .select('document_id')
+                .eq('user_id', userId)
+                .eq('status', 'accepted')
+                .neq('role', 'owner');
+
+            const sharedDocIds = (sharedCollabs || []).map(c => c.document_id);
+            
+            let sharedJobs = [];
+            if (sharedDocIds.length > 0) {
+                const { data } = await supabaseAdmin
+                    .from('generation_jobs')
+                    .select('*')
+                    .in('id', sharedDocIds)
+                    .order('updated_at', { ascending: false });
+                sharedJobs = data || [];
+            }
+
+            // Combine all documents
+            const allDocs = [...(ownedJobs || []), ...sharedJobs];
+
+            // Get last accessed time from collaboration_sessions for each document
+            const docsWithLastAccess = await Promise.all(
+                allDocs.map(async (doc) => {
+                    const { data: session } = await supabaseAdmin
+                        .from('collaboration_sessions')
+                        .select('last_seen')
+                        .eq('document_id', doc.id)
+                        .eq('user_id', userId)
+                        .order('last_seen', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    // Use last_seen if available, otherwise updated_at, fallback to created_at
+                    const lastActivityTime = session?.last_seen || doc.updated_at || doc.created_at;
+
+                    return {
+                        ...doc,
+                        lastActivityTime: new Date(lastActivityTime).getTime(),
+                        isShared: sharedDocIds.includes(doc.id)
+                    };
+                })
+            );
+
+            // Sort by last activity (most recent first)
+            docsWithLastAccess.sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+
+            // Take top 12
+            const recentDocs = docsWithLastAccess.slice(0, limit);
+
+            return res.json({
+                status: "success",
+                data: recentDocs.map(j => ({
+                    id: j.id,
+                    title: j.title || j.input_data?.title || "Untitled",
+                    coverImage: j.cover_image || j.input_data?.cover_image,
+                    type: j.type || j.output_type || j.input_data?.output || 'document',
+                    status: j.status,
+                    createdAt: j.created_at,
+                    updatedAt: j.updated_at,
+                    lastAccessed: new Date(j.lastActivityTime).toISOString(),
+                    isShared: j.isShared,
+                    prompt: j.prompt || j.input_data?.prompt,
+                    errorMessage: j.error_message || j.error,
+                    tokensUsed: j.tokens_used || 0,
+                    currentStepData: j.current_step_data,
+                    finalUrl: j.final_url
+                }))
+            });
+        } catch (error) {
+            console.error('❌ Get recent activity error:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }

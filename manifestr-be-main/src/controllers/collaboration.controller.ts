@@ -66,6 +66,12 @@ export class CollaborationController extends BaseController {
                 middlewares: [authenticateToken],
                 handler: this.getActiveUsers.bind(this),
             },
+            {
+                verb: 'GET',
+                path: '/shared-with-me',
+                middlewares: [authenticateToken],
+                handler: this.getSharedDocuments.bind(this),
+            },
         ];
     }
 
@@ -772,6 +778,76 @@ export class CollaborationController extends BaseController {
 
         } catch (error: any) {
             console.error('❌ Get active users error:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    /**
+     * Get documents shared with the current user
+     */
+    private async getSharedDocuments(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.userId;
+
+            if (!userId) {
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+
+            // Get all documents where user is a collaborator (but not owner)
+            const { data: collaborations, error } = await supabaseAdmin
+                .from('document_collaborators')
+                .select('document_id, role, status, accepted_at')
+                .eq('user_id', userId)
+                .eq('status', 'accepted')
+                .neq('role', 'owner') // Exclude documents they own (those are in recent-generations)
+                .order('accepted_at', { ascending: false });
+
+            if (error) {
+                console.error('❌ Failed to fetch shared documents:', error);
+                return res.status(500).json({ error: 'Failed to fetch shared documents' });
+            }
+
+            if (!collaborations || collaborations.length === 0) {
+                return res.json({
+                    status: 'success',
+                    data: []
+                });
+            }
+
+            // Get document details from generation_jobs
+            const documentIds = collaborations.map(c => c.document_id);
+            const { data: documents, error: docsError } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('id, title, cover_image, type, output_type, status, created_at, input_data')
+                .in('id', documentIds);
+
+            if (docsError) {
+                console.error('❌ Failed to fetch document details:', docsError);
+                return res.status(500).json({ error: 'Failed to fetch document details' });
+            }
+
+            // Enrich documents with role info
+            const enrichedDocs = (documents || []).map(doc => {
+                const collab = collaborations.find(c => c.document_id === doc.id);
+                return {
+                    id: doc.id,
+                    title: doc.title || doc.input_data?.title || 'Untitled',
+                    coverImage: doc.cover_image || doc.input_data?.cover_image,
+                    type: doc.type || doc.output_type || doc.input_data?.output || 'document',
+                    status: doc.status,
+                    createdAt: doc.created_at,
+                    sharedRole: collab?.role || 'viewer',
+                    isShared: true // Flag to identify shared documents
+                };
+            });
+
+            return res.json({
+                status: 'success',
+                data: enrichedDocs
+            });
+
+        } catch (error: any) {
+            console.error('❌ Get shared documents error:', error);
             return res.status(500).json({ error: 'Internal server error' });
         }
     }
