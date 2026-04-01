@@ -278,7 +278,7 @@ export default function CollaborativePresentationEditor({
 
       try {
         const remoteJSON = ymap.get("json");
-        if (remoteJSON) {
+        if (typeof remoteJSON === "string" && remoteJSON.length > 0) {
           const currentJSON = JSON.stringify(store.toJSON());
           if (currentJSON !== remoteJSON) {
             store.loadJSON(JSON.parse(remoteJSON));

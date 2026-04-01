@@ -222,8 +222,8 @@ export default function VaultCollabs() {
 
   // Background image URL for the header - using the same texture as other vault pages
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+    ? `${window.location.origin}/assets/banners/wheel-banner.png`
+    : 'http://localhost:3000/assets/banners/wheel-banner.png'
 
   return (
     <>
@@ -283,4 +283,3 @@ VaultCollabs.getLayout = function getLayout(page) {
     </div>
   )
 }
-

@@ -146,8 +146,8 @@ export default function VaultPinned() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+    ? `${window.location.origin}/assets/banners/wheel-banner.png`
+    : 'http://localhost:3000/assets/banners/wheel-banner.png'
 
   return (
     <>

@@ -213,11 +213,12 @@ export default function DocsEditor() {
   const editorContent = content || docsContent;
 
   // Ensure documentId is string (router.query returns string | string[])
+  const docIdParam = documentId ?? id;
   const actualDocumentId =
-    typeof (documentId || id) === "string"
-      ? documentId || id
-      : Array.isArray(documentId || id)
-        ? (documentId || id)[0]
+    typeof docIdParam === "string"
+      ? docIdParam
+      : Array.isArray(docIdParam)
+        ? docIdParam[0]
         : undefined;
 
   const useCollaboration = !!actualDocumentId; // Enable collaboration if we have a document ID
