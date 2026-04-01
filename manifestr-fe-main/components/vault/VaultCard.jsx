@@ -226,7 +226,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
         </div>
 
         {/* Action Icons - Top Right */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 px-2 w-full justify-between flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -234,6 +234,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
           >
             <FileText className="w-3.5 h-3.5 text-[#18181b]" />
           </motion.button>
+          <div className='flex gap-1'>
           <motion.button
             onClick={handlePinClick}
             whileHover={{ scale: 1.1 }}
@@ -275,6 +276,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
           >
             <MoreVertical className="w-3.5 h-3.5 text-[#18181b]" />
           </motion.button>
+          </div>
         </div>
 
         {/* Status Badge - Bottom Left */}
@@ -293,13 +295,13 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
         )}
 
         {/* Shared Badge - Top Left */}
-        {card.isShared && (
+        {/* {card.isShared && (
           <div className="absolute top-2 left-2">
             <span className="px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] bg-blue-500 text-white shadow-lg">
               Shared with you
             </span>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Content Section */}
@@ -320,7 +322,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
             {card.collaborators.slice(0, 6).map((collab, idx) => (
               <div
                 key={idx}
-                className={`w-[36px] h-[36px] rounded-full bg-[#f4f4f5] border-2 border-white flex items-center justify-center overflow-hidden shrink-0 ${idx > 0 ? '-ml-3' : ''
+                className={`w-[30px] h-[30px] rounded-full bg-[#f4f4f5] border-2 border-white flex items-center justify-center overflow-hidden shrink-0 ${idx > 0 ? '-ml-3' : ''
                   }`}
                 style={{ zIndex: 10 - idx }}
               >
@@ -335,7 +337,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
             ))}
             {card.collaborators.length > 6 && (
               <div
-                className="w-[36px] h-[36px] rounded-full bg-[#e4e4e7] border-2 border-white flex items-center justify-center shrink-0 -ml-3"
+                className="w-[30px] h-[30px] rounded-full bg-[#e4e4e7] border-2 border-white flex items-center justify-center shrink-0 -ml-2.5"
                 style={{ zIndex: 4 }}
               >
                 <span className="text-[13px] font-medium text-[#52525b]">

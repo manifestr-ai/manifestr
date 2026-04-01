@@ -22,6 +22,254 @@ export default function Vault() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
+  const dummyItems = [
+    {
+      id: 'demo-1',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Progress',
+      thumbnail: '/assets/dummy/project-1.png',
+      collaborators: [
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=1' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=2' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=3' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=4' },
+        { name: 'Mike', avatar: 'https://i.pravatar.cc/150?img=5' },
+        { name: 'Emma', avatar: 'https://i.pravatar.cc/150?img=6' },
+        { name: 'David', avatar: 'https://i.pravatar.cc/150?img=7' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-1', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-2',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Review',
+      thumbnail: '/assets/dummy/project-2.png',
+      collaborators: [
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=8' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=9' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=10' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=11' },
+        { name: 'Mike', avatar: 'https://i.pravatar.cc/150?img=12' },
+        { name: 'Emma', avatar: 'https://i.pravatar.cc/150?img=13' },
+        { name: 'David', avatar: 'https://i.pravatar.cc/150?img=14' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: true,
+      collaboratorName: null,
+      rawData: { id: 'demo-2', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-3',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Progress',
+      thumbnail: '/assets/dummy/project-3.png',
+      collaborators: [
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=15' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=16' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=17' },
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=18' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: true,
+      isPinned: false,
+      collaboratorName: 'Leah',
+      rawData: { id: 'demo-3', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-4',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'Final',
+      thumbnail: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=430&h=246&fit=crop',
+      collaborators: [
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=19' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=20' },
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=21' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=22' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-4', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-5',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'Draft',
+      thumbnail: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop',
+      collaborators: [
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=23' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=24' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=25' },
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=26' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-5', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-6',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Progress',
+      thumbnail: '/assets/dummy/project-1.png',
+      collaborators: [
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=27' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=28' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=29' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=30' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-6', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-7',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Review',
+      thumbnail: '/assets/dummy/project-2.png',
+      collaborators: [
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=31' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=32' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=33' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=34' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-7', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-8',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Progress',
+      thumbnail: '/assets/dummy/project-3.png',
+      collaborators: [
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=35' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=36' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=37' },
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=38' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: 'Leah',
+      rawData: { id: 'demo-8', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-9',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'Final',
+      thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=430&h=246&fit=crop',
+      collaborators: [
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=39' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=40' },
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=41' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=42' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-9', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-10',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'Draft',
+      thumbnail: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=430&h=246&fit=crop',
+      collaborators: [
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=43' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=44' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=45' },
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=46' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-10', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-11',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Progress',
+      thumbnail: '/assets/dummy/project-1.png',
+      collaborators: [
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=47' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=48' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=49' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=50' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-11', type: 'document' },
+      isDummy: true,
+    },
+    {
+      id: 'demo-12',
+      title: 'Manifestr Collab',
+      project: 'Project: Brand Refresh',
+      status: 'In Review',
+      thumbnail: '/assets/dummy/project-2.png',
+      collaborators: [
+        { name: 'Jess', avatar: 'https://i.pravatar.cc/150?img=51' },
+        { name: 'Leah', avatar: 'https://i.pravatar.cc/150?img=52' },
+        { name: 'Tom', avatar: 'https://i.pravatar.cc/150?img=53' },
+        { name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=54' },
+      ],
+      lastEdited: '2 hours ago',
+      type: 'document',
+      isShared: false,
+      isPinned: false,
+      collaboratorName: null,
+      rawData: { id: 'demo-12', type: 'document' },
+      isDummy: true,
+    },
+  ]
 
   // Fetch ALL user's projects (owned + shared) on mount
   useEffect(() => {
@@ -116,9 +364,10 @@ export default function Vault() {
         })
 
         console.log(`✅ Vault loaded with ${mappedItems.length} projects`)
-        setItems(mappedItems)
+        setItems(mappedItems.length > 0 ? mappedItems : dummyItems)
       } catch (err) {
         console.error('Failed to fetch projects:', err)
+        setItems(dummyItems)
       } finally {
         setIsLoading(false)
       }
@@ -140,6 +389,7 @@ export default function Vault() {
 
   // Handle project click - route to appropriate editor
   const handleProjectClick = (card) => {
+    if (card?.isDummy) return
     const project = card.rawData
     const type = (project.type || 'document').toLowerCase()
 
@@ -165,6 +415,16 @@ export default function Vault() {
   // Handle pin/unpin
   const handlePin = async (card) => {
     try {
+      if (card?.isDummy) {
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item.id === card.id
+              ? { ...item, isPinned: !item.isPinned }
+              : item
+          )
+        )
+        return
+      }
       if (card.isPinned) {
         // Unpin
         await api.delete(`/ai/pin/${card.id}`)
@@ -208,8 +468,8 @@ export default function Vault() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+    ? `${window.location.origin}/assets/banners/wheel-banner.png`
+    : 'http://localhost:3000/assets/banners/wheel-banner.png'
 
   return (
     <>
@@ -231,8 +491,8 @@ export default function Vault() {
           setViewMode={setViewMode}
         />
 
-        {/* Folders Section - Hidden for now */}
-        {/* <VaultFolderGrid /> */}
+        {/* Folders Section */}
+        <VaultFolderGrid />
 
         {/* Documents Grid with Loading State */}
         {isLoading ? (
@@ -421,4 +681,3 @@ Vault.getLayout = function getLayout(page) {
     </div>
   )
 }
-

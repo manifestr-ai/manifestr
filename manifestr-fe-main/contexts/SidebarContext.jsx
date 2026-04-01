@@ -20,32 +20,26 @@ export function SidebarProvider({ children }) {
     if (path.startsWith('/vault')) {
       setSidebars(prev => ({
         ...prev,
-        vault: true, // Always show vault sidebar on vault pages
+        vault: true,
+        collabsFolder: prev.vault ? prev.collabsFolder : true,
       }))
-      
-      // Show collabs folder sidebar if on collabs pages, hide if not
-      if (path.startsWith('/vault/collabs')) {
-        setSidebars(prev => ({
-          ...prev,
-          collabsFolder: true,
-        }))
-      } else {
-        // Close collabs folder sidebar when navigating away from collabs
-        setSidebars(prev => ({
-          ...prev,
-          collabsFolder: false,
-        }))
-      }
     } else if (path === '/collab-hub') {
       setSidebars(prev => ({
         ...prev,
         vault: true,
         collabHub: false,
+        collabsFolder: false,
       }))
     } else if (path.startsWith('/collab-hub')) {
       setSidebars(prev => ({
         ...prev,
         collabHub: true, // Always show collab hub sidebar on collab-hub pages
+        collabsFolder: false,
+      }))
+    } else {
+      setSidebars(prev => ({
+        ...prev,
+        collabsFolder: false,
       }))
     }
     // Note: Main sidebars (vault, collabHub) stay open when toggled

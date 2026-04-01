@@ -1,12 +1,13 @@
-import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Folder, Plus, ChevronDown } from 'lucide-react'
+import { Folder, Plus, ChevronLeft } from 'lucide-react'
+import { useSidebar } from '../../contexts/SidebarContext'
 
 export default function CollabsFolderSidebar() {
   const router = useRouter()
   const currentPath = router.pathname
+  const { toggleSidebar } = useSidebar()
 
   const folders = [
     { id: 'marketing-materials', name: 'Marketing Materials', href: '/vault/collabs/marketing-materials' },
@@ -20,7 +21,14 @@ export default function CollabsFolderSidebar() {
   }
 
   return (
-    <div className="w-[218.5px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
+    <div className="relative w-[218.5px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
+      <button
+        type="button"
+        onClick={() => toggleSidebar('collabsFolder')}
+        className="absolute left-0 top-3 w-6 h-6 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4 text-[#18181b]" />
+      </button>
       <div className="p-5">
         {/* Folders List */}
         <div className="space-y-0 mb-4">
@@ -34,7 +42,7 @@ export default function CollabsFolderSidebar() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
               >
-                <Link href={folder.href}>
+                <Link href={folder.href || '/vault'}>
                   <motion.div
                     whileHover={{ backgroundColor: '#f4f4f5' }}
                     whileTap={{ scale: 0.98 }}
@@ -59,7 +67,7 @@ export default function CollabsFolderSidebar() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full h-[32px] flex items-center gap-2 px-3 text-[14px] font-medium leading-[20px] text-[#18181b] hover:bg-[#f4f4f5] rounded-md transition-colors"
+          className="w-full h-[40px] flex items-center justify-center gap-2 px-3 text-[14px] font-medium leading-[20px] bg-[#71717a] text-white rounded-md hover:opacity-90 transition-opacity"
         >
           <Plus className="w-4 h-4" />
           New Folder

@@ -12,7 +12,7 @@ export default function VaultFolderGrid({ folders = [] }) {
 
 
   return (
-    <div className="px-4 md:px-[38px] py-6">
+    <div className="px-4 md:px-[38px] pb-6">
       <div className="mb-4">
         <h2 className="text-[20px] font-semibold leading-[30px] text-[#18181b]">
           All Folders
@@ -20,7 +20,7 @@ export default function VaultFolderGrid({ folders = [] }) {
       </div>
 
       {/* Added more bottom padding to prevent shadow clipping */}
-      <div className="flex items-center gap-4 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="flex items-center gap-10 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
         {foldersToDisplay.map((folder, index) => {
           const folderName = typeof folder === 'string' ? folder : folder.name
 
