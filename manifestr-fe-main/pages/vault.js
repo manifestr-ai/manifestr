@@ -50,53 +50,70 @@ export default function Vault() {
         // Sort by date (most recent first)
         allProjects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
-        // Fetch collaborators for all projects in parallel (batched)
-        console.log(`📊 Fetching collaborators for ${allProjects.length} projects...`)
+        // Fetch pin status for user
+        let pinnedDocIds = []
+        try {
+          const pinsRes = await api.get('/ai/pinned')
+          if (pinsRes.data.status === 'success') {
+            pinnedDocIds = pinsRes.data.data.map(p => p.id)
+          }
+        } catch (err) {
+          console.log('⚠️ Could not fetch pinned status')
+        }
 
-        const mappedItems = await Promise.all(
-          allProjects.map(async (project) => {
-            // Fetch collaborators for this project
-            let collaborators = []
-            try {
-              const collabRes = await api.get(`/collaborations/${project.id}/collaborators`)
-              if (collabRes.data.status === 'success') {
-                // Map to VaultCard format: { name, avatar }
-                collaborators = (collabRes.data.data || []).map(collab => {
-                  const user = collab.users || {}
-                  const firstName = user.first_name || ''
-                  const lastName = user.last_name || ''
-                  const fullName = `${firstName} ${lastName}`.trim()
-                  const displayName = fullName || user.email?.split('@')[0] || 'User'
+        // 🚀 BATCH FETCH: Get ALL collaborators in ONE API call!
+        console.log(`🚀 BATCH: Fetching collaborators for ${allProjects.length} projects in ONE call...`)
+        const startTime = Date.now()
+        
+        let collaboratorsByDocId = {}
+        try {
+          const docIds = allProjects.map(p => p.id)
+          const batchRes = await api.post('/collaborations/batch-collaborators', { documentIds: docIds })
+          
+          if (batchRes.data.status === 'success') {
+            collaboratorsByDocId = batchRes.data.data
+            const totalCollabs = Object.values(collaboratorsByDocId).reduce((sum, arr) => sum + arr.length, 0)
+            console.log(`✅ BATCH: Fetched ${totalCollabs} collaborators in ${Date.now() - startTime}ms`)
+          }
+        } catch (err) {
+          console.log('⚠️ Batch fetch failed, collaborators will be empty:', err.message)
+        }
 
-                  return {
-                    name: displayName,
-                    avatar: null, // Can add avatar URL if available in future
-                    role: collab.role, // owner, editor, viewer
-                    email: user.email
-                  }
-                })
-
-                console.log(`✅ ${project.title}: ${collaborators.length} collaborators`)
-              }
-            } catch (err) {
-              // Silently continue without collaborators if API fails
-              console.log(`⚠️ No collaborators for ${project.id}`)
-            }
+        // Map projects with their collaborators (NO MORE API CALLS!)
+        const mappedItems = allProjects.map(project => {
+          // Get collaborators from batch response
+          const collabsData = collaboratorsByDocId[project.id] || []
+          
+          // Map to VaultCard format: { name, avatar, role, email }
+          const collaborators = collabsData.map(collab => {
+            const user = collab.users || {}
+            const firstName = user.first_name || ''
+            const lastName = user.last_name || ''
+            const fullName = `${firstName} ${lastName}`.trim()
+            const displayName = fullName || user.email?.split('@')[0] || 'User'
 
             return {
-              id: project.id,
-              title: project.title || 'Untitled Project',
-              project: getProjectTypeLabel(project.type),
-              status: project.status?.toUpperCase() === 'COMPLETED' ? 'Final' : 'In Progress',
-              thumbnail: project.coverImage || 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop',
-              collaborators: collaborators, // Real collaborators (owner + shared users)!
-              lastEdited: project.createdAt ? new Date(project.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Just now',
-              type: project.type,
-              isShared: project.isShared || false,
-              rawData: project
+              name: displayName,
+              avatar: null,
+              role: collab.role,
+              email: user.email
             }
           })
-        )
+
+          return {
+            id: project.id,
+            title: project.title || 'Untitled Project',
+            project: getProjectTypeLabel(project.type),
+            status: project.status?.toUpperCase() === 'COMPLETED' ? 'Final' : 'In Progress',
+            thumbnail: project.coverImage || 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop',
+            collaborators: collaborators,
+            lastEdited: project.createdAt ? new Date(project.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Just now',
+            type: project.type,
+            isShared: project.isShared || false,
+            isPinned: pinnedDocIds.includes(project.id),
+            rawData: project
+          }
+        })
 
         console.log(`✅ Vault loaded with ${mappedItems.length} projects`)
         setItems(mappedItems)
@@ -143,6 +160,37 @@ export default function Vault() {
     }
 
     router.push(path)
+  }
+
+  // Handle pin/unpin
+  const handlePin = async (card) => {
+    try {
+      if (card.isPinned) {
+        // Unpin
+        await api.delete(`/ai/pin/${card.id}`)
+        console.log(`📌 Unpinned: ${card.title}`)
+      } else {
+        // Pin
+        const response = await api.post(`/ai/pin/${card.id}`)
+        if (response.data.status === 'error') {
+          alert(response.data.message)
+          return
+        }
+        console.log(`📌 Pinned: ${card.title}`)
+      }
+
+      // Update local state
+      setItems(prevItems =>
+        prevItems.map(item =>
+          item.id === card.id
+            ? { ...item, isPinned: !item.isPinned }
+            : item
+        )
+      )
+    } catch (err) {
+      console.error('Failed to pin/unpin:', err)
+      alert(err.response?.data?.message || 'Failed to pin document')
+    }
   }
 
   // Pagination logic
@@ -202,6 +250,7 @@ export default function Vault() {
               cards={documentCards}
               viewMode={viewMode}
               onCardClick={handleProjectClick}
+              onPin={handlePin}
             />
 
             {/* Pagination */}
@@ -245,8 +294,8 @@ export default function Vault() {
                             key={page}
                             onClick={() => handlePageChange(page)}
                             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === page
-                                ? 'bg-gray-900 text-white'
-                                : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-gray-900 text-white'
+                              : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                               }`}
                           >
                             {page}

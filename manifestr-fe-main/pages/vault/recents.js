@@ -26,48 +26,59 @@ export default function VaultRecents() {
         if (response.data.status === 'success') {
           const projects = response.data.data
 
-          // Fetch collaborators for each project
-          const mappedItems = await Promise.all(
-            projects.map(async (project) => {
-              let collaborators = []
-              try {
-                const collabRes = await api.get(`/collaborations/${project.id}/collaborators`)
-                if (collabRes.data.status === 'success') {
-                  collaborators = (collabRes.data.data || []).map(collab => {
-                    const user = collab.users || {}
-                    const firstName = user.first_name || ''
-                    const lastName = user.last_name || ''
-                    const fullName = `${firstName} ${lastName}`.trim()
-                    const displayName = fullName || user.email?.split('@')[0] || 'User'
-                    
-                    return {
-                      name: displayName,
-                      avatar: null,
-                      role: collab.role,
-                      email: user.email
-                    }
-                  })
-                }
-              } catch (err) {
-                console.log(`⚠️ No collaborators for ${project.id}`)
-              }
+          // 🚀 BATCH FETCH: Get ALL collaborators in ONE API call!
+          console.log(`🚀 BATCH: Fetching collaborators for ${projects.length} recent projects...`)
+          const startTime = Date.now()
+          
+          let collaboratorsByDocId = {}
+          try {
+            const docIds = projects.map(p => p.id)
+            const batchRes = await api.post('/collaborations/batch-collaborators', { documentIds: docIds })
+            
+            if (batchRes.data.status === 'success') {
+              collaboratorsByDocId = batchRes.data.data
+              console.log(`✅ BATCH: Fetched in ${Date.now() - startTime}ms`)
+            }
+          } catch (err) {
+            console.log('⚠️ Batch fetch failed, collaborators will be empty')
+          }
+
+          // Map projects with their collaborators (NO MORE API CALLS!)
+          const mappedItems = projects.map(project => {
+            // Get collaborators from batch response
+            const collabsData = collaboratorsByDocId[project.id] || []
+            
+            // Map to VaultCard format
+            const collaborators = collabsData.map(collab => {
+              const user = collab.users || {}
+              const firstName = user.first_name || ''
+              const lastName = user.last_name || ''
+              const fullName = `${firstName} ${lastName}`.trim()
+              const displayName = fullName || user.email?.split('@')[0] || 'User'
 
               return {
-                id: project.id,
-                title: project.title || 'Untitled Project',
-                project: getProjectTypeLabel(project.type),
-                status: project.status?.toUpperCase() === 'COMPLETED' ? 'Final' : 'In Progress',
-                thumbnail: project.coverImage || 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop',
-                collaborators: collaborators,
-                lastEdited: project.lastAccessed 
-                  ? getRelativeTime(project.lastAccessed)
-                  : 'Just now',
-                type: project.type,
-                isShared: project.isShared || false,
-                rawData: project
+                name: displayName,
+                avatar: null,
+                role: collab.role,
+                email: user.email
               }
             })
-          )
+
+            return {
+              id: project.id,
+              title: project.title || 'Untitled Project',
+              project: getProjectTypeLabel(project.type),
+              status: project.status?.toUpperCase() === 'COMPLETED' ? 'Final' : 'In Progress',
+              thumbnail: project.coverImage || 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop',
+              collaborators: collaborators,
+              lastEdited: project.lastAccessed
+                ? getRelativeTime(project.lastAccessed)
+                : 'Just now',
+              type: project.type,
+              isShared: project.isShared || false,
+              rawData: project
+            }
+          })
 
           setDocumentCards(mappedItems)
         }
@@ -167,9 +178,9 @@ export default function VaultRecents() {
             <p className="text-gray-400 text-sm">Start working on projects to see them here!</p>
           </div>
         ) : (
-          <VaultGrid 
-            cards={documentCards} 
-            showTitle={false} 
+          <VaultGrid
+            cards={documentCards}
+            showTitle={false}
             viewMode={viewMode}
             onCardClick={handleProjectClick}
           />

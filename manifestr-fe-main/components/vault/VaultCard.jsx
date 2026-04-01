@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Pencil, Share2, Download, MoreVertical } from 'lucide-react'
+import { FileText, Pencil, Share2, Download, MoreVertical, Pin } from 'lucide-react'
 import DocumentActionsModal from './DocumentActionsModal'
 
 // Collaborator badge colors based on name
@@ -26,9 +26,23 @@ const getCollaboratorTextColor = (name) => {
   return colors[name] || 'text-[#1e40af]'
 }
 
-export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
+export default function VaultCard({ card, index, viewMode = 'grid', onClick, onPin }) {
   const [imageError, setImageError] = useState(false)
   const [showActionsModal, setShowActionsModal] = useState(false)
+  const [isPinning, setIsPinning] = useState(false)
+
+  // Handle pin button click
+  const handlePinClick = async (e) => {
+    e.stopPropagation()
+    if (isPinning || !onPin) return
+    
+    setIsPinning(true)
+    try {
+      await onPin(card)
+    } finally {
+      setIsPinning(false)
+    }
+  }
 
   const statusBgColors = {
     'In Progress': 'bg-[#dbeafe]',
@@ -72,15 +86,13 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
             {(card.status || card.collaboratorName) && (
               <div className="absolute bottom-2 left-2">
                 <span
-                  className={`px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] ${
-                    card.collaboratorName
+                  className={`px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] ${card.collaboratorName
                       ? getCollaboratorBadgeColor(card.collaboratorName)
                       : statusBgColors[card.status] || 'bg-[#dbeafe]'
-                  } ${
-                    card.collaboratorName
+                    } ${card.collaboratorName
                       ? getCollaboratorTextColor(card.collaboratorName)
                       : statusTextColors[card.status] || 'text-[#1e40af]'
-                  }`}
+                    }`}
                 >
                   {card.collaboratorName || card.status}
                 </span>
@@ -101,7 +113,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
               {card.title}
             </h3>
             <p className="text-[13px] text-[#71717a] truncate leading-[18px]">{card.project}</p>
-            
+
             {/* Collaborators in List View */}
             {card.collaborators && card.collaborators.length > 0 && (
               <div className="flex items-center gap-1 mt-2">
@@ -127,7 +139,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
                 )}
               </div>
             )}
-            
+
             {card.lastEdited && (
               <p className="text-[12px] text-[#a1a1aa] leading-[16px] mt-1">{card.lastEdited}</p>
             )}
@@ -223,11 +235,20 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick }) {
             <FileText className="w-3.5 h-3.5 text-[#18181b]" />
           </motion.button>
           <motion.button
+            onClick={handlePinClick}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="w-7 h-7 bg-white/95 backdrop-blur-sm rounded-md flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+            title={card.isPinned ? "Unpin document" : "Pin document"}
+            disabled={isPinning}
           >
-            <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
+            <Pin 
+              className={`w-3.5 h-3.5 transition-all ${
+                card.isPinned 
+                  ? 'text-blue-600 fill-blue-600' 
+                  : 'text-[#18181b]'
+              } ${isPinning ? 'opacity-50' : ''}`} 
+            />
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1 }}
