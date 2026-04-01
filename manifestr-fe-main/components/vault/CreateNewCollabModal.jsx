@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, CloudUpload, Pencil, ChevronDown, ArrowRight } from 'lucide-react'
 
-export default function CreateNewCollabModal({ isOpen, onClose, onCreate }) {
+export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode = 'create', initialData = null }) {
   const modalRef = useRef(null)
   const [coverImage, setCoverImage] = useState(null)
   const [collabName, setCollabName] = useState('')
@@ -33,16 +33,27 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate }) {
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setCoverImage(null)
-      setCollabName('')
-      setPurposeNotes('')
-      setTags(['campaign', 'social', 'manifestr'])
-      setTagInput('')
-      setInviteEmails(['umarzapta@gmail.com', 'umarzapta@gmail.com'])
-      setEmailInput('m')
-      setSelectedRole('Editor')
+      if (mode === 'edit' && initialData) {
+        setCoverImage(initialData.coverImage ?? null)
+        setCollabName(initialData.collabName ?? '')
+        setPurposeNotes(initialData.purposeNotes ?? '')
+        setTags(Array.isArray(initialData.tags) ? initialData.tags : ['campaign', 'social', 'manifestr'])
+        setTagInput('')
+        setInviteEmails(Array.isArray(initialData.inviteEmails) ? initialData.inviteEmails : [])
+        setEmailInput('')
+        setSelectedRole(initialData.role ?? 'Editor')
+      } else {
+        setCoverImage(null)
+        setCollabName('')
+        setPurposeNotes('')
+        setTags(['campaign', 'social', 'manifestr'])
+        setTagInput('')
+        setInviteEmails(['umarzapta@gmail.com', 'umarzapta@gmail.com'])
+        setEmailInput('m')
+        setSelectedRole('Editor')
+      }
     }
-  }, [isOpen])
+  }, [isOpen, mode, initialData])
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
@@ -97,6 +108,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate }) {
   const handleCreate = () => {
     if (onCreate) {
       onCreate({
+        id: initialData?.id,
         coverImage,
         collabName,
         purposeNotes,
@@ -135,7 +147,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate }) {
             <div className="border-b border-[#e4e4e7] p-4 relative">
               <div className="flex items-center justify-between">
                 <h2 className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                  Create New Collab
+                  {mode === 'edit' ? 'Edit Project' : 'Create New Collab'}
                 </h2>
                 <motion.button
                   onClick={onClose}
@@ -385,7 +397,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate }) {
                   whileTap={{ scale: 0.98 }}
                   className="bg-[#18181b] text-white rounded-md h-[40px] px-4 flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
                 >
-                  <span>Create & Enter Collab</span>
+                  <span>{mode === 'edit' ? 'Save Changes' : 'Create & Enter Collab'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </div>
@@ -396,4 +408,3 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate }) {
     </AnimatePresence>
   )
 }
-

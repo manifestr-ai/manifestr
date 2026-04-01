@@ -1,16 +1,31 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Mic, ChevronDown, Grid, List, Clock, Plus } from 'lucide-react'
+import { Search, Mic, ChevronDown, Grid, List, Clock, Plus, Users, Check } from 'lucide-react'
 
-export default function VaultSearchBar({ viewMode, setViewMode }) {
-  const [searchQuery, setSearchQuery] = useState('')
+export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => {}, query, onQueryChange }) {
+  const [localQuery, setLocalQuery] = useState('')
+  const searchQuery = typeof query === 'string' ? query : localQuery
+  const setSearchQuery = onQueryChange || setLocalQuery
   const [showAllToolsDropdown, setShowAllToolsDropdown] = useState(false)
   const [showLastEditedDropdown, setShowLastEditedDropdown] = useState(false)
-  const [selectedTool, setSelectedTool] = useState('All Tools')
-  const [selectedSort, setSelectedSort] = useState('Last Edited')
+  const [showMoreFiltersDropdown, setShowMoreFiltersDropdown] = useState(false)
+  const [selectedTool, setSelectedTool] = useState('All tools')
+  const [selectedCollab, setSelectedCollab] = useState('All Collabs')
+  const [selectedSort, setSelectedSort] = useState('Last edited')
 
-  const tools = ['All Tools', 'The Deck', 'The Briefcase', 'The Strategist', 'The Analyzer']
-  const sortOptions = ['Last Edited', 'Name', 'Date Created', 'Size']
+  const tools = [
+    'All tools',
+    'The Deck',
+    'The Briefcase',
+    'The Strategist',
+    'The Analyzer',
+    'Design Studio',
+    'The Huddle',
+    'The Wordsmith',
+    'Cost CTRL',
+  ]
+  const collabOptions = ['All Collabs', 'Collab Name 1', 'Collab Name 2', 'Collab Name 3', 'Collab Name 4', 'Collab Name 5']
+  const sortOptions = ['Last edited', 'Most used', 'Recently saved', 'Tool origin']
 
   return (
     <div className="px-4 md:px-[30px] py-6 space-y-4">
@@ -42,6 +57,7 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
               onClick={() => {
                 setShowAllToolsDropdown(!showAllToolsDropdown)
                 setShowLastEditedDropdown(false)
+                setShowMoreFiltersDropdown(false)
               }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -56,7 +72,7 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[129px] overflow-hidden"
+                  className="absolute top-full left-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[220px] overflow-hidden"
                 >
                   {tools.map((tool) => (
                     <motion.button
@@ -66,9 +82,10 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
                         setShowAllToolsDropdown(false)
                       }}
                       whileHover={{ backgroundColor: '#f4f4f5' }}
-                      className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b]"
+                      className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b] flex items-center justify-between gap-3"
                     >
-                      {tool}
+                      <span>{tool}</span>
+                      {selectedTool === tool && <Check className="w-4 h-4 text-[#18181b]" />}
                     </motion.button>
                   ))}
                 </motion.div>
@@ -82,6 +99,7 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
               onClick={() => {
                 setShowLastEditedDropdown(!showLastEditedDropdown)
                 setShowAllToolsDropdown(false)
+                setShowMoreFiltersDropdown(false)
               }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -97,7 +115,7 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[148px] overflow-hidden"
+                  className="absolute top-full left-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[220px] overflow-hidden"
                 >
                   {sortOptions.map((option) => (
                     <motion.button
@@ -107,9 +125,10 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
                         setShowLastEditedDropdown(false)
                       }}
                       whileHover={{ backgroundColor: '#f4f4f5' }}
-                      className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b]"
+                      className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b] flex items-center justify-between gap-3"
                     >
-                      {option}
+                      <span>{option}</span>
+                      {selectedSort === option && <Check className="w-4 h-4 text-[#18181b]" />}
                     </motion.button>
                   ))}
                 </motion.div>
@@ -118,16 +137,52 @@ export default function VaultSearchBar({ viewMode, setViewMode }) {
           </div>
 
           {/* More Filters */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-white border border-[#e4e4e7] rounded-md h-[36px] px-3 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              More Filters
-            </span>
-          </motion.button>
+          <div className="relative">
+            <motion.button
+              onClick={() => {
+                setShowMoreFiltersDropdown(!showMoreFiltersDropdown)
+                setShowAllToolsDropdown(false)
+                setShowLastEditedDropdown(false)
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white border border-[#e4e4e7] rounded-md h-[36px] px-3 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                More Filters
+              </span>
+            </motion.button>
+            <AnimatePresence>
+              {showMoreFiltersDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[220px] overflow-hidden"
+                >
+                  <div className="px-3 py-2 text-[12px] font-medium text-[#71717a] flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#71717a]" />
+                    All Collabs
+                  </div>
+                  {collabOptions.map((option) => (
+                    <motion.button
+                      key={option}
+                      onClick={() => {
+                        setSelectedCollab(option)
+                        setShowMoreFiltersDropdown(false)
+                      }}
+                      whileHover={{ backgroundColor: '#f4f4f5' }}
+                      className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b] flex items-center justify-between gap-3"
+                    >
+                      <span>{option}</span>
+                      {selectedCollab === option && <Check className="w-4 h-4 text-[#18181b]" />}
+                    </motion.button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 self-end md:self-auto">

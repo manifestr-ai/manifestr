@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 export default function VaultFolderGrid({ folders = [] }) {
   const defaultFolders = [
@@ -23,6 +24,7 @@ export default function VaultFolderGrid({ folders = [] }) {
       <div className="flex items-center gap-10 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
         {foldersToDisplay.map((folder, index) => {
           const folderName = typeof folder === 'string' ? folder : folder.name
+          const folderHref = typeof folder === 'string' ? null : folder.href
 
           return (
             <motion.div
@@ -31,28 +33,47 @@ export default function VaultFolderGrid({ folders = [] }) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               whileHover={{ scale: 1.05, y: -2 }}
-              className="flex-shrink-0 cursor-pointer"
+              className="flex-shrink-0"
             >
-              {/* Folder Icon */}
-              <div className="relative w-[125px] h-[80px]">
-                {/* Folder SVG Image */}
-                <div className="absolute inset-0 rounded-md overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.06)]">
-                  <img
-                    src="/assets/icons/folder-icon.svg"
-                    alt={folderName}
-                    className="w-full h-full object-cover"
-                  />
+              {folderHref ? (
+                <Link href={folderHref}>
+                  <div className="relative w-[125px] h-[80px] cursor-pointer">
+                    <div className="absolute inset-0 rounded-md overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.06)]">
+                      <img
+                        src="/assets/icons/folder-icon.svg"
+                        alt={folderName}
+                        className="w-full h-full object-cover"
+                      />
 
-                  {/* Text overlay */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-2 z-10">
-                    <p className="text-white text-[12px] font-medium leading-[18px] text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
-                      {folderName.split(' ').map((word, i) => (
-                        <span key={i} className="block">{word}</span>
-                      ))}
-                    </p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-2 z-10">
+                        <p className="text-white text-[12px] font-medium leading-[18px] text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                          {folderName.split(' ').map((word, i) => (
+                            <span key={i} className="block">{word}</span>
+                          ))}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="relative w-[125px] h-[80px]">
+                  <div className="absolute inset-0 rounded-md overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.06)]">
+                    <img
+                      src="/assets/icons/folder-icon.svg"
+                      alt={folderName}
+                      className="w-full h-full object-cover"
+                    />
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-2 z-10">
+                      <p className="text-white text-[12px] font-medium leading-[18px] text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                        {folderName.split(' ').map((word, i) => (
+                          <span key={i} className="block">{word}</span>
+                        ))}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           )
         })}

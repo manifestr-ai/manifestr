@@ -3,18 +3,14 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Folder, Plus, ChevronLeft } from 'lucide-react'
 import { useSidebar } from '../../contexts/SidebarContext'
+import { VAULT_FOLDERS, getVaultFolderHref } from './vaultFolders'
 
 export default function CollabsFolderSidebar() {
   const router = useRouter()
-  const currentPath = router.pathname
+  const currentPath = router.asPath.split('?')[0]
   const { toggleSidebar } = useSidebar()
 
-  const folders = [
-    { id: 'marketing-materials', name: 'Marketing Materials', href: '/vault/collabs/marketing-materials' },
-    { id: 'finance-reports', name: 'Finance Reports', href: '/vault/collabs/finance-reports' },
-    { id: 'presentations', name: 'Presentations', href: '/vault/collabs/presentations' },
-    { id: 'client-assets', name: 'Client Assets', href: '/vault/collabs/client-assets' },
-  ]
+  const folders = VAULT_FOLDERS.map((f) => ({ id: f.id, name: f.name, href: getVaultFolderHref(f.id) }))
 
   const isActive = (href) => {
     return currentPath === href || currentPath.startsWith(href + '/')

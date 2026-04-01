@@ -10,12 +10,16 @@ import VaultGrid from '../components/vault/VaultGrid'
 import CreateNewCollabModal from '../components/vault/CreateNewCollabModal'
 import UploadFileModal from '../components/vault/UploadFileModal'
 import api from '../lib/api'
+import { VAULT_FOLDERS, getVaultFolderHref } from '../components/vault/vaultFolders'
 
 export default function Vault() {
   const router = useRouter()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingCard, setEditingCard] = useState(null)
   const [viewMode, setViewMode] = useState('grid')
+  const [searchQuery, setSearchQuery] = useState('')
   // State for vault items
   const [items, setItems] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -412,6 +416,36 @@ export default function Vault() {
     router.push(path)
   }
 
+  const handleEdit = (card) => {
+    setEditingCard(card)
+    setShowEditModal(true)
+  }
+
+  const handleEditSave = (payload) => {
+    if (!editingCard) return
+
+    setItems(prevItems =>
+      prevItems.map(item => {
+        if (item.id !== editingCard.id) return item
+        const nextTitle = payload?.collabName || item.title
+        const nextCover = payload?.coverImage || item.thumbnail
+        return {
+          ...item,
+          title: nextTitle,
+          thumbnail: nextCover,
+          rawData: {
+            ...(item.rawData || {}),
+            title: nextTitle,
+            coverImage: nextCover,
+          },
+        }
+      })
+    )
+
+    setShowEditModal(false)
+    setEditingCard(null)
+  }
+
   // Handle pin/unpin
   const handlePin = async (card) => {
     try {
@@ -453,11 +487,30 @@ export default function Vault() {
     }
   }
 
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const filteredItems = items.filter((card) => {
+    if (!normalizedQuery) return true
+    const haystack = [
+      card.title,
+      card.project,
+      card.status,
+      card.lastEdited,
+      card.collaboratorName,
+      ...(card.collaborators || []).map((c) => c?.name),
+      ...(card.collaborators || []).map((c) => c?.email),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+
+    return haystack.includes(normalizedQuery)
+  })
+
   // Pagination logic
-  const totalPages = Math.ceil(items.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const documentCards = items.slice(startIndex, endIndex)
+  const documentCards = filteredItems.slice(startIndex, endIndex)
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -489,10 +542,15 @@ export default function Vault() {
         <VaultSearchBar
           viewMode={viewMode}
           setViewMode={setViewMode}
+          query={searchQuery}
+          onQueryChange={(next) => {
+            setSearchQuery(next)
+            setCurrentPage(1)
+          }}
         />
 
         {/* Folders Section */}
-        <VaultFolderGrid />
+        <VaultFolderGrid folders={VAULT_FOLDERS.map((f) => ({ name: f.name, href: getVaultFolderHref(f.id) }))} />
 
         {/* Documents Grid with Loading State */}
         {isLoading ? (
@@ -504,6 +562,11 @@ export default function Vault() {
             <p className="text-gray-500 text-lg mb-2">No projects yet.</p>
             <p className="text-gray-400 text-sm">Create your first project to get started!</p>
           </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="px-4 md:px-[38px] py-12 w-full text-center">
+            <p className="text-gray-500 text-lg mb-2">No results found.</p>
+            <p className="text-gray-400 text-sm">Try a different search term.</p>
+          </div>
         ) : (
           <>
             <VaultGrid
@@ -511,6 +574,7 @@ export default function Vault() {
               viewMode={viewMode}
               onCardClick={handleProjectClick}
               onPin={handlePin}
+              onEdit={handleEdit}
             />
 
             {/* Pagination */}
@@ -519,7 +583,7 @@ export default function Vault() {
                 <div className="flex items-center justify-between">
                   {/* Left: Showing X-Y of Z items */}
                   <p className="text-sm text-gray-600">
-                    Showing {startIndex + 1}-{Math.min(endIndex, items.length)} of {items.length} projects
+                    Showing {startIndex + 1}-{Math.min(endIndex, filteredItems.length)} of {filteredItems.length} projects
                   </p>
 
                   {/* Center: Page numbers */}
@@ -666,6 +730,25 @@ export default function Vault() {
             throw err // Re-throw to let modal know it failed if needed (though we handle close manually)
           }
         }}
+      />
+
+      <CreateNewCollabModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false)
+          setEditingCard(null)
+        }}
+        mode="edit"
+        initialData={{
+          id: editingCard?.id,
+          coverImage: editingCard?.thumbnail || null,
+          collabName: editingCard?.title || '',
+          purposeNotes: '',
+          tags: ['campaign', 'social', 'manifestr'],
+          inviteEmails: (editingCard?.collaborators || []).map((c) => c.email).filter(Boolean),
+          role: 'Editor',
+        }}
+        onCreate={handleEditSave}
       />
     </>
   )

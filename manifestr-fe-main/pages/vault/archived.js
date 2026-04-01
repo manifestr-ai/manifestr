@@ -8,6 +8,7 @@ import VaultGrid from '../../components/vault/VaultGrid'
 
 export default function VaultArchived() {
   const [viewMode, setViewMode] = useState('grid')
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Sample data for archived/completed document cards with images
   const documentCards = [
@@ -183,6 +184,24 @@ export default function VaultArchived() {
     ? `${window.location.origin}/assets/banners/wheel-banner.png`
     : 'http://localhost:3000/assets/banners/wheel-banner.png'
 
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const filteredCards = documentCards.filter((card) => {
+    if (!normalizedQuery) return true
+    const haystack = [
+      card.title,
+      card.project,
+      card.status,
+      card.lastEdited,
+      card.collaboratorName,
+      ...(card.collaborators || []).map((c) => c?.name),
+      ...(card.collaborators || []).map((c) => c?.email),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+    return haystack.includes(normalizedQuery)
+  })
+
   return (
     <>
       <Head>
@@ -202,10 +221,19 @@ export default function VaultArchived() {
         <VaultSearchBar
           viewMode={viewMode}
           setViewMode={setViewMode}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
         />
 
         {/* Documents Grid */}
-        <VaultGrid cards={documentCards} showTitle={false} viewMode={viewMode} />
+        {filteredCards.length === 0 ? (
+          <div className="px-4 md:px-[38px] py-12 w-full text-center">
+            <p className="text-gray-500 text-lg mb-2">No results found.</p>
+            <p className="text-gray-400 text-sm">Try a different search term.</p>
+          </div>
+        ) : (
+          <VaultGrid cards={filteredCards} showTitle={false} viewMode={viewMode} />
+        )}
       </div>
     </>
   )

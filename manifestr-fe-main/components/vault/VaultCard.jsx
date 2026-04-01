@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Pencil, Share2, Download, MoreVertical, Pin } from 'lucide-react'
+import { FileText, Pencil, Share2, Download, MoreVertical } from 'lucide-react'
 import DocumentActionsModal from './DocumentActionsModal'
 
 // Collaborator badge colors based on name
@@ -26,23 +26,9 @@ const getCollaboratorTextColor = (name) => {
   return colors[name] || 'text-[#1e40af]'
 }
 
-export default function VaultCard({ card, index, viewMode = 'grid', onClick, onPin }) {
+export default function VaultCard({ card, index, viewMode = 'grid', onClick, onPin, onEdit }) {
   const [imageError, setImageError] = useState(false)
   const [showActionsModal, setShowActionsModal] = useState(false)
-  const [isPinning, setIsPinning] = useState(false)
-
-  // Handle pin button click
-  const handlePinClick = async (e) => {
-    e.stopPropagation()
-    if (isPinning || !onPin) return
-    
-    setIsPinning(true)
-    try {
-      await onPin(card)
-    } finally {
-      setIsPinning(false)
-    }
-  }
 
   const statusBgColors = {
     'In Progress': 'bg-[#dbeafe]',
@@ -157,7 +143,10 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
             </button>
             <button
               type="button"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (onEdit) onEdit(card)
+              }}
               className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
             >
               <Pencil className="w-4 h-4 text-[#18181b]" />
@@ -236,20 +225,16 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
           </motion.button>
           <div className='flex gap-1'>
           <motion.button
-            onClick={handlePinClick}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (onEdit) onEdit(card)
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="w-7 h-7 bg-white/95 backdrop-blur-sm rounded-md flex items-center justify-center hover:bg-white transition-colors shadow-sm"
-            title={card.isPinned ? "Unpin document" : "Pin document"}
-            disabled={isPinning}
+            title="Edit project"
           >
-            <Pin 
-              className={`w-3.5 h-3.5 transition-all ${
-                card.isPinned 
-                  ? 'text-blue-600 fill-blue-600' 
-                  : 'text-[#18181b]'
-              } ${isPinning ? 'opacity-50' : ''}`} 
-            />
+            <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1 }}
