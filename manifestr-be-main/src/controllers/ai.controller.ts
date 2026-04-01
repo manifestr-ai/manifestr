@@ -32,6 +32,9 @@ export class AIController extends BaseController {
             { verb: 'GET', path: '/generations', handler: this.getUserGenerations, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/recent-generations', handler: this.getRecentGenerations, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/recent-activity', handler: this.getRecentActivity, middlewares: [authenticateToken] },
+            { verb: 'POST', path: '/pin/:documentId', handler: this.pinDocument, middlewares: [authenticateToken] },
+            { verb: 'DELETE', path: '/pin/:documentId', handler: this.unpinDocument, middlewares: [authenticateToken] },
+            { verb: 'GET', path: '/pinned', handler: this.getPinnedDocuments, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/generation/:id', handler: this.getGenerationDetails, middlewares: [authenticateToken] },
             { verb: 'PATCH', path: '/generation/:id', handler: this.updateGeneration, middlewares: [authenticateToken] },
         ];
@@ -489,6 +492,177 @@ export class AIController extends BaseController {
     }
 
     /**
+     * Pin a document (max 10 pins per user)
+     */
+    private pinDocument = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const { documentId } = req.params;
+
+            // Check if user has access to this document
+            const { data: job } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('id')
+                .eq('id', documentId)
+                .eq('user_id', userId)
+                .single();
+
+            if (!job) {
+                // Check if shared
+                const { data: collab } = await supabaseAdmin
+                    .from('document_collaborators')
+                    .select('id')
+                    .eq('document_id', documentId)
+                    .eq('user_id', userId)
+                    .eq('status', 'accepted')
+                    .single();
+
+                if (!collab) {
+                    return res.status(403).json({ status: "error", message: "No access to this document" });
+                }
+            }
+
+            // Check pin count (max 10)
+            const { count } = await supabaseAdmin
+                .from('pinned_documents')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId);
+
+            if ((count || 0) >= 10) {
+                return res.status(400).json({ status: "error", message: "Maximum 10 pinned documents reached. Unpin a document first." });
+            }
+
+            // Pin the document
+            const { error } = await supabaseAdmin
+                .from('pinned_documents')
+                .insert({
+                    user_id: userId,
+                    document_id: documentId,
+                    pinned_at: new Date().toISOString()
+                });
+
+            if (error) {
+                if (error.code === '23505') {
+                    return res.status(400).json({ status: "error", message: "Document already pinned" });
+                }
+                throw error;
+            }
+
+            console.log(`📌 User ${userId} pinned document ${documentId}`);
+
+            return res.json({
+                status: "success",
+                message: "Document pinned successfully"
+            });
+        } catch (error) {
+            console.error('❌ Pin document error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Unpin a document
+     */
+    private unpinDocument = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const { documentId } = req.params;
+
+            const { error } = await supabaseAdmin
+                .from('pinned_documents')
+                .delete()
+                .eq('user_id', userId)
+                .eq('document_id', documentId);
+
+            if (error) throw error;
+
+            console.log(`📌 User ${userId} unpinned document ${documentId}`);
+
+            return res.json({
+                status: "success",
+                message: "Document unpinned successfully"
+            });
+        } catch (error) {
+            console.error('❌ Unpin document error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Get all pinned documents for the user
+     */
+    private getPinnedDocuments = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+
+            // Get pinned document IDs
+            const { data: pins, error: pinsError } = await supabaseAdmin
+                .from('pinned_documents')
+                .select('document_id, pinned_at')
+                .eq('user_id', userId)
+                .order('pinned_at', { ascending: false });
+
+            if (pinsError) throw pinsError;
+
+            if (!pins || pins.length === 0) {
+                return res.json({
+                    status: "success",
+                    data: []
+                });
+            }
+
+            const docIds = pins.map(p => p.document_id);
+
+            // Get document details
+            const { data: docs, error: docsError } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('*')
+                .in('id', docIds);
+
+            if (docsError) throw docsError;
+
+            // Check which are shared with user
+            const { data: sharedCollabs } = await supabaseAdmin
+                .from('document_collaborators')
+                .select('document_id')
+                .eq('user_id', userId)
+                .eq('status', 'accepted')
+                .neq('role', 'owner')
+                .in('document_id', docIds);
+
+            const sharedDocIds = (sharedCollabs || []).map(c => c.document_id);
+
+            // Sort docs by pin order
+            const sortedDocs = docIds
+                .map(id => docs?.find(d => d.id === id))
+                .filter(d => d !== undefined);
+
+            return res.json({
+                status: "success",
+                data: sortedDocs.map(j => ({
+                    id: j.id,
+                    title: j.title || j.input_data?.title || "Untitled",
+                    coverImage: j.cover_image || j.input_data?.cover_image,
+                    type: j.type || j.output_type || j.input_data?.output || 'document',
+                    status: j.status,
+                    createdAt: j.created_at,
+                    updatedAt: j.updated_at,
+                    isShared: sharedDocIds.includes(j.id),
+                    isPinned: true,
+                    prompt: j.prompt || j.input_data?.prompt,
+                    errorMessage: j.error_message || j.error,
+                    tokensUsed: j.tokens_used || 0,
+                    currentStepData: j.current_step_data,
+                    finalUrl: j.final_url
+                }))
+            });
+        } catch (error) {
+            console.error('❌ Get pinned documents error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
      * @swagger
      * /ai/generation/{id}:
      *   get:
@@ -607,14 +781,14 @@ export class AIController extends BaseController {
                 model: "claude-sonnet-4-20250514",
                 max_tokens: 100,
                 temperature: 0.9,
-                system: "You are a motivation engine. Generate a short motivational quote (43-50 chars), ending with a VERB. No quotes.",
+                system: "You generate premium, execution-focused motivational lines for high-performing professionals (agency, marketing, corporate, events). Each quote must be a single flowing sentence, not split into two parts. Ground it in real work (deadlines, decks, revisions, pressure, output). Avoid clichés, generic motivation, or abstract language. Tone is sharp, controlled, and editorial with subtle authority. Output one concise sentence (43–50 characters), ending with a strong verb. No quotation marks.",
                 messages: [
-                    { role: "user", content: "Inspire me now." }
+                    { role: "user", content: "Generate a daily motivation quote for a professional dashboard." }
                 ]
             });
 
             const textBlock: any = completion.content.find((block: any) => block.type === 'text');
-            const content = textBlock?.text?.trim() || "Rise up every morning to actively learn";
+            const content = textBlock?.text?.trim() || "Turn pressure into output. Execute.";
 
             return res.status(200).json({
                 status: "success",
@@ -627,7 +801,7 @@ export class AIController extends BaseController {
             return res.status(200).json({
                 status: "success",
                 message: "Quote retrieved (fallback)",
-                details: { quote: "Think bold. Move fast. Stay limitless." }
+                details: { quote: "Turn pressure into output. Execute." }
             });
         }
     }

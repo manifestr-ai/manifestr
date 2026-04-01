@@ -31,6 +31,12 @@ export class CollaborationController extends BaseController {
                 handler: this.inviteUser.bind(this),
             },
             {
+                verb: 'POST',
+                path: '/batch-collaborators',
+                middlewares: [authenticateToken],
+                handler: this.getBatchCollaborators.bind(this),
+            },
+            {
                 verb: 'GET',
                 path: '/:documentId/collaborators',
                 middlewares: [authenticateToken],
@@ -73,6 +79,92 @@ export class CollaborationController extends BaseController {
                 handler: this.getSharedDocuments.bind(this),
             },
         ];
+    }
+
+    /**
+     * BATCH ENDPOINT: Get collaborators for multiple documents at once
+     * This endpoint MASSIVELY reduces API calls from N to 1
+     * 
+     * Request body: { documentIds: [id1, id2, id3, ...] }
+     * Response: { documentId: [collaborators...], documentId2: [collaborators...] }
+     */
+    private async getBatchCollaborators(req: Request, res: Response) {
+        try {
+            const { documentIds } = req.body;
+            const userId = (req as any).user?.userId;
+
+            if (!documentIds || !Array.isArray(documentIds) || documentIds.length === 0) {
+                return res.status(400).json({ 
+                    status: 'error',
+                    error: 'documentIds array is required' 
+                });
+            }
+
+            console.log(`🚀 BATCH: Fetching collaborators for ${documentIds.length} documents in ONE query...`);
+
+            // OPTIMIZATION 1: Fetch ALL collaborators for ALL documents in ONE query with JOIN!
+            const { data: collaborators, error } = await supabaseAdmin
+                .from('document_collaborators')
+                .select(`
+                    id,
+                    document_id,
+                    role,
+                    status,
+                    invited_at,
+                    accepted_at,
+                    user_id,
+                    users!document_collaborators_user_id_fkey (
+                        id,
+                        email,
+                        first_name,
+                        last_name
+                    )
+                `)
+                .in('document_id', documentIds)
+                .eq('status', 'accepted');
+
+            if (error) {
+                console.error('❌ Batch fetch failed:', error);
+                return res.status(500).json({ 
+                    status: 'error',
+                    error: 'Failed to fetch collaborators', 
+                    details: error.message 
+                });
+            }
+
+            console.log(`✅ BATCH: Fetched ${collaborators?.length || 0} total collaborators`);
+
+            // OPTIMIZATION 2: Group by document_id (O(n) operation, not O(n²))
+            const groupedByDoc: Record<string, any[]> = {};
+            
+            // Initialize all docs with empty arrays
+            documentIds.forEach(docId => {
+                groupedByDoc[docId] = [];
+            });
+
+            // Group collaborators by document
+            (collaborators || []).forEach(collab => {
+                if (!groupedByDoc[collab.document_id]) {
+                    groupedByDoc[collab.document_id] = [];
+                }
+                groupedByDoc[collab.document_id].push(collab);
+            });
+
+            console.log(`📊 BATCH: Grouped into ${Object.keys(groupedByDoc).length} documents`);
+
+            return res.json({
+                status: 'success',
+                data: groupedByDoc
+            });
+
+        } catch (error: any) {
+            console.error('❌ Batch collaborators error:', error);
+            return res.status(500).json({ 
+                status: 'error',
+                error: 'Internal server error',
+                details: error.message 
+            });
+        }
     }
 
     /**
@@ -418,36 +510,35 @@ export class CollaborationController extends BaseController {
                 }
             }
 
-            // Get all collaborators (simplified query without join)
+            // Get all collaborators (WITH JOIN - much faster than separate queries!)
             const { data: collaborators, error } = await supabaseAdmin
                 .from('document_collaborators')
-                .select('*')
-                .eq('document_id', documentId);
+                .select(`
+                    id,
+                    document_id,
+                    role,
+                    status,
+                    invited_at,
+                    accepted_at,
+                    user_id,
+                    users!document_collaborators_user_id_fkey (
+                        id,
+                        email,
+                        first_name,
+                        last_name
+                    )
+                `)
+                .eq('document_id', documentId)
+                .eq('status', 'accepted');
 
             if (error) {
                 console.error('❌ Failed to fetch collaborators:', error);
                 return res.status(500).json({ error: 'Failed to fetch collaborators', details: error.message });
             }
 
-            // Fetch user details separately
-            const enrichedCollaborators = await Promise.all(
-                (collaborators || []).map(async (collab) => {
-                    const { data: user } = await supabaseAdmin
-                        .from('users')
-                        .select('id, email, first_name, last_name')
-                        .eq('id', collab.user_id)
-                        .single();
-                    
-                    return {
-                        ...collab,
-                        users: user || { id: collab.user_id, email: 'Unknown', first_name: 'Unknown', last_name: 'User' }
-                    };
-                })
-            );
-
             return res.json({
                 status: 'success',
-                data: enrichedCollaborators
+                data: collaborators || []
             });
 
         } catch (error: any) {
