@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import SubmitTicketModal from './SubmitTicketModal'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/d1c6df7a-bb4c-4427-b30b-31ffa4e0b0d2'
-const CTA_BG = 'https://www.figma.com/api/mcp/asset/7adf3647-c549-4907-83ee-1baaa6b47e0c'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044715/Frame_2_m5ahej.png'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
+const HELP_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
-// Badge styles per tag type
 const TAG_STYLES = {
   New: { bg: '#f0fdf4', color: '#008236' },
   Improved: { bg: '#eff6ff', color: '#1447e6' },
@@ -60,6 +62,7 @@ function ArrowUpRight() {
 export default function ProductUpdates() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [email, setEmail] = useState('')
+  const [ticketModalOpen, setTicketModalOpen] = useState(false)
 
   const filtered = activeFilter === 'all'
     ? UPDATES
@@ -90,33 +93,29 @@ export default function ProductUpdates() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] py-[96px] overflow-hidden">
-        {/* Background image — taller than container for the Figma overflow effect */}
+      <section className="relative w-full h-[415px] md:h-[518px] flex items-center justify-center px-6 md:px-[80px] py-[48px] md:py-[96px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
-          <img
+          <CldImage
             src={HERO_BG}
             alt=""
-            className="absolute left-0 max-w-none w-full"
-            style={{ height: '158.85%', top: '-7.42%' }}
+            className="absolute inset-0 w-full h-full object-cover object-center md:object-top"
           />
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-black/20 md:bg-black/20" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[32px] w-[510px] max-w-full"
+          className="relative z-10 flex flex-col items-center gap-[25px] md:gap-[32px] w-full max-w-[342px] md:max-w-[510px]"
         >
           <div className="flex flex-col items-center gap-[20px] text-center">
-            <h1
-              className="text-[72px] leading-[90px] tracking-[-1.44px] text-white whitespace-nowrap"
-            >
+            <h1 className="text-[36px] md:text-[72px] leading-[normal] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Product </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Updates</span>
             </h1>
             <p
-              className="text-[18px] leading-[28px] text-white"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-white"
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 400,
@@ -141,28 +140,30 @@ export default function ProductUpdates() {
       <PlaybookTabs />
 
       {/* ─── Updates Section ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[96px]">
+      <section className="w-full bg-white px-6 md:px-[80px] py-[32px] md:py-[96px]">
         <div className="flex flex-col gap-[32px]">
 
-          {/* Filter pills */}
-          <div className="flex items-center gap-[8px] flex-wrap">
-            {FILTER_TABS.map((tab) => {
-              const isActive = activeFilter === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveFilter(tab.id)}
-                  className={`h-[39px] px-[16px] rounded-[20px] text-[14px] leading-[21px] font-medium flex items-center gap-[8px] transition-colors ${
-                    isActive
-                      ? 'bg-[#18181b] text-white shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)]'
-                      : 'bg-white border border-[#e5e7eb] text-[#3f3f46] hover:bg-[#f4f4f5]'
-                  }`}
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {tab.label}
-                </button>
-              )
-            })}
+          {/* Filter pills — scrollable on mobile, wrapping on desktop */}
+          <div className="overflow-x-auto md:overflow-x-visible -mx-6 px-6 md:mx-0 md:px-0 scrollbar-hide">
+            <div className="flex items-center gap-[8px] md:flex-wrap w-max md:w-auto">
+              {FILTER_TABS.map((tab) => {
+                const isActive = activeFilter === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveFilter(tab.id)}
+                    className={`h-[39px] px-[16px] rounded-[20px] text-[14px] leading-[21px] font-medium flex items-center gap-[8px] transition-colors whitespace-nowrap shrink-0 ${
+                      isActive
+                        ? 'bg-[#18181b] text-white shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)]'
+                        : 'bg-white border border-[#e5e7eb] text-[#3f3f46] hover:bg-[#f4f4f5]'
+                    }`}
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Update cards */}
@@ -175,7 +176,7 @@ export default function ProductUpdates() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: i * 0.06 }}
-                  className="bg-white border border-[#e2e8f0] rounded-[16px] p-[24px] flex flex-col gap-[12px] items-start w-full"
+                  className="bg-white border border-[#e2e8f0] rounded-[16px] px-[12px] md:px-[24px] py-[24px] flex flex-col gap-[12px] items-start w-full"
                 >
                   {/* Tag + date */}
                   <div className="flex items-center gap-[12px] flex-wrap">
@@ -191,7 +192,7 @@ export default function ProductUpdates() {
                     </span>
                     <span className="w-[6px] h-[6px] rounded-full bg-[#cbd5e1] shrink-0" />
                     <span
-                      className="text-[16px] leading-[22px] font-semibold text-[#475569] tracking-[-0.112px]"
+                      className="text-[15px] md:text-[16px] leading-[22px] font-semibold text-[#475569] tracking-[-0.105px] md:tracking-[-0.112px]"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
                       {update.date}
@@ -231,9 +232,45 @@ export default function ProductUpdates() {
         </div>
       </section>
 
-      {/* ─── Stay in the Know ─── */}
-      <section className="w-full relative h-[380px] md:h-[414px] overflow-hidden">
-        <img src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      {/* ─── Need More Help? (mobile) ─── */}
+      <section className="md:hidden w-full pt-[48px]">
+        <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ height: 358 }}>
+          <CldImage src={HELP_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative z-10 flex flex-col items-center gap-[24px] px-6 text-center"
+          >
+            <div className="flex flex-col items-center gap-[12px]">
+              <h2
+                className="text-[32px] leading-[48px] tracking-[-0.8px] text-black"
+                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+              >
+                Need More Help?
+              </h2>
+              <p
+                className="text-[16px] leading-[24px] text-black max-w-[316px]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {"Can't find what you're looking for? Our support team is here to help you succeed with MANIFESTR."}
+              </p>
+            </div>
+            <button
+              onClick={() => setTicketModalOpen(true)}
+              className="h-[36px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Submit a Support Ticket
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Stay in the Know (desktop) ─── */}
+      <section className="hidden md:block w-full relative h-[414px] overflow-hidden">
+        <CldImage src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -243,7 +280,7 @@ export default function ProductUpdates() {
             className="flex flex-col items-center gap-[30px] px-6 text-center"
           >
             <div className="flex flex-col items-center gap-[16px]">
-              <h2 className="text-[36px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-1.2px] text-black">
+              <h2 className="text-[60px] leading-[72px] tracking-[-1.2px] text-black">
                 <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Stay in the </span>
                 <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>know</span>
               </h2>
@@ -274,6 +311,12 @@ export default function ProductUpdates() {
           </motion.div>
         </div>
       </section>
+
+      {/* ─── Submit Ticket Modal ─── */}
+      <SubmitTicketModal
+        isOpen={ticketModalOpen}
+        onClose={() => setTicketModalOpen(false)}
+      />
     </>
   )
 }

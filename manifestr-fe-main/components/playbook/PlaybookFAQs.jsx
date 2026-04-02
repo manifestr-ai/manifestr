@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/7cae06a8-e177-41c5-b754-05b6ddbaa753'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044769/Frame_3_esfcck.png'
 
 const SIDEBAR_CATEGORIES = [
   {
@@ -187,6 +188,7 @@ export default function PlaybookFAQs() {
     return defaultOpen
   })
   const [searchQuery, setSearchQuery] = useState('')
+  const [mobileCatOpen, setMobileCatOpen] = useState(false)
 
   const faqs = FAQ_DATA[activeCategory] || []
 
@@ -210,6 +212,7 @@ export default function PlaybookFAQs() {
     })
     setOpenIds(defaults)
     setSearchQuery('')
+    setMobileCatOpen(false)
   }
 
   return (
@@ -237,9 +240,9 @@ export default function PlaybookFAQs() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[518px] flex items-center justify-center overflow-hidden">
+      <section className="relative w-full h-[426px] md:h-[518px] flex items-center justify-center px-6 md:px-[80px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <img src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
+          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/17" />
         </div>
 
@@ -247,12 +250,10 @@ export default function PlaybookFAQs() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[44px]"
+          className="relative z-10 flex flex-col items-center gap-[25px] md:gap-[44px] w-full max-w-[342px] md:max-w-none"
         >
           <div className="flex flex-col items-center gap-[14px] text-center">
-            <h1
-              className="text-[42px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-1.2px] text-white"
-            >
+            <h1 className="text-[36px] md:text-[60px] leading-[normal] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px] text-white">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
                 Frequently Asked{' '}
               </span>
@@ -269,13 +270,13 @@ export default function PlaybookFAQs() {
           </div>
 
           {/* Search */}
-          <div className="bg-white border border-[#d5d7da] rounded-[6px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-[449px] max-w-full">
+          <div className="bg-white border border-[#d5d7da] rounded-[6px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-full md:w-[449px] max-w-full">
             <svg className="w-[20px] h-[20px] text-[#71717a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
-              placeholder="Search FAQs"
+              placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 text-[16px] leading-[24px] text-[#71717a] placeholder:text-[#71717a] outline-none bg-transparent"
@@ -288,13 +289,70 @@ export default function PlaybookFAQs() {
       {/* ─── Tabs ─── */}
       <PlaybookTabs />
 
-      {/* ─── FAQ Content ─── */}
-      <section className="w-full bg-white px-6 md:px-[112px] py-[96px]">
-        <div className="flex gap-[64px] items-start">
+      {/* ─── Mobile category dropdown ─── */}
+      {!searchQuery && (
+        <div className="md:hidden w-full bg-white border-b border-[#d0d5dd]">
+          <button
+            onClick={() => setMobileCatOpen(!mobileCatOpen)}
+            className="w-full flex items-center justify-between px-[16px] py-[12px]"
+          >
+            <span
+              className="text-[14px] leading-[20px] font-semibold text-[#0a0d14] tracking-[-0.14px]"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Getting Started
+            </span>
+            <ChevronIcon open={mobileCatOpen} />
+          </button>
+          <AnimatePresence>
+            {mobileCatOpen && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: 'auto' }}
+                exit={{ height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col border-t border-[#e5e7eb]">
+                  {SIDEBAR_CATEGORIES[0].items.map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => handleCategoryChange(item)}
+                      className={`text-left px-[16px] py-[12px] text-[14px] leading-[20px] transition-colors ${
+                        activeCategory === item
+                          ? 'font-semibold text-[#1e293b] bg-[#f9fafb]'
+                          : 'font-medium text-[#475569] hover:bg-[#f9fafb]'
+                      }`}
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
-          {/* Sidebar */}
+      {/* ─── FAQ Content ─── */}
+      <section className="w-full bg-white px-6 md:px-[112px] py-[24px] md:py-[96px]">
+        {/* Mobile section title */}
+        {!searchQuery && (
+          <div className="md:hidden mb-[12px]">
+            <h2
+              className="text-[30px] leading-[38px] text-[#1b1b1f]"
+              style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
+            >
+              {activeCategory}
+            </h2>
+          </div>
+        )}
+
+        <div className="flex gap-[64px] items-start">
+          {/* Sidebar — desktop only */}
           {!searchQuery && (
-            <aside className="w-[280px] shrink-0 flex flex-col gap-[16px]">
+            <aside className="hidden md:flex w-[280px] shrink-0 flex-col gap-[16px]">
               {SIDEBAR_CATEGORIES.map((cat) => (
                 <div key={cat.label} className="flex flex-col gap-[16px]">
                   <p
@@ -355,23 +413,25 @@ export default function PlaybookFAQs() {
                     transition={{ duration: 0.3, delay: i * 0.04 }}
                     className={`rounded-[12px] overflow-hidden ${
                       isDark
-                        ? 'bg-[#09090b] p-[24px]'
+                        ? 'bg-[#09090b] px-[16px] md:px-[24px] py-[24px]'
                         : 'border border-[#c6c8d0] p-[20px]'
                     }`}
                   >
                     <button
                       onClick={() => toggleFaq(faq.id)}
-                      className="w-full flex items-start gap-[24px] text-left"
+                      className="w-full flex items-start gap-[12px] md:gap-[24px] text-left"
                     >
                       <span
-                        className={`flex-1 text-[18px] leading-[28px] font-medium ${
-                          isDark ? 'text-white' : 'text-black'
+                        className={`flex-1 font-medium ${
+                          isDark
+                            ? 'text-[18px] leading-[28px] text-white'
+                            : 'text-[14px] md:text-[18px] leading-[24px] md:leading-[28px] text-black'
                         }`}
                         style={{ fontFamily: 'Inter, sans-serif' }}
                       >
                         {faq.question}
                       </span>
-                      <span className={`mt-[4px] ${isDark ? 'text-white' : 'text-[#475569]'}`}>
+                      <span className={`mt-[4px] shrink-0 ${isDark ? 'text-white' : 'text-[#475569]'}`}>
                         <ChevronIcon open={isOpen} />
                       </span>
                     </button>

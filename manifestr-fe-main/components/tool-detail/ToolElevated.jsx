@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { UnfoldHorizontal } from 'lucide-react'
+import CldImage from '../ui/CldImage'
 
-const MACBOOK_BG    = 'https://www.figma.com/api/mcp/asset/10ad20e1-be90-44ea-b26e-e3f538a26961'
-const COMPARE_LEFT  = 'https://www.figma.com/api/mcp/asset/941c9437-8950-499b-9fdf-709ce4eea9d6'
-const COMPARE_RIGHT = 'https://www.figma.com/api/mcp/asset/42da37cf-ce21-4fdb-97d9-c5a7cf581b70'
+const MACBOOK_BG    = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774956948/Group_1577709341_srvq92.jpg'
+const COMPARE_LEFT  = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774956947/2406403_1_aufb8m.jpg'
+const COMPARE_RIGHT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774956947/v910-aew-013_1_cvdro4.jpg'
 
 function CompareSlider({ beforeSrc, afterSrc }) {
   const [position, setPosition] = useState(50)
@@ -53,14 +54,14 @@ function CompareSlider({ beforeSrc, afterSrc }) {
       onTouchStart={(e) => { dragging.current = true; updatePosition(e.touches[0].clientX) }}
     >
       {/* "Before" image — full background layer */}
-      <img src={beforeSrc} alt="Before" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+      <CldImage src={beforeSrc} alt="Before" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
 
       {/* "After" image — clipped from left to slider position */}
       <div
         className="absolute inset-0"
         style={{ clipPath: `polygon(0 0, ${position}% 0, ${position}% 100%, 0 100%)` }}
       >
-        <img src={afterSrc} alt="After — MANIFESTR enhanced" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+        <CldImage src={afterSrc} alt="After — MANIFESTR enhanced" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
       </div>
 
       {/* Vertical divider line */}
@@ -87,7 +88,7 @@ export default function ToolElevated({ tool }) {
 
   return (
     <section className="w-full relative overflow-hidden">
-      <img src={MACBOOK_BG} alt="" className="w-full h-auto block" />
+      <CldImage src={MACBOOK_BG} alt="" className="w-full h-auto block" />
 
       <div className="absolute inset-0 z-10">
         {/* Title — above the MacBook */}
@@ -118,7 +119,7 @@ export default function ToolElevated({ tool }) {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="absolute left-1/2 -translate-x-1/2"
-          style={{ top: '30%', width: '35%', bottom: '36%' }}
+          style={{ top: '24%', width: '51%', bottom: '28%' }}
         >
           <CompareSlider beforeSrc={COMPARE_RIGHT} afterSrc={COMPARE_LEFT} />
         </motion.div>

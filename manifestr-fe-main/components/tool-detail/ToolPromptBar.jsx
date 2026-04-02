@@ -3,9 +3,9 @@ import { Wand2, PenLine, Upload, Mic, ArrowUpRight } from 'lucide-react'
 
 export default function ToolPromptBar({ tool }) {
   return (
-    <section className="w-full bg-white py-[48px] md:py-[64px]">
+    <section className="w-full bg-white py-[32px] md:py-[64px]">
       <div className="max-w-[900px] mx-auto px-6">
-        <div className="border border-[#e4e4e7] rounded-[12px] p-[20px] md:p-[24px]">
+        <div className="border border-[#e4e4e7] rounded-[12px] p-[16px] md:p-[24px]">
           <p
             className="text-[11px] md:text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wider mb-[12px]"
             style={{ fontFamily: 'Inter, sans-serif' }}

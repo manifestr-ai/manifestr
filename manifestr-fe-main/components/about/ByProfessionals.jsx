@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import CldImage from '../ui/CldImage'
 
-const SCREENSHOT_1 = 'https://www.figma.com/api/mcp/asset/a8ce5071-45b2-482b-ba27-7356ebac37be'
-const SCREENSHOT_2 = 'https://www.figma.com/api/mcp/asset/a12f86df-1f69-46d2-a35d-8218ea973adb'
+const SCREENSHOT_1 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041143/Frame_2147229006_vgvz4y.png'
+const SCREENSHOT_2 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041143/Frame_2147229632_c2dhnl.png'
 
 export default function ByProfessionals() {
   return (
-    <section className="w-full bg-white overflow-hidden py-[80px] md:py-[120px]">
+    <section className="w-full bg-white overflow-hidden py-[48px] md:py-[120px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
 
         {/* Label */}
@@ -14,8 +15,8 @@ export default function ByProfessionals() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="text-center text-[24px] leading-[24px] tracking-[0.48px] uppercase text-black mb-[20px]"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          className="text-left md:text-center text-[18px] md:text-[24px] leading-[normal] md:leading-[24px] tracking-[-0.36px] md:tracking-[0.48px] uppercase text-black mb-[24px] md:mb-[20px]"
+          style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
         >
           BY PROFESSIONAL. FOR PROFESSIONALS.
         </motion.p>
@@ -26,7 +27,7 @@ export default function ByProfessionals() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="text-center text-[28px] md:text-[36px] leading-[1.36] md:leading-[49px] tracking-[-0.72px] text-black max-w-[964px] mx-auto mb-[24px]"
+          className="text-center text-[24px] md:text-[36px] leading-[32px] md:leading-[49px] tracking-[-0.48px] md:tracking-[-0.72px] text-black max-w-[964px] mx-auto mb-[24px]"
           style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
         >
           Designed for the pace, the polish, the pressure, and the quality that set great work apart.
@@ -38,7 +39,7 @@ export default function ByProfessionals() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="text-center text-[16px] md:text-[18px] leading-[26px] text-[#52525b] max-w-[755px] mx-auto mb-[48px] space-y-[16px]"
+          className="text-center text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525c] max-w-[755px] mx-auto mb-[24px] md:mb-[48px] space-y-[16px]"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
         >
           <p>
@@ -50,18 +51,18 @@ export default function ByProfessionals() {
         </motion.div>
 
         {/* Two screenshots */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] md:gap-[52px] mb-[48px] md:mb-[64px]">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-[16px] md:gap-[52px] mb-[48px] md:mb-[64px]">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="rounded-[6px] overflow-hidden"
+            className="rounded-[10px] md:rounded-[6px] overflow-hidden h-[263px] md:h-auto"
           >
-            <img
+            <CldImage
               src={SCREENSHOT_1}
               alt="MANIFESTR platform screenshot"
-              className="w-full h-auto object-cover"
+              className="w-full h-full object-cover"
             />
           </motion.div>
           <motion.div
@@ -69,23 +70,23 @@ export default function ByProfessionals() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="rounded-[6px] overflow-hidden"
+            className="rounded-[10px] md:rounded-[6px] overflow-hidden h-[263px] md:h-auto"
           >
-            <img
+            <CldImage
               src={SCREENSHOT_2}
               alt="MANIFESTR platform screenshot"
-              className="w-full h-auto object-cover"
+              className="w-full h-full object-cover"
             />
           </motion.div>
         </div>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons — hidden on mobile (not shown in Figma mobile), shown on desktop */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="flex flex-wrap gap-[15px] justify-center"
+          className="hidden md:flex flex-wrap gap-[15px] justify-center"
         >
           <Link
             href="/pricing"

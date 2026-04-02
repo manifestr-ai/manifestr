@@ -127,85 +127,87 @@ export default function Header() {
     }`
 
   return (
-    <header className="bg-[rgba(255,255,255,0.9)] fixed top-0 left-0 right-0 z-50 border-b border-[#e4e4e7] backdrop-blur-sm">
-      <div className="w-full max-w-[1440px] mx-auto px-6 md:px-[80px] py-[20px]">
-        <div className="flex items-center justify-between md:justify-start">
+    <>
+      <header className="bg-[rgba(255,255,255,0.9)] fixed top-0 left-0 right-0 z-50 border-b border-[#e4e4e7] backdrop-blur-sm">
+        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-[80px] py-[20px]">
+          <div className="flex items-center justify-between md:justify-start">
 
-          {/* Mobile: Logo */}
-          <div className="md:hidden">
-            <Logo size="sm" />
-          </div>
-
-          {/* Desktop Left Navigation */}
-          <div className="hidden md:flex items-center gap-[44px] flex-1">
-            <Link href="/" className={navLink('/')}>Home</Link>
-            <Link href="/tools" className={navLink('/tools')}>Tools</Link>
-            <NavDropdown
-              label="About"
-              href="/about"
-              links={ABOUT_LINKS}
-              isActive={ABOUT_ROUTES.includes(path)}
-            />
-            <Link href="/blog" className={navLink('/blog')}>Blog</Link>
-          </div>
-
-          {/* Desktop Logo - Centered */}
-          <div className="hidden md:flex w-[271.392px] justify-center">
-            <Logo size="md" />
-          </div>
-
-          {/* Desktop Right Navigation */}
-          <div className="hidden md:flex items-center gap-[24px] flex-1 justify-end">
-            <div className="flex items-center gap-[44px]">
-              <Link href="/pricing" className={navLink('/pricing')}>Pricing</Link>
-              <NavDropdown
-                label="Support"
-                href="/support"
-                links={SUPPORT_LINKS}
-                align="right"
-                isActive={SUPPORT_ROUTES.includes(path)}
-              />
+            {/* Mobile: Logo */}
+            <div className="md:hidden">
+              <Logo size="sm" />
             </div>
-            <div className="flex items-center gap-[12px]">
-              {user ? (
-                <Link
-                  href="/home"
-                  className="bg-[#18181b] text-white h-[36px] px-3 py-2 rounded-md text-l2-medium hover:opacity-90 transition-opacity flex items-center"
-                >
-                  Home
-                </Link>
-              ) : (
-                <>
+
+            {/* Desktop Left Navigation */}
+            <div className="hidden md:flex items-center gap-[44px] flex-1">
+              <Link href="/" className={navLink('/')}>Home</Link>
+              <Link href="/tools" className={navLink('/tools')}>Tools</Link>
+              <NavDropdown
+                label="About"
+                href="/about"
+                links={ABOUT_LINKS}
+                isActive={ABOUT_ROUTES.includes(path)}
+              />
+              <Link href="/blog" className={navLink('/blog')}>Blog</Link>
+            </div>
+
+            {/* Desktop Logo - Centered */}
+            <div className="hidden md:flex w-[271.392px] justify-center">
+              <Logo size="md" />
+            </div>
+
+            {/* Desktop Right Navigation */}
+            <div className="hidden md:flex items-center gap-[24px] flex-1 justify-end">
+              <div className="flex items-center gap-[44px]">
+                <Link href="/pricing" className={navLink('/pricing')}>Pricing</Link>
+                <NavDropdown
+                  label="Support"
+                  href="/support"
+                  links={SUPPORT_LINKS}
+                  align="right"
+                  isActive={SUPPORT_ROUTES.includes(path)}
+                />
+              </div>
+              <div className="flex items-center gap-[12px]">
+                {user ? (
                   <Link
-                    href="/login"
-                    className="bg-base-background border border-[#e4e4e7] text-base-foreground h-[36px] px-3 py-2 rounded-md text-l2-medium hover:bg-base-muted transition-colors flex items-center"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/signup"
+                    href="/home"
                     className="bg-[#18181b] text-white h-[36px] px-3 py-2 rounded-md text-l2-medium hover:opacity-90 transition-opacity flex items-center"
                   >
-                    Sign Up
+                    Home
                   </Link>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="bg-base-background border border-[#e4e4e7] text-base-foreground h-[36px] px-3 py-2 rounded-md text-l2-medium hover:bg-base-muted transition-colors flex items-center"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="bg-[#18181b] text-white h-[36px] px-3 py-2 rounded-md text-l2-medium hover:opacity-90 transition-opacity flex items-center"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Hamburger */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 -mr-2 text-gray-800"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
             </div>
           </div>
-
-          {/* Mobile Hamburger */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 -mr-2 text-gray-800"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer — rendered outside header to avoid backdrop-blur stacking context */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -214,14 +216,14 @@ export default function Header() {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={closeMobile}
-              className="fixed inset-0 bg-black z-101"
+              className="fixed inset-0 bg-black z-60"
             />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-102 shadow-xl flex flex-col p-6 overflow-y-auto"
+              className="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-70 shadow-xl flex flex-col p-6 overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-8">
                 <Logo size="sm" />
@@ -295,6 +297,6 @@ export default function Header() {
           </>
         )}
       </AnimatePresence>
-    </header>
+    </>
   )
 }

@@ -1,65 +1,139 @@
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-// Images from Figma
-const IMG_LEFT   = 'https://www.figma.com/api/mcp/asset/eb8750e3-3b18-4bb1-93a5-213ffabbf258'   // woman with laptop (tall)
-const IMG_RIGHT  = 'https://www.figma.com/api/mcp/asset/38586ac4-8b69-45cf-bbec-0e4c61319517'   // man at desk
-const IMG_CIRCLE = 'https://www.figma.com/api/mcp/asset/a40da9c5-0529-483e-a625-9f9e7fa519b9'   // MANIFESTR. circular text + arrow
-const IMG_LOGOMARK = 'https://www.figma.com/api/mcp/asset/85e5646a-2e87-4f0d-ac83-9e2cf367080f' // M. vector logomark
+const IMG_LEFT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046085/Placeholder_Image_i9heus.png'
+const IMG_RIGHT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046086/Placeholder_Image-1_ldgb49.png'
+const IMG_LOGOMARK = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046046/Vector_1_tmgxe4.svg'
+const IMG_CIRCLE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046160/Group_jbs8sb.svg'
+
+function ManifestrCircle() {
+  return (
+    <div className="relative shrink-0 w-[110px] h-[110px] md:w-[150px] md:h-[150px]">
+      {/* Outer ring — the full Figma image, continuously rotating */}
+      <CldImage
+        src={IMG_CIRCLE}
+        alt=""
+        className="absolute inset-0 w-full h-full"
+        style={{ animation: 'spinRing 12s linear infinite' }}
+      />
+
+      {/* Static centre — black circle + arrow, sits on top and doesn't rotate */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-[52px] h-[52px] md:w-[72px] md:h-[72px] bg-[#18181b] rounded-full flex items-center justify-center">
+          <svg
+            className="w-[28px] h-[28px] md:w-[38px] md:h-[38px]"
+            viewBox="0 0 40 40"
+            fill="none"
+            stroke="white"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M10 30L30 10" />
+            <path d="M13 10h17v17" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function OpeningHeadline() {
   return (
     <section className="relative w-full bg-[#f9fafb] overflow-hidden py-16 md:py-20">
+      <style>{`@keyframes spinRing { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+
       <div className="w-full max-w-[1440px] mx-auto px-6 md:px-[80px]">
 
-        {/* ── Headline ───────────────────────────────────────────────── */}
+        {/* ── Headline ─── */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="relative flex items-start justify-center mb-12 md:mb-16"
+          className="relative flex flex-col items-center md:flex-row md:items-start md:justify-center mb-3 md:mb-4"
         >
           <h2
-            className="text-[32px] sm:text-[44px] md:text-[60px] leading-[1.18] md:leading-[72px] text-black tracking-[-1.2px] text-center max-w-[817px]"
+            className="text-[30px] sm:text-[44px] md:text-[60px] leading-normal md:leading-[62px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center max-w-[900px]"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
           >
-            Opening&nbsp;&nbsp;
+            Professional documentation for
+            <br />
+            real-world{' '}
             <span
-              className="tracking-[-1.2px]"
               style={{
                 fontFamily: "'IvyPresto Headline', serif",
                 fontWeight: 600,
                 fontStyle: 'italic',
               }}
             >
-              Headline
+              execution.
             </span>
-            {' '}here about how it&rsquo;s all Toolkit&nbsp;&nbsp;in one
           </h2>
 
-          {/* M. logomark – top-right of headline */}
-          <div className="absolute -top-2 -right-2 md:top-0 md:-right-4 w-12 h-12 md:w-[72px] md:h-[72px] shrink-0">
-            <img
-              src={IMG_LOGOMARK}
-              alt="M."
-              className="w-full h-full object-contain"
-            />
+          {/* M. logomark — below headline on mobile, absolute on desktop */}
+          <div className="mt-3 md:mt-0 md:absolute md:top-2 md:right-[60px] w-[56px] h-[56px] md:w-[96px] md:h-[96px] shrink-0">
+            <CldImage src={IMG_LOGOMARK} alt="M." className="w-full h-full object-contain" />
           </div>
         </motion.div>
 
-        {/* ── Two-column body ────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row gap-8 md:gap-10 items-stretch">
+        {/* ── Body text (on mobile: appears before images) ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="md:hidden text-[18px] leading-[28px] text-[#52525b] text-center flex flex-col gap-[18px] mb-6"
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
+        >
+          <p>
+            Presentations, documents, spreadsheets, charts, visuals and copy are produced
+            inside a single, refined execution system.
+          </p>
+          <p>
+            By removing hours of manual creation, rewrites, editing and tool switching,
+            MANIFESTR turns ideas into polished work, ready to deliver.
+          </p>
+        </motion.div>
 
-          {/* Left – tall portrait image */}
+        {/* ── Mobile layout: image + circle row, then second image, then sub-headline ─── */}
+        <div className="md:hidden flex flex-col gap-6">
+          <div className="flex items-center gap-6">
+            <div className="relative w-[65%] h-[226px] rounded-[6px] overflow-hidden shrink-0">
+              <CldImage src={IMG_LEFT} alt="Professional at work" className="absolute inset-0 w-full h-full object-cover object-top" />
+            </div>
+            <ManifestrCircle />
+          </div>
+          <div className="relative w-full h-[229px] rounded-[6px] overflow-hidden">
+            <CldImage src={IMG_RIGHT} alt="Professional at desk" className="absolute inset-0 w-full h-full object-cover object-center" />
+          </div>
+        </div>
+
+        {/* ── Sub-headline ─── */}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-center text-[18px] md:text-[28px] leading-[36px] text-[#18181b] font-medium mt-6 md:mt-0 mb-0 md:mb-16"
+          style={{ fontFamily: 'Inter, sans-serif' }}
+        >
+          You were hired for your expertise, not to format documents.
+        </motion.p>
+
+        {/* ── Desktop two-column body (hidden on mobile) ─── */}
+        <div className="hidden md:flex flex-row gap-10 items-stretch mt-16">
+
+          {/* Left – tall portrait */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="w-full md:w-[38%] shrink-0"
+            className="w-[39%] shrink-0"
           >
-            <div className="relative w-full h-[320px] md:h-[510px] rounded-lg overflow-hidden">
-              <img
+            <div className="relative w-full h-[510px] rounded-[12px] overflow-hidden">
+              <CldImage
                 src={IMG_LEFT}
                 alt="Professional at work"
                 className="absolute inset-0 w-full h-full object-cover object-top"
@@ -67,7 +141,7 @@ export default function OpeningHeadline() {
             </div>
           </motion.div>
 
-          {/* Right – text + circle + portrait */}
+          {/* Right – text + circle + image */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -75,37 +149,25 @@ export default function OpeningHeadline() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="flex flex-col justify-between gap-8 flex-1"
           >
-            {/* Paragraph */}
-            <p
-              className="text-[16px] md:text-[18px] leading-[28px] text-[#52525b]"
-              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400 }}
+            <div
+              className="text-[20px] leading-[28px] text-[#52525b] flex flex-col gap-[18px]"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
             >
-              Lorem ipsum dolor sit amet consectetur. A donec magna arcu aenean
-              facilisi feugiat natoque. Dignissim dolor lobortis lacus sed.
-              Imperdiet mi non quisque consequat porttitor. Cras ipsum vulputate
-              fringilla lobortis. Cras ornare a faucibus at vulputate. In
-              vestibulum dui tincidunt volutpat mauris. Tincidunt iaculis
-              venenatis velit scelerisque id aliquam fames neque volutpat. In id
-              morbi pretium amet at est sem urna tellus.
-            </p>
+              <p>
+                Presentations, documents, spreadsheets, charts, visuals and copy are produced
+                inside a single, refined execution system.
+              </p>
+              <p>
+                By removing hours of manual creation, rewrites, editing and tool switching,
+                MANIFESTR turns ideas into polished work, ready to deliver.
+              </p>
+            </div>
 
-            {/* Circle logo + right image */}
-            <div className="flex items-center gap-4 md:gap-6">
-              {/* Rotating Manifestr circle */}
-              <div
-                className="shrink-0 w-[110px] h-[110px] md:w-[150px] md:h-[150px]"
-                style={{ animation: 'spin 10s linear infinite' }}
-              >
-                <img
-                  src={IMG_CIRCLE}
-                  alt="MANIFESTR"
-                  className="w-full h-full object-contain "
-                />
-              </div>
+            <div className="flex items-center gap-6">
+              <ManifestrCircle />
 
-              {/* Man at desk image */}
-              <div className="relative flex-1 h-[200px] md:h-[300px] rounded-xl overflow-hidden">
-                <img
+              <div className="relative flex-1 h-[300px] rounded-[12px] overflow-hidden">
+                <CldImage
                   src={IMG_RIGHT}
                   alt="Professional at desk"
                   className="absolute inset-0 w-full h-full object-cover object-center"

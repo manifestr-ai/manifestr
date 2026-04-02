@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/cba58d55-01b9-4a11-9ebb-b00fa06f28c1'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943915/Rectangle_17_vc62pu.jpg'
 
 export default function ToolsHero() {
   return (
     <section className="relative w-full h-[400px] md:h-[532px] flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <img src={HERO_BG} alt="" className="w-full h-full object-cover" />
+        <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover" priority />
         <div className="absolute inset-0 bg-[rgba(0,0,0,0.17)]" />
       </div>
       <motion.div

@@ -1,17 +1,19 @@
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/0b39df82-51cf-4bbe-b768-4f2c722de7f6'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041145/wallpaperflare.com_wallpaper_1_mmjf16.png'
 
 export default function AboutHero() {
   return (
-    <section className="relative w-full h-[360px] md:h-[518px] overflow-hidden">
+    <section className="relative w-full h-[251px] md:h-[518px] overflow-hidden">
       <div className="absolute inset-0">
-        <img
+        <CldImage
           src={HERO_BG}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
+          priority
         />
-        <div className="absolute inset-0 bg-black/[0.17]" />
+        <div className="absolute inset-0 bg-black/[0.28] md:bg-black/17" />
       </div>
 
       <div className="relative z-10 flex items-center justify-center h-full px-6">
@@ -19,7 +21,7 @@ export default function AboutHero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center text-white text-[42px] md:text-[72px] leading-[1.1] md:leading-[80px] tracking-[-1.44px] max-w-[627px]"
+          className="text-center text-white text-[36px] md:text-[72px] leading-[44px] md:leading-[80px] tracking-[-0.72px] md:tracking-[-1.44px] max-w-[310px] md:max-w-[627px]"
           style={{ textShadow: '0px 4px 20.9px rgba(0,0,0,0.25)' }}
         >
           <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>

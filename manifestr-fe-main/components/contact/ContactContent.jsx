@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const M_LOGO = 'https://www.figma.com/api/mcp/asset/1824ef54-0b62-4e7a-b6ea-971dd38a5821'
+const M_LOGO = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775028779/Ellipse_elyemk.svg'
 
 const TOPICS = [
   'General Inquiry',
@@ -115,13 +116,13 @@ export default function ContactContent() {
   return (
     <>
       {/* Form Section */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[64px] md:py-[96px] flex flex-col items-center gap-[36px]">
+      <section className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[96px] flex flex-col items-center gap-[24px] md:gap-[36px]">
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-[20px] md:text-[24px] leading-[30px] text-black text-center max-w-[910px]"
+          className="text-[20px] md:text-[24px] leading-[24px] md:leading-[30px] text-black text-center max-w-[312px] md:max-w-[910px]"
           style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
         >
           Have a question, need support, or want to start a conversation?
@@ -135,11 +136,11 @@ export default function ContactContent() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
           onSubmit={handleSubmit}
-          className="w-full max-w-[880px] bg-[#eff0f0] rounded-[12px] p-8 md:p-[50px] flex flex-col gap-[30px]"
+          className="w-full max-w-[880px] bg-[#eff0f0] rounded-[12px] p-[16px] md:p-[50px] flex flex-col gap-[30px]"
         >
-          <div className="flex flex-col gap-[16px]">
+          <div className="flex flex-col gap-[12px] md:gap-[16px]">
             {/* Full Name + Email */}
-            <div className="flex flex-col md:flex-row gap-[16px]">
+            <div className="flex flex-col md:flex-row gap-[12px] md:gap-[16px]">
               <div className="flex-1 flex flex-col gap-[6px]">
                 <label className="text-[14px] leading-[20px] font-medium text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
                   Full Name
@@ -296,16 +297,16 @@ export default function ContactContent() {
       </section>
 
       {/* Dedicated Enquiries Section */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[64px] md:py-[96px] flex flex-col items-center">
+      <section className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[96px] flex flex-col items-center">
         <div className="flex flex-col items-center gap-[24px] w-full max-w-[1280px]">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-center flex flex-col items-center gap-[24px]"
+            className="text-center flex flex-col items-center gap-[16px] md:gap-[24px]"
           >
-            <h2 className="text-[40px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-1.2px]">
+            <h2 className="text-[30px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>For </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Dedicated</span>
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> Enquiries</span>
@@ -315,7 +316,7 @@ export default function ContactContent() {
             </p>
           </motion.div>
 
-          <div className="flex flex-col md:flex-row gap-[24px] items-center mt-[12px]">
+          <div className="flex flex-col md:flex-row gap-[16px] md:gap-[24px] items-center md:mt-[12px] w-full md:w-auto">
             {ENQUIRY_CARDS.map((card) => (
               <motion.div
                 key={card.title}
@@ -323,10 +324,10 @@ export default function ContactContent() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4 }}
-                className="bg-[#f0f0f0] rounded-[12px] p-[24px] w-full md:w-[441px] flex flex-col gap-[24px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)]"
+                className="bg-[rgba(24,24,24,0.01)] md:bg-[#f0f0f0] rounded-[12px] p-[14px] md:p-[24px] w-full md:w-[441px] flex flex-col gap-[24px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)]"
               >
                 <div className="w-[60px] h-[60px] rounded-full overflow-hidden shrink-0">
-                  <img src={M_LOGO} alt="MANIFESTR" className="w-full h-full object-cover" />
+                  <CldImage src={M_LOGO} alt="MANIFESTR" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col gap-[8px] text-[#3c3c3c]">
                   <h3
@@ -339,7 +340,7 @@ export default function ContactContent() {
                     {card.description}
                   </p>
                 </div>
-                <div className="flex items-center gap-[8px] bg-white rounded-[8px] px-[16px] py-[8px] h-[34px] w-fit shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
+                <div className="flex items-center gap-[8px] border border-[#1b1b1b] md:border-0 md:bg-white rounded-[8px] px-[16px] py-[8px] h-[34px] w-fit shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
                   <MessageIcon />
                   <span className="text-[12px] leading-[18px] text-[#020617]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {card.email}
@@ -351,7 +352,7 @@ export default function ContactContent() {
 
           <a
             href="#"
-            className="flex items-center gap-[8px] mt-[12px] px-[16px] py-[4px] text-[14px] leading-[20px] font-medium text-[#2563eb] hover:underline"
+            className="flex items-center gap-[8px] px-[16px] py-[4px] text-[14px] leading-[20px] font-medium text-[#2563eb] hover:underline"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Submit Feedback

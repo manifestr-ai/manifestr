@@ -1,63 +1,66 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/481a3577-84c8-43e2-aab5-cd613c2fa5b4'
-const CTA_BG = 'https://www.figma.com/api/mcp/asset/7adf3647-c549-4907-83ee-1baaa6b47e0c'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042697/Frame_rbbkjw.png'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const BROWSE_CATEGORIES = [
   {
-    image: 'https://www.figma.com/api/mcp/asset/75fb7561-7ef6-453a-89b7-816546a1251b',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043515/Kits-1_oftw78.png',
     title: 'Getting Started',
     desc: 'Essential videos for new users',
     meta: '8 videos • 45 min',
+    href: '/playbook/getting-started',
   },
   {
-    image: 'https://www.figma.com/api/mcp/asset/c7a7ae9e-2603-419e-b53b-c3d57763e7c5',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043515/Kits_muwcbz.png',
     title: 'Pro Tips',
     desc: 'Advanced techniques and workflows',
     meta: '12 videos • 1h 20min',
+    href: '/playbook/demo-videos',
   },
 ]
 
 const TUTORIALS = [
   {
-    image: 'https://www.figma.com/api/mcp/asset/865c5317-f688-4236-b2a8-cee4c36ad235',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043392/Img_wpjdxh.png',
     category: 'Getting Started',
     title: 'Creating Your First Project',
     desc: 'Learn the basics of setting up and managing projects in MANIFESTR.',
     duration: '5:32',
   },
   {
-    image: 'https://www.figma.com/api/mcp/asset/78c85ded-cf4f-4d32-aefa-48ff15476a89',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043392/Img-1_fk71uh.png',
     category: 'Collaboration',
     title: 'Team Collaboration Essentials',
     desc: 'Discover how to invite team members and collaborate in real-time.',
     duration: '5:32',
   },
   {
-    image: 'https://www.figma.com/api/mcp/asset/d2bc2211-b717-4de2-8b36-c9ac9535c613',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043393/Img-2_ilujmu.png',
     category: 'Design',
     title: 'Design System Setup',
     desc: 'Build a comprehensive design system from scratch.',
     duration: '5:32',
   },
   {
-    image: 'https://www.figma.com/api/mcp/asset/229f5d38-bd88-4a29-ae7a-554092ce587f',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043391/Img-3_gqvk6t.png',
     category: 'AI Toolkit',
     title: 'Using AI Toolkit Effectively',
     desc: "Maximize productivity with MANIFESTR's AI-powered features.",
     duration: '5:32',
   },
   {
-    image: 'https://www.figma.com/api/mcp/asset/1dcfec7a-0394-4f8b-a1ed-19c72d73d632',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043391/Img-4_cozoak.png',
     category: 'Advanced',
     title: 'Version Control Best Practices',
     desc: 'Master branching, merging, and version management.',
     duration: '5:32',
   },
   {
-    image: 'https://www.figma.com/api/mcp/asset/5d0940b3-5c0e-4c31-847f-8b499b992cc3',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775043391/Img-5_xkkrpg.png',
     category: 'Integration',
     title: 'Integrating with Third-Party Toolkit',
     desc: 'Connect MANIFESTR with your favorite apps and services.',
@@ -108,7 +111,7 @@ export default function DemoVideos() {
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[518px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={HERO_BG} alt="" className="w-full h-full object-cover object-top" />
+          <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover object-top" />
           <div className="absolute inset-0 bg-black/20" />
         </div>
 
@@ -155,42 +158,43 @@ export default function DemoVideos() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
             {BROWSE_CATEGORIES.map((cat, i) => (
-              <motion.div
-                key={cat.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="relative h-[400px] md:h-[500px] rounded-[12px] overflow-hidden cursor-pointer group"
-              >
-                <img src={cat.image} alt="" className="absolute inset-0 w-full h-full object-cover rounded-[12px]" />
-                <div
-                  className="absolute inset-0 rounded-[12px]"
-                  style={{ backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.7) 100%)' }}
-                />
-                <PlayIcon size={84} />
-                <div className="absolute bottom-0 left-0 right-0 p-[24px] flex flex-col gap-[24px]">
-                  <div className="flex flex-col gap-[16px] text-white">
-                    <h3
-                      className="text-[30px] leading-[38px] tracking-[-0.39px]"
-                      style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
-                    >
-                      {cat.title}
-                    </h3>
-                    <p
-                      className="text-[16px] leading-[1.6]"
-                      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-                    >
-                      {cat.desc}
-                    </p>
+              <Link key={cat.title} href={cat.href}>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="relative h-[400px] md:h-[500px] rounded-[12px] overflow-hidden cursor-pointer group"
+                >
+                  <CldImage src={cat.image} alt="" className="absolute inset-0 w-full h-full object-cover rounded-[12px]" />
+                  <div
+                    className="absolute inset-0 rounded-[12px]"
+                    style={{ backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.7) 100%)' }}
+                  />
+                  <PlayIcon size={84} />
+                  <div className="absolute bottom-0 left-0 right-0 p-[24px] flex flex-col gap-[24px]">
+                    <div className="flex flex-col gap-[16px] text-white">
+                      <h3
+                        className="text-[30px] leading-[38px] tracking-[-0.39px]"
+                        style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                      >
+                        {cat.title}
+                      </h3>
+                      <p
+                        className="text-[16px] leading-[1.6]"
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      >
+                        {cat.desc}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="bg-white border border-[#d9d9d9] rounded-full px-[24px] py-[6px] text-[16px] leading-[1.65] text-[#6c6c6c] tracking-[-0.48px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {cat.meta}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="bg-white border border-[#d9d9d9] rounded-full px-[24px] py-[6px] text-[16px] leading-[1.65] text-[#6c6c6c] tracking-[-0.48px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {cat.meta}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
@@ -221,7 +225,7 @@ export default function DemoVideos() {
                 className="flex flex-col gap-[16px] cursor-pointer group"
               >
                 <div className="relative h-[280px] rounded-[8px] overflow-hidden">
-                  <img src={tut.image} alt="" className="w-full h-full object-cover rounded-[8px]" />
+                  <CldImage src={tut.image} alt="" className="w-full h-full object-cover rounded-[8px]" />
                   <PlayIcon size={61} />
                   <span
                     className="absolute top-[16px] right-[16px] bg-white border border-[#d9d9d9] rounded-full px-[24px] py-[6px] text-[16px] leading-[1.65] font-medium text-[#341e1e] tracking-[-0.48px]"
@@ -261,7 +265,7 @@ export default function DemoVideos() {
 
       {/* ─── Need More Help? ─── */}
       <section className="w-full relative h-[380px] md:h-[414px] overflow-hidden">
-        <img src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <CldImage src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

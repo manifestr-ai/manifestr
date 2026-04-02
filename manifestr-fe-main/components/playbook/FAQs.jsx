@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/56083528-6002-44dd-ad67-2b3498b2131b'
-const CTA_BG = 'https://www.figma.com/api/mcp/asset/6dbd521f-efdc-4f18-9508-cc990bbeb2d7'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045590/Container_1_wvlj7b.png'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const POPULAR_SEARCHES = [
   'What Toolkit are included?',
@@ -180,6 +181,99 @@ function CategoryIcon({ type, className = 'w-[16px] h-[16px]' }) {
   return icons[type] || null
 }
 
+function QuestionDetail({ question }) {
+  return (
+    <div className="bg-[#f9fafb] border border-[#e4e4e7] rounded-[8px] p-[24px] flex-1 min-w-0 flex flex-col gap-[32px] md:self-stretch">
+      <div className="flex items-center w-full">
+        <span className="text-[18px] leading-[28px] font-medium text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+          {question.q}
+        </span>
+      </div>
+      <div className="w-full h-px bg-[#e4e4e7]" />
+      <div className="bg-[#f4f4f5] rounded-[16px] p-[24px] flex flex-col gap-[12px]">
+        <span className="text-[18px] leading-[28px] font-medium text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+          Quick Answer
+        </span>
+        <p className="text-[14px] leading-[20px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          {question.quickAnswer}
+        </p>
+      </div>
+      {question.steps && (
+        <div className="flex flex-col gap-[32px]">
+          <div className="flex flex-col gap-[8px]">
+            <span className="text-[16px] leading-[24px] font-medium text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+              Step-by-step upgrade process
+            </span>
+            <ul className="list-disc pl-[21px] flex flex-col gap-[12px]">
+              {question.steps.map((step, i) => (
+                <li key={i} className="text-[14px] leading-[20px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {step}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {question.afterUpgrade && (
+            <div className="flex flex-col gap-[8px]">
+              <span className="text-[16px] leading-[24px] font-medium text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+                What happens after upgrade
+              </span>
+              <ul className="list-disc pl-[21px] flex flex-col gap-[12px]">
+                {question.afterUpgrade.map((item, i) => (
+                  <li key={i} className="text-[14px] leading-[20px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+      <div className="bg-[#fafafa] border border-dashed border-black rounded-[16px] p-[24px] md:p-[32px] flex flex-col gap-[32px] items-center">
+        <div className="flex flex-col gap-[16px] items-start w-full">
+          <p className="text-[20px] leading-[30px] font-semibold text-black text-center w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
+            Was this article helpful?
+          </p>
+          <div className="flex gap-[16px] w-full">
+            <button className="flex-1 flex items-center justify-center gap-[8px] h-[44px] bg-white border border-[#e4e4e7] rounded-[6px] text-[14px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+              <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z" />
+                <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+              </svg>
+              Yes
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-[8px] h-[44px] bg-white border border-[#e4e4e7] rounded-[6px] text-[14px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+              <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z" />
+                <path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17" />
+              </svg>
+              No
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-[15px]">
+          <button className="flex items-center gap-[8px] px-[8px] py-[4px] text-[14px] font-medium text-[#18181b] hover:text-black transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+            </svg>
+            Copy Link
+          </button>
+          <button className="flex items-center gap-[8px] px-[8px] py-[4px] text-[14px] font-medium text-[#18181b] hover:text-black transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+            Share
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ArrowIcon({ open }) {
   return (
     <svg
@@ -229,9 +323,9 @@ export default function FAQs() {
   return (
     <>
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[518px] flex flex-col items-center justify-end pb-[154px] pt-[136px] overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.42]">
-          <img src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
+      <section className="relative w-full h-[447px] md:h-[518px] flex flex-col items-center justify-end pb-[48px] md:pb-[48px] pt-[48px] md:pt-[48px] px-6 md:px-[80px] overflow-hidden">
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden opacity-[1]">
+          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
         </div>
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
@@ -239,22 +333,24 @@ export default function FAQs() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[32px]"
+          className="relative z-10 flex flex-col items-center gap-[24px] md:gap-[32px] w-full"
         >
-          <div className="flex flex-col items-center gap-[25px] max-w-[847px] text-center">
-            <h1 className="text-[72px] leading-[90px] tracking-[-1.44px] text-white whitespace-nowrap">
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Frequently Asked </span>
+          <div className="flex flex-col items-center gap-[25px] max-w-[847px] text-center w-full">
+            <h1 className="text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
+                Frequently <span className="hidden md:inline">Asked</span><span className="md:hidden">asked</span>{' '}
+              </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Questions</span>
             </h1>
             <p
-              className="text-[18px] leading-[28px] text-white"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-white"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              {"Find quick answers about MANIFESTR's Toolkit, plans, collaboration, and support."}
+              {"Find quick answers about MANIFESTR's Toolkit , plans, collaboration, and support."}
             </p>
 
             {/* Search */}
-            <div className="bg-white rounded-[6px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-[449px] max-w-full">
+            <div className="bg-white rounded-[12px] md:rounded-[6px] border border-[#d5d7da] md:border-0 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-full md:w-[449px]">
               <svg className="w-[20px] h-[20px] text-[#71717a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -277,12 +373,12 @@ export default function FAQs() {
             >
               Popular searches:
             </span>
-            <div className="flex flex-wrap items-center gap-[10px] justify-center">
+            <div className="flex flex-wrap items-center gap-[8px] md:gap-[10px] justify-center max-w-[318px] md:max-w-none">
               {POPULAR_SEARCHES.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSearchQuery(tag)}
-                  className="bg-white rounded-[16px] px-[12px] py-[6px] text-[12px] leading-[18px] font-medium text-[#71717a] hover:text-[#18181b] transition-colors"
+                  className="bg-white/80 md:bg-white border border-[#e4e4e7] md:border-0 rounded-[16px] px-[12px] py-[6px] text-[12px] leading-[18px] font-medium text-[#71717a] hover:text-[#18181b] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {tag}
@@ -296,9 +392,10 @@ export default function FAQs() {
       {/* ─── Tabs ─── */}
       {/* <PlaybookTabs /> */}
 
-      {/* ─── FAQ Content (3-column) ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[96px]">
-        <div className="border border-black border-dashed rounded-[16px] p-[16px] flex gap-[24px] items-start justify-center">
+      {/* ─── FAQ Content ─── */}
+      <section className="w-full bg-[#f9fafb] md:bg-white px-0 md:px-[80px] py-0 md:py-[96px]">
+        {/* Desktop: 3-column dashed container */}
+        <div className="hidden md:flex border border-black border-dashed rounded-[16px] p-[16px] gap-[24px] items-start justify-center">
 
           {/* Left sidebar — Categories */}
           <div className="bg-[#f9fafb] rounded-[8px] p-[16px] w-[298px] shrink-0 flex flex-col gap-[8px]">
@@ -331,7 +428,6 @@ export default function FAQs() {
 
           {/* Center — Questions accordion */}
           <div className="bg-[#f9fafb] rounded-[8px] p-[16px] flex-1 min-w-0 flex flex-col gap-[24px] self-stretch">
-            {/* Header */}
             <div className="bg-white border-b border-[#e4e4e7] rounded-[12px] overflow-hidden relative">
               <div className="px-[20px] py-[20px]">
                 <p className="text-[16px] leading-[24px] font-semibold text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -345,8 +441,6 @@ export default function FAQs() {
                 {totalResults} results
               </span>
             </div>
-
-            {/* Accordion items */}
             <div className="flex flex-col gap-[8px]">
               {filteredGroups.length === 0 ? (
                 <p className="text-[16px] text-[#71717a] text-center py-[40px]" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -356,26 +450,19 @@ export default function FAQs() {
                 filteredGroups.map((group) => {
                   const isExpanded = !!expandedGroups[group.id]
                   const isHighlighted = group.id === filteredGroups[0]?.id && !Object.keys(expandedGroups).length
-
                   return (
                     <div key={group.id}>
                       <button
                         onClick={() => toggleGroup(group.id)}
                         className={`w-full flex items-center justify-between px-[20px] py-[16px] rounded-[12px] border transition-colors ${
-                          isExpanded || isHighlighted
-                            ? 'bg-[#f3f4f6] border-[#e4e4e7]'
-                            : 'bg-white border-[#e4e4e7]'
+                          isExpanded || isHighlighted ? 'bg-[#f3f4f6] border-[#e4e4e7]' : 'bg-white border-[#e4e4e7]'
                         }`}
                       >
-                        <span
-                          className="text-[20px] leading-[30px] font-medium text-black text-left"
-                          style={{ fontFamily: 'Inter, sans-serif' }}
-                        >
+                        <span className="text-[20px] leading-[30px] font-medium text-black text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {group.title}
                         </span>
                         <ArrowIcon open={isExpanded} />
                       </button>
-
                       <AnimatePresence initial={false}>
                         {isExpanded && (
                           <motion.div
@@ -391,15 +478,10 @@ export default function FAQs() {
                                   key={q.id}
                                   onClick={() => selectQuestion(q)}
                                   className={`w-full text-left px-[20px] py-[12px] rounded-[8px] transition-colors ${
-                                    selectedQuestion?.id === q.id
-                                      ? 'bg-[#f3f4f6]'
-                                      : 'hover:bg-[#f9fafb]'
+                                    selectedQuestion?.id === q.id ? 'bg-[#f3f4f6]' : 'hover:bg-[#f9fafb]'
                                   }`}
                                 >
-                                  <span
-                                    className="text-[14px] leading-[20px] font-medium text-[#52525b]"
-                                    style={{ fontFamily: 'Inter, sans-serif' }}
-                                  >
+                                  <span className="text-[14px] leading-[20px] font-medium text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
                                     {q.q}
                                   </span>
                                 </button>
@@ -415,135 +497,123 @@ export default function FAQs() {
             </div>
           </div>
 
-          {/* Right — Selected question detail */}
+          {/* Right — Selected question detail (desktop) */}
           {selectedQuestion && (
-            <div className="bg-[#f9fafb] border border-[#e4e4e7] rounded-[8px] p-[24px] flex-1 min-w-0 flex flex-col gap-[32px] self-stretch">
-              {/* Question title */}
-              <div className="flex items-center w-full">
-                <span
-                  className="text-[18px] leading-[28px] font-medium text-black"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
+            <QuestionDetail question={selectedQuestion} />
+          )}
+        </div>
+
+        {/* Mobile: single-column stacked layout */}
+        <div className="md:hidden flex flex-col">
+          {/* Categories */}
+          <div className="bg-[#f9fafb] border-b border-[#e4e4e7] px-[24px] py-[48px] flex flex-col gap-[8px]">
+            {CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(cat.id); setSearchQuery('') }}
+                  className={`flex items-center gap-[12px] w-full px-[16px] py-[12px] rounded-[6px] transition-colors ${
+                    isActive ? 'bg-white' : 'hover:bg-white/60'
+                  }`}
                 >
-                  {selectedQuestion.q}
-                </span>
-              </div>
-
-              <div className="w-full h-px bg-[#e4e4e7]" />
-
-              {/* Quick Answer */}
-              <div className="bg-[#f4f4f5] rounded-[16px] p-[24px] flex flex-col gap-[12px]">
-                <span
-                  className="text-[18px] leading-[28px] font-medium text-black"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  Quick Answer
-                </span>
-                <p
-                  className="text-[14px] leading-[20px] text-[#52525b]"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {selectedQuestion.quickAnswer}
-                </p>
-              </div>
-
-              {/* Step-by-step + What happens after */}
-              {selectedQuestion.steps && (
-                <div className="flex flex-col gap-[32px]">
-                  <div className="flex flex-col gap-[8px]">
-                    <span
-                      className="text-[16px] leading-[24px] font-medium text-black"
-                      style={{ fontFamily: 'Inter, sans-serif' }}
-                    >
-                      Step-by-step upgrade process
-                    </span>
-                    <ul className="list-disc pl-[21px] flex flex-col gap-[12px]">
-                      {selectedQuestion.steps.map((step, i) => (
-                        <li
-                          key={i}
-                          className="text-[14px] leading-[20px] text-[#52525b]"
-                          style={{ fontFamily: 'Inter, sans-serif' }}
-                        >
-                          {step}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {selectedQuestion.afterUpgrade && (
-                    <div className="flex flex-col gap-[8px]">
-                      <span
-                        className="text-[16px] leading-[24px] font-medium text-black"
-                        style={{ fontFamily: 'Inter, sans-serif' }}
-                      >
-                        What happens after upgrade
-                      </span>
-                      <ul className="list-disc pl-[21px] flex flex-col gap-[12px]">
-                        {selectedQuestion.afterUpgrade.map((item, i) => (
-                          <li
-                            key={i}
-                            className="text-[14px] leading-[20px] text-[#52525b]"
-                            style={{ fontFamily: 'Inter, sans-serif' }}
-                          >
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Was this helpful? */}
-              <div className="bg-[#fafafa] border border-dashed border-black rounded-[16px] p-[32px] flex flex-col gap-[32px] items-center">
-                <div className="flex flex-col gap-[16px] items-start w-full">
-                  <p
-                    className="text-[20px] leading-[30px] font-semibold text-black text-center w-full"
+                  <span className="text-[#52525b]">
+                    <CategoryIcon type={cat.icon} />
+                  </span>
+                  <span
+                    className="flex-1 text-left text-[14px] leading-[20px] font-semibold text-[#52525b]"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    Was this article helpful?
-                  </p>
-                  <div className="flex gap-[16px] w-full">
-                    <button className="flex-1 flex items-center justify-center gap-[8px] h-[44px] bg-white border border-[#e4e4e7] rounded-[6px] text-[14px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z" />
-                        <path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
-                      </svg>
-                      Yes
-                    </button>
-                    <button className="flex-1 flex items-center justify-center gap-[8px] h-[44px] bg-white border border-[#e4e4e7] rounded-[6px] text-[14px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z" />
-                        <path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17" />
-                      </svg>
-                      No
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-[15px]">
-                  <button className="flex items-center gap-[8px] px-[8px] py-[4px] text-[14px] font-medium text-[#18181b] hover:text-black transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                    Copy Link
-                  </button>
-                  <button className="flex items-center gap-[8px] px-[8px] py-[4px] text-[14px] font-medium text-[#18181b] hover:text-black transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <circle cx="18" cy="5" r="3" />
-                      <circle cx="6" cy="12" r="3" />
-                      <circle cx="18" cy="19" r="3" />
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                    </svg>
-                    Share
-                  </button>
-                </div>
+                    {cat.label}
+                  </span>
+                  <span className="border border-[#e4e4e7] rounded-[4px] px-[4px] py-px text-[12px] leading-[18px] font-medium text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {cat.count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Questions accordion */}
+          <div className="bg-[#f9fafb] border-b border-[#e4e4e7] px-[24px] py-[48px] flex flex-col gap-[24px]">
+            <div className="bg-white border-b border-[#e4e4e7] rounded-[12px] overflow-hidden relative">
+              <div className="px-[20px] py-[20px]">
+                <p className="text-[16px] leading-[24px] font-semibold text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {activeCategory === 'all' ? 'All Questions' : CATEGORIES.find((c) => c.id === activeCategory)?.label}
+                </p>
               </div>
+              <span
+                className="absolute top-[12px] right-[16px] border border-[#e4e4e7] rounded-[16px] px-[8px] py-[2px] text-[12px] leading-[18px] font-medium text-[#71717a]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {totalResults} results
+              </span>
+            </div>
+            <div className="flex flex-col gap-[12px]">
+              {filteredGroups.length === 0 ? (
+                <p className="text-[16px] text-[#71717a] text-center py-[40px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  No questions found.
+                </p>
+              ) : (
+                filteredGroups.map((group) => {
+                  const isExpanded = !!expandedGroups[group.id]
+                  return (
+                    <div key={group.id}>
+                      <button
+                        onClick={() => toggleGroup(group.id)}
+                        className={`w-full flex items-center justify-between px-[20px] py-[16px] rounded-[12px] border transition-colors ${
+                          isExpanded ? 'bg-[#f3f4f6] border-[#e4e4e7]' : 'bg-white border-[#e4e4e7]'
+                        }`}
+                      >
+                        <span className="text-[16px] leading-[24px] text-black text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {group.title}
+                        </span>
+                        <ArrowIcon open={isExpanded} />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="flex flex-col gap-[4px] pt-[8px]">
+                              {group.questions.map((q) => (
+                                <button
+                                  key={q.id}
+                                  onClick={() => selectQuestion(q)}
+                                  className={`w-full text-left px-[20px] py-[12px] rounded-[8px] transition-colors ${
+                                    selectedQuestion?.id === q.id ? 'bg-[#f3f4f6]' : 'hover:bg-[#f9fafb]'
+                                  }`}
+                                >
+                                  <span className="text-[14px] leading-[20px] font-medium text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    {q.q}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Selected question detail (mobile — inline) */}
+          {selectedQuestion && (
+            <div className="px-[24px] py-[48px]">
+              <QuestionDetail question={selectedQuestion} />
             </div>
           )}
         </div>
 
         {/* Load More */}
-        <div className="flex justify-center mt-[36px]">
+        <div className="flex justify-center py-[36px] md:py-0 md:mt-[36px] bg-[#f9fafb] md:bg-transparent">
           <button
             className="flex items-center justify-center h-[44px] px-[16px] bg-white border border-[#e4e4e7] rounded-[6px] text-[14px] leading-[20px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
             style={{ fontFamily: 'Inter, sans-serif' }}
@@ -554,21 +624,18 @@ export default function FAQs() {
       </section>
 
       {/* ─── Need More Help CTA ─── */}
-      <section className="relative w-full h-[414px] flex items-center justify-center overflow-hidden">
+      <section className="relative w-full h-[358px] md:h-[414px] flex items-center justify-center overflow-hidden px-6 md:px-0">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
-          <img src={CTA_BG} alt="" className="absolute w-full h-[232.84%] top-[-67.15%] max-w-none object-cover" />
+          <CldImage src={CTA_BG} alt="" className="absolute w-full h-full object-cover" />
         </div>
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
-          <img src={CTA_BG} alt="" className="absolute w-full h-[232.84%] top-[-67.15%] max-w-none object-cover" />
-        </div>
-        <div className="relative z-10 flex flex-col items-center gap-[30px]">
-          <div className="flex flex-col items-center gap-[16px] text-center">
-            <h2 className="text-[60px] leading-[72px] tracking-[-1.2px] text-black">
+        <div className="relative z-10 flex flex-col items-center gap-[24px] md:gap-[30px]">
+          <div className="flex flex-col items-center gap-[12px] md:gap-[16px] text-center">
+            <h2 className="text-[36px] md:text-[60px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px] text-black">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Need More </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Help?</span>
             </h2>
             <p
-              className="text-[16px] leading-[24px] text-[#52525b] max-w-[603px]"
+              className="text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525b] max-w-[316px] md:max-w-[603px]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {"Can't find what you're looking for? Our support team is here to help you succeed with MANIFESTR."}

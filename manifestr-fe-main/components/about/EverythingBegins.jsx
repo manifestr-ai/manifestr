@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const PORTRAIT = 'https://www.figma.com/api/mcp/asset/1b7cebe3-cec2-441d-a038-63919823a8cc'
+const PORTRAIT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041144/Rectangle_23179_jogmce.png'
 
 export default function EverythingBegins() {
   return (
@@ -12,19 +13,19 @@ export default function EverythingBegins() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-[40px] md:text-[54px] leading-[54px] tracking-[-1.08px] text-black
-                     pt-[60px] md:pt-[83px] pb-[50px] md:pb-[60px] px-6 whitespace-nowrap"
+          className="text-center text-[30px] md:text-[54px] leading-[normal] md:leading-[54px] tracking-[-0.6px] md:tracking-[-1.08px] text-black
+                     pt-[48px] md:pt-[83px] pb-[32px] md:pb-[60px] px-6 md:whitespace-nowrap"
         >
           <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
             Everything{' '}
           </span>
-          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
-            begins with an idea
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+            begins with an idea{' '}
           </span>
         </motion.h2>
 
         {/* ── Two-column body ── */}
-        <div className="flex flex-col md:flex-row pb-[60px] md:pb-[83px]">
+        <div className="flex flex-col md:flex-row pb-[48px] md:pb-[83px]">
 
           {/* Left — tall rounded image */}
           <motion.div
@@ -34,8 +35,8 @@ export default function EverythingBegins() {
             transition={{ duration: 0.7 }}
             className="w-full md:w-[44%] px-6 md:px-0 md:pl-[68px] shrink-0"
           >
-            <div className="rounded-[12px] overflow-hidden h-[340px] md:h-[724px]">
-              <img
+            <div className="rounded-[14px] md:rounded-[12px] overflow-hidden h-[456px] md:h-[724px]">
+              <CldImage
                 src={PORTRAIT}
                 alt="Two women sitting on a glass floor overlooking New York skyline"
                 className="w-full h-full object-cover object-center"
@@ -50,12 +51,12 @@ export default function EverythingBegins() {
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.15 }}
             className="w-full md:w-[56%] px-6 md:px-0 md:pl-[67px] md:pr-[80px]
-                       pt-[36px] md:pt-[95px] flex flex-col gap-[24px]"
+                       pt-[24px] md:pt-[95px] flex flex-col gap-[16px] md:gap-[24px]"
           >
 
             {/* Mixed-font heading — matches Figma mid-word font switching exactly */}
             <h3
-              className="text-[26px] md:text-[36px] leading-[1.36] md:leading-[49px] tracking-[-0.72px] text-black"
+              className="text-[24px] md:text-[36px] leading-[32px] md:leading-[49px] tracking-[-0.48px] md:tracking-[-0.72px] text-black"
             >
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Burnout</span>
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}> almost b</span>
@@ -84,13 +85,14 @@ export default function EverythingBegins() {
             </p>
 
             {/* Pull quote — vertical bar + italic quote */}
-            <div className="flex gap-[16px] items-stretch">
-              <div className="w-[5px] shrink-0 rounded-full bg-[#242424]" />
+            <div className="flex items-stretch border-l-4 border-black pl-[20px] md:pl-0 md:border-l-0 md:gap-[16px]">
+              <div className="hidden md:block w-[5px] shrink-0 rounded-full bg-[#242424]" />
               <blockquote
-                className="text-[24px] md:text-[32px] leading-[40px] tracking-[2px] text-black lowercase"
+                className="text-[18px] md:text-[32px] leading-[26px] md:leading-[40px] tracking-[0.36px] md:tracking-[2px] text-black md:lowercase"
                 style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 300, fontStyle: 'italic' }}
               >
-                &ldquo;Burnout almost broke me. Yet in<br />
+                &ldquo;Burnout almost broke me. Yet in{' '}
+                <br className="hidden md:block" />
                 that silence, an idea broke through.&rdquo;
               </blockquote>
             </div>

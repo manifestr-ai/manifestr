@@ -1,34 +1,48 @@
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/44b89b89-a55e-4b7b-8c73-fc57b226c327'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025724/creative-inspirational-resource_1_xvzeqt.jpg'
+const MOBILE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025724/creative-inspirational-resource_1_xvzeqt.jpg'
 
 export default function CareersHero() {
   return (
-    <section className="relative w-full h-[300px] md:h-[518px] overflow-hidden bg-white ">
-      {/* Background image — shifted left slightly to match Figma */}
-      <div className="absolute inset-0 -mt-[100px]">
-        <img
+    <section className="relative w-full h-[251px] md:h-[518px] overflow-hidden bg-white">
+      {/* Mobile background */}
+      <div className="md:hidden absolute inset-0">
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[1021px] h-[320px] overflow-hidden">
+          <CldImage
+            src={MOBILE_BG}
+            alt=""
+            className="absolute max-w-none"
+            priority
+            style={{ height: '153.59%', left: '5.83%', top: '-24.84%', width: '84.22%' }}
+          />
+        </div>
+      </div>
+
+      {/* Desktop background */}
+      <div className="hidden md:block absolute inset-0 -mt-[100px]">
+        <CldImage
           src={HERO_BG}
           alt=""
           className="w-full h-full object-cover"
+          priority
           style={{ objectPosition: 'center top' }}
         />
       </div>
 
-      {/* Centred headline */}
       <div className="absolute inset-0 flex items-center justify-center px-6">
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center text-white text-[48px] md:text-[72px] leading-tight md:leading-[90px] tracking-[-1.44px]"
+          className="text-center text-white text-[48px] md:text-[72px] leading-[59px] md:leading-[90px] tracking-[-0.96px] md:tracking-[-1.44px] max-w-[333px] md:max-w-none"
         >
           <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
-            Careers at
+            Careers{' '}
           </span>
-          {' '}
           <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
-            MANIFESTR
+            at MANIFESTR
           </span>
         </motion.h1>
       </div>

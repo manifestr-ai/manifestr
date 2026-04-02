@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/5d07411b-04f5-4aed-996d-bb54e0087374'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
 
 const SECTIONS = [
   { id: 'data-collect', label: 'Data We Collect' },
@@ -152,7 +153,7 @@ export default function PrivacyPolicy() {
     <>
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[256px] flex flex-col items-center justify-center p-[48px] overflow-hidden">
-        <img src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+        <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

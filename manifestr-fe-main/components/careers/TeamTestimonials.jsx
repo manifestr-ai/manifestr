@@ -1,40 +1,37 @@
 import { motion } from 'framer-motion'
-
-const AVATAR_BASE = 'https://www.figma.com/api/mcp/asset/'
+import CldImage from '../ui/CldImage'
 
 const TESTIMONIALS = [
-  { name: 'Alex', role: 'Product Designer', avatar: `${AVATAR_BASE}c832157c-1a94-4056-ba53-c9bcb1d38139`, quote: "I'm constantly inspired by the creative energy here, everyone wants to build something meaningful." },
-  { name: 'Samira', role: 'Customer Success', avatar: `${AVATAR_BASE}baa05999-af6f-4fd3-91d5-32436e376c5a`, quote: '"From day one, I felt heard and supported. We truly care about our customers and each other.' },
-  { name: 'David', role: 'Backend Engineer', avatar: `${AVATAR_BASE}0c79a2bf-49da-423a-8d79-c28da65d64a0`, quote: "The projects challenge me technically, and I know I'm making a real impact." },
-  { name: 'Ava Wright', role: 'UX/UI Designer', avatar: `${AVATAR_BASE}2f45de8e-de9f-4804-a376-22dbe845f978`, quote: "I've been using this tool for several months now, and it has completely changed the way I manage my projects. The interface is incredibly user-friendly." },
-  { name: 'Eduard Ranz', role: 'UX/UI Designer', avatar: `${AVATAR_BASE}2988f88b-236b-4e64-b3e4-27f1afa3c4cb`, quote: "I've been using this tool for several months now, and it has completely changed the way I manage my projects. The interface is incredibly user-friendly." },
-  { name: 'Phoenix Baker', role: 'UX/UI Designer', avatar: `${AVATAR_BASE}2ab3f184-06b2-46c3-ae65-1f1757508af1`, quote: "I've been using this tool for several months now, and it has completely changed the way I manage my projects. The interface is incredibly user-friendly." },
+  { name: 'Alex', role: 'Product Designer', avatar: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027954/Avatar-2_vkhbmr.png', quote: "\u201CThere\u2019s a clear bar for quality here. You\u2019re trusted to make decisions, but you\u2019re also expected to think things through and stand behind your work.\u201D" },
+  { name: 'Ava', role: 'UX/UI Designer', avatar: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027954/Avatar-3_xpnuin.png', quote: "\u201CThere\u2019s a strong emphasis on clarity. Decisions are intentional, feedback is direct, and the work speaks for itself.\u201D" },
+  { name: 'Samira', role: 'Customer Success', avatar: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027955/Avatar_w5hdpf.png', quote: "\u201CFrom day one, the expectations were clear. You\u2019re supported, but you\u2019re also accountable. That balance makes the work feel meaningful.\u201D" },
+  { name: 'Eduard Ranz', role: 'UX/UI Designer', avatar: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027955/Avatar-5_qfpsgy.png', quote: "\u201CYou\u2019re not asked to perform or overexplain. Good thinking and well-executed work are what earn trust here.\u201D" },
+  { name: 'David', role: 'Backend Engineer', avatar: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027955/Avatar-1_fyj4gc.png', quote: "\u201CThe work is technically demanding in the right way. You\u2019re solving real problems, not polishing things that don\u2019t matter.\u201D" },
+  { name: 'Phoenix Baker', role: 'UX/UI Designer', avatar: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027954/Avatar-4_c8wftw.png', quote: "\u201CIt\u2019s a focused environment. People come prepared, respect each other\u2019s time, and take responsibility for outcomes.\u201D" },
 ]
 
 export default function TeamTestimonials() {
   return (
-    <section className="w-full bg-white py-[80px] md:py-[96px]">
+    <section className="w-full bg-white py-[48px] md:py-[96px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
 
         {/* Heading */}
         <div className="text-center mb-[20px]">
           <h2
-            className="text-[40px] md:text-[60px] leading-[1.2] md:leading-[72px] tracking-[-1.2px] text-black"
+            className="text-[30px] md:text-[60px] leading-[normal] md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px] text-black"
           >
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>What Our </span>
-            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Team</span>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> Says</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>What Our Team Says</span>
           </h2>
         </div>
         <p
-          className="text-center text-[14px] md:text-[16px] leading-[24px] text-[#52525b] max-w-[518px] mx-auto mb-[60px]"
+          className="text-center text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525b] max-w-[518px] mx-auto mb-[24px] md:mb-[60px]"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
         >
-          Empowering ambitious minds with AI tools to thrive — without sacrificing their spark or well-being.
+          Empowering ambitious minds with AI Toolkit to thrive - without sacrificing their spark or well-being.
         </p>
 
-        {/* Testimonial grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px]">
+        {/* Mobile — horizontally scrolling testimonial cards */}
+        <div className="md:hidden flex gap-[24px] overflow-x-auto -mx-6 px-6 pb-[4px] scrollbar-hide">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={t.name}
@@ -42,10 +39,52 @@ export default function TeamTestimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
+              className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-[12px] p-[24px] flex flex-col gap-[24px] w-[295px] shrink-0"
+            >
+              <div className="flex items-start gap-[12px]">
+                <CldImage
+                  src={t.avatar}
+                  alt={t.name}
+                  className="w-[60px] h-[60px] rounded-full object-cover border-[1.5px] border-black/8"
+                />
+                <div className="w-[163px]">
+                  <p
+                    className="text-[18px] leading-[28px] text-[#030303] font-semibold"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
+                    {t.name}
+                  </p>
+                  <p
+                    className="text-[14px] leading-[20px] text-[#373940]"
+                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                  >
+                    {t.role}
+                  </p>
+                </div>
+              </div>
+              <p
+                className="text-[16px] leading-[24px] text-[#52525b]"
+                style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+              >
+                {t.quote}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop — Testimonial grid */}
+        <div className="hidden md:grid grid-cols-3 gap-[24px]">
+          {TESTIMONIALS.map((t, i) => (
+            <motion.div
+              key={t.name + '-desktop'}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
               className="bg-[#fafafa] border border-[#e4e4e7] rounded-[12px] p-[24px] flex flex-col gap-[24px]"
             >
               <div className="flex items-start gap-[12px]">
-                <img
+                <CldImage
                   src={t.avatar}
                   alt={t.name}
                   className="w-[60px] h-[60px] rounded-full object-cover border-[1.5px] border-transparent"
@@ -66,7 +105,7 @@ export default function TeamTestimonials() {
                 </div>
               </div>
               <p
-                className="text-[14px] md:text-[16px] leading-[24px] text-[#52525b]"
+                className="text-[16px] leading-[24px] text-[#52525b]"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
               >
                 {t.quote}

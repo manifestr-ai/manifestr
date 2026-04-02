@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/1afa9a77-6046-4313-b9d3-389bcc1ef047'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044849/Frame_4_t9fjae.png'
 const MAX_MESSAGE_LENGTH = 300
 
 function UserIcon() {
@@ -53,9 +54,9 @@ export default function SubmitTicket() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] py-[96px] overflow-hidden">
+      <section className="relative w-full h-[415px] md:h-[518px] flex items-center justify-center px-6 md:px-[80px] py-[48px] md:py-[96px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <img src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
+          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/34" />
         </div>
 
@@ -63,9 +64,9 @@ export default function SubmitTicket() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[20px] text-center"
+          className="relative z-10 flex flex-col items-center gap-[25px] md:gap-[20px] text-center w-full max-w-[286px] md:max-w-none"
         >
-          <h1 className="text-[72px] leading-[90px] tracking-[-1.44px] text-white whitespace-nowrap">
+          <h1 className="text-[36px] md:text-[72px] leading-[normal] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
               Submit a Support{' '}
             </span>
@@ -74,7 +75,7 @@ export default function SubmitTicket() {
             </span>
           </h1>
           <p
-            className="text-[18px] leading-[28px] text-white"
+            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-white"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Reach out to our support team if you need further assistance.
@@ -86,15 +87,15 @@ export default function SubmitTicket() {
       <PlaybookTabs />
 
       {/* ─── Form Section ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[96px]">
+      <section className="w-full bg-white px-6 md:px-[80px] pt-[32px] md:pt-[96px] pb-[96px]">
         <div className="flex flex-col gap-[64px] items-center">
 
           {/* Info blockquote */}
           <div
-            className="w-full max-w-[772px] border-l-4 border-[#18181b] bg-[#f9fafb] pl-[32px] py-[20px]"
+            className="w-full max-w-[772px] border-l-4 border-[#18181b] bg-[#f9fafb] pl-[20px] md:pl-[32px] py-[12px] md:py-[20px]"
           >
             <p
-              className="text-[20px] leading-[28px] tracking-[-0.26px] text-[#374151]"
+              className="text-[16px] md:text-[20px] leading-[26px] md:leading-[28px] tracking-[-0.208px] md:tracking-[-0.26px] text-[#374151]"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               <span className="font-semibold text-[#18181b]">Before submitting: </span>
@@ -116,7 +117,7 @@ export default function SubmitTicket() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="bg-white border border-[#e5e7eb] rounded-[16px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] p-[41px] pb-px"
+              className="bg-white border border-[#e5e7eb] rounded-[16px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] p-[24px] md:p-[41px] pb-px"
             >
               <div className="flex flex-col gap-[40px] items-center">
                 {/* Fields */}
@@ -232,7 +233,7 @@ export default function SubmitTicket() {
               >
                 Need immediate help?
               </p>
-              <div className="flex items-center gap-[16px] justify-center">
+              <div className="flex flex-col sm:flex-row items-center gap-[8px] sm:gap-[16px] justify-center">
                 <Link
                   href="/playbook/knowledge-base"
                   className="text-[14px] leading-[21px] font-medium text-[#18181b] hover:underline"

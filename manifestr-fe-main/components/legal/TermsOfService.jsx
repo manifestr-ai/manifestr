@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/490d4e3a-d503-4694-9187-fa8301679693'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
 
 const SECTIONS = [
   { id: 'introduction', label: 'Introduction' },
@@ -53,9 +54,9 @@ export default function TermsOfService() {
   return (
     <>
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[256px] flex flex-col items-center justify-between p-[48px] overflow-hidden">
+      <section className="relative w-full h-[218px] md:h-[256px] flex flex-col items-center justify-between p-[48px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <img src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
+          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55.86%, rgba(0,0,0,0.3) 100%)' }} />
         </div>
 
@@ -63,13 +64,13 @@ export default function TermsOfService() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative z-10 flex flex-col items-center gap-[11px] text-center text-white max-w-[551px]"
+          className="relative z-10 flex flex-col items-center gap-[18px] md:gap-[11px] text-center text-white max-w-[342px] md:max-w-[551px]"
         >
-          <h1 className="text-[72px] leading-[90px] tracking-[-1.44px]">
+          <h1 className="text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px]">
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Terms</span>
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> of Service</span>
           </h1>
-          <p className="text-[18px] leading-[28px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px]" style={{ fontFamily: 'Inter, sans-serif' }}>
             Binding Legal Agreement between you and MANIFESTR LLC
           </p>
           <p className="text-[16px] leading-[24px]" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -79,7 +80,7 @@ export default function TermsOfService() {
       </section>
 
       {/* ─── Content ─── */}
-      <section className="w-full bg-white px-6 md:px-[32px] py-[96px]">
+      <section className="w-full bg-white px-6 md:px-[32px] py-[48px] md:py-[96px]">
         <div className="max-w-[1280px] mx-auto flex gap-[64px] items-start">
 
           {/* Sticky sidebar */}
@@ -108,11 +109,11 @@ export default function TermsOfService() {
           </aside>
 
           {/* Main content */}
-          <div className="flex-1 min-w-0 flex flex-col gap-[36px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <div className="flex-1 min-w-0 flex flex-col gap-[32px] md:gap-[36px]" style={{ fontFamily: 'Inter, sans-serif' }}>
 
             {/* Introduction */}
             <div id="introduction" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[36px] leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Introduction
               </h2>
               <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
@@ -124,7 +125,7 @@ export default function TermsOfService() {
 
             {/* Eligibility & Account Responsibilities */}
             <div id="eligibility" className="flex flex-col gap-[24px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Eligibility &amp; Account Responsibilities
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -139,7 +140,7 @@ export default function TermsOfService() {
 
             {/* Use of Services */}
             <div id="use" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Use of Services
               </h2>
 
@@ -182,7 +183,7 @@ export default function TermsOfService() {
 
             {/* Payments & Subscriptions */}
             <div id="payments" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Payments &amp; Subscriptions
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -223,7 +224,7 @@ export default function TermsOfService() {
 
             {/* Intellectual Property */}
             <div id="ip" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Intellectual Property
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -236,7 +237,7 @@ export default function TermsOfService() {
 
             {/* AI Services & Generated Content */}
             <div id="ai" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 AI Services &amp; Generated Content
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -260,7 +261,7 @@ export default function TermsOfService() {
 
             {/* Disclaimers & Limitations */}
             <div id="disclaimers" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Disclaimers &amp; Limitations of Liability
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -272,7 +273,7 @@ export default function TermsOfService() {
 
             {/* Service Availability & Changes */}
             <div id="availability" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Service Availability &amp; Changes
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -284,7 +285,7 @@ export default function TermsOfService() {
 
             {/* Termination & Suspension */}
             <div id="termination" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Termination &amp; Suspension
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -296,7 +297,7 @@ export default function TermsOfService() {
 
             {/* Governing Law */}
             <div id="governing" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Governing Law &amp; Dispute Resolution
               </h2>
               <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
@@ -308,7 +309,7 @@ export default function TermsOfService() {
 
             {/* Contact Information */}
             <div id="contact" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[30px] leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Contact Information
               </h2>
               <div className="text-[16px] leading-[24px] text-[#71717a]">

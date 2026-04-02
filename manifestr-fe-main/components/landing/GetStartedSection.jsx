@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import CldImage from '../ui/CldImage'
 
-const GET_STARTED_BG = '/assets/landing/get-started-bg.jpg'
+const GET_STARTED_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 export default function GetStartedSection() {
   return (
     <section className="relative w-full overflow-hidden">
       <div className="absolute inset-0">
-        <img
+        <CldImage
           src={GET_STARTED_BG}
           alt=""
           className="w-full h-full object-cover"

@@ -74,29 +74,74 @@ export default function OpenRoles() {
   const role = ROLES[selected]
 
   return (
-    <section id="roles" className="w-full bg-white py-[80px] md:py-[120px]">
+    <section id="roles" className="w-full bg-white py-[48px] md:py-[120px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
 
         {/* Heading */}
-        <div className="text-center mb-[20px]">
-          <h2 className="text-[40px] md:text-[60px] leading-[1.2] md:leading-[72px] tracking-[-1.2px] text-black">
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Find Your </span>
-            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Next</span>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> Role</span>
+        <div className="text-center mb-[16px] md:mb-[20px]">
+          <h2 className="text-[30px] md:text-[60px] leading-[normal] md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px] text-black max-w-[266px] md:max-w-none mx-auto">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Find Your Next Role</span>
           </h2>
         </div>
         <p
-          className="text-center text-[14px] md:text-[16px] leading-[24px] text-[#52525b] max-w-[459px] mx-auto mb-[60px]"
+          className="text-center text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525b] max-w-[459px] mx-auto mb-[24px] md:mb-[60px]"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
         >
-          Empowering ambitious minds with AI tools to thrive — without sacrificing their spark or well-being.
+          Empowering ambitious minds with AI Toolkit to thrive without sacrificing their spark or well-being.
         </p>
 
-        {/* Two-column layout */}
-        <div className="flex flex-col md:flex-row gap-[40px] items-stretch justify-center">
+        {/* Mobile — horizontally scrolling role cards */}
+        <div className="md:hidden flex gap-[24px] overflow-x-auto -mx-6 px-6 pb-[4px] scrollbar-hide">
+          {ROLES.map((r, i) => {
+            const isActive = i === selected
+            return (
+              <motion.div
+                key={r.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                onClick={() => setSelected(i)}
+                className={`bg-[#fafafa] rounded-[12px] p-[24px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] cursor-pointer
+                            border shrink-0 w-[295px] flex flex-col gap-[16px]
+                            ${isActive ? 'border-[#18181b]' : 'border-[#e4e4e7]'}`}
+              >
+                <div className="flex items-start justify-between gap-[12px]">
+                  <div className="flex flex-col gap-[4px]">
+                    <h3
+                      className="text-[24px] leading-[32px] text-black italic font-medium"
+                      style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
+                    >
+                      {r.title}
+                    </h3>
+                    <p
+                      className="text-[13px] leading-[20px] text-[#52525b]"
+                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                    >
+                      {r.location}
+                    </p>
+                  </div>
+                  <div
+                    className={`shrink-0 w-[32px] h-[32px] rounded-md flex items-center justify-center
+                                ${isActive ? 'bg-[#18181b]' : 'bg-[#ebebeb]'}`}
+                  >
+                    <ArrowUpRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-black'}`} />
+                  </div>
+                </div>
+                <p
+                  className="text-[16px] leading-[24px] text-[#52525b]"
+                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                >
+                  {r.desc}
+                </p>
+              </motion.div>
+            )
+          })}
+        </div>
 
-          {/* Left — role cards */}
-          <div className="w-full md:w-[626px] shrink-0 flex flex-col gap-[24px]">
+        {/* Desktop — Two-column layout */}
+        <div className="hidden md:flex flex-row gap-[40px] items-stretch justify-center">
+          <div className="w-[626px] shrink-0 flex flex-col gap-[24px]">
             {ROLES.map((r, i) => {
               const isActive = i === selected
               return (
@@ -114,7 +159,7 @@ export default function OpenRoles() {
                   <div className="flex items-start justify-between gap-[12px] mb-[16px]">
                     <div>
                       <h3
-                        className="text-[20px] md:text-[24px] leading-[32px] text-black"
+                        className="text-[24px] leading-[32px] text-black"
                         style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                       >
                         {r.title}
@@ -134,7 +179,7 @@ export default function OpenRoles() {
                     </div>
                   </div>
                   <p
-                    className="text-[14px] md:text-[16px] leading-[24px] text-[#52525b]"
+                    className="text-[16px] leading-[24px] text-[#52525b]"
                     style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                   >
                     {r.desc}
@@ -144,26 +189,19 @@ export default function OpenRoles() {
             })}
           </div>
 
-          {/* Right — role detail panel */}
           <motion.div
             key={selected}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className="w-full md:flex-1 bg-[#f4f4f5] rounded-[12px] p-[24px] flex flex-col gap-[24px]"
+            className="flex-1 bg-[#f4f4f5] rounded-[12px] p-[24px] flex flex-col gap-[24px]"
           >
             <div className="flex flex-col gap-[16px]">
-              {/* Responsibilities */}
               <DetailSection title="Responsibilities" items={role.responsibilities} />
-              {/* Requirements */}
               <DetailSection title="Requirements:" items={role.requirements} />
-              {/* Nice-to-Haves */}
               <DetailSection title="Nice-to-Haves" items={role.niceToHaves} />
-              {/* Benefits */}
               <DetailSection title="Benefits Teaser:" items={role.benefits} />
             </div>
-
-            {/* Buttons */}
             <div className="flex items-center justify-end gap-[24px]">
               <Link
                 href="#"
@@ -184,7 +222,6 @@ export default function OpenRoles() {
               </Link>
             </div>
           </motion.div>
-
         </div>
       </div>
     </section>

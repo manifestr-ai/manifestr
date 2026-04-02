@@ -5,13 +5,14 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
+import CldImage from '../../components/ui/CldImage'
 
-const HERO_IMG = 'https://www.figma.com/api/mcp/asset/89126500-079e-440a-89f8-1614e34f97bb'
-const CONTENT_IMG = 'https://www.figma.com/api/mcp/asset/c7f2988f-9b61-43ba-8a2f-1554cd581b39'
-const AUTHOR_IMG = 'https://www.figma.com/api/mcp/asset/a85e3497-8a46-4b98-bfb9-ec823a216ba0'
-const SMILING_IMG = 'https://www.figma.com/api/mcp/asset/b25b9917-5a06-4c46-b4c7-04b56794d87d'
-const PSYCHOLOGIST_IMG = 'https://www.figma.com/api/mcp/asset/9afe0166-ff03-43a5-bf40-5a7c6d14e411'
-const LANDSCAPE_IMG = 'https://www.figma.com/api/mcp/asset/4167483a-283b-4ef9-b81b-5564950dac33'
+const HERO_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775038474/Mads_smiling_2_oufgbz.png'
+const CONTENT_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775038474/Mads_smiling_2_oufgbz.png'
+const AUTHOR_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775038465/Ellipse_hhxkbs.png'
+const SMILING_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775038473/Mads_smiling_1_nlhaot.png'
+const PSYCHOLOGIST_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775038690/close-up-female-psychologist-writing-down-notes-therapy-with-her-male-patient_1_mg0o0u.png'
+const LANDSCAPE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775038867/image-13-1536x609_1_1_thstte.png'
 
 const TOC = [
   'Indexing',
@@ -55,21 +56,21 @@ function RecommendedCard({ card, delay = 0 }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay, duration: 0.4 }}
-        className="relative rounded-[12px] overflow-hidden h-[500px] w-full shrink-0 cursor-pointer group"
+        className="relative rounded-[6px] md:rounded-[12px] overflow-hidden h-[300px] md:h-[500px] w-full shrink-0 cursor-pointer group"
       >
-        <img src={card.img} alt="" className="w-full h-full object-cover" />
-        <div className="absolute bottom-0 left-0 right-0 p-[18px] flex flex-col gap-[8px]">
+        <CldImage src={card.img} alt="" className="w-full h-full object-cover" />
+        <div className="absolute bottom-0 left-0 right-0 p-[11px] md:p-[18px] flex flex-col gap-[5px] md:gap-[8px]">
           <span
-            className="text-[12px] leading-[18px] font-medium text-[#71717a] px-[12px] py-[6px] rounded-[16px] border border-[#e4e4e7] self-start"
+            className="text-[7px] md:text-[12px] leading-[11px] md:leading-[18px] font-medium text-[#71717a] px-[7px] md:px-[12px] py-[4px] md:py-[6px] rounded-[16px] border border-[#e4e4e7] self-start"
             style={{ fontFamily: "Inter, sans-serif", background: 'linear-gradient(90deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.8) 100%), linear-gradient(90deg, #f4f4f5 0%, #f4f4f5 100%)' }}
           >
             Tags
           </span>
-          <div className="flex items-start justify-between gap-[16px]">
-            <p className="text-[#18181b] text-[20px] leading-[30px] font-semibold flex-1" style={{ fontFamily: "Inter, sans-serif" }}>
+          <div className="flex items-start justify-between gap-[10px] md:gap-[16px]">
+            <p className="text-[#18181b] text-[12px] md:text-[20px] leading-[18px] md:leading-[30px] font-semibold flex-1" style={{ fontFamily: "Inter, sans-serif" }}>
               {card.title}
             </p>
-            <svg className="w-[24px] h-[24px] text-[#18181b] shrink-0 mt-[4px] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-[14px] md:w-[24px] h-[14px] md:h-[24px] text-[#18181b] shrink-0 mt-[2px] md:mt-[4px] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
             </svg>
           </div>
@@ -102,53 +103,50 @@ export default function BlogPost() {
         <main className="flex-1 bg-white pt-[76px]">
 
           {/* Hero / Header section */}
-          <section className="w-full py-[64px] md:py-[96px]">
+          <section className="w-full py-[48px] md:py-[96px]">
             <div className="max-w-[1280px] mx-auto px-6 md:px-[32px]">
-              <div className="flex flex-col md:flex-row gap-[48px] md:gap-[64px] items-center">
+              <div className="flex flex-col gap-[16px] md:gap-[64px] md:flex-row items-center">
                 {/* Left content */}
-                <div className="flex flex-col gap-[32px] flex-1">
+                <div className="flex flex-col gap-[24px] md:gap-[32px] flex-1 items-center md:items-start">
                   {/* Breadcrumbs */}
                   <nav className="flex items-center gap-[4px]" style={{ fontFamily: "Inter, sans-serif" }}>
-                    <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#18181b] px-[8px] py-[4px] hover:underline">
-                      Home
-                    </Link>
-                    <svg className="w-[16px] h-[16px] text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                    <Link href="/blog" className="text-[14px] leading-[20px] font-semibold text-[#18181b] px-[8px] py-[4px] hover:underline">
+                    <Link href="/blog" className="text-[16px] md:text-[14px] leading-[24px] md:leading-[20px] md:font-semibold text-[#18181b] md:px-[8px] md:py-[4px] hover:underline">
                       Blog
                     </Link>
-                    <svg className="w-[16px] h-[16px] text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-[24px] md:w-[16px] h-[24px] md:h-[16px] text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                    <span className="text-[14px] leading-[20px] font-semibold text-[#18181b] px-[8px] py-[4px]">
-                      {BLOG_DATA.category}
+                    <span className="text-[16px] md:text-[14px] leading-[24px] md:leading-[20px] md:font-semibold text-[#18181b] md:px-[8px] md:py-[4px]">
+                      Category
                     </span>
-                    <span className="text-[14px] leading-[20px] font-semibold text-[#18181b] px-[8px] py-[4px]">
-                      Article details
+                    <svg className="w-[24px] md:w-[16px] h-[24px] md:h-[16px] text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-[16px] md:text-[14px] leading-[24px] md:leading-[20px] md:font-semibold text-[#18181b] md:px-[8px] md:py-[4px]">
+                      Article
                     </span>
                   </nav>
 
                   {/* Title */}
-                  <div className="flex flex-col gap-[16px] max-w-[592px]">
+                  <div className="flex flex-col gap-[25px] md:gap-[16px] max-w-[592px] w-full items-center md:items-start">
                     <motion.h1
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6 }}
-                      className="text-[36px] md:text-[48px] leading-[1.2] text-black"
+                      className="text-[36px] md:text-[48px] leading-[normal] md:leading-[1.2] tracking-[-0.72px] md:tracking-normal text-black text-center md:text-left"
                     >
-                      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 800 }}>Put Your New Headline </span>
-                      <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>create</span>
-                      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 800 }}> Here With</span>
+                      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Put Your New Headline </span>
+                      <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>create </span>
+                      <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Here With </span>
                     </motion.h1>
 
-                    <p className="text-[18px] leading-[28px] text-[#71717a] pb-[16px]" style={{ fontFamily: "Inter, sans-serif" }}>
+                    <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#71717a] md:pb-[16px]" style={{ fontFamily: "Inter, sans-serif" }}>
                       {BLOG_DATA.subtitle}
                     </p>
 
                     {/* Author */}
                     <div className="flex items-center gap-[16px]">
-                      <img src={AUTHOR_IMG} alt="" className="w-[56px] h-[56px] rounded-full object-cover" />
+                      <CldImage src={AUTHOR_IMG} alt="" className="w-[56px] h-[56px] rounded-full object-cover" />
                       <div className="flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
                         <span className="text-[16px] leading-[24px] font-medium text-[#18181b]">{BLOG_DATA.author}</span>
                         <span className="text-[16px] leading-[24px] text-[#71717a]">{BLOG_DATA.date} · {BLOG_DATA.readTime}</span>
@@ -162,21 +160,21 @@ export default function BlogPost() {
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2, duration: 0.6 }}
-                  className="w-full md:w-[624px] h-[300px] md:h-[416px] rounded-[12px] overflow-hidden shrink-0"
+                  className="w-full md:w-[624px] h-[319px] md:h-[416px] rounded-[6px] md:rounded-[12px] overflow-hidden shrink-0"
                 >
-                  <img src={HERO_IMG} alt="" className="w-full h-full object-cover" />
+                  <CldImage src={HERO_IMG} alt="" className="w-full h-full object-cover" />
                 </motion.div>
               </div>
             </div>
           </section>
 
           {/* Content section with sidebar */}
-          <section className="w-full pb-[96px]">
+          <section className="w-full py-[48px] md:py-0 md:pb-[96px]">
             <div className="max-w-[1280px] mx-auto px-6 md:px-[32px]">
-              <div className="flex flex-col md:flex-row gap-[48px] md:gap-[64px] items-start">
+              <div className="flex flex-col md:flex-row gap-[32px] md:gap-[64px] items-start">
 
-                {/* Sticky sidebar */}
-                <aside className="w-full md:w-[280px] shrink-0 md:sticky md:top-[96px]">
+                {/* Sticky sidebar — hidden on mobile */}
+                <aside className="hidden md:flex w-[280px] shrink-0 md:sticky md:top-[96px]">
                   <div className="flex flex-col gap-[32px]">
                     {/* Table of contents */}
                     <div className="flex flex-col gap-[19px]">
@@ -254,11 +252,11 @@ export default function BlogPost() {
                 </aside>
 
                 {/* Article content */}
-                <article className="flex-1 min-w-0 flex flex-col gap-[36px]">
+                <article className="flex-1 min-w-0 flex flex-col gap-[32px] md:gap-[36px]">
                   {/* Section 1 */}
-                  <div className="flex flex-col gap-[24px]">
+                  <div className="flex flex-col gap-[16px] md:gap-[24px]">
                     <h2
-                      className="text-[30px] leading-[38px] text-[#1b1b1f]"
+                      className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                     >
                       Exploring Generative AI in Content Creation
@@ -288,9 +286,9 @@ export default function BlogPost() {
                   </div>
 
                   {/* Section 2 — What is LMS? */}
-                  <div className="flex flex-col gap-[24px]">
+                  <div className="flex flex-col gap-[12px] md:gap-[24px]">
                     <h2
-                      className="text-[30px] leading-[38px] text-[#1b1b1f]"
+                      className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                     >
                       What is LMS?
@@ -310,14 +308,14 @@ export default function BlogPost() {
                   </div>
 
                   {/* Content image */}
-                  <div className="w-full h-[360px] md:h-[480px] rounded-[12px] overflow-hidden">
-                    <img src={CONTENT_IMG} alt="" className="w-full h-full object-cover" />
+                  <div className="w-full h-[341px] md:h-[480px] rounded-[12px] overflow-hidden">
+                    <CldImage src={CONTENT_IMG} alt="" className="w-full h-full object-cover" />
                   </div>
 
                   {/* Section 3 */}
-                  <div className="flex flex-col gap-[24px]">
+                  <div className="flex flex-col gap-[16px] md:gap-[24px]">
                     <h2
-                      className="text-[30px] leading-[38px] text-[#1b1b1f]"
+                      className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                     >
                       Exploring Generative AI in Content Creation
@@ -347,9 +345,9 @@ export default function BlogPost() {
                   </div>
 
                   {/* Section 4 */}
-                  <div className="flex flex-col gap-[24px]">
+                  <div className="flex flex-col gap-[16px] md:gap-[24px]">
                     <h2
-                      className="text-[30px] leading-[38px] text-[#1b1b1f]"
+                      className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                     >
                       Exploring Generative AI in Content Creation
@@ -379,9 +377,9 @@ export default function BlogPost() {
                   </div>
 
                   {/* Section 5 */}
-                  <div className="flex flex-col gap-[20px]">
+                  <div className="flex flex-col gap-[16px] md:gap-[20px]">
                     <h2
-                      className="text-[30px] leading-[38px] text-[#1b1b1f]"
+                      className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                     >
                       Exploring Generative AI in Content Creation
@@ -415,19 +413,19 @@ export default function BlogPost() {
           </section>
 
           {/* Recommended for You */}
-          <section className="w-full bg-[#f9fafb] py-[80px] md:py-[96px]">
+          <section className="w-full bg-[#f9fafb] py-[48px] md:py-[96px] overflow-hidden">
             <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
               {/* Header */}
-              <div className="flex items-center justify-between mb-[36px]">
+              <div className="flex flex-col md:flex-row items-center md:items-center md:justify-between gap-[12px] mb-[32px] md:mb-[36px]">
                 <h2
-                  className="text-[36px] md:text-[48px] leading-[60px] tracking-[-0.96px] text-black"
+                  className="text-[36px] md:text-[48px] leading-[44px] md:leading-[60px] tracking-[-0.72px] md:tracking-[-0.96px] text-black"
                   style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                 >
                   Recommended for You
                 </h2>
                 <Link
                   href="/blog"
-                  className="hidden md:flex items-center gap-[8px] h-[44px] px-[16px] rounded-[12px] border border-[#e4e4e7] bg-white text-[14px] leading-[20px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
+                  className="flex items-center gap-[8px] h-[44px] px-[16px] rounded-[12px] border border-[#e4e4e7] bg-white text-[14px] leading-[20px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
                   All Trending Articles
@@ -440,17 +438,17 @@ export default function BlogPost() {
               {/* Cards */}
               <div
                 ref={scrollContainerRef}
-                className="flex gap-[24px] overflow-x-auto scrollbar-hide pb-[4px]"
+                className="flex gap-[16px] md:gap-[24px] overflow-x-auto scrollbar-hide pb-[4px] -mx-6 px-6 md:mx-0 md:px-0"
               >
                 {RECOMMENDED.map((card, i) => (
-                  <div key={card.slug} className="w-[300px] md:w-[400px] shrink-0">
+                  <div key={card.slug} className="w-[240px] md:w-[400px] shrink-0">
                     <RecommendedCard card={card} delay={i * 0.1} />
                   </div>
                 ))}
               </div>
 
               {/* Navigation arrows */}
-              <div className="flex items-center justify-end gap-[10px] mt-[24px]">
+              <div className="flex items-center justify-center md:justify-end gap-[10px] mt-[24px]">
                 <button
                   onClick={() => scroll(-1)}
                   className="w-[44px] h-[44px] rounded-[6px] bg-[#b4b4b4] border border-[#e4e4e7] flex items-center justify-center text-white hover:bg-[#9a9a9a] transition-colors"

@@ -2,61 +2,73 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/bde0446c-d749-4cdc-bab2-aeb30facc99d'
-const CTA_BG = 'https://www.figma.com/api/mcp/asset/d638be03-3719-4b51-b04c-ab9ce7fb6fda'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042697/Frame_rbbkjw.png'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 
 const CATEGORIES = [
   {
-    icon: 'https://www.figma.com/api/mcp/asset/cfe03607-c902-4789-a0bf-d6e5d7b1adb0',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042546/Vector_som3d2.svg',
     title: 'Getting Started',
     desc: 'Learn the basics of MANIFESTR',
     articles: 12,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/63a3d4ed-fb37-41d7-bc22-543258c0704e',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Icon_lekrzl.svg',
     title: 'Collaboration',
     desc: 'Team workflows and features',
     articles: 15,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/b1d04628-e5ef-4d94-9412-42468193b4d8',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042548/Icon-1_bt0ram.svg',
     title: 'Design',
     desc: 'Design system and styling',
     articles: 18,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/94996755-d83b-473f-810e-5022569627f4',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Vector-1_qcgk8c.svg',
     title: 'Integration',
     desc: 'Connect with other Toolkit',
     articles: 10,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/097bff97-3c30-4866-ba05-5d4ddbd56761',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042548/Icon-2_ur5jgr.svg',
     title: 'Security',
     desc: 'Privacy and security features',
     articles: 8,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/7f16e74f-721c-496e-a960-b85b0bfcce1c',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042546/Icon-3_qa5lhg.svg',
     title: 'Billing & Plans',
     desc: 'Subscription management',
     articles: 7,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/3f0ca5a3-0bd1-4283-8961-8ecbe46b086e',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Vector-2_xyy9z0.svg',
     title: 'Troubleshooting',
     desc: 'Common issues and fixes',
     articles: 14,
   },
   {
-    icon: 'https://www.figma.com/api/mcp/asset/6960b22d-02c3-400e-8b5b-adf00402a7df',
+    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Icon-4_jq7cvg.svg',
     title: 'Mobile App',
     desc: 'Using MANIFESTR on mobile',
     articles: 9,
   },
 ]
+
+const CATEGORY_ROUTES = {
+  'Getting Started': '/playbook/getting-started',
+  'Collaboration': '/playbook/knowledge-base',
+  'Design': '/playbook/knowledge-base',
+  'Integration': '/playbook/knowledge-base',
+  'Security': '/playbook/knowledge-base',
+  'Billing & Plans': '/playbook/knowledge-base',
+  'Troubleshooting': '/playbook/knowledge-base',
+  'Mobile App': '/playbook/knowledge-base',
+}
 
 function ArrowUpRight({ className = 'w-[20px] h-[20px]' }) {
   return (
@@ -96,7 +108,7 @@ export default function KnowledgeBase() {
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[518px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={HERO_BG} alt="" className="w-full h-full object-cover object-top" />
+          <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover object-top" />
           <div className="absolute inset-0 bg-[rgba(13,13,13,0.18)]" />
         </div>
 
@@ -154,7 +166,7 @@ export default function KnowledgeBase() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px]">
             {CATEGORIES.map((cat, i) => {
-              const href = cat.title === 'Getting Started' ? '/playbook/getting-started' : '#'
+              const href = CATEGORY_ROUTES[cat.title] || '#'
               return (
                 <Link key={cat.title} href={href}>
                   <motion.div
@@ -165,7 +177,7 @@ export default function KnowledgeBase() {
                     className="bg-white border border-[#e5e7eb] rounded-[16px] p-[24px] flex flex-col gap-[40px] items-start shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] hover:shadow-md transition-shadow cursor-pointer h-full"
                   >
                     <div className="bg-[#eee] flex items-center justify-center rounded-[12px] w-[48px] h-[48px]">
-                      <img src={cat.icon} alt="" className="w-[24px] h-[24px]" />
+                      <CldImage src={cat.icon} alt="" className="w-[24px] h-[24px]" />
                     </div>
 
                     <div className="flex flex-col gap-[8px] w-full">
@@ -202,7 +214,7 @@ export default function KnowledgeBase() {
 
       {/* ─── Need More Help? ─── */}
       <section className="w-full relative h-[380px] md:h-[414px] overflow-hidden">
-        <img src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <CldImage src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

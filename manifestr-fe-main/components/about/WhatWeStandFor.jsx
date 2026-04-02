@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
+import CldImage from '../ui/CldImage'
 
-const TEXTURE_BG = 'https://www.figma.com/api/mcp/asset/850ec554-2080-4691-8369-3853f16226a7'
-const M_ICON = 'https://www.figma.com/api/mcp/asset/c2175815-32b0-4c87-9741-9381b9da939c'
+const TEXTURE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041142/Rectangle_34624846_j5h0bo.png'
+const M_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041250/Manifestr_Icon_Reverse_1_hxeiju.png'
 
 const VALUES = [
   { title: 'Protect your brilliance', desc: 'Our best work comes when ambition and wellbeing go hand in hand.', dark: false },
@@ -19,17 +20,17 @@ function ValueCard({ value, index }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.08, duration: 0.5 }}
-      className={`rounded-[20px] p-[32px] md:p-[40px] flex flex-col items-center justify-center text-center ${
-        value.dark ? 'bg-[#18181b]' : 'bg-white'
-      }`}
-      style={{ minHeight: 240 }}
+      className={`rounded-[16px] md:rounded-[20px] h-[140px] md:h-auto md:min-h-[240px]
+        flex flex-col md:items-center md:justify-center md:text-center
+        ${value.dark ? 'bg-[#18181b]' : 'bg-white'}
+        ${value.icon ? 'items-center justify-center' : 'items-start justify-center pl-[24px] md:pl-0 py-[24px] md:py-0 md:p-[40px]'}`}
     >
       {value.icon ? (
-        <img src={M_ICON} alt="Manifestr" className="w-[120px] h-[96px] object-contain" />
+        <CldImage src={M_ICON} alt="Manifestr" className="w-[120px] md:w-[120px] h-[53px] md:h-[96px] object-contain" />
       ) : (
         <>
           <h3
-            className={`text-[28px] md:text-[36px] leading-[36px] mb-[16px] ${
+            className={`text-[24px] md:text-[36px] leading-[32px] md:leading-[36px] mb-[12px] md:mb-[16px] ${
               value.dark ? 'text-white' : 'text-black'
             }`}
             style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
@@ -37,8 +38,8 @@ function ValueCard({ value, index }) {
             {value.title}
           </h3>
           <p
-            className={`text-[16px] md:text-[18px] leading-[30px] max-w-[280px] ${
-              value.dark ? 'text-white/70' : 'text-[#52525b]'
+            className={`text-[16px] md:text-[18px] leading-[24px] md:leading-[30px] max-w-[280px] ${
+              value.dark ? 'text-white/70' : 'text-[#52525c]'
             }`}
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
@@ -52,11 +53,11 @@ function ValueCard({ value, index }) {
 
 export default function WhatWeStandFor() {
   return (
-    <section className="relative w-full overflow-hidden py-[80px] md:py-[98px]">
+    <section className="relative w-full overflow-hidden py-[48px] md:py-[98px]">
       {/* Background */}
       <div className="absolute inset-0 bg-[#deddda]" />
-      <div className="absolute inset-0 opacity-20 overflow-hidden">
-        <img src={TEXTURE_BG} alt="" className="w-full h-full object-cover" />
+      <div className="absolute inset-0 opacity-90 overflow-hidden">
+        <CldImage src={TEXTURE_BG} alt="" className="w-full h-full object-cover" />
       </div>
 
       <div className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-[80px]">
@@ -64,7 +65,7 @@ export default function WhatWeStandFor() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-[40px] md:text-[54px] leading-[54px] tracking-[-1.08px] text-black mb-[60px] md:mb-[80px]"
+          className="text-center text-[30px] md:text-[54px] leading-[normal] md:leading-[54px] tracking-[-0.6px] md:tracking-[-1.08px] text-black mb-[24px] md:mb-[80px]"
         >
           <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
             {' What We '}
@@ -77,7 +78,7 @@ export default function WhatWeStandFor() {
           </span>
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[24px] md:gap-[42px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-[42px]">
           {/* Top row */}
           {VALUES.slice(0, 3).map((v, i) => (
             <ValueCard key={i} value={v} index={i} />

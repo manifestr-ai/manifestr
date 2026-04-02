@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import CldImage from '../ui/CldImage'
 
 const FEATURED_MAIN = 'https://www.figma.com/api/mcp/asset/29c6497a-fb84-429b-b14a-1bdcb6554895'
 const BRANDING_IMG = 'https://www.figma.com/api/mcp/asset/af3c4a46-f663-427d-b8c7-95ab935417ee'
@@ -25,7 +26,7 @@ function BlogCard({ img, title, slug, tag, delay = 0 }) {
         transition={{ delay, duration: 0.4 }}
         className="relative rounded-[12px] overflow-hidden group cursor-pointer h-full"
       >
-        <img src={img} alt="" className="w-full h-full object-cover" />
+        <CldImage src={img} alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-t from-black/66 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-[16px] md:p-[32px] flex flex-col gap-[8px]">
           <span className="bg-white text-[#212122] text-[12px] leading-[18px] font-medium px-[12px] py-[6px] rounded-[16px] self-start" style={{ fontFamily: "Inter, sans-serif" }}>

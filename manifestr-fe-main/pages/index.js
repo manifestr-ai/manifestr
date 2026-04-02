@@ -24,7 +24,7 @@ export default function Home() {
 
       <div className="min-h-screen flex flex-col bg-white">
         <Header />
-        <main className="flex-1 pt-[76px]">
+        <main className="flex-1">
           <HeroSection />
           <OpeningHeadline />
           <MarqueeBar />

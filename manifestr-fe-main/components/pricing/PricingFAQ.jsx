@@ -35,57 +35,59 @@ export default function PricingFAQ() {
   const faqs = FAQ_DATA[activeTab] || []
 
   return (
-    <section className="w-full bg-white py-[64px] px-6">
-      <div className="max-w-[835px] mx-auto flex flex-col items-center gap-[64px]">
+    <section className="w-full bg-white py-[48px] md:py-[64px] px-6">
+      <div className="max-w-[835px] mx-auto flex flex-col items-center gap-[32px] md:gap-[64px]">
         {/* Heading */}
-        <div className="flex flex-col items-start gap-[14px] max-w-[707px]">
+        <div className="flex flex-col items-center md:items-start gap-[14px] max-w-[707px]">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-[36px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-1.2px] text-black"
+            className="text-[36px] md:text-[60px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px] text-black text-center md:text-left"
           >
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Frequently Asked </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Questions</span>
           </motion.h2>
-          <p className="text-[16px] leading-[24px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <p className="text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525b] text-center md:text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
             {"Everything you need to know about MANIFESTR plans and features. Can't find what you're looking for? Contact our support team."}
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white border border-black rounded-[12px] shadow-[0px_4px_4px_0px_#e4e4e7] flex items-center gap-[4px] p-[8px]">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => { setActiveTab(tab); setOpenIndex(0) }}
-              className={`h-[44px] px-[24px] md:px-[32px] rounded-[6px] text-[14px] md:text-[16px] leading-[24px] font-medium transition-colors whitespace-nowrap ${
-                activeTab === tab
-                  ? 'bg-black text-white'
-                  : 'text-[#717680] hover:text-[#18181b]'
-              }`}
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="w-full md:w-auto overflow-x-auto scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
+          <div className="bg-white border border-black rounded-[12px] shadow-[0px_4px_4px_0px_#e4e4e7] flex items-center gap-[4px] p-[8px] w-max md:w-auto mx-auto">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => { setActiveTab(tab); setOpenIndex(0) }}
+                className={`h-[36px] md:h-[44px] px-[16px] md:px-[32px] rounded-[6px] text-[13px] md:text-[16px] leading-[24px] font-medium transition-colors whitespace-nowrap ${
+                  activeTab === tab
+                    ? 'bg-black text-white'
+                    : 'text-[#717680] hover:text-[#18181b]'
+                }`}
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Accordion */}
-        <div className="w-full flex flex-col gap-[16px]">
+        <div className="w-full flex flex-col gap-[12px] md:gap-[16px]">
           {faqs.map((faq, i) => {
             const isOpen = openIndex === i
             return (
               <div
                 key={`${activeTab}-${i}`}
-                className="border border-[#c6c8d0] rounded-[12px] p-[20px] shadow-[0px_1px_2.8px_0px_#888891] overflow-hidden"
+                className="border border-[#c6c8d0] rounded-[14px] md:rounded-[12px] p-[16px] md:p-[20px] shadow-[0px_1px_2.8px_0px_#888891] overflow-hidden"
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? -1 : i)}
-                  className="w-full flex items-center justify-between gap-[24px]"
+                  className="w-full flex items-center justify-between gap-[16px] md:gap-[24px]"
                 >
-                  <span className="text-[18px] leading-[28px] font-medium text-black text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <span className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] font-medium text-black text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {faq.q}
                   </span>
                   <svg
@@ -105,7 +107,7 @@ export default function PricingFAQ() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <p className="text-[16px] leading-[24px] text-[#52525b] mt-[16px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <p className="text-[14px] md:text-[16px] leading-[21px] md:leading-[24px] text-[#52525b] mt-[12px] md:mt-[16px]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {faq.a}
                       </p>
                     </motion.div>
@@ -117,13 +119,13 @@ export default function PricingFAQ() {
         </div>
 
         {/* CTA */}
-        <div className="flex items-center gap-[16px]">
+        <div className="flex flex-col md:flex-row items-center gap-[12px] md:gap-[16px]">
           <span className="text-[14px] leading-[20px] font-medium text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
             Need more detail?
           </span>
           <Link
             href="/playbook"
-            className="h-[44px] px-[40px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center gap-[8px] justify-center hover:bg-[#27272a] transition-colors"
+            className="h-[36px] md:h-[44px] px-[24px] md:px-[40px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center gap-[8px] justify-center hover:bg-[#27272a] transition-colors"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Explore the Manifestr Playbook

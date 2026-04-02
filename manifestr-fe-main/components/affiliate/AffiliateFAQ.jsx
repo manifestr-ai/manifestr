@@ -24,7 +24,7 @@ export default function AffiliateFAQ() {
   const [openIdx, setOpenIdx] = useState(0)
 
   return (
-    <section className="w-full bg-white py-[80px] md:py-[100px]">
+    <section className="w-full bg-white py-[48px] md:py-[100px]">
       <div className="max-w-[835px] mx-auto px-6">
         {/* Heading */}
         <motion.div
@@ -32,22 +32,26 @@ export default function AffiliateFAQ() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-[40px]"
+          className="text-center mb-[32px] md:mb-[40px]"
         >
-          <h2 className="text-[40px] md:text-[54px] leading-[72px] tracking-[-1.08px] text-black">
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Frequently Asked </span>
+          <h2 className="text-[36px] md:text-[54px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.08px] text-black">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Frequently Asked</span>
+            <br className="md:hidden" />
+            <span className="hidden md:inline" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Questions</span>
           </h2>
           <p
-            className="text-[18px] leading-[28px] text-[#52525b] mt-[16px] max-w-[603px] mx-auto"
+            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#52525c] mt-[12px] md:mt-[16px] max-w-[338px] md:max-w-[603px] mx-auto"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
-            Everything you need to know about MANIFESTR plans and features. Can&apos;t find what you&apos;re looking for? Contact our support team.
+            Everything you need to know about MANIFESTR plans and features.
+            {' '}Can&apos;t find what you&apos;re looking for?
+            {' '}Contact our support team.
           </p>
         </motion.div>
 
         {/* Accordion */}
-        <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[12px] md:gap-[16px]">
           {FAQ_DATA.map((item, i) => {
             const isOpen = openIdx === i
             return (
@@ -57,39 +61,44 @@ export default function AffiliateFAQ() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.4 }}
-                className={`rounded-[12px] px-[20px] py-[16px] cursor-pointer transition-colors duration-200
-                  ${isOpen ? 'bg-[#f3f4f6] border border-[#e4e4e7]' : 'border border-[#c6c8d0]'}`}
+                className={`rounded-[14px] md:rounded-[12px] cursor-pointer transition-colors duration-200 overflow-hidden
+                  ${isOpen ? 'bg-[#09090b] md:bg-[#f3f4f6] border border-[#09090b] md:border-[#e4e4e7]' : 'bg-white border border-[#e4e4e7] md:border-[#c6c8d0]'}`}
                 onClick={() => setOpenIdx(isOpen ? -1 : i)}
               >
-                <div className="flex items-start justify-between gap-[24px]">
-                  <div className="flex flex-col gap-[12px] flex-1">
-                    <p
-                      className="text-[18px] leading-[28px] text-black"
-                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
-                    >
-                      {item.q}
-                    </p>
-                    <AnimatePresence>
-                      {isOpen && (
-                        <motion.p
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25 }}
-                          className="text-[16px] leading-[24px] text-black overflow-hidden"
-                          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-                        >
-                          {item.a}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <div className={`shrink-0 w-[24px] h-[24px] flex items-center justify-center transition-transform duration-200 ${isOpen ? '' : 'rotate-180'}`}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div className="flex items-center justify-between gap-[16px] md:gap-[24px] px-[20px] h-[64px] md:h-auto md:pt-[16px] md:px-[20px]">
+                  <p
+                    className={`text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] ${isOpen ? 'text-white md:text-black' : 'text-black'}`}
+                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+                  >
+                    {item.q}
+                  </p>
+                  <div className={`shrink-0 w-[20px] md:w-[24px] h-[20px] md:h-[24px] flex items-center justify-center transition-transform duration-200 ${isOpen ? '' : 'rotate-180'}`}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="md:hidden">
+                      <path d="M4 10L8 6L12 10" stroke={isOpen ? '#ffffff' : '#18181b'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden md:block">
                       <path d="M4 10L8 6L12 10" stroke="#18181b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden px-[20px] pb-[16px]"
+                    >
+                      <p
+                        className={`text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] ${isOpen ? 'text-white md:text-black' : 'text-black'}`}
+                        style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                      >
+                        {item.a}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )
           })}

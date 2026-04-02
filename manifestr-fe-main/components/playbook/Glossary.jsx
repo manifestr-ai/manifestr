@@ -2,9 +2,10 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
+import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/e0828001-540f-4c84-b828-57390f35f40b'
-const CTA_BG = 'https://www.figma.com/api/mcp/asset/7adf3647-c549-4907-83ee-1baaa6b47e0c'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044088/Frame_1_fuymsj.png'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const GLOSSARY = {
   A: [
@@ -105,7 +106,7 @@ export default function Glossary() {
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <img src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/20" />
         </div>
 
@@ -226,7 +227,7 @@ export default function Glossary() {
 
       {/* ─── Need More Help? ─── */}
       <section className="w-full relative h-[380px] md:h-[414px] overflow-hidden">
-        <img src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <CldImage src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

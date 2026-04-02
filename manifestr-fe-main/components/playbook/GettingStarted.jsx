@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import CldImage from '../ui/CldImage'
 
 const CTA_BG = 'https://www.figma.com/api/mcp/asset/49121c76-10df-4cd0-bc7d-45441508d68e'
 
@@ -275,7 +276,7 @@ export default function GettingStarted() {
 
       {/* ─── Need More Help? ─── */}
       <section className="w-full relative h-[380px] md:h-[414px] overflow-hidden">
-        <img src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <CldImage src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
