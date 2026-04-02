@@ -9,19 +9,17 @@ export default function CareersHero() {
     <section className="relative w-full h-[251px] md:h-[518px] overflow-hidden bg-white">
       {/* Mobile background */}
       <div className="md:hidden absolute inset-0">
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[1021px] h-[320px] overflow-hidden">
-          <CldImage
-            src={MOBILE_BG}
-            alt=""
-            className="absolute max-w-none"
-            priority
-            style={{ height: '153.59%', left: '5.83%', top: '-24.84%', width: '84.22%' }}
-          />
-        </div>
+        <CldImage
+          src={MOBILE_BG}
+          alt=""
+          className="w-full h-full object-cover"
+          priority
+          style={{ objectPosition: 'center top' }}
+        />
       </div>
 
       {/* Desktop background */}
-      <div className="hidden md:block absolute inset-0 -mt-[100px]">
+      <div className="hidden md:block absolute inset-0">
         <CldImage
           src={HERO_BG}
           alt=""

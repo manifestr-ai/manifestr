@@ -83,7 +83,7 @@ export default function HowWeWork() {
         </div>
 
         {/* Mobile — WORK watermark + cutout */}
-        <div className="md:hidden relative w-full" style={{ height: 392 }}>
+        <div className="md:hidden relative w-full" style={{ height: 372 }}>
           <div
             className="absolute left-[32px] top-0 w-[280px] h-[240px] pointer-events-none select-none"
             aria-hidden="true"
@@ -101,11 +101,11 @@ export default function HowWeWork() {
             <p className="mb-[16px]">WORK</p>
             <p>WORK</p>
           </div>
-          <div className="absolute left-0 top-[52px] w-[343px] h-[340px] overflow-hidden">
+          <div className="absolute left-0 top-[-50px] w-[350px] h-[470px] overflow-hidden">
             <CldImage
               src={CUTOUT_IMG}
               alt="Professional woman with phone"
-              className="w-full h-auto object-contain"
+              className="w-full h-[500px] object-contain"
             />
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function HowWeWork() {
             </div>
           </div>
 
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-380px] w-[748px] z-2">
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[0px] w-[748px] z-2">
             <CldImage
               src={CUTOUT_IMG}
               alt="Professional woman with phone"
