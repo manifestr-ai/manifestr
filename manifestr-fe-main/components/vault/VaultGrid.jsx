@@ -3,7 +3,7 @@ import { useSidebar } from '../../contexts/SidebarContext'
 import { useState } from 'react'
 import DocumentPreviewModal from './DocumentPreviewModal'
 
-export default function VaultGrid({ cards, showTitle = true, title = 'All Documents', viewMode = 'grid', onCardClick = null, onPin = null, onEdit = null }) {
+export default function VaultGrid({ cards, showTitle = true, title = 'All Documents', viewMode = 'grid', onCardClick = null, onPin = null, onUpdate = null, onMemberCountClick = null }) {
   const { isSidebarOpen } = useSidebar()
   const showVaultSidebar = isSidebarOpen('vault')
   const showCollabsFolderSidebar = isSidebarOpen('collabsFolder')
@@ -61,7 +61,8 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
             viewMode={viewMode}
             onClick={() => handleCardClick(card)}
             onPin={onPin}
-            onEdit={onEdit}
+            onUpdate={onUpdate}
+            onMemberCountClick={onMemberCountClick}
           />
         ))}
       </div>

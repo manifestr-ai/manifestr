@@ -487,6 +487,21 @@ export default function Vault() {
     }
   }
 
+  // Handle document update from modal (pin, archive, delete)
+  const handleUpdate = (updatedCardOrId, action) => {
+    if (action === 'delete') {
+      // Remove from list
+      setItems(prevItems => prevItems.filter(item => item.id !== updatedCardOrId))
+    } else if (updatedCardOrId) {
+      // Update in list
+      setItems(prevItems =>
+        prevItems.map(item =>
+          item.id === updatedCardOrId.id ? { ...item, ...updatedCardOrId } : item
+        )
+      )
+    }
+  }
+
   const normalizedQuery = searchQuery.trim().toLowerCase()
   const filteredItems = items.filter((card) => {
     if (!normalizedQuery) return true
@@ -574,7 +589,7 @@ export default function Vault() {
               viewMode={viewMode}
               onCardClick={handleProjectClick}
               onPin={handlePin}
-              onEdit={handleEdit}
+              onUpdate={handleUpdate}
             />
 
             {/* Pagination */}

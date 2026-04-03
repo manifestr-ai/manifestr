@@ -30,25 +30,25 @@ export default function VaultPinned() {
           // 🚀 BATCH FETCH: Get ALL collaborators in ONE API call!
           console.log(`🚀 BATCH: Fetching collaborators for ${projects.length} pinned projects...`)
           const startTime = Date.now()
-          
+
           let collaboratorsByDocId = {}
           try {
             const docIds = projects.map(p => p.id)
             const batchRes = await api.post('/collaborations/batch-collaborators', { documentIds: docIds })
-            
+
             if (batchRes.data.status === 'success') {
               collaboratorsByDocId = batchRes.data.data
-              console.log(`✅ BATCH: Fetched in ${Date.now() - startTime}ms`)
+              console.log(` BATCH: Fetched in ${Date.now() - startTime}ms`)
             }
           } catch (err) {
-            console.log('⚠️ Batch fetch failed, collaborators will be empty')
+            console.log(' Batch fetch failed, collaborators will be empty')
           }
 
           // Map projects with their collaborators (NO MORE API CALLS!)
           const mappedItems = projects.map(project => {
             // Get collaborators from batch response
             const collabsData = collaboratorsByDocId[project.id] || []
-            
+
             // Map to VaultCard format
             const collaborators = collabsData.map(collab => {
               const user = collab.users || {}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, CloudUpload, Pencil, ChevronDown, ArrowRight } from 'lucide-react'
+import { X, CloudUpload, Pencil, ChevronDown, ArrowRight, Loader2 } from 'lucide-react'
+import api from '../../lib/api'
 
 export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode = 'create', initialData = null }) {
   const modalRef = useRef(null)
@@ -13,8 +14,15 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
   const [emailInput, setEmailInput] = useState('m')
   const [selectedRole, setSelectedRole] = useState('Editor')
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
 
   const roles = ['Owner', 'Admin', 'Editor', 'Viewer']
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000)
+  }
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -105,19 +113,42 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
     }
   }
 
-  const handleCreate = () => {
-    if (onCreate) {
-      onCreate({
-        id: initialData?.id,
-        coverImage,
-        collabName,
-        purposeNotes,
-        tags,
-        inviteEmails,
-        role: selectedRole,
-      })
+  const handleCreate = async () => {
+    if (!collabName.trim()) {
+      showToast('Please enter a collab name', 'error')
+      return
     }
-    onClose()
+
+    setIsCreating(true)
+
+    try {
+      const response = await api.post('/collab-projects', {
+        name: collabName.trim(),
+        coverImage: coverImage || null,
+        purposeNotes: purposeNotes || '',
+        tags: tags,
+        inviteEmails: inviteEmails.filter(e => e && e.includes('@')),
+        role: selectedRole.toLowerCase()
+      })
+
+      if (response.data.status === 'success') {
+        console.log('✅ Collab created:', response.data.data)
+        showToast('Collab created successfully!', 'success')
+        
+        if (onCreate) {
+          onCreate(response.data.data)
+        }
+        
+        setTimeout(() => {
+          onClose()
+        }, 500)
+      }
+    } catch (error) {
+      console.error('❌ Failed to create collab:', error)
+      showToast(error.response?.data?.message || 'Failed to create collab', 'error')
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
@@ -393,16 +424,46 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 </motion.button>
                 <motion.button
                   onClick={handleCreate}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-[#18181b] text-white rounded-md h-[40px] px-4 flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+                  disabled={isCreating}
+                  whileHover={{ scale: isCreating ? 1 : 1.02 }}
+                  whileTap={{ scale: isCreating ? 1 : 0.98 }}
+                  className="bg-[#18181b] text-white rounded-md h-[40px] px-4 flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>{mode === 'edit' ? 'Save Changes' : 'Create & Enter Collab'}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{mode === 'edit' ? 'Save Changes' : 'Create & Enter Collab'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </motion.button>
               </div>
             </div>
           </motion.div>
+
+          {/* Toast Notification */}
+          <AnimatePresence>
+            {toast.show && (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                className="fixed bottom-4 right-4 z-[10000]"
+              >
+                <div className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+                  toast.type === 'error' ? 'bg-red-500' : 
+                  toast.type === 'success' ? 'bg-green-500' : 
+                  'bg-blue-500'
+                } text-white`}>
+                  <span className="text-sm font-medium">{toast.message}</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
