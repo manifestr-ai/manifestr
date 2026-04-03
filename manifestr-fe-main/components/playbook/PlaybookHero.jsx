@@ -2,13 +2,15 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775039194/Card_1_c3uust.png'
+const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775039194/Card_1_c3uust.png'
+const HERO_BG_MOBILE = '/images/playbook-hero-mobile-6e97cf.png'
 
 export default function PlaybookHero() {
   return (
     <section className="relative w-full h-[436px] md:h-[518px] flex flex-col items-center justify-between p-[48px] md:p-[48px] overflow-hidden">
       <div className="absolute inset-0">
-        <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover" priority />
+        <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block w-full h-full object-cover" priority />
+        <img src={HERO_BG_MOBILE} alt="" className="md:hidden w-full h-full object-cover" loading="eager" fetchPriority="high" />
         <div className="absolute inset-0 bg-black/17" />
       </div>
 
@@ -32,7 +34,7 @@ export default function PlaybookHero() {
         </nav>
 
         {/* Heading + Subtitle */}
-        <div className="flex flex-col items-center gap-[25px] md:gap-[24px] w-full">
+        <div className="flex flex-col items-center mt-12 gap-[25px] md:gap-[24px] w-full">
           <div className="flex flex-col items-center gap-[25px] md:gap-[20px]">
             <h1 className="text-[36px] md:text-[72px] leading-[100%] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white text-center">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Welcome to<br className="md:hidden" />{' '}The </span>

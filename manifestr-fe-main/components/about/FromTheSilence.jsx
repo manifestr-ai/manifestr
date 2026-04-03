@@ -12,8 +12,8 @@ export default function FromTheSilence() {
     <section className="relative w-full bg-white overflow-hidden">
       <div className="relative w-full max-w-[1440px] mx-auto min-h-0 md:min-h-[1111px]">
 
-        {/* ── Text content: single column on mobile, two columns on desktop ── */}
-        <div className="relative z-10 flex flex-col md:flex-row gap-[24px] md:gap-[72px]
+        {/* Two text columns — stacked on mobile, side by side on desktop */}
+        <div className="relative z-10 flex flex-col md:flex-row gap-[24px] md:gap-[41px]
                         px-6 md:px-[190px] pt-[48px] md:pt-[128px]">
 
           {/* Left column */}
@@ -21,17 +21,17 @@ export default function FromTheSilence() {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="w-full md:w-1/2 max-w-[506px]"
+            className="w-full md:w-1/2 md:max-w-[506px]"
           >
             <h3
-              className="text-[24px] md:text-[36px] leading-[32px] md:leading-[49px]
+              className="capitalize text-[24px] md:text-[36px] leading-[32px] md:leading-[49px]
                          tracking-[-0.48px] md:tracking-[-0.72px] text-black mb-[16px] md:mb-[24px]"
               style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
             >
-              Let&rsquo;s be honest: we all know how long a deck takes.
+              let&rsquo;s be honest: we all know how long a deck takes.
             </h3>
             <div
-              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525c] space-y-[16px]"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] space-y-[16px]"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
             >
               <p>
@@ -45,62 +45,24 @@ export default function FromTheSilence() {
               </p>
             </div>
           </motion.div>
-        </div>
 
-        {/* ── Watermark layer ── */}
-        <div
-          className="pointer-events-none select-none w-full px-6 md:px-[190px]
-                     mt-[24px] md:mt-[80px] pb-[24px] md:pb-[80px]"
-          aria-hidden="true"
-        >
-          <div className="relative">
-            {/* "FROM THE" — left-aligned, smaller */}
-            <p
-              className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase"
-              style={watermarkStyle}
-            >
-              FROM THE
-            </p>
-
-            {/* "SILENCE" — massive */}
-            <p
-              className="text-[92px] md:text-[22vw] leading-[0.95] md:leading-none tracking-[-1.85px] md:tracking-[-6px] uppercase whitespace-nowrap
-                         -mt-[5px] md:-mt-[20px] -ml-[2px] md:-ml-[20px]"
-              style={watermarkStyle}
-            >
-              SILENCE
-            </p>
-
-            {/* "MANIFESTR WAS BORN" — right-aligned */}
-            <p
-              className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase
-                         text-right mt-0 md:mt-[10px]"
-              style={watermarkStyle}
-            >
-              MANIFESTR WAS BORN
-            </p>
-          </div>
-        </div>
-
-        {/* Right column content — below watermark on mobile, beside left on desktop */}
-        <div className="relative z-10 flex flex-col md:flex-row md:gap-[72px] px-6 md:px-[190px] pb-[48px] md:pb-[80px]">
-          <div className="hidden md:block md:w-1/2" />
+          {/* Right column */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.15 }}
-            className="w-full md:w-1/2 max-w-[492px]"
+            className="w-full md:w-1/2 md:max-w-[524px]"
           >
             <h3
-              className="text-[24px] md:text-[36px] leading-[32px] md:leading-[49px]
+              className="capitalize text-[24px] md:text-[36px] leading-[32px] md:leading-[49px]
                          tracking-[-0.48px] md:tracking-[-0.72px] text-black mb-[16px] md:mb-[24px]"
               style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
             >
-              From the silence of rock bottom, MANIFESTR was born.
+              from the silence of rock bottom, MANIFESTR was born.
             </h3>
             <div
-              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525c] space-y-[16px]"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] space-y-[16px]"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
             >
               <p>
@@ -117,6 +79,38 @@ export default function FromTheSilence() {
               </p>
             </div>
           </motion.div>
+        </div>
+
+        {/* Watermark layer */}
+        <div
+          className="pointer-events-none select-none w-full px-6 md:px-[190px]
+                     mt-[24px] md:mt-[80px] pb-[24px] md:pb-[80px]"
+          aria-hidden="true"
+        >
+          <div className="relative">
+            <p
+              className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase"
+              style={watermarkStyle}
+            >
+              FROM THE
+            </p>
+
+            <p
+              className="text-[92px] md:text-[300px] leading-[0.95] md:leading-none tracking-[-1.85px] md:tracking-[-6px] uppercase whitespace-nowrap
+                         -mt-[5px] md:-mt-[20px] -ml-[2px] md:-ml-[20px]"
+              style={watermarkStyle}
+            >
+              SILENCE
+            </p>
+
+            <p
+              className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase
+                         text-right mt-0 md:mt-[10px]"
+              style={watermarkStyle}
+            >
+              MANIFESTR WAS BORN
+            </p>
+          </div>
         </div>
 
       </div>

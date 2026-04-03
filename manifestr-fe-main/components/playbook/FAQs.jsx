@@ -323,7 +323,7 @@ export default function FAQs() {
   return (
     <>
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[447px] md:h-[518px] flex flex-col items-center justify-end pb-[48px] md:pb-[48px] pt-[48px] md:pt-[48px] px-6 md:px-[80px] overflow-hidden">
+      <section className="relative w-full h-[540px] md:h-[518px] flex flex-col items-stretch md:items-center justify-between md:justify-end p-[48px] md:pb-[48px] md:pt-[48px] md:px-[80px] overflow-hidden">
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden opacity-[1]">
           <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
         </div>
@@ -373,7 +373,7 @@ export default function FAQs() {
             >
               Popular searches:
             </span>
-            <div className="flex flex-wrap items-center gap-[8px] md:gap-[10px] justify-center max-w-[318px] md:max-w-none">
+            <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[8px] md:gap-[10px] justify-center max-w-[318px] md:max-w-none">
               {POPULAR_SEARCHES.map((tag) => (
                 <button
                   key={tag}

@@ -5,12 +5,12 @@ const TEXTURE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v177504114
 const M_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041250/Manifestr_Icon_Reverse_1_hxeiju.png'
 
 const VALUES = [
-  { title: 'Protect your brilliance', desc: 'Our best work comes when ambition and wellbeing go hand in hand.', dark: false },
-  { title: null, icon: true, dark: true },
-  { title: 'Ideas to Impact', desc: "Ideas don't change the world, execution does.", dark: false },
-  { title: 'Win Together', desc: 'Collaboration turns good work into great work.', dark: false },
-  { title: 'Raise the Standard, with Impact', desc: "Great work doesn't just deliver, it shapes the future.", dark: false },
-  { title: 'Build What Matters', desc: 'We build with purpose, solving real problems that matter.', dark: false },
+  { title: 'Protect your brilliance', desc: 'Our best work comes when ambition and wellbeing go hand in hand.' },
+  { icon: true, dark: true },
+  { title: 'Ideas to Impact', desc: "Ideas don't change the world, execution does.", smallTitle: true },
+  { title: 'Win Together', desc: 'Collaboration turns good work into great work.' },
+  { title: 'Raise the Standard, with Impact', desc: "Great work doesn't just deliver, it shapes the future." },
+  { title: 'Build What Matters', desc: 'We build with purpose, solving real problems that matter.' },
 ]
 
 function ValueCard({ value, index }) {
@@ -20,27 +20,23 @@ function ValueCard({ value, index }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.08, duration: 0.5 }}
-      className={`rounded-[16px] md:rounded-[20px] h-[140px] md:h-auto md:min-h-[240px]
-        flex flex-col md:items-center md:justify-center md:text-center
+      className={`rounded-[16px] md:rounded-[20px] h-[140px] md:h-[247px]
+        flex flex-col items-center justify-center text-center
         ${value.dark ? 'bg-[#18181b]' : 'bg-white'}
-        ${value.icon ? 'items-center justify-center' : 'items-start justify-center pl-[24px] md:pl-0 py-[24px] md:py-0 md:p-[40px]'}`}
+        ${value.icon ? '' : 'px-[24px] py-[24px] md:px-[30px] md:py-[40px]'}`}
     >
       {value.icon ? (
-        <CldImage src={M_ICON} alt="Manifestr" className="w-[120px] md:w-[120px] h-[53px] md:h-[96px] object-contain" />
+        <CldImage src={M_ICON} alt="Manifestr" className="w-[120px] md:w-[156px] h-[53px] md:h-[124px] object-contain" />
       ) : (
         <>
           <h3
-            className={`text-[24px] md:text-[36px] leading-[32px] md:leading-[36px] mb-[12px] md:mb-[16px] ${
-              value.dark ? 'text-white' : 'text-black'
-            }`}
+            className={`${value.smallTitle ? 'text-[24px] md:text-[32px]' : 'text-[24px] md:text-[36px]'} leading-[32px] md:leading-[36px] mb-[12px] md:mb-[16px] text-black`}
             style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
           >
             {value.title}
           </h3>
           <p
-            className={`text-[16px] md:text-[18px] leading-[24px] md:leading-[30px] max-w-[280px] ${
-              value.dark ? 'text-white/70' : 'text-[#52525c]'
-            }`}
+            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[30px] max-w-[310px] text-[#52525b]"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             {value.desc}
@@ -56,11 +52,11 @@ export default function WhatWeStandFor() {
     <section className="relative w-full overflow-hidden py-[48px] md:py-[98px]">
       {/* Background */}
       <div className="absolute inset-0 bg-[#deddda]" />
-      <div className="absolute inset-0 opacity-90 overflow-hidden">
+      <div className="absolute inset-0 opacity-100 overflow-hidden">
         <CldImage src={TEXTURE_BG} alt="" className="w-full h-full object-cover" />
       </div>
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-[80px]">
+      <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-[118px]">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -78,14 +74,9 @@ export default function WhatWeStandFor() {
           </span>
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-[42px]">
-          {/* Top row */}
-          {VALUES.slice(0, 3).map((v, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-x-[42px] md:gap-y-[33px]">
+          {VALUES.map((v, i) => (
             <ValueCard key={i} value={v} index={i} />
-          ))}
-          {/* Bottom row — offset down slightly on desktop */}
-          {VALUES.slice(3).map((v, i) => (
-            <ValueCard key={i + 3} value={v} index={i + 3} />
           ))}
         </div>
       </div>
