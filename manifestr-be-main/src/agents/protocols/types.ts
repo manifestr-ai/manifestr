@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const UserPromptSchema = z.object({
     prompt: z.string(),
     style_guide_id: z.number().optional().nullable(),
-    output: z.enum(["presentation", "document", "spreadsheet", "image"]).optional().nullable(),
+    output: z.enum(["presentation", "document", "spreadsheet", "image", "chart"]).optional().nullable(),
     meta: z.any().optional(),
     userId: z.string().describe("Supabase UUID for the user"), // Supabase UUID
     jobId: z.string().uuid(),  // The tracking ID
@@ -30,7 +30,7 @@ export const IntentResponseSchema = z.object({
         scope: z.string(),
         size: z.string(),
         itemCount: z.string().optional().describe("Quantifier from user prompt e.g. '100+ tasks', '50 rows', '10 years'"),
-        outputFormat: z.enum(["presentation", "document", "spreadsheet", "image"]),
+        outputFormat: z.enum(["presentation", "document", "spreadsheet", "image", "chart"]),
         selectedTemplate: z.string().optional().describe("The deck template filename selected by TemplateSelector"),
         templateReasoning: z.string().optional().describe("Why this template was selected"),
         appliedLogic: z.string().optional().describe("Name of the logic framework applied (e.g. 'Proposal Logic', 'Strategy Logic')"),

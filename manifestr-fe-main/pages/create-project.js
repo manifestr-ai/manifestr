@@ -59,14 +59,14 @@ Outputs: Structured, professional documents`,
     title: 'THE analyser',
     subtitle: 'Data Analysis • Insights',
     imageSrc: '/assets/dummy/tool-card-3.jpg',
-    outputType: 'spreadsheet',
+    outputType: 'chart',
     description: {
       title: 'Data Insight Engine',
       content: `Purpose: Transform raw data into actionable insights.
 
 Best For: Market Analysis • Performance Tracking • Data Modeling
 
-Outputs: Complex spreadsheets with automated formulas`,
+Outputs: Interactive charts and data visualizations`,
       quickTip: 'Provide your dataset - ANALYSER builds the model.',
     },
   },
@@ -314,7 +314,7 @@ export default function CreateProject() {
       - Structure: ${projectData.structure}`
 
       // Sanitize output type to match backend enum
-      const validOutputTypes = ['presentation', 'document', 'spreadsheet', 'image']
+      const validOutputTypes = ['presentation', 'document', 'spreadsheet', 'image', 'chart']
       const outputType = validOutputTypes.includes(selectedTool.outputType)
         ? selectedTool.outputType
         : 'presentation'

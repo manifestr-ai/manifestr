@@ -150,8 +150,11 @@ export class AIOrchestrator {
                 // Render
                 await this.renderingAgent.run(job);
                 
-            } else if (format === 'spreadsheet') {
-                // Spreadsheet Flow: Layout -> Content -> Render
+            } else if (format === 'spreadsheet' || format === 'chart') {
+                // Spreadsheet/Chart Flow: Layout -> Content -> Render
+                // Both use same data generation, but frontend renders differently
+                
+                console.log(`📊 ${format === 'chart' ? 'Chart (THE analyser)' : 'Spreadsheet'} generation: Layout -> Content -> Render`);
                 
                 // Layout
                 const layoutOutput = await this.sheetLayout.run(job);

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Mic, ChevronDown, LayoutGrid, List, Users } from 'lucide-react'
 
-export default function CollabsSearchBar() {
+export default function CollabsSearchBar({ placeholder = 'Search The Vault...', viewMode: controlledViewMode, setViewMode: controlledSetViewMode }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAllToolsDropdown, setShowAllToolsDropdown] = useState(false)
   const [showAllActiveCollabsDropdown, setShowAllActiveCollabsDropdown] = useState(false)
@@ -11,7 +11,9 @@ export default function CollabsSearchBar() {
   const [selectedTool, setSelectedTool] = useState('All Tools')
   const [selectedCollab, setSelectedCollab] = useState('All Active Collabs')
   const [selectedSort, setSelectedSort] = useState('Last Edited')
-  const [viewMode, setViewMode] = useState('grid')
+  const [localViewMode, setLocalViewMode] = useState('grid')
+  const viewMode = controlledViewMode ?? localViewMode
+  const setViewMode = controlledSetViewMode ?? setLocalViewMode
 
   const tools = ['All Tools', 'The Deck', 'The Briefcase', 'The Strategist', 'The Analyzer']
   const collabOptions = ['All Active Collabs', 'My Collabs', 'Shared with Me', 'Archived']
@@ -29,7 +31,7 @@ export default function CollabsSearchBar() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search The Vault..."
+            placeholder={placeholder}
             className="w-full h-full pl-10 pr-12 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

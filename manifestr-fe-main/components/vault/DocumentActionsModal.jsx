@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Share2, Download, Folder, Copy, Check, ChevronDown, Users, FileText, Shield, Plus } from 'lucide-react'
+import { X, Share2, Download, Folder, Copy, Check, ChevronDown, Users, FileText, Shield, Plus, Pin, Archive, Trash2 } from 'lucide-react'
 import ToggleSwitch from '../forms/ToggleSwitch'
+import api from '../../lib/api'
 
-export default function DocumentActionsModal({ isOpen, onClose, document }) {
+export default function DocumentActionsModal({ isOpen, onClose, document, onUpdate }) {
   const modalRef = useRef(null)
-  const [primaryTab, setPrimaryTab] = useState('Share') // Share, Export, Save & Organize
+  const [primaryTab, setPrimaryTab] = useState('Share') // Share, Export, Save & Organize, Manage
   const [shareSubTab, setShareSubTab] = useState('Share Link') // Share Link, Invite & Review, Manage Access
   const [linkExpiry, setLinkExpiry] = useState('7 days')
   const [defaultRole, setDefaultRole] = useState('Viewer')
@@ -30,6 +31,15 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [showBulkActionsDropdown, setShowBulkActionsDropdown] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+
+  // Toast notification helper
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type })
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000)
+  }
 
   const linkExpiryOptions = ['7 days', '30 days', '90 days', 'Never']
   const roleOptions = ['Viewer', 'Editor', 'Admin', 'Owner']
@@ -111,6 +121,106 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
     }
   }
 
+  // Handle Pin/Unpin
+  const handleTogglePin = async () => {
+    if (!document?.id) return
+    setIsProcessing(true)
+    try {
+      if (document.isPinned) {
+        await api.delete(`/ai/pin/${document.id}`)
+        console.log(`📌 Unpinned: ${document.title}`)
+        showToast('Document unpinned successfully', 'success')
+      } else {
+        const response = await api.post(`/ai/pin/${document.id}`)
+        if (response.data.status === 'error') {
+          showToast(response.data.message, 'error')
+          setIsProcessing(false)
+          return
+        }
+        console.log(`📌 Pinned: ${document.title}`)
+        showToast('Document pinned successfully', 'success')
+      }
+
+      // Notify parent to update the document
+      if (onUpdate) {
+        onUpdate({ ...document, isPinned: !document.isPinned })
+      }
+
+      onClose()
+    } catch (err) {
+      console.error('Failed to toggle pin:', err)
+      showToast(err.response?.data?.message || 'Failed to pin/unpin document', 'error')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Handle Archive/Unarchive
+  const handleArchive = async () => {
+    if (!document?.id) return
+    setIsProcessing(true)
+    
+    const isCurrentlyArchived = document?.isArchived
+    
+    try {
+      if (isCurrentlyArchived) {
+        // Unarchive
+        await api.post(`/ai/unarchive/${document.id}`)
+        console.log(`📤 Unarchived: ${document.title}`)
+        showToast('Document unarchived successfully!', 'success')
+        
+        if (onUpdate) {
+          onUpdate({ ...document, isArchived: false })
+        }
+      } else {
+        // Archive
+        await api.post(`/ai/archive/${document.id}`)
+        console.log(`📦 Archived: ${document.title}`)
+        showToast('Document archived successfully!', 'success')
+        
+        if (onUpdate) {
+          onUpdate({ ...document, isArchived: true })
+        }
+      }
+      
+      onClose()
+    } catch (err) {
+      console.error('Failed to archive/unarchive:', err)
+      showToast(err.response?.data?.message || `Failed to ${isCurrentlyArchived ? 'unarchive' : 'archive'} document`, 'error')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Handle Delete (SOFT DELETE)
+  const handleDelete = async () => {
+    if (!document?.id) return
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true)
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      await api.delete(`/ai/generation/${document.id}`)
+      console.log(`🗑️ Soft deleted: ${document.title}`)
+
+      // Notify parent to remove the document
+      if (onUpdate) {
+        onUpdate(null, 'delete') // Signal deletion
+      }
+
+      showToast('Document deleted successfully!', 'success')
+      onClose()
+    } catch (err) {
+      console.error('Failed to delete:', err)
+      showToast(err.response?.data?.message || 'Failed to delete document', 'error')
+    } finally {
+      setIsProcessing(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   const shareLink = 'https://manifestr.app/share/abc123def'
 
   return (
@@ -157,16 +267,15 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
               </div>
 
               {/* Primary Tabs */}
-              <div className="bg-gray-200 rounded-[18px] p-[3.5px] grid grid-cols-3 gap-0 mb-5">
+              <div className="bg-gray-200 rounded-[18px] p-[3.5px] grid grid-cols-4 gap-0 mb-5">
                 <motion.button
                   onClick={() => setPrimaryTab('Share')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === 'Share'
-                      ? 'bg-white text-zinc-900'
-                      : 'bg-transparent text-zinc-900'
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === 'Share'
+                    ? 'bg-white text-zinc-900'
+                    : 'bg-transparent text-zinc-900'
+                    }`}
                 >
                   <Share2 className="w-4 h-4" />
                   Share
@@ -175,11 +284,10 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                   onClick={() => setPrimaryTab('Export')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === 'Export'
-                      ? 'bg-white text-zinc-900'
-                      : 'bg-transparent text-zinc-900'
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === 'Export'
+                    ? 'bg-white text-zinc-900'
+                    : 'bg-transparent text-zinc-900'
+                    }`}
                 >
                   <Download className="w-4 h-4" />
                   Export
@@ -188,14 +296,25 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                   onClick={() => setPrimaryTab('Save & Organize')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === 'Save & Organize'
-                      ? 'bg-white text-zinc-900'
-                      : 'bg-transparent text-zinc-900'
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === 'Save & Organize'
+                    ? 'bg-white text-zinc-900'
+                    : 'bg-transparent text-zinc-900'
+                    }`}
                 >
                   <Folder className="w-4 h-4" />
-                  Save & Organize
+                  Save
+                </motion.button>
+                <motion.button
+                  onClick={() => setPrimaryTab('Manage')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === 'Manage'
+                    ? 'bg-white text-zinc-900'
+                    : 'bg-transparent text-zinc-900'
+                    }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Manage
                 </motion.button>
               </div>
 
@@ -206,11 +325,10 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                     onClick={() => setShareSubTab('Share Link')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                      shareSubTab === 'Share Link'
-                        ? 'bg-white text-zinc-900'
-                        : 'bg-transparent text-zinc-900'
-                    }`}
+                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${shareSubTab === 'Share Link'
+                      ? 'bg-white text-zinc-900'
+                      : 'bg-transparent text-zinc-900'
+                      }`}
                   >
                     Share Link
                   </motion.button>
@@ -218,11 +336,10 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                     onClick={() => setShareSubTab('Invite & Review')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                      shareSubTab === 'Invite & Review'
-                        ? 'bg-white text-zinc-900'
-                        : 'bg-transparent text-zinc-900'
-                    }`}
+                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${shareSubTab === 'Invite & Review'
+                      ? 'bg-white text-zinc-900'
+                      : 'bg-transparent text-zinc-900'
+                      }`}
                   >
                     Invite & Review
                   </motion.button>
@@ -230,11 +347,10 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                     onClick={() => setShareSubTab('Manage Access')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                      shareSubTab === 'Manage Access'
-                        ? 'bg-white text-zinc-900'
-                        : 'bg-transparent text-zinc-900'
-                    }`}
+                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${shareSubTab === 'Manage Access'
+                      ? 'bg-white text-zinc-900'
+                      : 'bg-transparent text-zinc-900'
+                      }`}
                   >
                     Manage Access
                   </motion.button>
@@ -770,25 +886,22 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                           onClick={() => setSelectedFormat(format.id)}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`p-4 rounded-[12px] border-2 flex flex-col items-center gap-2 ${
-                            selectedFormat === format.id
-                              ? 'bg-zinc-900 border-[#0f172b] text-white'
-                              : 'bg-white border-gray-200 text-zinc-900'
-                          }`}
+                          className={`p-4 rounded-[12px] border-2 flex flex-col items-center gap-2 ${selectedFormat === format.id
+                            ? 'bg-zinc-900 border-[#0f172b] text-white'
+                            : 'bg-white border-gray-200 text-zinc-900'
+                            }`}
                         >
                           <span className="text-2xl">{format.icon}</span>
                           <div className="text-center">
                             <p
-                              className={`text-[12px] font-normal leading-[16px] ${
-                                selectedFormat === format.id ? 'text-white' : 'text-zinc-900'
-                              }`}
+                              className={`text-[12px] font-normal leading-[16px] ${selectedFormat === format.id ? 'text-white' : 'text-zinc-900'
+                                }`}
                             >
                               {format.name}
                             </p>
                             <p
-                              className={`text-[12px] font-normal leading-[16px] ${
-                                selectedFormat === format.id ? 'text-[#cad5e2]' : 'text-[#62748e]'
-                              }`}
+                              className={`text-[12px] font-normal leading-[16px] ${selectedFormat === format.id ? 'text-[#cad5e2]' : 'text-[#62748e]'
+                                }`}
                             >
                               {format.description}
                             </p>
@@ -1066,6 +1179,142 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
                   </div>
                 </div>
               )}
+
+              {/* Manage Tab */}
+              {primaryTab === 'Manage' && (
+                <div className="space-y-6">
+                  {/* Info Banner */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-[14px] p-4 flex gap-3 items-start">
+                    <Shield className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-[14px] font-bold leading-[20px] text-blue-900 tracking-[-0.1504px]">
+                        Document Management
+                      </p>
+                      <p className="text-[14px] font-normal leading-[20px] text-blue-700 tracking-[-0.1504px]">
+                        Pin for quick access, archive to hide from main vault, or permanently delete this document.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Document Info */}
+                  <div className="bg-gray-50 rounded-[12px] p-4">
+                    <h4 className="text-[14px] font-semibold leading-[20px] text-zinc-900 mb-2">
+                      {document?.title || 'Untitled Document'}
+                    </h4>
+                    <p className="text-[13px] leading-[18px] text-zinc-600">
+                      {document?.project || 'Document'}
+                    </p>
+                  </div>
+
+                  {/* Action Cards */}
+                  <div className="space-y-3">
+                    {/* Pin Document */}
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      className="bg-white border border-gray-200 rounded-[12px] p-4 cursor-pointer hover:border-blue-400 transition-all"
+                      onClick={handleTogglePin}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${document?.isPinned ? 'bg-blue-100' : 'bg-gray-100'
+                          }`}>
+                          <Pin className={`w-5 h-5 ${document?.isPinned ? 'text-blue-600 fill-blue-600' : 'text-gray-600'
+                            }`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-[16px] font-semibold leading-[24px] text-zinc-900 mb-1">
+                            {document?.isPinned ? 'Unpin Document' : 'Pin Document'}
+                          </h4>
+                          <p className="text-[14px] leading-[20px] text-zinc-600">
+                            {document?.isPinned
+                              ? 'Remove from pinned documents'
+                              : 'Pin to top of vault for quick access (max 10 pins)'}
+                          </p>
+                        </div>
+                        {document?.isPinned && (
+                          <div className="px-2 py-1 bg-blue-100 rounded-md">
+                            <span className="text-[12px] font-medium text-blue-700">Pinned</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Archive/Unarchive Document */}
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      className={`bg-white border border-gray-200 rounded-[12px] p-4 cursor-pointer transition-all ${
+                        document?.isArchived 
+                          ? 'hover:border-green-400' 
+                          : 'hover:border-yellow-400'
+                      }`}
+                      onClick={handleArchive}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                          document?.isArchived ? 'bg-green-100' : 'bg-yellow-100'
+                        }`}>
+                          <Archive className={`w-5 h-5 ${
+                            document?.isArchived ? 'text-green-600' : 'text-yellow-600'
+                          }`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-[16px] font-semibold leading-[24px] text-zinc-900 mb-1">
+                            {document?.isArchived ? 'Unarchive Document' : 'Archive Document'}
+                          </h4>
+                          <p className="text-[14px] leading-[20px] text-zinc-600">
+                            {document?.isArchived
+                              ? 'Restore this document back to the main vault.'
+                              : 'Hide from main vault but keep accessible in archived section. Can be restored anytime.'}
+                          </p>
+                        </div>
+                        {document?.isArchived && (
+                          <div className="px-2 py-1 bg-yellow-100 rounded-md">
+                            <span className="text-[12px] font-medium text-yellow-700">Archived</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Delete Document */}
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      className={`bg-white border rounded-[12px] p-4 cursor-pointer transition-all ${showDeleteConfirm
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-200 hover:border-red-400'
+                        }`}
+                      onClick={handleDelete}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${showDeleteConfirm ? 'bg-red-200' : 'bg-red-100'
+                          }`}>
+                          <Trash2 className={`w-5 h-5 ${showDeleteConfirm ? 'text-red-700' : 'text-red-600'
+                            }`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className={`text-[16px] font-semibold leading-[24px] mb-1 ${showDeleteConfirm ? 'text-red-700' : 'text-zinc-900'
+                            }`}>
+                            {showDeleteConfirm ? 'Click Again to Confirm Delete' : 'Delete Document'}
+                          </h4>
+                          <p className={`text-[14px] leading-[20px] ${showDeleteConfirm ? 'text-red-600 font-medium' : 'text-zinc-600'
+                            }`}>
+                            {showDeleteConfirm
+                              ? 'This action cannot be undone! All data will be permanently deleted.'
+                              : 'Permanently delete this document. This action cannot be undone.'}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Warning */}
+                  {!showDeleteConfirm && (
+                    <div className="bg-red-50 border border-red-200 rounded-[12px] p-4">
+                      <p className="text-[13px] leading-[18px] text-red-700">
+                        <span className="font-bold">Warning:</span> Deleting a document is permanent and cannot be undone. Consider archiving instead if you may need it later.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Footer */}
@@ -1078,35 +1327,63 @@ export default function DocumentActionsModal({ isOpen, onClose, document }) {
               >
                 Cancel
               </motion.button>
-              <motion.button
-                onClick={() => {
-                  // Handle action based on current tab
-                  onClose()
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-[#18181b] text-white rounded-[6px] h-[40px] px-4 flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
-              >
-                {primaryTab === 'Share' && shareSubTab === 'Share Link' && 'Share'}
-                {primaryTab === 'Share' && shareSubTab === 'Invite & Review' && 'Send Invite'}
-                {primaryTab === 'Share' && shareSubTab === 'Manage Access' && 'Save Changes'}
-                {primaryTab === 'Export' && (
-                  <>
-                    <Download className="w-4 h-4" />
-                    Export as {selectedFormat.toUpperCase()}
-                  </>
-                )}
-                {primaryTab === 'Save & Organize' && (
-                  <>
-                    <Folder className="w-4 h-4" />
-                    Save & Organize
-                  </>
-                )}
-              </motion.button>
+              {primaryTab !== 'Manage' && (
+                <motion.button
+                  onClick={() => {
+                    // Handle action based on current tab
+                    onClose()
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-[#18181b] text-white rounded-[6px] h-[40px] px-4 flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+                >
+                  {primaryTab === 'Share' && shareSubTab === 'Share Link' && 'Share'}
+                  {primaryTab === 'Share' && shareSubTab === 'Invite & Review' && 'Send Invite'}
+                  {primaryTab === 'Share' && shareSubTab === 'Manage Access' && 'Save Changes'}
+                  {primaryTab === 'Export' && (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Export as {selectedFormat.toUpperCase()}
+                    </>
+                  )}
+                  {primaryTab === 'Save & Organize' && (
+                    <>
+                      <Folder className="w-4 h-4" />
+                      Save & Organize
+                    </>
+                  )}
+                </motion.button>
+              )}
             </div>
           </motion.div>
         </motion.div>
       )}
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 z-[10000] flex items-center gap-3 bg-white rounded-lg shadow-[0px_4px_12px_rgba(0,0,0,0.15)] border border-gray-200 px-4 py-3 min-w-[320px]"
+          >
+            <div className={`w-2 h-2 rounded-full shrink-0 ${toast.type === 'success' ? 'bg-green-500' :
+                toast.type === 'error' ? 'bg-red-500' :
+                  'bg-blue-500'
+              }`} />
+            <p className="text-[14px] font-medium text-gray-900 flex-1">
+              {toast.message}
+            </p>
+            <button
+              onClick={() => setToast({ show: false, message: '', type: 'success' })}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AnimatePresence>
   )
 }

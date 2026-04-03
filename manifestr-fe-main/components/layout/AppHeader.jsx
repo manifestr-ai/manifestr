@@ -77,7 +77,7 @@ export default function AppHeader({ showRightActions = true }) {
                 <NavItem href="/home" label="Home" isActive={isActive('/home')} />
                 <NavItem href="/toolkit" label="Toolkit" isActive={isActive('/toolkit')} />
                 <NavItem href="/vault" label="The Vault" isActive={isActive('/vault')} />
-                {/* <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} /> */}
+                <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} />
                 <NavItem href="/style-guide" label="Style Guide" isActive={isActive('/style-guide')} />
               </nav>
             </div>
@@ -157,7 +157,7 @@ export default function AppHeader({ showRightActions = true }) {
                 <NavItem href="/home" label="Home" isActive={isActive('/home')} />
                 <NavItem href="/toolkit" label="Toolkit" isActive={isActive('/toolkit')} />
                 <NavItem href="/vault" label="The Vault" isActive={isActive('/vault')} />
-                {/* <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} /> */}
+                <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} />
                 <NavItem href="/style-guide" label="Style Guide" isActive={isActive('/style-guide')} />
 
                 <div className="my-2 border-t border-gray-100" />

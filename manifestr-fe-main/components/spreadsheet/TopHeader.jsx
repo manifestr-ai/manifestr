@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import {
     Home,
     ChevronDown,
@@ -11,12 +12,16 @@ import {
     Download
 } from 'lucide-react';
 
-export default function TopHeader({ onDownload = () => { }, editorType = 'spreadsheet' }) {
+// Dynamically import ShareModal to avoid SSR issues
+const ShareModal = dynamic(() => import('../collaboration/ShareModal'), { ssr: false });
+
+export default function TopHeader({ onDownload = () => { }, editorType = 'spreadsheet', documentId = null, documentTitle = 'Untitled document', enableCollaboration = false }) {
     const router = useRouter();
     const [status, setStatus] = useState('In Progress');
     const [mode, setMode] = useState('Editing');
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
     const [showModeDropdown, setShowModeDropdown] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     // Dynamic download button text based on editor type
     const getDownloadText = () => {
@@ -65,7 +70,7 @@ export default function TopHeader({ onDownload = () => { }, editorType = 'spread
                     <img src="/assets/logos/text-logo.svg" alt="Manifestr Logo" className="h-6" />
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">Untitled document</span>
+                    <span className="font-semibold text-gray-900">{documentTitle}</span>
                     <div className="flex items-center gap-2 ml-4">
                         {/* Status Dropdown */}
                         <div className="relative" ref={statusDropdownRef}>
@@ -140,23 +145,47 @@ export default function TopHeader({ onDownload = () => { }, editorType = 'spread
 
             {/* Right: Actions */}
             <div className="flex items-center gap-3">
-                <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                {/* <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
                     <History size={18} />
-                </button>
-                <div className="flex items-center gap-2">
+                </button> */}
+                {/* <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
                         <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
                     </div>
                     <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50">
                         <Plus size={16} className="text-gray-600" />
                     </button>
-                </div>
-                {/* Download button hidden for document/presentation editors - they have floating buttons */}
-                <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium">
+                </div> */}
+                {/* Download Button - Only for document editor */}
+                {editorType === 'document' && onDownload && (
+                    <button 
+                        onClick={onDownload}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm font-medium"
+                    >
+                        <Download size={16} />
+                        Download DOCX
+                    </button>
+                )}
+                {/* Share Button - Opens collaboration modal if enabled */}
+                <button
+                    onClick={() => enableCollaboration && setShowShareModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!enableCollaboration}
+                >
                     <Share size={16} />
                     Share
                 </button>
             </div>
+
+            {/* Share Modal - Only render if collaboration enabled */}
+            {enableCollaboration && documentId && (
+                <ShareModal
+                    isOpen={showShareModal}
+                    onClose={() => setShowShareModal(false)}
+                    documentId={documentId}
+                    documentTitle={documentTitle}
+                />
+            )}
         </div>
     );
 }

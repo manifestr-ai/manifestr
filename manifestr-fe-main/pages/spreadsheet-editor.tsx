@@ -8,17 +8,32 @@ import UniverSheet from '../components/spreadsheet/UniverSheet';
 import RightSidebar from '../components/spreadsheet/RightSidebar';
 import BottomToolbar from '../components/spreadsheet/BottomToolbar';
 import { FloatingSheetTab, FloatingFAB } from '../components/spreadsheet/FloatingElements';
+import dynamic from 'next/dynamic';
 
 import spreadsheetData from '../assets/dummy/spreadsheet-data.json';
 import useGenerationLoader from '../hooks/useGenerationLoader';
 import GenerationLoaderUI from '../components/shared/GenerationLoaderUI';
 
+const CollaborativeUniverSheet = dynamic(
+    () => import('../components/spreadsheet/CollaborativeUniverSheet'),
+    { ssr: false }
+);
+
 export default function SpreadsheetEditor() {
     const univerRef = useRef(null);
     const [univerAPI, setUniverAPI] = useState(null);
-    const { loading, error, status, content } = useGenerationLoader();
+    const { loading, error, status, content, id } = useGenerationLoader();
 
     const data = content || spreadsheetData;
+
+    // Ensure generationId is string
+    const actualGenerationId = typeof id === 'string' 
+        ? id 
+        : Array.isArray(id) 
+            ? id[0] 
+            : undefined;
+    
+    const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
 
     const handleDownload = async () => {
         if (!univerAPI) {
@@ -196,7 +211,12 @@ export default function SpreadsheetEditor() {
 
                 {/* Top Section */}
                 <div className="flex-none z-30">
-                    <TopHeader editorType="spreadsheet" />
+                    <TopHeader 
+                        editorType="spreadsheet"
+                        documentId={actualGenerationId}
+                        documentTitle={content?.title || "Untitled spreadsheet"}
+                        enableCollaboration={useCollaboration}
+                    />
                     {/* Using Univer's native formula bar instead */}
                 </div>
 
@@ -204,7 +224,16 @@ export default function SpreadsheetEditor() {
                 <div className="flex-grow flex relative overflow-hidden bg-gray-100 p-8">
                     {/* Grid Container (Card) */}
                     <div className="flex-grow bg-white rounded-lg shadow-sm overflow-hidden relative z-10">
-                        <UniverSheet ref={univerRef} onAPIReady={setUniverAPI} data={data} />
+                        {useCollaboration && actualGenerationId ? (
+                            <CollaborativeUniverSheet 
+                                ref={univerRef} 
+                                onAPIReady={setUniverAPI} 
+                                data={data}
+                                generationId={actualGenerationId}
+                            />
+                        ) : (
+                            <UniverSheet ref={univerRef} onAPIReady={setUniverAPI} data={data} />
+                        )}
                         
                         {/* Download Button - Positioned like Presentation Editor */}
                         <div className="absolute top-4 right-20 z-10">

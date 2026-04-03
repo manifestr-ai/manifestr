@@ -3,7 +3,7 @@ import { useSidebar } from '../../contexts/SidebarContext'
 import { useState } from 'react'
 import DocumentPreviewModal from './DocumentPreviewModal'
 
-export default function VaultGrid({ cards, showTitle = true, title = 'All Documents', viewMode = 'grid' }) {
+export default function VaultGrid({ cards, showTitle = true, title = 'All Documents', viewMode = 'grid', onCardClick = null, onPin = null, onUpdate = null, onMemberCountClick = null }) {
   const { isSidebarOpen } = useSidebar()
   const showVaultSidebar = isSidebarOpen('vault')
   const showCollabsFolderSidebar = isSidebarOpen('collabsFolder')
@@ -17,8 +17,17 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
 
   // When 2 or more sidebars are open, show 3 columns, otherwise use responsive grid
   const gridCols = openSidebarsCount >= 2
-    ? 'grid-cols-3'
-    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+    ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+    : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+
+  // Handle card click - use custom handler if provided, otherwise open modal
+  const handleCardClick = (card) => {
+    if (onCardClick) {
+      onCardClick(card)
+    } else {
+      setSelectedCard(card)
+    }
+  }
 
   return (
     <div className="px-4 md:px-[38px] py-6 w-full">
@@ -33,7 +42,7 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
       <div className={
         viewMode === 'list'
           ? "flex flex-col gap-0 mb-6 bg-white rounded-lg border border-[#e4e4e7] overflow-hidden"
-          : `grid ${gridCols} gap-6 lg:gap-8 mb-6 justify-items-center`
+          : `grid ${gridCols} gap-3 lg:gap-3 space-y-4 mb-6 justify-items-center`
       }>
         {viewMode === 'list' && (
           <div className="flex items-center px-4 py-3 border-b border-[#e4e4e7] bg-[#f4f4f5] text-[12px] font-medium text-[#71717a]">
@@ -50,7 +59,10 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
             card={card}
             index={index}
             viewMode={viewMode}
-            onClick={() => setSelectedCard(card)} // Added: onClick handler to set the selected card
+            onClick={() => handleCardClick(card)}
+            onPin={onPin}
+            onUpdate={onUpdate}
+            onMemberCountClick={onMemberCountClick}
           />
         ))}
       </div>

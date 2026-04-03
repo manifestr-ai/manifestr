@@ -56,7 +56,11 @@ export default function Step6Edit({ generationId, outputType }) {
                         // Redirect IMMEDIATELY based on output type
                         if (outputType === 'presentation') {
                             router.push(`/presentation-editor?id=${generationId}`)
+                        } else if (outputType === 'chart') {
+                            // THE analyser shows auto-generated chart visualization
+                            router.push(`/chart-viewer?id=${generationId}`)
                         } else if (outputType === 'spreadsheet') {
+                            // Other spreadsheet tools (COST CTRL) open spreadsheet editor
                             router.push(`/spreadsheet-editor?id=${generationId}`)
                         } else if (outputType === 'image') {
                             router.push(`/image-editor?id=${generationId}`)

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import TopHeader from "../components/spreadsheet/TopHeader";
 import TiptapEditor from "../components/docs/TiptapEditor";
@@ -6,6 +8,12 @@ import DocumentOutline from "../components/docs/DocumentOutline";
 import RightSidebar from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
 import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
+
+// Dynamically import collaborative editor (uses Y.js)
+const CollaborativeTiptapEditor = dynamic(
+  () => import("../components/docs/CollaborativeTiptapEditor"),
+  { ssr: false },
+);
 import {
   Document,
   Packer,
@@ -26,9 +34,11 @@ import useGenerationLoader from "../hooks/useGenerationLoader";
 import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 
 export default function DocsEditor() {
+  const router = useRouter();
+  const { id: documentId } = router.query; // Get document ID from URL
   const [headings, setHeadings] = useState([]);
   const [editorHTML, setEditorHTML] = useState("");
-  const { loading, error, status, content } = useGenerationLoader();
+  const { loading, error, status, content, id } = useGenerationLoader();
 
   const extractHeadings = (html) => {
     // Store HTML for download
@@ -149,7 +159,7 @@ export default function DocsEditor() {
         // Handle horizontal rules
         if (tagName === "hr") {
           return new Paragraph({
-            children: [new TextRun({ text: '' })],
+            children: [new TextRun({ text: "" })],
             spacing: { before: 120, after: 120 },
           });
         }
@@ -157,9 +167,11 @@ export default function DocsEditor() {
         // Handle blockquotes
         if (tagName === "blockquote") {
           return new Paragraph({
-            children: [new TextRun({ text: node.textContent || "", italics: true })],
+            children: [
+              new TextRun({ text: node.textContent || "", italics: true }),
+            ],
             spacing: { before: 120, after: 120 },
-            indent: { left: 720 }
+            indent: { left: 720 },
           });
         }
 
@@ -200,6 +212,17 @@ export default function DocsEditor() {
   // If 'content' from hook is JSON/HTML, we pass it.
   const editorContent = content || docsContent;
 
+  // Ensure documentId is string (router.query returns string | string[])
+  const docIdParam = documentId ?? id;
+  const actualDocumentId =
+    typeof docIdParam === "string"
+      ? docIdParam
+      : Array.isArray(docIdParam)
+        ? docIdParam[0]
+        : undefined;
+
+  const useCollaboration = !!actualDocumentId; // Enable collaboration if we have a document ID
+
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
       <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -209,7 +232,13 @@ export default function DocsEditor() {
 
         {/* Top Section */}
         <div className="flex-none z-30">
-          <TopHeader editorType="document" />
+          <TopHeader
+            editorType="document"
+            onDownload={handleDownload}
+            documentId={actualDocumentId}
+            documentTitle={content?.title || "Untitled document"}
+            enableCollaboration={useCollaboration}
+          />
         </div>
 
         {/* Main Content Area */}
@@ -221,32 +250,18 @@ export default function DocsEditor() {
 
           {/* Editor Container */}
           <div className="flex-grow relative">
-            <TiptapEditor onUpdate={extractHeadings} content={editorContent} />
-
-            {/* Download Button - Positioned like Presentation Editor */}
-            <div className="absolute top-4 right-20 z-10">
-              <button
-                onClick={handleDownload}
-                className="bg-gray-900 text-white border-none hover:bg-gray-800 px-4 py-2 rounded-md font-medium text-sm flex items-center gap-2 shadow-lg"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Download DOCX
-              </button>
-            </div>
+            {useCollaboration && actualDocumentId ? (
+              <CollaborativeTiptapEditor
+                documentId={actualDocumentId}
+                initialContent={editorContent}
+                onUpdate={extractHeadings}
+              />
+            ) : (
+              <TiptapEditor
+                onUpdate={extractHeadings}
+                content={editorContent}
+              />
+            )}
           </div>
 
           {/* Right Sidebar (Floating over editor on the right) */}

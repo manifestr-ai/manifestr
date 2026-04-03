@@ -27,12 +27,31 @@ export default function Home() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await api.get('/ai/recent-generations');
-        if (res.data.status === 'success') {
-          const projects = res.data.data.slice(0, 3);
-          setRecentProjects(projects);
+        // Fetch BOTH owned documents and shared documents
+        const [ownedRes, sharedRes] = await Promise.all([
+          api.get('/ai/recent-generations'),
+          api.get('/collaborations/shared-with-me')
+        ]);
+
+        let allProjects = [];
+
+        // Add owned documents
+        if (ownedRes.data.status === 'success') {
+          allProjects = [...ownedRes.data.data];
         }
+
+        // Add shared documents
+        if (sharedRes.data.status === 'success') {
+          allProjects = [...allProjects, ...sharedRes.data.data];
+        }
+
+        // Sort by date (most recent first) and take top 3
+        allProjects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const projects = allProjects.slice(0, 3);
+
+        setRecentProjects(projects);
       } catch (err) {
+        console.error('Failed to fetch projects:', err);
       } finally {
         setIsLoadingProjects(false);
       }
@@ -59,7 +78,11 @@ export default function Home() {
     let path;
     if (type.includes('presentation')) {
       path = `/presentation-editor?id=${project.id}`;
+    } else if (type.includes('chart')) {
+      // THE analyser shows auto-generated charts
+      path = `/chart-viewer?id=${project.id}`;
     } else if (type.includes('spreadsheet') || type.includes('sheet')) {
+      // Other spreadsheet tools open spreadsheet editor
       path = `/spreadsheet-editor?id=${project.id}`;
     } else if (type.includes('image')) {
       path = `/image-editor?id=${project.id}`;
@@ -313,15 +336,22 @@ export default function Home() {
                     <p className="text-gray-500">Loading...</p>
                   ) : recentProjects.length > 0 ? (
                     recentProjects.map((project, idx) => (
-                      <ProjectCard
-                        key={project.id}
-                        title={project.title || "Untitled Project"}
-                        date={new Date(project.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        status={project.status?.toUpperCase() === 'COMPLETED' ? "Generated" : "Processing"}
-                        imageSrc={project.coverImage || "/assets/dummy/project-1.png"}
-                        index={idx}
-                        onClick={() => handleProjectClick(project)}
-                      />
+                      <div key={project.id} className="relative">
+                        <ProjectCard
+                          title={project.title || "Untitled Project"}
+                          date={new Date(project.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          status={project.status?.toUpperCase() === 'COMPLETED' ? "Generated" : "Processing"}
+                          imageSrc={project.coverImage || "/assets/dummy/project-1.png"}
+                          index={idx}
+                          onClick={() => handleProjectClick(project)}
+                        />
+                        {/* Shared indicator badge */}
+                        {project.isShared && (
+                          <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-lg">
+                            Shared with you
+                          </div>
+                        )}
+                      </div>
                     ))
                   ) : (
                     <p className="text-gray-500">No recent projects.</p>

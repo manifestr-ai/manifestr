@@ -1,27 +1,28 @@
-import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Clock, Star, FileText, Users, Archive, Trash2, ChevronDown, Check } from 'lucide-react'
+import { FileText, Star, Sparkles, Share2, Archive, Trash2, ChevronDown, Folder } from 'lucide-react'
+import { useSidebar } from '../../contexts/SidebarContext'
 
 export default function VaultSidebar() {
   const router = useRouter()
   const currentPath = router.pathname
+  // const collabsHref = currentPath.startsWith('/collab-hub') ? '/collab-hub' : '/vault/collabs'
+  const { openSidebar } = useSidebar()
 
   const sidebarItems = [
     { id: 'the-vault', label: 'the vault', icon: null, hasDropdown: true, badge: null, href: '/vault' },
-    { id: 'recents', label: 'Recents', icon: Clock, hasDropdown: false, badge: null, href: '/vault' },
-    { id: 'pinned', label: 'Pinned', icon: Star, hasDropdown: false, badge: null, href: '/vault' },
-    // { id: 'collabs', label: 'Collabs', icon: Users, hasDropdown: false, badge: null, href: '/vault/collabs' },
-    { id: 'archived', label: 'Archived / Completed', icon: Archive, hasDropdown: false, badge: null, href: '/vault' },
-    { id: 'deleted', label: 'DELETED.', icon: Trash2, hasDropdown: false, badge: null, href: '/vault' },
+    { id: 'recents', label: 'Recents', icon: FileText, hasDropdown: false, badge: null, href: '/vault/recents' },
+    { id: 'pinned', label: 'Pinned', icon: Star, hasDropdown: false, badge: null, href: '/vault/pinned' },
+    { id: 'prompts', label: 'Prompts in progress', icon: Sparkles, hasDropdown: false, badge: '31', href: '/vault/recents' },
+    { id: 'collabs', label: 'Collabs', icon: Share2, hasDropdown: false, badge: null, href: '/collab-hub' },
+    { id: 'archived', label: 'Archived / Completed', icon: Archive, hasDropdown: false, badge: null, href: '/vault/archived' },
+    { id: 'deleted', label: 'DELETED.', icon: Trash2, hasDropdown: false, badge: null, href: '/vault/deleted' },
   ]
 
   const isActive = (href) => {
-    if (href === '/vault') {
-      return currentPath === '/vault'
-    }
-    return currentPath === href
+    if (href === '/vault') return currentPath === '/vault'
+    return currentPath === href || currentPath.startsWith(href + '/')
   }
 
   return (
@@ -35,16 +36,17 @@ export default function VaultSidebar() {
         >
           <div className="relative">
             <Link href="/vault">
-              <div className="bg-white border border-[#e4e4e7] rounded-md px-3 py-2.5 h-[48px] flex items-center justify-between cursor-pointer hover:bg-[#f4f4f5] transition-colors">
+              <div
+                onClick={() => openSidebar('collabsFolder')}
+                className="bg-[#f4f4f5] border border-[#e4e4e7] rounded-md px-3 py-2.5 h-[48px] flex items-center justify-between cursor-pointer hover:bg-[#ededf0] transition-colors"
+              >
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-[#18181b]" />
-                  </div>
-                  <span className="text-[14px] font-medium leading-[22px] text-[#18181b]">
-                    the vault
+                  <ChevronDown className="w-4 h-4 text-[#18181b]" />
+                  <Folder className="w-4 h-4 text-[#18181b]" />
+                  <span className="text-[12px] font-bold leading-[18px] text-[#18181b] tracking-[0.6px] uppercase">
+                    THE VAULT
                   </span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-[#71717a]" />
               </div>
             </Link>
           </div>
@@ -104,4 +106,3 @@ export default function VaultSidebar() {
     </div>
   )
 }
-
