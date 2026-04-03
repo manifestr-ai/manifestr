@@ -35,6 +35,12 @@ export class AIController extends BaseController {
             { verb: 'POST', path: '/pin/:documentId', handler: this.pinDocument, middlewares: [authenticateToken] },
             { verb: 'DELETE', path: '/pin/:documentId', handler: this.unpinDocument, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/pinned', handler: this.getPinnedDocuments, middlewares: [authenticateToken] },
+            { verb: 'POST', path: '/archive/:documentId', handler: this.archiveDocument, middlewares: [authenticateToken] },
+            { verb: 'POST', path: '/unarchive/:documentId', handler: this.unarchiveDocument, middlewares: [authenticateToken] },
+            { verb: 'GET', path: '/archived', handler: this.getArchivedDocuments, middlewares: [authenticateToken] },
+            { verb: 'DELETE', path: '/generation/:id', handler: this.deleteGeneration, middlewares: [authenticateToken] },
+            { verb: 'POST', path: '/restore/:documentId', handler: this.restoreDocument, middlewares: [authenticateToken] },
+            { verb: 'GET', path: '/deleted', handler: this.getDeletedDocuments, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/generation/:id', handler: this.getGenerationDetails, middlewares: [authenticateToken] },
             { verb: 'PATCH', path: '/generation/:id', handler: this.updateGeneration, middlewares: [authenticateToken] },
         ];
@@ -377,9 +383,12 @@ export class AIController extends BaseController {
             const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 3;
             const jobs = await this.orchestrator.getRecentJobs(userId, limit);
 
+            // Filter out deleted documents
+            const activeJobs = jobs.filter(j => j.status !== 'DELETED');
+
             return res.json({
                 status: "success",
-                data: jobs.map(j => ({
+                data: activeJobs.map(j => ({
                     id: j.id,
                     title: j.title || j.input_data?.title || "Untitled",
                     coverImage: j.cover_image || j.input_data?.cover_image,
@@ -413,6 +422,7 @@ export class AIController extends BaseController {
                 .from('generation_jobs')
                 .select('*')
                 .eq('user_id', userId)
+                .neq('status', 'DELETED')  // Exclude soft-deleted documents
                 .order('updated_at', { ascending: false });
 
             const { data: sharedCollabs } = await supabaseAdmin
@@ -430,6 +440,7 @@ export class AIController extends BaseController {
                     .from('generation_jobs')
                     .select('*')
                     .in('id', sharedDocIds)
+                    .neq('status', 'DELETED')  // Exclude soft-deleted documents
                     .order('updated_at', { ascending: false });
                 sharedJobs = data || [];
             }
@@ -617,7 +628,8 @@ export class AIController extends BaseController {
             const { data: docs, error: docsError } = await supabaseAdmin
                 .from('generation_jobs')
                 .select('*')
-                .in('id', docIds);
+                .in('id', docIds)
+                .neq('status', 'DELETED');  // Exclude soft-deleted documents
 
             if (docsError) throw docsError;
 
@@ -658,6 +670,331 @@ export class AIController extends BaseController {
             });
         } catch (error) {
             console.error('❌ Get pinned documents error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Archive a document
+     */
+    private archiveDocument = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const { documentId } = req.params;
+
+            // Check if user owns or has access to this document
+            const { data: job } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('id, user_id')
+                .eq('id', documentId)
+                .single();
+
+            if (!job) {
+                return res.status(404).json({ status: "error", message: "Document not found" });
+            }
+
+            // Check if user is owner or collaborator
+            const isOwner = job.user_id === userId;
+            let hasAccess = isOwner;
+
+            if (!isOwner) {
+                const { data: collab } = await supabaseAdmin
+                    .from('document_collaborators')
+                    .select('id')
+                    .eq('document_id', documentId)
+                    .eq('user_id', userId)
+                    .eq('status', 'accepted')
+                    .single();
+
+                hasAccess = !!collab;
+            }
+
+            if (!hasAccess) {
+                return res.status(403).json({ status: "error", message: "No access to this document" });
+            }
+
+            // Archive the document by updating its status or adding to archived table
+            // Option 1: Update generation_jobs table (simpler)
+            const { error: updateError } = await supabaseAdmin
+                .from('generation_jobs')
+                .update({ 
+                    status: 'ARCHIVED',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', documentId);
+
+            if (updateError) throw updateError;
+
+            console.log(`📦 User ${userId} archived document ${documentId}`);
+
+            return res.json({
+                status: "success",
+                message: "Document archived successfully"
+            });
+        } catch (error) {
+            console.error('❌ Archive document error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Unarchive a document
+     */
+    private unarchiveDocument = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const { documentId } = req.params;
+
+            // Check access (same as archive)
+            const { data: job } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('id, user_id')
+                .eq('id', documentId)
+                .single();
+
+            if (!job) {
+                return res.status(404).json({ status: "error", message: "Document not found" });
+            }
+
+            const isOwner = job.user_id === userId;
+            let hasAccess = isOwner;
+
+            if (!isOwner) {
+                const { data: collab } = await supabaseAdmin
+                    .from('document_collaborators')
+                    .select('id')
+                    .eq('document_id', documentId)
+                    .eq('user_id', userId)
+                    .eq('status', 'accepted')
+                    .single();
+
+                hasAccess = !!collab;
+            }
+
+            if (!hasAccess) {
+                return res.status(403).json({ status: "error", message: "No access to this document" });
+            }
+
+            // Restore from archive
+            const { error: updateError } = await supabaseAdmin
+                .from('generation_jobs')
+                .update({ 
+                    status: 'COMPLETED',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', documentId);
+
+            if (updateError) throw updateError;
+
+            console.log(`📦 User ${userId} unarchived document ${documentId}`);
+
+            return res.json({
+                status: "success",
+                message: "Document unarchived successfully"
+            });
+        } catch (error) {
+            console.error('❌ Unarchive document error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Get all archived documents for the user
+     */
+    private getArchivedDocuments = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+
+            // Get archived documents
+            const { data: docs, error: docsError } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('status', 'ARCHIVED')
+                .order('updated_at', { ascending: false });
+
+            if (docsError) throw docsError;
+
+            return res.json({
+                status: "success",
+                data: (docs || []).map(j => ({
+                    id: j.id,
+                    title: j.title || j.input_data?.title || "Untitled",
+                    coverImage: j.cover_image || j.input_data?.cover_image,
+                    type: j.type || j.output_type || j.input_data?.output || 'document',
+                    status: j.status,
+                    createdAt: j.created_at,
+                    updatedAt: j.updated_at,
+                    isArchived: true,
+                    prompt: j.prompt || j.input_data?.prompt,
+                    errorMessage: j.error_message || j.error,
+                    tokensUsed: j.tokens_used || 0,
+                    currentStepData: j.current_step_data,
+                    finalUrl: j.final_url
+                }))
+            });
+        } catch (error) {
+            console.error('❌ Get archived documents error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Delete a document (SOFT DELETE)
+     * Sets status to 'DELETED' (uses updated_at as deletion timestamp)
+     * Does NOT remove from database - can be recovered
+     */
+    private deleteGeneration = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const { id } = req.params;
+
+            // Check if user owns this document
+            const { data: job } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('id, user_id, status')
+                .eq('id', id)
+                .eq('user_id', userId)
+                .single();
+
+            if (!job) {
+                return res.status(404).json({ 
+                    status: "error", 
+                    message: "Document not found or you don't have permission to delete it" 
+                });
+            }
+
+            // Check if already deleted
+            if (job.status === 'DELETED') {
+                return res.status(400).json({
+                    status: "error",
+                    message: "Document is already deleted"
+                });
+            }
+
+            // SOFT DELETE: Update status to DELETED (updated_at becomes deletion timestamp)
+            const { error: deleteError } = await supabaseAdmin
+                .from('generation_jobs')
+                .update({ 
+                    status: 'DELETED',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', id)
+                .eq('user_id', userId);
+
+            if (deleteError) throw deleteError;
+
+            // Remove from pinned_documents (cleanup, but document still exists)
+            await supabaseAdmin
+                .from('pinned_documents')
+                .delete()
+                .eq('document_id', id);
+
+            console.log(`🗑️ User ${userId} soft deleted document ${id} (status: DELETED, updated_at as deletion time)`);
+
+            return res.json({
+                status: "success",
+                message: "Document deleted successfully"
+            });
+        } catch (error) {
+            console.error('❌ Delete document error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Restore a soft-deleted document
+     */
+    private restoreDocument = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            const { documentId } = req.params;
+
+            // Check if user owns this document
+            const { data: job } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('id, user_id, status')
+                .eq('id', documentId)
+                .eq('user_id', userId)
+                .single();
+
+            if (!job) {
+                return res.status(404).json({ 
+                    status: "error", 
+                    message: "Document not found" 
+                });
+            }
+
+            // Check if it's deleted
+            if (job.status !== 'DELETED') {
+                return res.status(400).json({
+                    status: "error",
+                    message: "Document is not deleted"
+                });
+            }
+
+            // Restore: Set status back to COMPLETED
+            const { error: restoreError } = await supabaseAdmin
+                .from('generation_jobs')
+                .update({ 
+                    status: 'COMPLETED',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', documentId)
+                .eq('user_id', userId);
+
+            if (restoreError) throw restoreError;
+
+            console.log(`♻️ User ${userId} restored document ${documentId}`);
+
+            return res.json({
+                status: "success",
+                message: "Document restored successfully"
+            });
+        } catch (error) {
+            console.error('❌ Restore document error:', error);
+            return res.status(500).json({ status: "error", message: (error as Error).message });
+        }
+    }
+
+    /**
+     * Get all deleted documents (trash bin)
+     */
+    private getDeletedDocuments = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+
+            // Get deleted documents (sorted by updated_at which is the deletion timestamp)
+            const { data: docs, error: docsError } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('status', 'DELETED')
+                .order('updated_at', { ascending: false });
+
+            if (docsError) throw docsError;
+
+            return res.json({
+                status: "success",
+                data: (docs || []).map(j => ({
+                    id: j.id,
+                    title: j.title || j.input_data?.title || "Untitled",
+                    coverImage: j.cover_image || j.input_data?.cover_image,
+                    type: j.type || j.output_type || j.input_data?.output || 'document',
+                    status: j.status,
+                    createdAt: j.created_at,
+                    updatedAt: j.updated_at,
+                    deletedAt: j.updated_at, // Use updated_at as deletion timestamp
+                    isDeleted: true,
+                    prompt: j.prompt || j.input_data?.prompt,
+                    errorMessage: j.error_message || j.error,
+                    tokensUsed: j.tokens_used || 0,
+                    currentStepData: j.current_step_data,
+                    finalUrl: j.final_url
+                }))
+            });
+        } catch (error) {
+            console.error('❌ Get deleted documents error:', error);
             return res.status(500).json({ status: "error", message: (error as Error).message });
         }
     }
