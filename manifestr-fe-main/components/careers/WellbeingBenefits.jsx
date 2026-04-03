@@ -68,7 +68,7 @@ export default function WellbeingBenefits() {
         </p>
 
         {/* Mobile — horizontally scrolling benefit cards */}
-        <div className="md:hidden flex gap-[24px] overflow-x-auto -mx-6 px-6 pb-[4px] scrollbar-hide">
+        <div className="md:hidden flex gap-[24px] overflow-x-auto overflow-y-hidden -mx-6 px-6 pb-[4px] scrollbar-hide">
           {BENEFITS.map((b, i) => (
             <motion.div
               key={b.title}

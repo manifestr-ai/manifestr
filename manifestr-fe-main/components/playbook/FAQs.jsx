@@ -5,7 +5,7 @@ import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
 const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045590/Container_1_wvlj7b.png'
-const HERO_BG_MOBILE = 'https://www.figma.com/api/mcp/asset/adfa4784-8177-4390-8255-4e19c126cae6'
+const HERO_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775223375/Hero_section_s4eume.png'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const POPULAR_SEARCHES = [

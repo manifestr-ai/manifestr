@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
 const BG_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
-const MOBILE_BG_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
+const MOBILE_BG_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775223352/Rectangle_8_1_jmywwu.png'
 const ARROW_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775028600/Vector_z91ror.svg'
 
 export default function CommitmentToInclusion() {

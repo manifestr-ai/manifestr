@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
 const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
-const HERO_BG_MOBILE = 'https://www.figma.com/api/mcp/asset/e4d5e357-cdf1-4ea7-bbac-deca6ea99e33'
+const HERO_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775224463/Card_3_xz4ihd.png'
 
 const SECTIONS = [
   { id: 'data-collect', label: 'Data We Collect' },

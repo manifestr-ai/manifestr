@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
+const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
+const HERO_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775224463/Card_3_xz4ihd.png'
 
 const SECTIONS = [
   { id: 'introduction', label: 'Introduction' },
@@ -56,7 +57,8 @@ export default function TermsOfService() {
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[218px] md:h-[256px] flex flex-col items-center justify-between p-[48px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
+          <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block absolute w-full h-full object-cover" />
+          <CldImage src={HERO_BG_MOBILE} alt="" className="md:hidden absolute w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55.86%, rgba(0,0,0,0.3) 100%)' }} />
         </div>
 
