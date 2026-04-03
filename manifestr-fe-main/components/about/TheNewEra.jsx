@@ -101,7 +101,7 @@ export default function TheNewEra() {
             />
           </div>
           <div className="md:hidden relative h-[195px] w-full">
-            <div className="absolute left-0 top-[30px] flex flex-col gap-[8px]">
+            <div className="absolute left-0 top-[29.5px] flex flex-col gap-[8px]">
               <CldImage
                 src={FOUNDER_NAME}
                 alt="Leah O'Brien — Founder"
@@ -113,23 +113,20 @@ export default function TheNewEra() {
                 className="h-[80px] w-[128px] object-contain"
               />
             </div>
-            <div className="absolute left-[117px] -top-[57px] w-[278px] h-[276px]">
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <CldImage
-                  src={FASHION_IMG}
-                  alt="Professional woman"
-                  className="absolute left-0 w-full max-w-none"
-                  style={{ height: '158.83%', top: '-0.91%' }}
-                />
-              </div>
+            <div className="absolute left-[40px] -top-[64px] w-[320px] h-[320px]">
+              <CldImage
+                src={FASHION_IMG}
+                alt="Professional woman"
+                className="w-full h-full object-contain object-right-top"
+              />
             </div>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col md:flex-row gap-[12px] md:gap-[15px]">
+          <div className="flex flex-col md:flex-row gap-[12px] md:gap-[15px] w-full md:w-auto">
             <Link
               href="/tools"
-              className="h-[48px] md:h-[54px] px-[24px] md:px-[32px] flex items-center justify-center rounded-[8px] md:rounded-md
+              className="w-full z-10 md:w-auto h-[48px] md:h-[54px] px-[24px] md:px-[32px] flex items-center justify-center rounded-[8px] md:rounded-md
                          bg-white md:border md:border-[#e4e4e7] text-[#18181b] text-[16px] md:text-[18px] font-medium
                          hover:bg-gray-50 transition-colors"
               style={{ fontFamily: "Inter, sans-serif" }}
@@ -138,7 +135,7 @@ export default function TheNewEra() {
             </Link>
             <Link
               href="/signup"
-              className="h-[48px] md:h-[54px] px-[24px] md:px-[32px] flex items-center justify-center rounded-[8px] md:rounded-md
+              className="w-full md:w-auto h-[48px] md:h-[54px] px-[24px] md:px-[32px] flex items-center justify-center rounded-[8px] md:rounded-md
                          bg-[#18181b] text-white text-[16px] md:text-[18px] font-medium
                          hover:opacity-90 transition-opacity"
               style={{ fontFamily: "Inter, sans-serif" }}

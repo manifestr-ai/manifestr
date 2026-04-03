@@ -4,7 +4,8 @@ import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045590/Container_1_wvlj7b.png'
+const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045590/Container_1_wvlj7b.png'
+const HERO_BG_MOBILE = 'https://www.figma.com/api/mcp/asset/adfa4784-8177-4390-8255-4e19c126cae6'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const POPULAR_SEARCHES = [
@@ -324,8 +325,9 @@ export default function FAQs() {
     <>
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[540px] md:h-[518px] flex flex-col items-stretch md:items-center justify-between md:justify-end p-[48px] md:pb-[48px] md:pt-[48px] md:px-[80px] overflow-hidden">
-      <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden opacity-[1]">
-          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
+          <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block absolute w-full h-full object-cover" />
+          <img src={HERO_BG_MOBILE} alt="" className="md:hidden absolute w-full h-full object-cover" loading="eager" />
         </div>
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
@@ -373,16 +375,34 @@ export default function FAQs() {
             >
               Popular searches:
             </span>
-            <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[8px] md:gap-[10px] justify-center max-w-[318px] md:max-w-none">
+            {/* Desktop: single row */}
+            <div className="hidden md:flex flex-wrap items-center gap-[10px] justify-center">
               {POPULAR_SEARCHES.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => setSearchQuery(tag)}
-                  className="bg-white/80 md:bg-white border border-[#e4e4e7] md:border-0 rounded-[16px] px-[12px] py-[6px] text-[12px] leading-[18px] font-medium text-[#71717a] hover:text-[#18181b] transition-colors"
+                  className="bg-white rounded-[16px] px-[12px] py-[6px] text-[12px] leading-[18px] font-medium text-[#71717a] hover:text-[#18181b] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {tag}
                 </button>
+              ))}
+            </div>
+            {/* Mobile: 2 rows of 2, centered */}
+            <div className="md:hidden flex flex-col items-stretch gap-[8px] w-[318px]">
+              {[POPULAR_SEARCHES.slice(0, 2), POPULAR_SEARCHES.slice(2, 4)].map((row, i) => (
+                <div key={i} className="flex gap-[10px] justify-center">
+                  {row.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => setSearchQuery(tag)}
+                      className="bg-white/80 border border-[#e4e4e7] rounded-[16px] px-[12px] py-[6px] text-[12px] leading-[18px] font-medium text-[#71717a] hover:text-[#18181b] transition-colors whitespace-nowrap"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           </div>

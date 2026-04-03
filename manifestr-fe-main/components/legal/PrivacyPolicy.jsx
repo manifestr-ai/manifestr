@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
+const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775045890/Card_2_fitqot.png'
+const HERO_BG_MOBILE = 'https://www.figma.com/api/mcp/asset/e4d5e357-cdf1-4ea7-bbac-deca6ea99e33'
 
 const SECTIONS = [
   { id: 'data-collect', label: 'Data We Collect' },
@@ -153,16 +154,23 @@ export default function PrivacyPolicy() {
     <>
       {/* ─── Hero ─── */}
       <section className="relative w-full h-[256px] flex flex-col items-center justify-center p-[48px] overflow-hidden">
-        <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+        <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block absolute inset-0 w-full h-full object-cover pointer-events-none" />
+        <img src={HERO_BG_MOBILE} alt="" className="md:hidden absolute inset-0 w-full h-full object-cover pointer-events-none" loading="eager" />
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="relative z-10 flex flex-col items-center text-center"
         >
-          <h1 className="text-[72px] leading-[72px] tracking-[-1.44px] text-white">
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Privacy </span>
-            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
+          <h1 className="text-[36px] md:text-[72px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
+            <span className="md:hidden">
+              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Privacy</span>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>{' '}Policy</span>
+            </span>
+            <span className="hidden md:inline">
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Privacy </span>
+              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
+            </span>
           </h1>
         </motion.div>
       </section>

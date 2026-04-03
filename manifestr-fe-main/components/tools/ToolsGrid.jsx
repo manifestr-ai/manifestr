@@ -311,7 +311,14 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
       <CldImage
         src={tool.image}
         alt={`${titleText} ${accentText}`}
-        className="absolute inset-0 w-full h-full object-cover object-top"
+        className="absolute inset-0 w-full h-full"
+        style={{
+          objectFit: 'cover',
+          objectPosition: isExpanded ? 'center top' : 'right center',
+          width: isExpanded ? '100%' : '70%',
+          left: isExpanded ? '0' : '30%',
+          transition: 'object-position 0.45s cubic-bezier(.4,0,.2,1), width 0.45s cubic-bezier(.4,0,.2,1), left 0.45s cubic-bezier(.4,0,.2,1)',
+        }}
       />
 
       <div
@@ -383,9 +390,11 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
   )
 }
 
+const MOBILE_TOOL_ORDER = ['deck', 'strategist', 'cost-ctrl', 'analyzer', 'design-studio', 'briefcase', 'huddle', 'wordsmith']
+
 export default function ToolsGrid() {
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0)
-  const mobileTools = TOOLS.filter((t) => t.type !== 'logo')
+  const mobileTools = MOBILE_TOOL_ORDER.map((slug) => TOOLS.find((t) => t.slug === slug)).filter(Boolean)
 
   return (
     <section className="relative w-full bg-[#e9e9ea] overflow-hidden">

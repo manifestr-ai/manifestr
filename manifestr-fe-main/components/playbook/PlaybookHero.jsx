@@ -3,7 +3,7 @@ import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
 const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775039194/Card_1_c3uust.png'
-const HERO_BG_MOBILE = '/images/playbook-hero-mobile-6e97cf.png'
+const HERO_BG_MOBILE = 'https://s3-alpha-sig.figma.com/img/f610/b292/4fdd2afb4bcd586abdb2b1875643d0ec?Expires=1776038400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=mIDVgTOF1HP3GX32E5gt9UQNGt8XlFQm1LeTA0iL~2NflUbWqqo9lMKX9nBsREcpM9Vo6UnYrSWRJlGQW2EJXmowpCSyn56lalisPu0LdQCZNLBRiJSoN6KR9AthE~3lROoRpum2LhvnxPakjI-~X~MSodAuF~R49oyFLERvDXvWwnE0cB5QG09apXJ7q43ESr8I1dtdqC54sVkUREAq3nX1ik101h9zpa08fVJXEooXyzk9VuTowozDFCXTdUZTf9EIe9Y6tX8hyEPn0WWNaIPQER~n-DcU7JXUa5GzAx4Ml51Kw7De5c30LDK27yBMHNWVKABp5OiNxfpBcjhjFg__'
 
 export default function PlaybookHero() {
   return (
