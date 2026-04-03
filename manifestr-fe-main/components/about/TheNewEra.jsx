@@ -156,7 +156,7 @@ export default function TheNewEra() {
           <CldImage
             src={FASHION_IMG}
             alt="Professional woman in dramatic black outfit"
-            className="w-full h-full object-cover object-top absolute inset-0"
+            className="w-full h-full object-cover object-top absolute inset-0 left-[40px]"
           />
         </motion.div>
 
