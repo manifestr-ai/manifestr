@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const HERO_IMAGE = 'https://www.figma.com/api/mcp/asset/c2ef4c91-4cbc-4393-b4b2-ed5de0a04a38'
+const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563452/Image_ude5hp.png'
 
 const ACCORDION_ITEMS = [
   { id: 'soc2', title: 'SOC 2 Type II Summary Report' },
@@ -66,7 +66,7 @@ export default function InvestorTrustCenter() {
     <>
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[96px]">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-12 md:py-[96px]">
           <nav className="flex items-center gap-[4px] mb-[32px]">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Home</Link>
             <ChevronRight />
@@ -76,18 +76,18 @@ export default function InvestorTrustCenter() {
           </nav>
 
           <div className="flex flex-col lg:flex-row gap-[64px] items-start">
-            <div className="flex flex-col gap-[16px] w-full lg:w-[592px] shrink-0">
+            <div className="flex flex-col gap-[16px] w-full lg:w-[592px] shrink-0 items-center lg:items-start text-center lg:text-left">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-black tracking-[-1.44px]"
-                style={{ ...headingFont, fontSize: 'clamp(40px, 5vw, 72px)', lineHeight: '1.25' }}
+                className="text-black tracking-[-0.72px] md:tracking-[-1.44px] text-[36px] leading-[44px] md:text-[72px] md:leading-[90px]"
+                style={headingFont}
               >
                 Proof, not promises
               </motion.h1>
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-                className="flex flex-col gap-[18px] pb-[16px] text-[#52525b] text-[18px] leading-[28px]" style={font}
+                className="flex flex-col gap-[16px] pb-[16px] text-[#52525b] text-[16px] leading-[24px] md:gap-[18px] md:text-[18px] md:leading-[28px] w-full" style={font}
               >
                 <p>
                   At MANIFESTR, we recognize that investors and enterprise partners require more than assurances.
@@ -111,11 +111,23 @@ export default function InvestorTrustCenter() {
               </div>
             </motion.div>
           </div>
+
+          {/* Mobile hero image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="lg:hidden mt-8 w-full"
+          >
+            <div className="w-full h-[319px] rounded-[12px] overflow-hidden">
+              <CldImage src={HERO_IMAGE} alt="Investor Trust Center" className="w-full h-full object-cover" />
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ─── Accordion ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[96px]">
+      <section className="w-full bg-white px-6 md:px-[80px] py-12 md:py-[96px]">
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[16px]">
           {ACCORDION_ITEMS.map((item) => {
             const isOpen = !!openIds[item.id]
@@ -164,14 +176,16 @@ export default function InvestorTrustCenter() {
       </section>
 
       {/* ─── Right-Rail Sticky / CTA Cards ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[96px]">
+      <section className="w-full bg-white px-6 md:px-[80px] py-12 md:py-[96px]">
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[48px] items-center">
           <motion.h2
             {...fadeUp}
             className="text-black text-center tracking-[-1.2px]"
-            style={{ ...headingFont, fontSize: 'clamp(36px, 4.17vw, 60px)', lineHeight: '1.2' }}
+            style={headingFont}
           >
-            Right-Rail Sticky
+            <span className="block tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]">
+              Right-Rail Sticky
+            </span>
           </motion.h2>
 
           <div className="flex flex-col md:flex-row gap-[48px] w-full max-w-[941px] mx-auto">
@@ -179,7 +193,7 @@ export default function InvestorTrustCenter() {
               <motion.div
                 key={card.button}
                 {...fadeUp}
-                className="flex-1 bg-[#f9fafb] rounded-[12px] p-[32px] flex flex-col gap-[20px] items-center justify-center"
+                className="flex-1 bg-[#f9fafb] rounded-[12px] p-6 md:p-[32px] flex flex-col gap-[20px] items-center justify-center"
               >
                 <p className="text-[#52525b] text-[16px] leading-[24px] text-center max-w-[354px]" style={font}>
                   {card.text}
@@ -198,12 +212,12 @@ export default function InvestorTrustCenter() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#deddda] px-6 md:px-[80px] py-[96px]">
+      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-12 md:py-[96px]">
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
           <motion.h2
             {...fadeUp}
-            className="text-black tracking-[-0.96px]"
-            style={{ ...headingFont, fontSize: 'clamp(32px, 3.33vw, 48px)', lineHeight: '1.25' }}
+            className="text-black tracking-[-0.6px] md:tracking-[-0.96px] text-[30px] leading-[38px] md:text-[48px] md:leading-[60px]"
+            style={headingFont}
           >
             Legal Disclaimer
           </motion.h2>

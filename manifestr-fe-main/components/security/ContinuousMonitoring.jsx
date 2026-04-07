@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const HERO_IMAGE = 'https://www.figma.com/api/mcp/asset/8bac4c34-ead0-47cc-8770-4bcf35a4cfa0'
+const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563447/Image_hk9smn.png'
 
 const ACCORDION_ITEMS = [
   {
