@@ -71,7 +71,7 @@ export default function VerifyEmail() {
             }
 
             // Fetch user profile from our backend using the access token
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/me`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.manifestr.ai' : 'http://localhost:8000')}/auth/me`, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 }
