@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/edf4e80e-5511-4269-89d7-5d1b23c31c2a'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775632076/Default_f8wbn1.png'
 
 export default function PricingHero() {
   return (

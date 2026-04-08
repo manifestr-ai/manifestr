@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
+import { ArrowUpRight } from 'lucide-react'
 import CldImage from '../ui/CldImage'
 
 const BG_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 const MOBILE_BG_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775223352/Rectangle_8_1_jmywwu.png'
-const ARROW_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775028600/Vector_z91ror.svg'
 
 export default function CommitmentToInclusion() {
   return (
@@ -63,11 +63,12 @@ export default function CommitmentToInclusion() {
           </div>
 
           <button
-            className="flex items-center gap-[8px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium px-[24px] py-[8px] h-[44px] rounded-[6px] hover:bg-[#333] transition-colors duration-200"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            type="button"
+            className="inline-flex items-center justify-center gap-2 h-[54px] w-[290px] max-w-full shrink-0 px-6 py-2 rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors duration-200"
+            style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Read Our DEI Statement
-            <CldImage src={ARROW_IMG} alt="" className="w-[16px] h-[16px]" />
+            <ArrowUpRight className="size-4 shrink-0 text-white" strokeWidth={2} aria-hidden />
           </button>
         </motion.div>
       </div>
@@ -102,11 +103,12 @@ export default function CommitmentToInclusion() {
           </div>
 
           <button
-            className="self-start flex items-center gap-[8px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium px-[24px] py-[8px] h-[44px] rounded-[6px] hover:bg-[#333] transition-colors duration-200"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            type="button"
+            className="self-start inline-flex items-center justify-center gap-2 h-[54px] w-auto px-6 py-2 rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors duration-200"
+            style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Read Our DEI Statement
-            <CldImage src={ARROW_IMG} alt="" className="w-[16px] h-[16px]" />
+            <ArrowUpRight className="size-4 shrink-0 text-white" strokeWidth={2} aria-hidden />
           </button>
         </motion.div>
 

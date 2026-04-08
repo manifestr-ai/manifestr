@@ -39,7 +39,7 @@ export default function BurnoutStory() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="w-full md:w-[43%] shrink-0 px-6 md:px-0 md:pl-[115px] md:pr-[40px]
+          className="w-full md:w-[48%] shrink-0 px-6 md:px-0 md:pl-[115px] md:pr-[40px]
                      pt-[48px] md:pt-[155px] pb-[24px] md:pb-[80px] flex flex-col gap-[24px]"
         >
           {/* Label */}

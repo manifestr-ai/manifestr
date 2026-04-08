@@ -70,7 +70,7 @@ const TOOL_DETAILS = {
     slug: 'analyzer',
     name: 'analyzer',
     prefix: 'THE',
-    heroImage: 'https://www.figma.com/api/mcp/asset/181662c6-d79c-43a9-a929-9dd2c87915a9',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Analyzer ', style: 'normal' },
@@ -135,7 +135,7 @@ const TOOL_DETAILS = {
     slug: 'briefcase',
     name: 'briefcase',
     prefix: 'THE',
-    heroImage: 'https://www.figma.com/api/mcp/asset/b85622af-f715-4ca5-b72f-eeb6ce1a62ea',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Briefcase turns plans into ', style: 'normal' },
@@ -199,7 +199,7 @@ const TOOL_DETAILS = {
     slug: 'design-studio',
     name: 'studio',
     prefix: 'DESIGN',
-    heroImage: 'https://www.figma.com/api/mcp/asset/260c88d0-09db-4432-9444-555bb8d040b2',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How Design Studio turns visuals into ', style: 'normal' },
@@ -263,7 +263,7 @@ const TOOL_DETAILS = {
     slug: 'wordsmith',
     name: 'wordsmith',
     prefix: 'THE',
-    heroImage: 'https://www.figma.com/api/mcp/asset/f588697c-038f-4261-9f22-4ae684d6ae6d',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Wordsmith turns words into ', style: 'normal' },
@@ -327,7 +327,7 @@ const TOOL_DETAILS = {
     slug: 'deck',
     name: 'deck',
     prefix: 'THE',
-    heroImage: 'https://www.figma.com/api/mcp/asset/80c00923-2054-4333-b28a-f8e189f5a47b',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Deck moves your work ', style: 'normal' },
@@ -391,7 +391,7 @@ const TOOL_DETAILS = {
     slug: 'huddle',
     name: 'huddle',
     prefix: 'THE',
-    heroImage: 'https://www.figma.com/api/mcp/asset/83a10681-0f5a-443f-9680-923bef83efd6',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Huddle helps you lead the ', style: 'normal' },
@@ -455,7 +455,7 @@ const TOOL_DETAILS = {
     slug: 'cost-ctrl',
     name: 'CTRL',
     prefix: 'COST',
-    heroImage: 'https://www.figma.com/api/mcp/asset/dad4603c-63fd-4ceb-9c0e-23ccde0626f6',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How Cost CTRL elevates how you ', style: 'normal' },

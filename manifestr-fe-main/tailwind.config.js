@@ -104,7 +104,7 @@ module.exports = {
         xl: '12px',
       },
       screens: {
-        xl: '1280px',
+
       },
       boxShadow: {
         // Add custom shadows if needed from design

@@ -125,7 +125,11 @@ export default function OpenRoles() {
                     className={`shrink-0 w-[32px] h-[32px] rounded-md flex items-center justify-center
                                 ${isActive ? 'bg-[#18181b]' : 'bg-[#ebebeb]'}`}
                   >
-                    <ArrowUpRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-black'}`} />
+                    <ArrowUpRight
+                      className={`w-4 h-4 shrink-0 origin-center transition-transform duration-200 ease-out
+                                  ${isActive ? 'rotate-0 text-white' : 'rotate-90 text-black'}`}
+                      aria-hidden
+                    />
                   </div>
                 </div>
                 <p
@@ -175,7 +179,11 @@ export default function OpenRoles() {
                       className={`shrink-0 w-[32px] h-[32px] rounded-md flex items-center justify-center
                                   ${isActive ? 'bg-[#18181b]' : 'bg-[#ebebeb]'}`}
                     >
-                      <ArrowUpRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-black'}`} />
+                      <ArrowUpRight
+                        className={`w-4 h-4 shrink-0 origin-center transition-transform duration-200 ease-out
+                                    ${isActive ? 'rotate-0 text-white' : 'rotate-90 text-black'}`}
+                        aria-hidden
+                      />
                     </div>
                   </div>
                   <p

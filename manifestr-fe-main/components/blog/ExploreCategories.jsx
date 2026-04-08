@@ -42,7 +42,8 @@ export default function ExploreCategories() {
         {/* Category pills */}
         <div
           ref={scrollRef}
-          className="flex gap-[21px] md:gap-[40px] overflow-x-auto scrollbar-hide pb-[4px] -mx-6 px-6 md:mx-0 md:px-0"
+          className="flex gap-[21px] md:gap-[40px] overflow-x-auto overflow-y-hidden pb-[4px] -mx-6 px-6 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {CATEGORIES.map((cat, i) => (
             <motion.button

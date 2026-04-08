@@ -37,7 +37,7 @@ export default function HeroSection() {
           your
         </motion.p>
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25 }}
           className="text-white font-bold uppercase text-[69px] leading-[50px] tracking-[5.48px]"
@@ -49,40 +49,38 @@ export default function HeroSection() {
 
       {/* ── Desktop text — positioned around the image ── */}
       <div className="hidden md:block absolute inset-0">
-        <motion.h1
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="absolute text-black font-bold uppercase"
-          style={{
-            fontFamily: "'Hanken Grotesk', sans-serif",
-            fontSize: 'clamp(60px, 7.56vw, 109px)',
-            lineHeight: '1.25',
-            letterSpacing: '-0.02em',
-            left: '8.47%',
-            top: '28%',
-          }}
-        >
-          ELEVATE
-        </motion.h1>
+        <div className="absolute flex items-center lg:gap-100 " style={{ left: '8.47%', top: '28%' }}>
+          <motion.h1
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-black font-bold uppercase"
+            style={{
+              fontFamily: "'Hanken Grotesk', sans-serif",
+              fontSize: 'clamp(60px, 7.56vw, 109px)',
+              lineHeight: '1.25',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            ELEVATE
+          </motion.h1>
 
-        <motion.span
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.15 }}
-          className="absolute text-black italic"
-          style={{
-            fontFamily: "'IvyPresto Headline', serif",
-            fontWeight: 600,
-            fontSize: 'clamp(50px, 7.17vw, 103px)',
-            lineHeight: '1.22',
-            letterSpacing: '-0.02em',
-            right: '6.44%',
-            top: '22%',
-          }}
-        >
-          your
-        </motion.span>
+          <motion.span
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.15 }}
+            className="text-black italic whitespace-nowrap"
+            style={{
+              fontFamily: "'IvyPresto Headline', serif",
+              fontWeight: 600,
+              fontSize: 'clamp(50px, 7.17vw, 103px)',
+              lineHeight: '1.22',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            your
+          </motion.span>
+        </div>
 
         <motion.span
           initial={{ opacity: 0, x: 40 }}
@@ -94,8 +92,8 @@ export default function HeroSection() {
             fontSize: 'clamp(50px, 7.17vw, 103px)',
             lineHeight: '1.25',
             letterSpacing: '-0.02em',
-            right: '6.44%',
-            top: '50%',
+            right: '13.5%',
+            top: '41%',
           }}
         >
           GAME

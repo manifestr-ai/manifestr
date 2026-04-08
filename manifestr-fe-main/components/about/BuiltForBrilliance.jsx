@@ -22,7 +22,7 @@ export default function BuiltForBrilliance() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="w-full md:w-[50%] px-6 md:px-0 md:pl-[124px] pt-[48px] md:pt-0 md:py-[154px]"
+          className="mt-6 w-full md:w-[50%] px-6 pt-0 md:px-0 md:pl-[124px] md:py-[154px]"
         >
           <div className="rounded-[14px] md:rounded-[12px] overflow-hidden h-[421px] md:h-[696px]">
             <CldImage

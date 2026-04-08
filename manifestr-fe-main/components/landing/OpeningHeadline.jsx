@@ -19,15 +19,15 @@ function ManifestrCircle() {
 
       {/* Static centre — black circle + arrow, sits on top and doesn't rotate */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[52px] h-[52px] md:w-[72px] md:h-[72px] bg-[#18181b] rounded-full flex items-center justify-center">
+        <div className="w-[52px] h-[52px] md:w-[87px] md:h-[87px] bg-[#18181b] rounded-full flex items-center justify-center">
           <svg
-            className="w-[28px] h-[28px] md:w-[38px] md:h-[38px]"
+            className="w-[28px] h-[28px] md:w-[44px] md:h-[44px]"
             viewBox="0 0 40 40"
             fill="none"
             stroke="white"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeWidth="4"
+            strokeLinecap=""
+            strokeLinejoin=""
           >
             <path d="M10 30L30 10" />
             <path d="M13 10h17v17" />
@@ -115,7 +115,7 @@ export default function OpeningHeadline() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-center text-[18px] md:text-[28px] leading-[36px] text-[#18181b] font-medium mt-6 md:mt-0 mb-0 md:mb-16"
+          className="hidden md:block text-center text-[18px] md:text-[28px] leading-[36px] text-[#18181b] font-medium mt-0 mb-0 md:mb-16"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
           You were hired for your expertise, not to format documents.

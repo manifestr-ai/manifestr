@@ -140,7 +140,7 @@ export default function Header() {
             {/* Desktop Left Navigation */}
             <div className="hidden md:flex items-center gap-[44px] flex-1">
               <Link href="/" className={navLink('/')}>Home</Link>
-              <Link href="/tools" className={navLink('/tools')}>Tools</Link>
+              <Link href="/tools" className={navLink('/tools')}>Toolkit</Link>
               <NavDropdown
                 label="About"
                 href="/about"
@@ -245,7 +245,7 @@ export default function Header() {
                   className={`text-lg font-medium ${path === '/tools' ? 'text-black border-b-2 border-black pb-1' : 'text-gray-900'}`}
                   onClick={closeMobile}
                 >
-                  Tools
+                  Toolkit
                 </Link>
                 <MobileAccordion label="About" href="/about" links={ABOUT_LINKS} onNavigate={closeMobile} />
                 <Link
