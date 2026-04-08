@@ -130,8 +130,8 @@ export default function VaultDeleted() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+    ? `${window.location.origin}/assets/banners/Rectangle-4.png`
+    : 'http://localhost:3000/assets/banners/Rectangle-4.png'
 
   // Custom action button for restore all
   const customActionButton = documentCards.length > 0 && (
@@ -157,7 +157,7 @@ export default function VaultDeleted() {
           title="DELETED"
           description="Auto-deleted permanently after 30 days"
           backgroundImage={headerBackgroundImage}
-          showActionButtons={true}
+          showActionButtons={!!customActionButton}
           customActionButton={customActionButton}
         />
 

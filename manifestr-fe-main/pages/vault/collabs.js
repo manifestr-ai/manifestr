@@ -67,8 +67,8 @@ export default function VaultCollabs() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/wheel-banner.png`
-    : 'http://localhost:3000/assets/banners/wheel-banner.png'
+    ? `${window.location.origin}/assets/banners/Rectangle-2.png`
+    : 'http://localhost:3000/assets/banners/Rectangle-2.png'
 
   return (
     <>
@@ -81,9 +81,7 @@ export default function VaultCollabs() {
           description={null}
           isBlack={false}
           backgroundImage={headerBackgroundImage}
-          showActionButtons={true}
-          onNewCollabClick={() => setShowCreateModal(true)}
-          onUploadClick={() => setShowUploadModal(true)}
+          showActionButtons={false}
         />
 
         <CollabsSearchBar />

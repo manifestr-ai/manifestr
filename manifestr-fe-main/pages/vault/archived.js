@@ -145,8 +145,8 @@ export default function VaultArchived() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+    ? `${window.location.origin}/assets/banners/Rectangle-3.png`
+    : 'http://localhost:3000/assets/banners/Rectangle-3.png'
 
   return (
     <>
@@ -158,6 +158,7 @@ export default function VaultArchived() {
         <VaultHeader
           title="THE vault archived"
           description="Hidden documents - unarchive to restore to main vault"
+          isBlack={true}
           backgroundImage={headerBackgroundImage}
           showActionButtons={false}
         />

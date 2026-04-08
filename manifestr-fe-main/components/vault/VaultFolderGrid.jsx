@@ -23,7 +23,7 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
 
           const FolderContent = () => (
             <div className="relative w-[125px] h-[80px]">
-              <div className="absolute inset-0 rounded-md overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.06)]">
+              <div className="absolute inset-0 rounded-md overflow-hidden shadow-[0px_5px_4px_rgba(0,0,0,0.04)]">
                 <img
                   src="/assets/icons/folder-icon.svg"
                   alt={folderName}
@@ -31,16 +31,16 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
                 />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-2 z-10">
-                  <p className="text-white text-[12px] font-medium leading-[18px] text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                  <p className="text-white text-[12px] pt-2 font-medium leading-[18px] text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
                     {folderName.split(' ').map((word, i) => (
                       <span key={i} className="block">{word}</span>
                     ))}
                   </p>
-                  {(memberCount !== null || documentCount !== null) && (
+                  {/* {(memberCount !== null || documentCount !== null) && (
                     <p className="text-white/80 text-[10px] mt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
                       {documentCount || 0} docs • {memberCount || 0} members
                     </p>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>

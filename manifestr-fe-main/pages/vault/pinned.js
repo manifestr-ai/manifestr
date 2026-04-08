@@ -147,8 +147,8 @@ export default function VaultPinned() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/wheel-banner.png`
-    : 'http://localhost:3000/assets/banners/wheel-banner.png'
+    ? `${window.location.origin}/assets/banners/Rectangle-1.png`
+    : 'http://localhost:3000/assets/banners/Rectangle-1.png'
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
   const filteredCards = documentCards.filter((card) => {
