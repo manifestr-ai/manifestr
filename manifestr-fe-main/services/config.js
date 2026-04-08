@@ -7,9 +7,9 @@ const getBaseUrl = () => {
     return url.replace(/\/+$/, ''); // Remove trailing slashes
 };
 
-// Production API endpoints are at root, local dev uses /api prefix
+// All API endpoints use /api prefix
 const baseUrl = getBaseUrl();
-export const API_BASE_URL = baseUrl.includes('localhost') ? `${baseUrl}/api` : baseUrl;
+export const API_BASE_URL = `${baseUrl}/api`;
 
 export const ENDPOINTS = {
     UPLOADS: {
