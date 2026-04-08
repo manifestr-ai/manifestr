@@ -58,9 +58,9 @@ export default function WinsDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="bg-transparent flex items-center gap-2 px-1 py-1 rounded-md hover:bg-[#f4f4f5] transition-colors cursor-pointer"
+        className="bg-transparent flex items-center gap-2 px-1 py-1 rounded-md transition-colors cursor-pointer"
       >
-        <GemIcon stroke='#fff' fill='#71717A' className="w-4 h-4" />
+          <GemIcon className="w-4 h-4 text-[#52525B]" />
         <span className="text-[14px] font-medium leading-[20px] text-[#18181b]">{currentBalance}</span>
       </motion.button>
 

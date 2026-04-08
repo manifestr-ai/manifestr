@@ -108,14 +108,14 @@ export default function ProfileDropdown() {
 
                 {/* General Settings */}
                 <div className="py-2">
-                  <MenuItem
+                  {/* <MenuItem
                     icon={Settings}
                     label="Settings"
                     onClick={() => {
                       setIsOpen(false)
                       router.push('/settings')
                     }}
-                  />
+                  /> */}
                   <MenuItem icon={Languages} label="Language" />
                   <div className="flex items-center justify-between px-3 py-2.5 hover:bg-[#f4f4f5] rounded-md transition-colors cursor-pointer">
                     <div className="flex items-center gap-3">
