@@ -50,7 +50,7 @@ export default function SidebarLayout({ children }) {
             animate={{ width: 218.5, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden hidden md:block"
+            className="hidden md:block"
           >
             <CollabsFolderSidebar />
           </motion.div>

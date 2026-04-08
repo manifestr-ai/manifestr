@@ -14,8 +14,8 @@ export default function VaultSidebar() {
     { id: 'the-vault', label: 'the vault', icon: null, hasDropdown: true, badge: null, href: '/vault' },
     { id: 'recents', label: 'Recents', icon: FileText, hasDropdown: false, badge: null, href: '/vault/recents' },
     { id: 'pinned', label: 'Pinned', icon: Star, hasDropdown: false, badge: null, href: '/vault/pinned' },
-    { id: 'prompts', label: 'Prompts in progress', icon: Sparkles, hasDropdown: false, badge: '31', href: '/vault/recents' },
-    { id: 'collabs', label: 'Collabs', icon: Share2, hasDropdown: false, badge: null, href: '/collab-hub' },
+    { id: 'prompts', label: 'Prompts in progress', icon: Sparkles, hasDropdown: false, badge: '31', href: '/vault/prompts' },
+    { id: 'collabs', label: 'Collabs', icon: Share2, hasDropdown: false, badge: null, href: '/vault/collabs' },
     { id: 'archived', label: 'Archived / Completed', icon: Archive, hasDropdown: false, badge: null, href: '/vault/archived' },
     { id: 'deleted', label: 'DELETED.', icon: Trash2, hasDropdown: false, badge: null, href: '/vault/deleted' },
   ]
@@ -68,14 +68,14 @@ export default function VaultSidebar() {
               >
                 <Link href={item.href}>
                   <motion.div
-                    whileHover={{ backgroundColor: isDeleted && itemIsActive ? '#191919' : '#f4f4f5' }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full h-[48px] px-3 py-2.5 rounded-md flex items-center justify-between transition-colors cursor-pointer ${isDeleted && itemIsActive
-                      ? 'bg-[#191919]'
-                      : itemIsActive
-                        ? 'bg-[#f4f4f5]'
-                        : ''
-                      }`}
+                    className={`w-full h-[48px] px-3 py-2.5 rounded-md flex items-center justify-between transition-colors cursor-pointer ${
+                      isDeleted && itemIsActive
+                        ? 'bg-[#191919] hover:bg-[#191919]'
+                        : itemIsActive
+                          ? 'bg-[#f4f4f5] hover:bg-[#f4f4f5]'
+                          : 'hover:bg-[#f4f4f5]'
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       {Icon && (
