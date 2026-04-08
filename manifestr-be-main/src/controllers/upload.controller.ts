@@ -46,7 +46,7 @@ export class UploadController extends BaseController {
             }
 
             // Secure the folder path to prevent traversal
-            const validFolders = ['style-guides/logos', 'vaults/documents', 'vaults/thumbnails', 'style-guides/thumbnails', 'temp'];
+            const validFolders = ['style-guides/logos', 'vaults/documents', 'vaults/thumbnails', 'style-guides/thumbnails', 'profile-images', 'temp'];
             if (!validFolders.some(f => folder.startsWith(f.split('/')[0]))) {
                 // Allow sub-paths but ensure basic valid root
                 // Simplified check: just ensure it's not root or suspicious
@@ -56,12 +56,14 @@ export class UploadController extends BaseController {
             const fileKey = `${folder}/${uuidv4()}${extension}`;
 
             const uploadUrl = await s3Util.getPresignedUploadUrl(fileKey, fileType);
+            const fileUrl = s3Util.getFileUrl(fileKey);
 
             return res.json({
                 status: "success",
                 data: {
                     uploadUrl,
                     fileKey,
+                    fileUrl,
                     expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
                 }
             });
