@@ -5,6 +5,7 @@ import { Settings, Sun, Moon, Crown, CreditCard, FileText, Video, HelpCircle, Th
 import Image from 'next/image'
 import { useAuth } from '../../contexts/AuthContext'
 import LogoutModal from '../ui/LogoutModal'
+import { normalizeUrl } from '../../utils/url'
 
 export default function ProfileDropdown() {
   const router = useRouter()
@@ -14,7 +15,7 @@ export default function ProfileDropdown() {
   const [theme, setTheme] = useState('light') // 'light' or 'dark'
   const dropdownRef = useRef(null)
   
-  const profileImageUrl = user?.profile_image_url
+  const profileImageUrl = normalizeUrl(user?.profile_image_url)
 
   const handleLogout = () => {
     setIsOpen(false)

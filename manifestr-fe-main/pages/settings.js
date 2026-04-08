@@ -13,6 +13,7 @@ import { useToast } from '../components/ui/Toast'
 import { changePassword, getSessions, revokeSession, updateSecurityAlerts, deleteAccount } from '../services/security'
 import DeleteAccountModal from '../components/ui/DeleteAccountModal'
 import LogoutModal from '../components/ui/LogoutModal'
+import { normalizeUrl } from '../utils/url'
 
 const tabs = ['General', 'Profile', 'Team', 'Plans', 'Billings', 'Security']
 
@@ -136,7 +137,7 @@ export default function Settings() {
           setJobTitle(user.job_title || '')
           setIndustry(user.industry || '')
           setYearsOfExperience(user.years_of_experience || '5-10 years')
-          setProfileImageUrl(user.profile_image_url || null)
+          setProfileImageUrl(normalizeUrl(user.profile_image_url) || null)
         }
       } catch (error) {
         console.error('Failed to load user profile:', error)
@@ -224,7 +225,7 @@ export default function Settings() {
 
       await uploadToS3(uploadData.uploadUrl, file)
 
-      const imageUrl = uploadData.fileUrl
+      const imageUrl = normalizeUrl(uploadData.fileUrl)
       setProfileImageUrl(imageUrl)
 
       // Update profile with new image URL
