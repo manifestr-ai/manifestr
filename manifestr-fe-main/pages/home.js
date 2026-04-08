@@ -11,10 +11,12 @@ import DailyMotivation from '../components/home/DailyMotivation'
 import StatsCard from '../components/home/StatsCard'
 import LogoFooter from '../components/home/LogoFooter'
 import { useOpenAIRealtime } from '../hooks/use-openai-realtime'
-import api from '../lib/api'; // Add this import
+import api from '../lib/api'
+import { useToast } from '../components/ui/Toast'
 
 export default function Home() {
   const router = useRouter()
+  const { error: showError } = useToast()
   const [isFocused, setIsFocused] = useState(false)
   // No transcript state needed anymore as per user request
   // State for generation loading screen
@@ -140,11 +142,11 @@ export default function Home() {
 
         } else {
           setIsGenerating(false);
-          alert("Generation failed to start. Please try again.");
+          showError("Generation failed to start. Please try again.");
         }
       } catch (error) {
         setIsGenerating(false);
-        alert(`Error connecting to generation service: ${error.response?.data?.message || error.message}`);
+        showError(`Error connecting to generation service: ${error.response?.data?.message || error.message}`);
       }
     }
   })

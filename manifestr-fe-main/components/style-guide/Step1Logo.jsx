@@ -5,8 +5,10 @@ import Button from '../ui/Button'
 import Card from '../ui/Card'
 import Select from '../forms/Select'
 import LogoUploadZone from './LogoUploadZone'
+import { useToast } from '../ui/Toast'
 
-export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext }) {
+export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, onSaveExit }) {
+  const { error: showError } = useToast()
   // Use data from props or fallbacks
   const brandKitName = data?.brandKitName || ''
   const uploadedFiles = data?.logos || []
@@ -77,8 +79,8 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext }
       updateData({ logos: [...uploadedFiles, ...newFiles] })
 
     } catch (err) {
-      // Fallback: just store local preview/file if upload fails, or alert user
-      alert("Failed to upload logo. Please try again.")
+      // Fallback: just store local preview/file if upload fails, or show error
+      showError("Failed to upload logo. Please try again.")
     }
   }
 
@@ -174,7 +176,7 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext }
                 <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
                   Skip
                 </Button>
-                <Button variant="secondary" size="md" className="flex-1 md:flex-none justify-center">
+                <Button variant="secondary" size="md" onClick={onSaveExit} className="flex-1 md:flex-none justify-center">
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">

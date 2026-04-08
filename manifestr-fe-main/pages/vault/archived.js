@@ -7,9 +7,11 @@ import VaultHeader from '../../components/vault/VaultHeader'
 import VaultSearchBar from '../../components/vault/VaultSearchBar'
 import VaultGrid from '../../components/vault/VaultGrid'
 import api from '../../lib/api'
+import { useToast } from '../../components/ui/Toast'
 
 export default function VaultArchived() {
   const router = useRouter()
+  const { error: showError } = useToast()
   const [viewMode, setViewMode] = useState('grid')
   const [documentCards, setDocumentCards] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -139,7 +141,7 @@ export default function VaultArchived() {
       )
     } catch (err) {
       console.error('Failed to unarchive:', err)
-      alert(err.response?.data?.message || 'Failed to unarchive document')
+      showError(err.response?.data?.message || 'Failed to unarchive document')
     }
   }
 

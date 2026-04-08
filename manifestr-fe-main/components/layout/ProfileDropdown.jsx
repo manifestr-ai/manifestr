@@ -4,16 +4,25 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Settings, Sun, Moon, Crown, CreditCard, FileText, Video, HelpCircle, ThumbsUp, MessageSquare, Globe, LogOut, Languages } from 'lucide-react'
 import Image from 'next/image'
 import { useAuth } from '../../contexts/AuthContext'
+import LogoutModal from '../ui/LogoutModal'
 
 export default function ProfileDropdown() {
   const router = useRouter()
   const { logout, user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [theme, setTheme] = useState('light') // 'light' or 'dark'
   const dropdownRef = useRef(null)
+  
+  const profileImageUrl = user?.profile_image_url
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsOpen(false)
+    setShowLogoutModal(true)
+  }
+
+  const confirmLogout = async () => {
+    setShowLogoutModal(false)
     await logout()
   }
 
@@ -44,13 +53,21 @@ export default function ProfileDropdown() {
         whileTap={{ scale: 0.95 }}
         className="w-[40px] h-[40px] rounded-full border border-[rgba(0,0,0,0.08)] bg-[#f4f4f5] flex items-center justify-center overflow-hidden hover:opacity-90 transition-opacity cursor-pointer"
       >
-        <Image
-          src="/assets/dummy/avatar.png"
-          alt="Profile"
-          width={32}
-          height={32}
-          className="w-full h-full object-cover rounded-full"
-        />
+        {profileImageUrl ? (
+          <img
+            src={profileImageUrl}
+            alt="Profile"
+            className="w-full h-full object-cover rounded-full"
+          />
+        ) : (
+          <Image
+            src="/assets/dummy/avatar.png"
+            alt="Profile"
+            width={32}
+            height={32}
+            className="w-full h-full object-cover rounded-full"
+          />
+        )}
       </motion.button>
 
       {/* Profile Popup */}
@@ -77,14 +94,22 @@ export default function ProfileDropdown() {
                 {/* Profile Card - Dark Background */}
                 <div className="bg-[#18181b] rounded-xl px-4 pt-4 pb-3 mb-4">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-[48px] h-[48px] rounded-full overflow-hidden shrink-0">
-                      <Image
-                        src="/assets/dummy/avatar.png"
-                        alt="Profile"
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="w-[48px] h-[48px] rounded-full overflow-hidden shrink-0 bg-gray-700">
+                      {profileImageUrl ? (
+                        <img
+                          src={profileImageUrl}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src="/assets/dummy/avatar.png"
+                          alt="Profile"
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-white font-semibold text-[16px] leading-[24px] mb-0.5">
@@ -163,14 +188,14 @@ export default function ProfileDropdown() {
                 <div className="py-2">
                   <CategoryHeading label="SUPPORT" />
                   <MenuItem icon={HelpCircle} label="Help" />
-                  <MenuItem icon={ThumbsUp} label="Share Feedback" />
-                  <MenuItem icon={MessageSquare} label="Contact Us" />
+                  <MenuItem icon={ThumbsUp} label="Share Feedback" onClick={() => window.open('https://mail.google.com/mail/u/0/?fs=1&to=hello@manifestr.ai&su=Feedback&tf=cm', '_blank')} />
+                  <MenuItem icon={MessageSquare} label="Contact Us" onClick={() => window.open('https://mail.google.com/mail/u/0/?fs=1&to=hello@manifestr.ai&tf=cm', '_blank')} />
                 </div>
 
                 {/* SYSTEM */}
                 <div className="py-2">
                   <CategoryHeading label="SYSTEM" />
-                  <MenuItem icon={Globe} label="Visit Website" onClick={() => window.open('https://manifestr.com', '_blank')} />
+                  <MenuItem icon={Globe} label="Visit Website" onClick={() => window.open('https://manifestr.ai', '_blank')} />
                   <MenuItem icon={LogOut} label="Log Out" onClick={handleLogout} isDestructive />
                 </div>
               </div>
@@ -178,6 +203,13 @@ export default function ProfileDropdown() {
           </>
         )}
       </AnimatePresence>
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+      />
     </div>
   )
 }

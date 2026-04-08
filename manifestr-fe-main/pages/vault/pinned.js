@@ -7,9 +7,11 @@ import VaultHeader from '../../components/vault/VaultHeader'
 import VaultSearchBar from '../../components/vault/VaultSearchBar'
 import VaultGrid from '../../components/vault/VaultGrid'
 import api from '../../lib/api'
+import { useToast } from '../../components/ui/Toast'
 
 export default function VaultPinned() {
   const router = useRouter()
+  const { error: showError } = useToast()
   const [viewMode, setViewMode] = useState('grid')
   const [documentCards, setDocumentCards] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -141,7 +143,7 @@ export default function VaultPinned() {
       )
     } catch (err) {
       console.error('Failed to unpin:', err)
-      alert(err.response?.data?.message || 'Failed to unpin document')
+      showError(err.response?.data?.message || 'Failed to unpin document')
     }
   }
 

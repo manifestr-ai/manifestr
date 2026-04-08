@@ -4,7 +4,7 @@ import { Folder, Type, Palette, Grid, FileText, Plus, ArrowRight, X, Pencil } fr
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 
-export default function StyleGuideStep3Color({ data, updateData, onBack, onNext }) {
+export default function StyleGuideStep3Color({ data, updateData, onBack, onNext, onSaveExit }) {
   // Defaults
   const defaultPrimaryCallback = () => [
     { id: 1, hex: '#E0E7FF' },
@@ -317,7 +317,7 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext 
                 <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
                   Skip
                 </Button>
-                <Button variant="secondary" size="md" className="flex-1 md:flex-none justify-center">
+                <Button variant="secondary" size="md" onClick={onSaveExit} className="flex-1 md:flex-none justify-center">
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">

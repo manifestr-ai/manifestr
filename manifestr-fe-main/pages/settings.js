@@ -7,13 +7,26 @@ import Image from 'next/image'
 import AppHeader from '../components/layout/AppHeader'
 import ToggleSwitch from '../components/forms/ToggleSwitch'
 import { useAuth } from '../contexts/AuthContext'
+import { getUserProfile, updateUserProfile } from '../services/auth'
+import { getPresignedUrl, uploadToS3 } from '../services/uploads'
+import { useToast } from '../components/ui/Toast'
+import { changePassword, getSessions, revokeSession, updateSecurityAlerts, deleteAccount } from '../services/security'
+import DeleteAccountModal from '../components/ui/DeleteAccountModal'
+import LogoutModal from '../components/ui/LogoutModal'
 
 const tabs = ['General', 'Profile', 'Team', 'Plans', 'Billings', 'Security']
 
 export default function Settings() {
   const router = useRouter()
+  const { success, error: showError, info } = useToast()
+  const { refreshProfile } = useAuth()
   const [activeTab, setActiveTab] = useState('General')
   const [workspaceSubTab, setWorkspaceSubTab] = useState('Notifications')
+
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [profileImageFile, setProfileImageFile] = useState(null)
+  const [profileImageUrl, setProfileImageUrl] = useState(null)
 
   // General settings state
   const [isGeneralExpanded, setIsGeneralExpanded] = useState(true)
@@ -102,6 +115,147 @@ export default function Settings() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  // Load user profile data on mount
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        setIsLoading(true)
+        const response = await getUserProfile()
+        const user = response.details?.user
+
+        if (user) {
+          setUsername(user.username || '')
+          setDisplayName(user.display_name || user.first_name || '')
+          setFullName(`${user.first_name || ''} ${user.last_name || ''}`.trim())
+          setEmail(user.email || '')
+          setPhoneNumber(user.phone_number || '')
+          setYearOfBirth(user.dob ? new Date(user.dob).getFullYear().toString() : '2004')
+          setGender(user.gender || 'Male')
+          setCountry(user.country || 'Pakistan')
+          setJobTitle(user.job_title || '')
+          setIndustry(user.industry || '')
+          setYearsOfExperience(user.years_of_experience || '5-10 years')
+          setProfileImageUrl(user.profile_image_url || null)
+        }
+      } catch (error) {
+        console.error('Failed to load user profile:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadUserProfile()
+  }, [])
+
+  // Save Basic Information
+  const handleSaveBasicInfo = async () => {
+    try {
+      setIsSaving(true)
+      const [firstName, ...lastNameParts] = fullName.split(' ')
+      const lastName = lastNameParts.join(' ')
+
+      await updateUserProfile({
+        username,
+        display_name: displayName,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        dob: yearOfBirth ? `${yearOfBirth}-01-01` : undefined,
+        gender,
+        country
+      })
+
+      // Refresh auth context to update header
+      await refreshProfile()
+
+      success('Basic information saved successfully!')
+    } catch (error) {
+      console.error('Failed to save basic info:', error)
+      showError('Failed to save basic information. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Save Professional Information
+  const handleSaveProfessionalInfo = async () => {
+    try {
+      setIsSaving(true)
+
+      await updateUserProfile({
+        job_title: jobTitle,
+        industry,
+        years_of_experience: yearsOfExperience
+      })
+
+      // Refresh auth context to update header
+      await refreshProfile()
+
+      success('Professional information saved successfully!')
+    } catch (error) {
+      console.error('Failed to save professional info:', error)
+      showError('Failed to save professional information. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Handle profile image change
+  const handleProfileImageChange = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file
+    if (!file.type.match(/^image\/(png|jpe?g)$/)) {
+      showError('Please upload a PNG or JPG image.')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showError('File size must be less than 10MB.')
+      return
+    }
+
+    try {
+      setProfileImageFile(file)
+
+      // Upload image
+      const uploadData = await getPresignedUrl(file.name, file.type, 'profile-images')
+
+      await uploadToS3(uploadData.uploadUrl, file)
+
+      const imageUrl = uploadData.fileUrl
+      setProfileImageUrl(imageUrl)
+
+      // Update profile with new image URL
+      await updateUserProfile({ profile_image_url: imageUrl })
+
+      // Refresh auth context to update header
+      await refreshProfile()
+
+      success('Profile image updated successfully!')
+    } catch (error) {
+      console.error('Failed to upload profile image:', error)
+      showError('Failed to upload profile image. Please try again.')
+    }
+  }
+
+  // Clear profile image
+  const handleClearProfileImage = async () => {
+    try {
+      await updateUserProfile({ profile_image_url: null })
+      setProfileImageUrl(null)
+      setProfileImageFile(null)
+
+      // Refresh auth context to update header
+      await refreshProfile()
+
+      success('Profile image cleared successfully!')
+    } catch (error) {
+      console.error('Failed to clear profile image:', error)
+      showError('Failed to clear profile image. Please try again.')
+    }
+  }
 
   const handleContinueToWorkspace = () => {
     router.push('/home')
@@ -275,6 +429,12 @@ export default function Settings() {
                     countryRef={countryRef}
                     industryRef={industryRef}
                     experienceRef={experienceRef}
+                    profileImageUrl={profileImageUrl}
+                    handleProfileImageChange={handleProfileImageChange}
+                    handleClearProfileImage={handleClearProfileImage}
+                    handleSaveBasicInfo={handleSaveBasicInfo}
+                    handleSaveProfessionalInfo={handleSaveProfessionalInfo}
+                    isSaving={isSaving}
                   />
                 ) : (
                   <motion.div
@@ -559,11 +719,10 @@ function GeneralTabContent({
                     key={value}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`inline-flex items-center gap-2 min-w-[96px] px-4 py-2 rounded-md border text-[14px] leading-[20px] transition-colors cursor-pointer ${
-                      isActive
-                        ? 'border-[#18181b] bg-white text-[#18181b] font-medium'
-                        : 'border-[#e4e4e7] bg-white text-[#71717a] hover:border-[#18181b]'
-                    }`}
+                    className={`inline-flex items-center gap-2 min-w-[96px] px-4 py-2 rounded-md border text-[14px] leading-[20px] transition-colors cursor-pointer ${isActive
+                      ? 'border-[#18181b] bg-white text-[#18181b] font-medium'
+                      : 'border-[#e4e4e7] bg-white text-[#71717a] hover:border-[#18181b]'
+                      }`}
                   >
                     <input
                       type="radio"
@@ -575,11 +734,10 @@ function GeneralTabContent({
                     />
                     <span className="flex items-center gap-2">
                       <span
-                        className={`flex items-center justify-center w-4 h-4 rounded-full border ${
-                          isActive
-                            ? 'border-[#18181b] bg-white'
-                            : 'border-[#e4e4e7] bg-white'
-                        }`}
+                        className={`flex items-center justify-center w-4 h-4 rounded-full border ${isActive
+                          ? 'border-[#18181b] bg-white'
+                          : 'border-[#e4e4e7] bg-white'
+                          }`}
                       >
                         {isActive && (
                           <span className="w-2 h-2 rounded-full bg-[#18181b]" />
@@ -896,11 +1054,11 @@ function TeamTabContent() {
                 {/* Stats */}
                 <div className="flex flex-1 items-center justify-end gap-8">
                   <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-[#f4f4f5] flex items-center justify-center">
-                      <Gift className="w-4 h-4 text-[#71717a]" />
-                    </div>
-                    
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-8 h-8 rounded-full bg-[#f4f4f5] flex items-center justify-center">
+                        <Gift className="w-4 h-4 text-[#71717a]" />
+                      </div>
+
                       <span className="text-[12px] leading-[16px] text-[#71717a]">
                         Gifted Seats
                       </span>
@@ -912,10 +1070,10 @@ function TeamTabContent() {
                   <div className="h-12 w-px bg-[#e4e4e7]" />
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col items-center gap-1">
-                    <div className="w-8 h-8 rounded-full bg-[#f4f4f5] flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-[#71717a]" />
-                    </div>
-                    
+                      <div className="w-8 h-8 rounded-full bg-[#f4f4f5] flex items-center justify-center">
+                        <Clock className="w-4 h-4 text-[#71717a]" />
+                      </div>
+
                       <span className="text-[12px] leading-[16px] text-[#71717a]">
                         Pending Invites
                       </span>
@@ -939,122 +1097,122 @@ function TeamTabContent() {
         className="relative z-10 bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl"
       >
         <div className="flex flex-wrap justify-between mb-2">
-        {/* Section Header */}
-        <div className="p-6 pb-4">
-          <h3 className="text-[20px] font-semibold leading-[30px] text-[#18181b] mb-1">
-            Team Members
-          </h3>
-          <p className="text-[16px] leading-[24px] text-[#71717a]">
-            Manage user roles and permissions
-          </p>
-        </div>
-
-        {/* Toolbar */}
-        <div className="px-6 flex flex-wrap items-center gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#71717a]" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-[#e4e4e7] rounded-md pl-10 pr-10 py-2 text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors"
-            />
-            <HelpCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#71717a]" />
+          {/* Section Header */}
+          <div className="p-6 pb-4">
+            <h3 className="text-[20px] font-semibold leading-[30px] text-[#18181b] mb-1">
+              Team Members
+            </h3>
+            <p className="text-[16px] leading-[24px] text-[#71717a]">
+              Manage user roles and permissions
+            </p>
           </div>
 
-          {/* Role Filter */}
-          <div className="relative" ref={roleDropdownRef}>
+          {/* Toolbar */}
+          <div className="px-6 flex flex-wrap items-center gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#71717a]" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white border border-[#e4e4e7] rounded-md pl-10 pr-10 py-2 text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors"
+              />
+              <HelpCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#71717a]" />
+            </div>
+
+            {/* Role Filter */}
+            <div className="relative" ref={roleDropdownRef}>
+              <motion.button
+                onClick={() => {
+                  setShowRoleDropdown(!showRoleDropdown)
+                  setShowStatusDropdown(false)
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:border-[#18181b] transition-colors"
+              >
+                <span className="text-[14px] leading-[20px] text-[#18181b]">{selectedRoleFilter}</span>
+                <ChevronDown className={`w-4 h-4 text-[#71717a] transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
+              </motion.button>
+              <AnimatePresence>
+                {showRoleDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
+                  >
+                    {['All roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
+                      <motion.button
+                        key={role}
+                        onClick={() => {
+                          setSelectedRoleFilter(role)
+                          setShowRoleDropdown(false)
+                        }}
+                        whileHover={{ backgroundColor: '#f4f4f5' }}
+                        className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b]"
+                      >
+                        {role}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative" ref={statusDropdownRef}>
+              <motion.button
+                onClick={() => {
+                  setShowStatusDropdown(!showStatusDropdown)
+                  setShowRoleDropdown(false)
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:border-[#18181b] transition-colors"
+              >
+                <span className="text-[14px] leading-[20px] text-[#18181b]">{selectedStatusFilter}</span>
+                <ChevronDown className={`w-4 h-4 text-[#71717a] transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
+              </motion.button>
+              <AnimatePresence>
+                {showStatusDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
+                  >
+                    {['All roles', 'Active', 'Pending'].map((status) => (
+                      <motion.button
+                        key={status}
+                        onClick={() => {
+                          setSelectedStatusFilter(status)
+                          setShowStatusDropdown(false)
+                        }}
+                        whileHover={{ backgroundColor: '#f4f4f5' }}
+                        className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b]"
+                      >
+                        {status}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Invite User Button */}
             <motion.button
-              onClick={() => {
-                setShowRoleDropdown(!showRoleDropdown)
-                setShowStatusDropdown(false)
-              }}
+              onClick={() => setShowInviteModal(true)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:border-[#18181b] transition-colors"
+              className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:opacity-90 transition-opacity"
             >
-              <span className="text-[14px] leading-[20px] text-[#18181b]">{selectedRoleFilter}</span>
-              <ChevronDown className={`w-4 h-4 text-[#71717a] transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
+              <UserPlus className="w-4 h-4" />
+              <span className="text-[14px] font-medium leading-[20px]">Invite user</span>
             </motion.button>
-            <AnimatePresence>
-              {showRoleDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
-                >
-                  {['All roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
-                    <motion.button
-                      key={role}
-                      onClick={() => {
-                        setSelectedRoleFilter(role)
-                        setShowRoleDropdown(false)
-                      }}
-                      whileHover={{ backgroundColor: '#f4f4f5' }}
-                      className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b]"
-                    >
-                      {role}
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
-
-          {/* Status Filter */}
-          <div className="relative" ref={statusDropdownRef}>
-            <motion.button
-              onClick={() => {
-                setShowStatusDropdown(!showStatusDropdown)
-                setShowRoleDropdown(false)
-              }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:border-[#18181b] transition-colors"
-            >
-              <span className="text-[14px] leading-[20px] text-[#18181b]">{selectedStatusFilter}</span>
-              <ChevronDown className={`w-4 h-4 text-[#71717a] transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`} />
-            </motion.button>
-            <AnimatePresence>
-              {showStatusDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
-                >
-                  {['All roles', 'Active', 'Pending'].map((status) => (
-                    <motion.button
-                      key={status}
-                      onClick={() => {
-                        setSelectedStatusFilter(status)
-                        setShowStatusDropdown(false)
-                      }}
-                      whileHover={{ backgroundColor: '#f4f4f5' }}
-                      className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b]"
-                    >
-                      {status}
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Invite User Button */}
-          <motion.button
-            onClick={() => setShowInviteModal(true)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:opacity-90 transition-opacity"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span className="text-[14px] font-medium leading-[20px]">Invite user</span>
-          </motion.button>
-        </div>
         </div>
 
         {/* Table */}
@@ -1081,20 +1239,18 @@ function TeamTabContent() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 transition-colors ${
-                      isSelected ? 'bg-[#f4f4f5]' : 'bg-white hover:bg-[#fafafa]'
-                    }`}
+                    className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 transition-colors ${isSelected ? 'bg-[#f4f4f5]' : 'bg-white hover:bg-[#fafafa]'
+                      }`}
                   >
                     {/* User Name */}
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => toggleUserSelection(member.id)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-colors ${
-                          isSelected
-                            ? 'bg-[#22c55e] border-[#22c55e]'
-                            : 'bg-white border-[#e4e4e7]'
-                        }`}
+                        className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-colors ${isSelected
+                          ? 'bg-[#22c55e] border-[#22c55e]'
+                          : 'bg-white border-[#e4e4e7]'
+                          }`}
                       >
                         {isSelected && (
                           <Check className="w-3 h-3 text-white" strokeWidth={3} />
@@ -1119,45 +1275,45 @@ function TeamTabContent() {
                       </div>
                     </div>
 
-                  {/* Role */}
-                  <div className="flex items-center">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#e4e4e7] text-[12px] font-medium leading-[16px] text-[#18181b]">
-                      {member.role === 'Owner' && (
-                        <Crown className="w-3.5 h-3.5 text-[#18181b]" />
-                      )}
-                      {member.role === 'Admin' && (
-                        <UserCog className="w-3.5 h-3.5 text-[#18181b]" />
-                      )}
-                      {member.role === 'Editor' && (
-                        <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
-                      )}
-                      {member.role === 'Viewer' && (
-                        <Eye className="w-3.5 h-3.5 text-[#18181b]" />
-                      )}
-                      <span>{member.role}</span>
-                    </span>
-                  </div>
- 
-                  {/* Status */}
-                  <div className="flex items-center">
-                    <span className="px-3 py-1 rounded-full border border-[#e4e4e7] bg-white text-[12px] font-medium leading-[16px] text-[#3f3f46]">
-                      {member.status}
-                    </span>
-                  </div>
+                    {/* Role */}
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#e4e4e7] text-[12px] font-medium leading-[16px] text-[#18181b]">
+                        {member.role === 'Owner' && (
+                          <Crown className="w-3.5 h-3.5 text-[#18181b]" />
+                        )}
+                        {member.role === 'Admin' && (
+                          <UserCog className="w-3.5 h-3.5 text-[#18181b]" />
+                        )}
+                        {member.role === 'Editor' && (
+                          <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
+                        )}
+                        {member.role === 'Viewer' && (
+                          <Eye className="w-3.5 h-3.5 text-[#18181b]" />
+                        )}
+                        <span>{member.role}</span>
+                      </span>
+                    </div>
 
-                  {/* Collabs */}
-                  <div className="flex items-center">
-                    <span className="text-[14px] leading-[20px] text-[#18181b]">
-                      {member.collabs}
-                    </span>
-                  </div>
+                    {/* Status */}
+                    <div className="flex items-center">
+                      <span className="px-3 py-1 rounded-full border border-[#e4e4e7] bg-white text-[12px] font-medium leading-[16px] text-[#3f3f46]">
+                        {member.status}
+                      </span>
+                    </div>
 
-                  {/* Last Active */}
-                  <div className="flex items-center">
-                    <span className="text-[14px] leading-[20px] text-[#71717a]">
-                      {member.lastActive}
-                    </span>
-                  </div>
+                    {/* Collabs */}
+                    <div className="flex items-center">
+                      <span className="text-[14px] leading-[20px] text-[#18181b]">
+                        {member.collabs}
+                      </span>
+                    </div>
+
+                    {/* Last Active */}
+                    <div className="flex items-center">
+                      <span className="text-[14px] leading-[20px] text-[#71717a]">
+                        {member.lastActive}
+                      </span>
+                    </div>
 
                     {/* Actions */}
                     <div className="flex items-center justify-end relative actions-menu">
@@ -1831,11 +1987,10 @@ function PlansTabContent() {
                     onClick={() => toggleAddOn('design-studio')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] transition-opacity ${
-                      addedAddOns.includes('design-studio')
-                        ? 'bg-white border border-[#e4e4e7] text-[#18181b] opacity-50'
-                        : 'bg-[#18181b] text-white hover:opacity-90'
-                    }`}
+                    className={`rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] transition-opacity ${addedAddOns.includes('design-studio')
+                      ? 'bg-white border border-[#e4e4e7] text-[#18181b] opacity-50'
+                      : 'bg-[#18181b] text-white hover:opacity-90'
+                      }`}
                   >
                     {addedAddOns.includes('design-studio') ? 'Added' : 'Add'}
                   </motion.button>
@@ -1915,11 +2070,10 @@ function PlansTabContent() {
                     onClick={() => toggleAddOn('ai-wins')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] transition-opacity ${
-                      addedAddOns.includes('ai-wins')
-                        ? 'bg-white border border-[#e4e4e7] text-[#18181b] opacity-50'
-                        : 'bg-[#18181b] text-white hover:opacity-90'
-                    }`}
+                    className={`rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] transition-opacity ${addedAddOns.includes('ai-wins')
+                      ? 'bg-white border border-[#e4e4e7] text-[#18181b] opacity-50'
+                      : 'bg-[#18181b] text-white hover:opacity-90'
+                      }`}
                   >
                     {addedAddOns.includes('ai-wins') ? 'Added' : 'Add'}
                   </motion.button>
@@ -1956,11 +2110,10 @@ function PlansTabContent() {
                     onClick={() => toggleAddOn('storage')}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] transition-opacity ${
-                      addedAddOns.includes('storage')
-                        ? 'bg-white border border-[#e4e4e7] text-[#18181b] opacity-50'
-                        : 'bg-[#18181b] text-white hover:opacity-90'
-                    }`}
+                    className={`rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] transition-opacity ${addedAddOns.includes('storage')
+                      ? 'bg-white border border-[#e4e4e7] text-[#18181b] opacity-50'
+                      : 'bg-[#18181b] text-white hover:opacity-90'
+                      }`}
                   >
                     {addedAddOns.includes('storage') ? 'Added' : 'Upgrade'}
                   </motion.button>
@@ -3849,7 +4002,41 @@ function ProfileTabContent({
   countryRef,
   industryRef,
   experienceRef,
+  profileImageUrl,
+  handleProfileImageChange,
+  handleClearProfileImage,
+  handleSaveBasicInfo,
+  handleSaveProfessionalInfo,
+  isSaving,
 }) {
+  const fileInputRef = useRef(null)
+
+  // Calculate profile completion percentage
+  const calculateCompletion = () => {
+    const fields = [
+      username,
+      displayName,
+      fullName,
+      email,
+      phoneNumber,
+      yearOfBirth,
+      gender,
+      country,
+      profileImageUrl,
+      jobTitle,
+      industry,
+      yearsOfExperience
+    ]
+
+    const filledFields = fields.filter(field => field && field.toString().trim() !== '').length
+    const totalFields = fields.length
+    const percentage = Math.round((filledFields / totalFields) * 100)
+
+    return { percentage, filledFields, totalFields }
+  }
+
+  const { percentage, filledFields, totalFields } = calculateCompletion()
+
   return (
     <motion.div
       key="profile"
@@ -3868,14 +4055,22 @@ function ProfileTabContent({
         <div className="flex flex-col gap-4">
           {/* Avatar */}
           <div className="flex justify-center">
-            <div className="w-[80px] h-[80px] rounded-full border border-[rgba(0,0,0,0.08)] overflow-hidden">
-              <Image
-                src="/assets/dummy/avatar.png"
-                alt="Profile"
-                width={80}
-                height={80}
-                className="w-full h-full object-cover rounded-full"
-              />
+            <div className="w-[80px] h-[80px] rounded-full border border-[rgba(0,0,0,0.08)] overflow-hidden bg-gray-100">
+              {profileImageUrl ? (
+                <img
+                  src={profileImageUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <Image
+                  src="/assets/dummy/avatar.png"
+                  alt="Profile"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              )}
             </div>
           </div>
 
@@ -3889,16 +4084,25 @@ function ProfileTabContent({
             </p>
           </div>
 
+          {/* Hidden File Input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg"
+            onChange={handleProfileImageChange}
+            className="hidden"
+          />
+
           {/* Progress Bar */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-[12px] leading-[18px] text-[#5a5c66]">
               <span>Completed</span>
-              <span>80%</span>
+              <span>{percentage}%</span>
             </div>
             <div className="bg-[#e2e4e9] h-[6px] rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: '80%' }}
+                animate={{ width: `${percentage}%` }}
                 transition={{ duration: 0.8, delay: 0.5 }}
                 className="bg-[#14cb74] h-full rounded-full"
               />
@@ -3916,6 +4120,7 @@ function ProfileTabContent({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              onClick={handleClearProfileImage}
               className="flex-1 h-[36px] border border-[#e8e8e9] rounded-md bg-white text-[#e52f2f] font-medium text-[14px] hover:bg-[#f4f4f5] transition-colors"
             >
               Clear
@@ -3923,6 +4128,7 @@ function ProfileTabContent({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => fileInputRef.current?.click()}
               className="flex-1 h-[36px] border border-[#e8e8e9] rounded-md bg-white text-[#161924] font-medium text-[14px] hover:bg-[#f4f4f5] transition-colors"
             >
               Change
@@ -4207,9 +4413,11 @@ function ProfileTabContent({
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+                onClick={handleSaveBasicInfo}
+                disabled={isSaving}
+                className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </motion.button>
             </div>
           </div>
@@ -4355,9 +4563,11 @@ function ProfileTabContent({
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+                onClick={handleSaveProfessionalInfo}
+                disabled={isSaving}
+                className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </motion.button>
             </div>
           </div>
@@ -4869,39 +5079,53 @@ function DataMemoryTabContent() {
 
 // Logout Button Component
 function LogoutButton() {
-  const { logout } = useAuth()
+  const { logout, refreshProfile } = useAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
-  const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      setIsLoggingOut(true)
-      try {
-        await logout()
-      } catch (error) {
-        setIsLoggingOut(false)
-      }
+  const handleLogout = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmLogout = async () => {
+    setShowLogoutModal(false)
+    setIsLoggingOut(true)
+    try {
+      await logout()
+    } catch (error) {
+      setIsLoggingOut(false)
     }
   }
 
   return (
-    <motion.button
-      onClick={handleLogout}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      disabled={isLoggingOut}
-      className="w-full bg-[#18181b] text-white rounded-md h-[40px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#27272a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      <LogOut className="w-4 h-4" />
-      {isLoggingOut ? 'Logging out...' : 'Log Out'}
-    </motion.button>
+    <>
+      <motion.button
+        onClick={handleLogout}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        disabled={isLoggingOut}
+        className="w-full bg-[#18181b] text-white rounded-md h-[40px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#27272a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <LogOut className="w-4 h-4" />
+        {isLoggingOut ? 'Logging out...' : 'Log Out'}
+      </motion.button>
+      
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+      />
+    </>
   )
 }
 
 // Security Tab Component
 function SecurityTabContent() {
+  const { success, error: showError } = useToast()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [activeSessionsEnabled, setActiveSessionsEnabled] = useState(true)
   const [loginHistoryFilter, setLoginHistoryFilter] = useState('All')
@@ -4911,6 +5135,91 @@ function SecurityTabContent() {
     suspiciousActivity: true,
     newDeviceLogin: true,
   })
+  const [activeSessions, setActiveSessions] = useState([])
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
+  
+  // Load sessions on mount
+  useEffect(() => {
+    loadSessions()
+  }, [])
+  
+  const loadSessions = async () => {
+    try {
+      setIsLoadingSessions(true)
+      const response = await getSessions()
+      setActiveSessions(response.details.sessions || [])
+    } catch (error) {
+      console.error('Failed to load sessions:', error)
+    } finally {
+      setIsLoadingSessions(false)
+    }
+  }
+  
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showError('Please fill in all password fields')
+      return
+    }
+    
+    if (newPassword !== confirmPassword) {
+      showError('New passwords do not match')
+      return
+    }
+    
+    if (newPassword.length < 8) {
+      showError('New password must be at least 8 characters long')
+      return
+    }
+    
+    try {
+      setIsChangingPassword(true)
+      await changePassword(currentPassword, newPassword)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      success('Password updated successfully!')
+    } catch (error) {
+      console.error('Failed to change password:', error)
+      showError(error.response?.data?.message || 'Failed to change password. Please try again.')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+  
+  const handleRevokeSession = async (sessionId) => {
+    try {
+      await revokeSession(sessionId)
+      success('Session revoked successfully!')
+      loadSessions()
+    } catch (error) {
+      console.error('Failed to revoke session:', error)
+      showError('Failed to revoke session. Please try again.')
+    }
+  }
+  
+  const handleSaveSecurityAlerts = async () => {
+    try {
+      await updateSecurityAlerts(securityAlerts)
+      success('Security alert preferences saved successfully!')
+    } catch (error) {
+      console.error('Failed to save security alerts:', error)
+      showError('Failed to save security alerts. Please try again.')
+    }
+  }
+  
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount()
+      success('Account deleted successfully. Redirecting...')
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 2000)
+    } catch (error) {
+      console.error('Failed to delete account:', error)
+      showError('Failed to delete account. Please try again.')
+    }
+  }
 
   const passwordRequirements = [
     { id: 'length', text: 'At least 8 characters', met: true },
@@ -4918,14 +5227,6 @@ function SecurityTabContent() {
     { id: 'lowercase', text: 'One lowercase letter', met: false },
     { id: 'number', text: 'One number', met: true },
     { id: 'special', text: 'One special character', met: true },
-  ]
-
-  const activeSessions = [
-    { id: '1', device: 'MacBook Pro', location: 'San Francisco, CA', lastActive: '2 hours ago', status: 'Active' },
-    { id: '2', device: 'iPhone 14', location: 'San Francisco, CA', lastActive: '1 day ago', status: 'Active' },
-    { id: '3', device: 'Windows PC', location: 'New York, NY', lastActive: '3 days ago', status: 'Active' },
-    { id: '4', device: 'iPad', location: 'San Francisco, CA', lastActive: '1 week ago', status: 'Expired' },
-    { id: '5', device: 'Chrome Browser', location: 'Los Angeles, CA', lastActive: '2 weeks ago', status: 'Expired' },
   ]
 
   const socialConnections = [
@@ -5025,11 +5326,24 @@ function SecurityTabContent() {
               ))}
             </div>
           </div>
+          
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleChangePassword}
+              disabled={isChangingPassword}
+              className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isChangingPassword ? 'Updating...' : 'Update Password'}
+            </motion.button>
+          </div>
         </div>
       </div>
 
       {/* Two-Factor Authentication Section */}
-      <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
+      {/* <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
         <div className="pt-6 px-6 pb-0">
           <div className="h-[52px] flex items-center justify-between">
             <div className="flex flex-col gap-1">
@@ -5082,7 +5396,7 @@ function SecurityTabContent() {
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Session Management Section */}
       <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
@@ -5139,7 +5453,7 @@ function SecurityTabContent() {
       </div>
 
       {/* Login History Section */}
-      <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
+      {/* <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
         <div className="pt-6 px-6 pb-0">
           <div className="h-[52px] flex items-center justify-between">
             <div className="flex flex-col gap-1">
@@ -5171,7 +5485,7 @@ function SecurityTabContent() {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Active Sessions Table */}
       <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
@@ -5215,40 +5529,51 @@ function SecurityTabContent() {
             </div>
 
             {/* Table Rows */}
-            {activeSessions.map((session, index) => (
-              <motion.div
-                key={session.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                className="grid grid-cols-[292px_292px_292px_292px] border-b border-[#e4e4e7] last:border-b-0 hover:bg-[#f4f4f5] transition-colors"
-              >
-                <div className="p-4 flex items-center">
-                  <p className="text-[14px] leading-[20px] text-[#18181b]">
-                    {session.device}
-                  </p>
-                </div>
-                <div className="p-4 flex items-center">
-                  <p className="text-[14px] leading-[20px] text-[#18181b]">
-                    {session.location}
-                  </p>
-                </div>
-                <div className="p-4 flex items-center">
-                  <p className="text-[14px] leading-[20px] text-[#18181b]">
-                    {session.lastActive}
-                  </p>
-                </div>
-                <div className="p-4 flex items-center gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-10 h-10 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-                  >
-                    <LogOut className="w-4 h-4 text-[#18181b]" />
-                  </motion.button>
+            {isLoadingSessions ? (
+              <div className="p-8 flex items-center justify-center">
+                <p className="text-[14px] leading-[20px] text-[#71717a]">Loading sessions...</p>
+              </div>
+            ) : activeSessions.length === 0 ? (
+              <div className="p-8 flex items-center justify-center">
+                <p className="text-[14px] leading-[20px] text-[#71717a]">No active sessions found</p>
+              </div>
+            ) : (
+              activeSessions.map((session, index) => (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                  className="grid grid-cols-[292px_292px_292px_292px] border-b border-[#e4e4e7] last:border-b-0 hover:bg-[#f4f4f5] transition-colors"
+                >
+                  <div className="p-4 flex items-center">
+                    <p className="text-[14px] leading-[20px] text-[#18181b]">
+                      {session.device}
+                    </p>
+                  </div>
+                  <div className="p-4 flex items-center">
+                    <p className="text-[14px] leading-[20px] text-[#18181b]">
+                      {session.location}
+                    </p>
+                  </div>
+                  <div className="p-4 flex items-center">
+                    <p className="text-[14px] leading-[20px] text-[#18181b]">
+                      {new Date(session.lastActive).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-4 flex items-center gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleRevokeSession(session.id)}
+                      className="w-10 h-10 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+                    >
+                      <LogOut className="w-4 h-4 text-[#18181b]" />
+                    </motion.button>
                 </div>
               </motion.div>
-            ))}
+            ))
+            )}
           </div>
         </div>
       </div>
@@ -5294,6 +5619,18 @@ function SecurityTabContent() {
               />
             </motion.div>
           ))}
+          
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveSecurityAlerts}
+              className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+            >
+              Save Preferences
+            </motion.button>
+          </div>
         </div>
       </div>
 
@@ -5398,6 +5735,7 @@ function SecurityTabContent() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => setShowDeleteAccountModal(true)}
             className="w-full bg-red-600 text-white rounded-md h-[40px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-red-700 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
@@ -5405,6 +5743,13 @@ function SecurityTabContent() {
           </motion.button>
         </div>
       </div>
+      
+      {/* Delete Account Confirmation Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteAccountModal}
+        onClose={() => setShowDeleteAccountModal(false)}
+        onConfirm={handleDeleteAccount}
+      />
     </motion.div>
   )
 }

@@ -11,9 +11,11 @@ import CreateNewCollabModal from '../components/vault/CreateNewCollabModal'
 import UploadFileModal from '../components/vault/UploadFileModal'
 import api from '../lib/api'
 import { VAULT_FOLDERS, getVaultFolderHref } from '../components/vault/vaultFolders'
+import { useToast } from '../components/ui/Toast'
 
 export default function Vault() {
   const router = useRouter()
+  const { success, error: showError } = useToast()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -467,7 +469,7 @@ export default function Vault() {
         // Pin
         const response = await api.post(`/ai/pin/${card.id}`)
         if (response.data.status === 'error') {
-          alert(response.data.message)
+          showError(response.data.message)
           return
         }
         console.log(`📌 Pinned: ${card.title}`)
@@ -483,7 +485,7 @@ export default function Vault() {
       )
     } catch (err) {
       console.error('Failed to pin/unpin:', err)
-      alert(err.response?.data?.message || 'Failed to pin document')
+      showError(err.response?.data?.message || 'Failed to pin document')
     }
   }
 
@@ -740,7 +742,7 @@ export default function Vault() {
             setIsLoading(false)
 
           } catch (err) {
-            alert('Upload failed. Please try again.')
+            showError('Upload failed. Please try again.')
             setIsLoading(false) // ensuring loading stops
             throw err // Re-throw to let modal know it failed if needed (though we handle close manually)
           }

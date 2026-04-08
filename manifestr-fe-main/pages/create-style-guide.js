@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import { useState, useMemo, useRef, memo, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { Inbox, Upload } from 'lucide-react'
 import AppHeader from '../components/layout/AppHeader'
@@ -10,6 +11,7 @@ import StyleGuideStep3Color from '../components/style-guide/Step3Color'
 import StyleGuideStep4Style from '../components/style-guide/Step4Style'
 import StyleGuideStep5Review from '../components/style-guide/Step5Review'
 import CompletionModal from '../components/style-guide/CompletionModal'
+import { useToast } from '../components/ui/Toast'
 
 // Marquee Line Component - copied from onboarding
 const MarqueeLine = memo(function MarqueeLine({ lineIndex, topPosition, shuffledPhrases, getFontFamily }) {
@@ -130,9 +132,15 @@ const MarqueeLine = memo(function MarqueeLine({ lineIndex, topPosition, shuffled
 })
 
 export default function CreateStyleGuide() {
+  const router = useRouter()
+  const { success, error: showError } = useToast()
+  const { id: editingId } = router.query
+  const isEditMode = !!editingId
+  
   const [currentStep, setCurrentStep] = useState(0) // 0 = initial modal, 1+ = steps
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false)
 
   // Centralized state for the style guide
   const [styleGuideData, setStyleGuideData] = useState({
@@ -174,30 +182,127 @@ export default function CreateStyleGuide() {
     setStyleGuideData(prev => ({ ...prev, ...updates }))
   }
 
-  const handleCreateStyleGuide = async () => {
+  // Load existing style guide if in edit mode
+  useEffect(() => {
+    if (!editingId) return
+
+    const loadExistingGuide = async () => {
+      try {
+        setIsLoadingExisting(true)
+        const { getStyleGuideDetails } = await import('../services/style-guide')
+        const response = await getStyleGuideDetails(editingId)
+        const guide = response.data
+
+        // Map backend data to component state
+        if (guide) {
+          // Backend stores data in separate JSONB columns: logo, typography, colors, style
+          // The logo column contains: { logos: [], backgrounds: {}, logoRules: {} }
+          const logoData = guide.logo || {};
+          const loadedData = {
+            name: guide.name || "Draft Style Guide",
+            brandKitName: guide.brand_name || guide.name || "",
+            logos: logoData.logos || [],
+            backgrounds: logoData.backgrounds || { permitted: 'light-dark', darkUses: 'white-reversed', minContrast: '' },
+            logoRules: logoData.logoRules || { enabled: true, minSize: '24px', maxSize: '96px', clearSpace: '4', scaling: 'maintain-aspect-ratio', placement: 'Top-left', allowAlternate: false },
+            colors: guide.colors || { selected: ['white', 'black'], custom: [] },
+            typography: guide.typography || { headings: { family: 'Inter', weight: 'Bold' }, body: { family: 'Inter', weight: 'Regular' } },
+            style: guide.style || { toneDescriptors: ["Professional", "Bold"], audience: ["B2B (Business)"], personality: "We're an ambitious technology partner...", personas: [{ id: 1, title: 'CTO', summary: '' }], examplePhrases: [{ id: 1, weSay: 'Transform your workflow', weDontSay: 'Disrupt the industry' }] }
+          }
+          
+          setStyleGuideData(loadedData)
+          // Skip the initial modal and go directly to editing
+          setCurrentStep(1)
+        }
+      } catch (error) {
+        console.error('Failed to load style guide:', error)
+        showError('Failed to load style guide. Please try again.')
+      } finally {
+        setIsLoadingExisting(false)
+      }
+    }
+
+    loadExistingGuide()
+  }, [editingId])
+
+  const handleSaveAndExit = async () => {
     try {
       setIsSubmitting(true)
-      const { createStyleGuide } = await import('../services/style-guide')
 
-      // Prepare payload for API
-      // The API expects a simple structure or specific fields.
-      // Based on service definition: { name, ... }
-      // We might need to map our complex state to the API schema.
-      // For now, sending what we have as 'config' or similar if API supports dynamic fields,
-      // or mapping strict fields. 
-      // Assuming a flexible 'config' json column or specific mapped fields.
-      // Let's assume we send 'brand_name' as name and the rest in 'config'
-
+      // Prepare payload matching backend schema
       const payload = {
         name: styleGuideData.brandKitName || "Untitled Style Guide",
         brand_name: styleGuideData.brandKitName,
-        config: styleGuideData
+        logo: {
+          logos: styleGuideData.logos || [],
+          backgrounds: styleGuideData.backgrounds || {},
+          logoRules: styleGuideData.logoRules || {}
+        },
+        typography: styleGuideData.typography || {},
+        colors: styleGuideData.colors || {},
+        style: styleGuideData.style || {},
+        isCompleted: false,
+        currentStep: currentStep
       }
 
-      await createStyleGuide(payload)
+      if (isEditMode) {
+        // Update existing style guide
+        const { updateStyleGuide } = await import('../services/style-guide')
+        await updateStyleGuide(editingId, payload)
+        success('Progress saved successfully!')
+      } else {
+        // Create new style guide with current progress
+        const { createStyleGuide } = await import('../services/style-guide')
+        await createStyleGuide(payload)
+        success('Style guide saved as draft!')
+      }
+      
+      // Redirect to style guide list
+      router.push('/style-guide')
+    } catch (error) {
+      console.error('Failed to save:', error)
+      showError("Failed to save progress. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleCreateStyleGuide = async () => {
+    try {
+      setIsSubmitting(true)
+
+      // Prepare payload matching backend schema
+      // Backend expects: name, brand_name, logo, typography, colors, style (as separate fields)
+      const payload = {
+        name: styleGuideData.brandKitName || "Untitled Style Guide",
+        brand_name: styleGuideData.brandKitName,
+        logo: {
+          logos: styleGuideData.logos || [],
+          backgrounds: styleGuideData.backgrounds || {},
+          logoRules: styleGuideData.logoRules || {}
+        },
+        typography: styleGuideData.typography || {},
+        colors: styleGuideData.colors || {},
+        style: styleGuideData.style || {},
+        isCompleted: true,
+        currentStep: 6
+      }
+
+      if (isEditMode) {
+        // Update existing style guide
+        const { updateStyleGuide } = await import('../services/style-guide')
+        await updateStyleGuide(editingId, payload)
+        success('Style guide updated successfully!')
+      } else {
+        // Create new style guide
+        const { createStyleGuide } = await import('../services/style-guide')
+        await createStyleGuide(payload)
+        success('Style guide created successfully!')
+      }
+      
       setShowCompletionModal(true)
     } catch (error) {
-      alert("Failed to save style guide. Please try again.")
+      console.error('Failed to save style guide:', error)
+      showError("Failed to save style guide. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -351,11 +456,32 @@ export default function CreateStyleGuide() {
     setCurrentStep(1)
   }
 
+  // Show loading screen while loading existing guide
+  if (isLoadingExisting) {
+    return (
+      <>
+        <Head>
+          <title>Loading Style Guide - Manifestr</title>
+        </Head>
+        <div className="bg-white min-h-screen w-full flex flex-col">
+          <AppHeader showRightActions={true} />
+          <div className="h-[72px]" />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-[#18181b] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[16px] text-[#71717a]">Loading style guide...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <Head>
-        <title>Style Guide - Manifestr</title>
-        <meta name="description" content="Create your brand style guide" />
+        <title>{isEditMode ? 'Edit' : 'Create'} Style Guide - Manifestr</title>
+        <meta name="description" content={`${isEditMode ? 'Edit' : 'Create'} your brand style guide`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -481,6 +607,7 @@ export default function CreateStyleGuide() {
                   updateData={updateStyleGuideData}
                   onBack={() => setCurrentStep(0)}
                   onNext={() => setCurrentStep(2)}
+                  onSaveExit={handleSaveAndExit}
                 />
               </motion.div>
             ) : currentStep === 2 ? (
@@ -497,6 +624,7 @@ export default function CreateStyleGuide() {
                   updateData={updateStyleGuideData}
                   onBack={() => setCurrentStep(1)}
                   onNext={() => setCurrentStep(3)}
+                  onSaveExit={handleSaveAndExit}
                 />
               </motion.div>
             ) : currentStep === 3 ? (
@@ -513,6 +641,7 @@ export default function CreateStyleGuide() {
                   updateData={updateStyleGuideData}
                   onBack={() => setCurrentStep(2)}
                   onNext={() => setCurrentStep(4)}
+                  onSaveExit={handleSaveAndExit}
                 />
               </motion.div>
             ) : currentStep === 4 ? (
@@ -529,6 +658,7 @@ export default function CreateStyleGuide() {
                   updateData={updateStyleGuideData}
                   onBack={() => setCurrentStep(3)}
                   onNext={() => setCurrentStep(5)}
+                  onSaveExit={handleSaveAndExit}
                 />
               </motion.div>
             ) : currentStep === 5 ? (
@@ -546,6 +676,7 @@ export default function CreateStyleGuide() {
                   onBack={() => setCurrentStep(4)}
                   onNext={handleCreateStyleGuide}
                   isSubmitting={isSubmitting}
+                  isEditMode={isEditMode}
                 />
               </motion.div>
             ) : null}
@@ -558,8 +689,12 @@ export default function CreateStyleGuide() {
           onClose={() => setShowCompletionModal(false)}
           onContinue={() => {
             setShowCompletionModal(false)
-            // Redirect to style-guide page or handle completion
-            window.location.href = '/style-guide'
+            // Redirect based on mode
+            if (isEditMode) {
+              router.push(`/style-guide/${editingId}`)
+            } else {
+              router.push('/style-guide')
+            }
           }}
         />
       </div>

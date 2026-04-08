@@ -16,5 +16,6 @@ export const ENDPOINTS = {
         DETAILS: (id) => `/style-guides/${id}`,
         CREATE: '/style-guides',
         UPDATE: (id) => `/style-guides/${id}`,
+        DELETE: (id) => `/style-guides/${id}`,
     }
 };

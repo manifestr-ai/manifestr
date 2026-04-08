@@ -8,6 +8,7 @@ import Checkbox from '../components/forms/Checkbox'
 import Button from '../components/ui/Button'
 import GoogleIcon from '../components/icons/GoogleIcon'
 import { Toaster, Intent } from '@blueprintjs/core'
+import { useToast } from '../components/ui/Toast'
 
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/router'
@@ -20,6 +21,7 @@ const AppToaster = typeof window !== 'undefined' ? Toaster.create({
 
 export default function Login() {
   const router = useRouter()
+  const { error: showError } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -110,12 +112,12 @@ export default function Login() {
               timeout: 5000,
             })
           } catch (toastError) {
-            // Fallback: at least show alert
-            alert(errorMessage)
+            // Fallback: use our toast system
+            showError(errorMessage)
           }
         } else {
-          // Fallback: show alert
-          alert(errorMessage)
+          // Fallback: use our toast system
+          showError(errorMessage)
         }
 
         // Also set server error for the inline display
