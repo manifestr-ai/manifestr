@@ -7,7 +7,7 @@ import { API_BASE_URL, ENDPOINTS } from './config';
  */
 export const getUserProfile = async () => {
     const response = await api.get('/auth/me', {
-        baseURL: API_BASE_URL.replace('/api', ''),
+        baseURL: API_BASE_URL,
     });
     return response.data;
 };
@@ -19,7 +19,7 @@ export const getUserProfile = async () => {
  */
 export const updateUserProfile = async (data) => {
     const response = await api.patch('/auth/profile', data, {
-        baseURL: API_BASE_URL.replace('/api', ''),
+        baseURL: API_BASE_URL,
     });
     return response.data;
 };
