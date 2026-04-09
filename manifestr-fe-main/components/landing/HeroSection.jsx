@@ -48,8 +48,8 @@ export default function HeroSection() {
       </div>
 
       {/* ── Desktop text — positioned around the image ── */}
-      <div className="hidden md:block absolute inset-0">
-        <div className="absolute flex items-center lg:gap-100 " style={{ left: '8.47%', top: '28%' }}>
+      <div className="hidden md:block absolute inset-0 mx-auto max-w-[1600px] left-0 right-0">
+        <div className="absolute flex items-center lg:gap-110 " style={{ left: '8.47%', top: '28%' }}>
           <motion.h1
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
