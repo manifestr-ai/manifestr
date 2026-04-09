@@ -154,14 +154,14 @@ export default function ToolHero({ tool }) {
             <div className="flex flex-col items-center justify-center gap-[15px] md:gap-[12px] md:max-w-none mx-auto md:flex-row">
               <Link
                 href={heroCtaPrimary?.href || '/signup'}
-                className="inline-flex items-center justify-center w-full md:w-auto bg-[#18181b] text-white rounded-[6px] px-[24px] h-[54px] md:h-auto md:py-[8px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+                className="inline-flex items-center justify-center w-[290px] max-w-full md:w-auto bg-[#18181b] text-white rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {heroCtaPrimary?.label || 'Discover MANIFESTR Today'}
               </Link>
               <Link
                 href={heroCtaSecondary?.href || '/tools'}
-                className="inline-flex items-center justify-center w-full md:w-auto bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] h-[54px] md:h-auto md:py-[8px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
+                className="inline-flex items-center justify-center w-[290px] max-w-full md:w-auto bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {heroCtaSecondary?.label || 'Explore Our Tools'}
@@ -218,17 +218,17 @@ export default function ToolHero({ tool }) {
                 </p>
               )}
 
-              <div className="flex flex-col gap-[15px] px-[51px]">
+              <div className="flex flex-col gap-[15px] items-center px-[51px]">
                 <Link
                   href={heroCtaPrimary?.href || '/signup'}
-                  className="inline-flex items-center justify-center w-full bg-[#18181b] text-white rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+                  className="inline-flex items-center justify-center w-[290px] max-w-full h-[54px] bg-[#18181b] text-white rounded-[6px] px-[24px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaPrimary?.label || 'Discover MANIFESTR Today'}
                 </Link>
                 <Link
                   href={heroCtaSecondary?.href || '/tools'}
-                  className="inline-flex items-center justify-center w-full bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
+                  className="inline-flex items-center justify-center w-[290px] max-w-full h-[54px] bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaSecondary?.label || 'Explore Our Tools'}
@@ -320,14 +320,14 @@ export default function ToolHero({ tool }) {
               <div className="flex items-center justify-center gap-[12px]">
                 <Link
                   href={heroCtaPrimary?.href || '/signup'}
-                  className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[24px] py-[8px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+                  className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaPrimary?.label || 'Discover MANIFESTR Today'}
                 </Link>
                 <Link
                   href={heroCtaSecondary?.href || '/tools'}
-                  className="inline-flex items-center justify-center bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] py-[8px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
+                  className="inline-flex items-center justify-center bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaSecondary?.label || 'Explore Our Tools'}

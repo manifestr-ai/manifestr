@@ -113,7 +113,7 @@ export default function TheNewEra() {
                 className="h-[80px] w-[128px] object-contain"
               />
             </div>
-            <div className="absolute left-[40px] -top-[64px] w-[320px] h-[320px]">
+            <div className="absolute left-[60px] -top-[64px] w-[330px] h-[330px]">
               <CldImage
                 src={FASHION_IMG}
                 alt="Professional woman"

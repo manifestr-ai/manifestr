@@ -12,16 +12,16 @@ export default function FromTheSilence() {
     <section className="relative w-full bg-white overflow-hidden">
       <div className="relative w-full max-w-[1440px] mx-auto min-h-0 md:min-h-[1111px]">
 
-        {/* Two text columns — stacked on mobile, side by side on desktop */}
-        <div className="relative z-10 flex flex-col md:flex-row gap-[24px] md:gap-[41px]
-                        px-6 md:px-[190px] pt-[48px] md:pt-[128px]">
-
+        {/* Mobile: left column → watermark → right column. Desktop: two columns, watermark full width below. */}
+        <div
+          className="relative z-10 grid grid-cols-1 gap-y-[24px] px-6 pb-[24px] pt-[48px] md:grid-cols-2 md:gap-x-[41px] md:gap-y-[80px] md:px-[190px] md:pb-[80px] md:pt-[128px]"
+        >
           {/* Left column */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="w-full md:w-1/2 md:max-w-[506px]"
+            className="w-full md:col-start-1 md:row-start-1 md:max-w-[506px]"
           >
             <h3
               className="capitalize text-[24px] md:text-[36px] leading-[32px] md:leading-[49px]
@@ -46,13 +46,42 @@ export default function FromTheSilence() {
             </div>
           </motion.div>
 
+          {/* Watermark — between columns on mobile, below both on desktop */}
+          <div
+            className="pointer-events-none col-span-1 w-full select-none md:col-span-2 md:row-start-2"
+            aria-hidden="true"
+          >
+            <div className="relative">
+              <p
+                className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase"
+                style={watermarkStyle}
+              >
+                FROM THE
+              </p>
+
+              <p
+                className="-ml-[2px] -mt-[5px] whitespace-nowrap text-[92px] leading-[0.95] tracking-[-1.85px] uppercase md:-ml-[20px] md:-mt-[20px] md:text-[300px] md:leading-none md:tracking-[-6px]"
+                style={watermarkStyle}
+              >
+                SILENCE
+              </p>
+
+              <p
+                className="mt-0 text-right text-[20px] leading-none tracking-[-0.39px] uppercase md:mt-[10px] md:text-[64px] md:tracking-[-1.28px]"
+                style={watermarkStyle}
+              >
+                MANIFESTR WAS BORN
+              </p>
+            </div>
+          </div>
+
           {/* Right column */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.15 }}
-            className="w-full md:w-1/2 md:max-w-[524px]"
+            className="w-full md:col-start-2 md:row-start-1 md:max-w-[524px]"
           >
             <h3
               className="capitalize text-[24px] md:text-[36px] leading-[32px] md:leading-[49px]
@@ -79,38 +108,6 @@ export default function FromTheSilence() {
               </p>
             </div>
           </motion.div>
-        </div>
-
-        {/* Watermark layer */}
-        <div
-          className="pointer-events-none select-none w-full px-6 md:px-[190px]
-                     mt-[24px] md:mt-[80px] pb-[24px] md:pb-[80px]"
-          aria-hidden="true"
-        >
-          <div className="relative">
-            <p
-              className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase"
-              style={watermarkStyle}
-            >
-              FROM THE
-            </p>
-
-            <p
-              className="text-[92px] md:text-[300px] leading-[0.95] md:leading-none tracking-[-1.85px] md:tracking-[-6px] uppercase whitespace-nowrap
-                         -mt-[5px] md:-mt-[20px] -ml-[2px] md:-ml-[20px]"
-              style={watermarkStyle}
-            >
-              SILENCE
-            </p>
-
-            <p
-              className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase
-                         text-right mt-0 md:mt-[10px]"
-              style={watermarkStyle}
-            >
-              MANIFESTR WAS BORN
-            </p>
-          </div>
         </div>
 
       </div>

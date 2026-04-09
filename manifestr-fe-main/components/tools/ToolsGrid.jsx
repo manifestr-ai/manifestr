@@ -15,8 +15,20 @@ const TOOL_IMAGES = {
   costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-1_ohfioc.jpg',
 }
 
+const TOOL_THUMBS = {
+  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648466/Stra_knxfh3.png',
+  analyzer: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648468/Stra-2_vrwn3v.png',
+  'cost-ctrl': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648467/Stra-1_qiykoo.png',
+  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648465/Stra-8_zhxvh2.png',
+  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-6_bdrpoz.png',
+  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-5_oakd3c.png',
+  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-4_p60d5g.png',
+  'design-studio': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-3_qbmovn.png',
+}
+
 const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944466/37_modern-founder_model-07-shot-02b_2_wj98bv.svg'
 
+/* Copy aligned with components/landing/ToolkitSection.jsx `tools` */
 const TOOLS = [
   {
     slug: 'strategist',
@@ -28,8 +40,7 @@ const TOOLS = [
     tags: ['Strategy', 'Positioning', 'Direction'],
     description: {
       title: 'Strategy & Positioning',
-      content: 'Turn objectives into clear, data-driven strategies.',
-      quickTip: 'Upload a brief — STRATEGIST builds insights and goals in minutes.',
+      content: 'Turn objectives into clear, data-driven strategies and roadmaps.',
     },
   },
   {
@@ -42,8 +53,7 @@ const TOOLS = [
     tags: ['Insights', 'Analysis', 'Reporting'],
     description: {
       title: 'Insights & Analysis',
-      content: 'Discover and report on data-driven insights.',
-      quickTip: 'Connect your data for instant analysis.',
+      content: 'Data reports, competitive analyses and insight-driven documents.',
     },
   },
   {
@@ -51,27 +61,25 @@ const TOOLS = [
     image: TOOL_IMAGES.briefcase,
     titleParts: [
       { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'briefcase', font: 'ivy', size: 40 },
+      { text: 'BRIEFCASE', font: 'ivy', size: 40 },
     ],
     tags: ['Briefs', 'Templates', 'Documents'],
     description: {
       title: 'Briefs & Documents',
-      content: 'Create professional briefs and documents.',
-      quickTip: 'Start from templates or from scratch.',
+      content: 'Polished briefs, proposals and strategic documents for every pitch.',
     },
   },
   {
     slug: 'design-studio',
     image: TOOL_IMAGES.designStudio,
     titleParts: [
-      { text: 'DESIGN ', font: 'hk', size: 30 },
+      { text: 'Design ', font: 'hk', size: 30 },
       { text: 'studio', font: 'ivy', size: 40 },
     ],
     tags: ['Images', 'Visuals', 'Moodboards'],
     description: {
       title: 'Visual & Design',
-      content: 'Build visuals and moodboards.',
-      quickTip: 'Drag, drop, and design in one place.',
+      content: 'Custom visuals, social assets and branded graphics in minutes.',
     },
   },
   {
@@ -88,8 +96,7 @@ const TOOLS = [
     tags: ['Copy', 'Content', 'Messaging'],
     description: {
       title: 'Copy & Content',
-      content: 'Create and refine copy and messaging.',
-      quickTip: 'Write and polish content in one place.',
+      content: 'Long-form copy, articles, scripts and written content with AI.',
     },
   },
   {
@@ -102,22 +109,21 @@ const TOOLS = [
     tags: ['Presentations', 'Slides', 'Pitches'],
     description: {
       title: 'Presentations',
-      content: 'Create decks and pitches.',
-      quickTip: 'AI-assisted slides in minutes.',
+      content:
+        'On-brand, editable presentation decks with visuals, charts and structured slides.',
     },
   },
   {
     slug: 'huddle',
     image: TOOL_IMAGES.huddle,
     titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
+      { text: 'The ', font: 'hk', size: 30 },
       { text: 'huddle', font: 'ivy', size: 40 },
     ],
     tags: ['Agendas', 'Meetings', 'Minutes'],
     description: {
       title: 'Meetings & Memos',
-      content: 'Agendas, meetings, and memos.',
-      quickTip: 'Run better meetings with structured agendas.',
+      content: 'Meeting notes, agendas and action plans to keep teams aligned.',
     },
   },
   {
@@ -130,8 +136,7 @@ const TOOLS = [
     tags: ['Costs', 'Budgets', 'Forecasting'],
     description: {
       title: 'Budgets & Forecasting',
-      content: 'Control costs and forecast.',
-      quickTip: 'Track budgets and forecasts in one place.',
+      content: 'Smart budgets, cost breakdowns and financial summaries built fast.',
     },
   },
 ]
@@ -290,6 +295,7 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
   const router = useRouter()
   const titleText = tool.titleParts[0].text.trim()
   const accentText = tool.titleParts[1].text
+  const thumbSrc = TOOL_THUMBS[tool.slug]
 
   return (
     <div
@@ -308,16 +314,27 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
           'height 0.45s cubic-bezier(.4,0,.2,1), border-radius 0.45s cubic-bezier(.4,0,.2,1)',
       }}
     >
+      {/* Thumbnail — visible when collapsed */}
+      {thumbSrc && (
+        <CldImage
+          src={thumbSrc}
+          alt={`${titleText} ${accentText}`}
+          className="absolute top-0 bottom-0 right-0 w-[70%] h-full object-cover object-right"
+          style={{
+            opacity: isExpanded ? 0 : 1,
+            transition: 'opacity 0.35s cubic-bezier(.4,0,.2,1)',
+          }}
+        />
+      )}
+
+      {/* Full image — visible when expanded */}
       <CldImage
         src={tool.image}
         alt={`${titleText} ${accentText}`}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full object-cover object-right"
         style={{
-          objectFit: 'cover',
-          objectPosition: isExpanded ? 'center top' : 'right center',
-          width: isExpanded ? '100%' : '70%',
-          left: isExpanded ? '0' : '30%',
-          transition: 'object-position 0.45s cubic-bezier(.4,0,.2,1), width 0.45s cubic-bezier(.4,0,.2,1), left 0.45s cubic-bezier(.4,0,.2,1)',
+          opacity: isExpanded ? 1 : 0,
+          transition: 'opacity 0.35s cubic-bezier(.4,0,.2,1)',
         }}
       />
 
@@ -406,7 +423,7 @@ export default function ToolsGrid() {
         <CldImage
           src={HERO_IMAGE}
           alt=""
-          className="h-[95%] w-auto max-w-none object-cover object-[center_top]"
+          className="h-[102%] w-auto max-w-none object-cover mt-[-108px] object-top"
           priority
         />
       </div>
@@ -414,7 +431,7 @@ export default function ToolsGrid() {
       {/* ELEVATE watermark */}
       <span
         aria-hidden="true"
-        className="absolute bottom-0 translate-y-[23%] text-[91px] md:text-[200px] lg:text-[300px] opacity-[0.32] pointer-events-none select-none whitespace-nowrap leading-none left-[21px] md:left-auto lg:left-[18%] xl:left-[12%]"
+        className="absolute bottom-0 translate-y-[23%] text-[91px] md:text-[200px] lg:text-[300px] opacity-[0.32] pointer-events-none select-none whitespace-nowrap leading-none left-[21px] md:left-auto lg:left-[18%] xl:left-[12%] 2xl:left-[20%]"
         style={{
           fontFamily: "'IvyPresto Headline', serif",
           fontWeight: 600,
@@ -466,7 +483,7 @@ export default function ToolsGrid() {
       </div>
 
       {/* ── DESKTOP ── */}
-      <div className="hidden md:block relative z-10 max-w-[1040px] mx-auto px-[80px] lg:max-w-[700px] lg:px-0 lg:ml-auto lg:mr-[5%] xl:max-w-[960px] xl:mr-[5%] pt-[126px] pb-[320px]">
+      <div className="hidden md:block relative z-10 max-w-[1040px] mx-auto px-[80px] lg:max-w-[700px] lg:px-0 lg:ml-auto lg:mr-[5%] xl:max-w-[960px] xl:mr-[8%] 2xl:ml-[32%] 2xl:mr-auto pt-[126px] pb-[320px]">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

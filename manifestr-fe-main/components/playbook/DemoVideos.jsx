@@ -3,7 +3,7 @@ import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042697/Frame_rbbkjw.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775670192/6999ed29b2e67618b5815daf16382aa929f90057_sarl2g.png'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const BROWSE_CATEGORIES = [

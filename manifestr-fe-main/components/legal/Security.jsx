@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://www.figma.com/api/mcp/asset/d973688b-ec70-4cdc-8fdc-bc34ec01213c'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562811/cd66b20ab0bb6b7b84ff9c24d6b8b90e19c2fc02_qxz0oy.jpg'
 
 const STATS = [
   { value: '99.99%', label: 'Uptime SLA' },
@@ -15,37 +15,37 @@ const FRAMEWORK_CARDS = [
   {
     title: 'Data Protection',
     description: 'End-to-end safeguards with encryption, backups, and strict access control.',
-    image: 'https://www.figma.com/api/mcp/asset/a7079e68-c93d-4bfa-b78a-eb3906386748',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562726/Container_ba62of.png',
     href: '/security/data-protection',
   },
   {
     title: 'Compliance & Certifications',
     description: 'Verified by SOC 2, GDPR, and CPRA to meet global standards.',
-    image: 'https://www.figma.com/api/mcp/asset/bbce470e-a559-4b2c-92ef-2c05f0f34c8b',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562726/Container-1_owwi8c.png',
     href: '/security/compliance-certifications',
   },
   {
     title: 'User Responsibility',
     description: 'A shared model: we secure the platform, you manage safe access.',
-    image: 'https://www.figma.com/api/mcp/asset/477162e8-61a7-498a-9903-e983c9900869',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562727/Container-2_cxgesn.png',
     href: '/security/user-responsibility',
   },
   {
     title: 'Incident Reporting',
     description: 'Fast, transparent reporting with dedicated response and bug bounty.',
-    image: 'https://www.figma.com/api/mcp/asset/8c6cad63-6c21-4894-b2a5-37f608a1e585',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562726/Container-3_nydrou.png',
     href: '/security/incident-reporting',
   },
   {
     title: 'Continuous Monitoring',
     description: 'Real-time monitoring, audits, and pen-tests for ongoing protection.',
-    image: 'https://www.figma.com/api/mcp/asset/0a7a935e-23ed-4e37-87ca-d5be8174ef57',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562726/Container-4_pi17zj.png',
     href: '/security/continuous-monitoring',
   },
   {
     title: 'Investor Trust Center',
     description: 'Secure access to audit reports, compliance docs, and policies.',
-    image: 'https://www.figma.com/api/mcp/asset/0866e71d-82b8-4aeb-aa39-5b9bc395cb1d',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775562726/Container-5_jemwhe.png',
     href: '/security/investor-trust-center',
   },
 ]

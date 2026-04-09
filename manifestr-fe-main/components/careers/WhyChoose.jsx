@@ -75,21 +75,20 @@ export default function WhyChoose() {
             ))}
           </div>
 
-          {/* Buttons */}
-          <div className="flex items-center gap-[12px]">
+          {/* Buttons — primary: Figma 12181:22858 (shadcn button + arrow) */}
+          <div className="flex flex-wrap items-center gap-[12px]">
             <Link
               href="#roles"
-              className="inline-flex items-center gap-[8px] h-[36px] md:h-[44px] px-[24px] rounded-md bg-[#18181b] text-white text-[12px] md:text-[14px] font-medium
-                         hover:opacity-90 transition-opacity"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="inline-flex items-center justify-center gap-2 h-[54px] w-[290px] max-w-full md:w-auto shrink-0 px-6 py-2 rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Explore Open Roles
+              <ArrowUpRight className="size-4 shrink-0 text-white" strokeWidth={2} aria-hidden />
             </Link>
             <Link
               href="#culture"
-              className="hidden md:inline-flex items-center h-[44px] px-[24px] rounded-md bg-white border border-[#e4e4e7]
-                         text-[#18181b] text-[14px] font-medium hover:bg-[#fafafa] transition-colors"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="hidden md:inline-flex items-center justify-center h-[54px] px-6 py-2 rounded-[6px] bg-white border border-[#e4e4e7] text-[#18181b] text-[14px] leading-[20px] font-medium hover:bg-[#fafafa] transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Discover Our Culture
             </Link>

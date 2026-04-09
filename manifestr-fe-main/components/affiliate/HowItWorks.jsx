@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const PEOPLE_IMG = 'https://www.figma.com/api/mcp/asset/f3209370-1f6d-4643-9758-d8068322936d'
+const PEOPLE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775631915/upscaled-image-1760619644309_1_m8hpfj.png'
 const PEOPLE_IMG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023332/upscaled-image-1760619644309_1_oezfn4.jpg'
 const CURVE_LINE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023333/Vector_1_b73kah.svg'
 const DOT_ICON_1 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023336/Group_1577708898_ctj0lu.svg'
@@ -29,7 +29,7 @@ export default function HowItWorks() {
       {/* === DESKTOP (md+) — pixel-faithful to Figma === */}
       <div className="hidden md:block relative w-full max-w-full mx-auto" style={{ height: 1186 }}>
         {/* People background image */}
-        <div className="absolute bottom-[-300px] left-0 w-full">
+        <div className="absolute  left-0 w-full">
           <CldImage
             src={PEOPLE_IMG}
             alt=""

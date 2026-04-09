@@ -39,6 +39,7 @@ export default function ToolFeatures({ tool }) {
           )}
         </motion.h2>
 
+        {/* Rows match Figma 12468:22075 (image left) & 12468:22082 (image right) */}
         <div className="flex flex-col gap-[24px] md:gap-[36px]">
           {howItWorks.map((item, i) => {
             const imageLeft = i % 2 === 0
@@ -50,11 +51,13 @@ export default function ToolFeatures({ tool }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                className={`flex flex-col ${imageLeft ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-[24px] md:gap-[64px]`}
+                className={`flex flex-col ${imageLeft ? 'md:flex-row' : 'md:flex-row-reverse'} items-center justify-center gap-[24px] md:gap-[64px]`}
               >
-                <div className={`order-2 md:order-0 shrink-0 w-[299px] md:w-[502px] h-[231px] md:h-[387px] rounded-[12px] overflow-hidden ${imageUrl ? '' : 'bg-[#E3E3E3] flex items-center justify-center'}`}>
+                <div
+                  className={`order-1 md:order-0 shrink-0 w-full max-w-[502px] mx-auto md:mx-0 h-[231px] md:h-[387px] md:w-[502px] rounded-[12px] overflow-hidden ${imageUrl ? '' : 'bg-[#E3E3E3] flex items-center justify-center'}`}
+                >
                   {imageUrl ? (
-                    <CldImage src={imageUrl} alt="" className="w-full h-full object-cover" />
+                    <CldImage src={imageUrl} alt="" className="w-full h-full object-cover pointer-events-none rounded-[12px]" />
                   ) : (
                     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-30">
                       <rect x="4" y="10" width="56" height="44" rx="4" stroke="#71717A" strokeWidth="2" />
@@ -64,25 +67,27 @@ export default function ToolFeatures({ tool }) {
                   )}
                 </div>
 
-                <div className="order-1 md:order-0 flex-1 flex flex-col gap-[12px] items-center md:items-start text-center md:text-left">
+                <div className="order-2 md:order-0 flex flex-1 min-w-0 flex-row gap-5 items-start w-full text-left">
                   <span
-                    className="shrink-0 text-black text-[48px] md:text-[30px] leading-[38px]"
+                    className="shrink-0 text-black text-[30px] leading-[38px] whitespace-nowrap"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
                   >
                     {item.number}
                   </span>
-                  <h3
-                    className="text-black text-[30px] leading-[38px]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
-                  >
-                    {item.title}
-                  </h3>
-                  <p
-                    className="text-[#52525B] text-[16px] md:text-[18px] leading-[24px] md:leading-[26px]"
-                    style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, maxWidth: '529px' }}
-                  >
-                    {item.description}
-                  </p>
+                  <div className="flex min-w-0 flex-1 flex-col gap-3 items-start">
+                    <h3
+                      className="text-black text-[30px] leading-[38px] w-full min-w-0"
+                      style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                    >
+                      {item.title}
+                    </h3>
+                    <p
+                      className="text-[#52525b] text-[18px] leading-[26px] max-w-[529px]"
+                      style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400 }}
+                    >
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             )

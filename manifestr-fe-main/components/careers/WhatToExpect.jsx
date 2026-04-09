@@ -5,7 +5,6 @@ const STEPS = [
     num: '01',
     title: 'Application Review',
     desc: 'We review every application carefully, with attention to experience, judgement, and alignment with how we work.',
-    isFirst: true,
   },
   {
     num: '02',
@@ -30,18 +29,18 @@ export default function WhatToExpect() {
     <section className="w-full bg-white py-[48px] md:py-[96px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px] flex flex-col gap-[24px] md:gap-[60px] items-center">
 
-        {/* Heading */}
+        {/* Intro + heading (body copy first per design) */}
         <div className="flex flex-col gap-[12px] items-center text-center w-full">
-          <h2 className="text-[30px] md:text-[60px] leading-[43px] md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px] text-black max-w-[342px] md:max-w-none">
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The Application </span>
-            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Process </span>
-          </h2>
           <p
             className="text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525c] w-full max-w-[342px] md:max-w-none"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             Empowering ambitious minds with AI Toolkit to thrive - without sacrificing their spark or well-being.
           </p>
+          <h2 className="text-[30px] md:text-[60px] leading-[43px] md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px] text-black max-w-[342px] md:max-w-none">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The Application </span>
+            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Process </span>
+          </h2>
         </div>
 
         {/* Mobile steps — centered text blocks */}
@@ -71,18 +70,18 @@ export default function WhatToExpect() {
           ))}
         </div>
 
-        {/* Desktop steps — with timeline */}
-        <div className="hidden md:flex flex-col items-start w-full max-w-[968px]">
-          {STEPS.map((step, i) => (
-            <motion.div
-              key={step.num}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.12, duration: 0.5 }}
-              className={`flex items-start w-full ${step.isLast ? 'h-[110px]' : 'h-[139px]'}`}
-            >
-              <div className="flex items-center gap-[24px] shrink-0 w-[577px] h-full">
+        {/* Desktop steps — continuous vertical line through dot centers; single dot color */}
+        <div className="hidden md:flex w-full max-w-[968px] items-stretch">
+          <div className="flex flex-col w-[577px] shrink-0">
+            {STEPS.map((step, i) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12, duration: 0.5 }}
+                className={`flex items-center gap-[24px] shrink-0 ${step.isLast ? 'h-[110px]' : 'h-[139px]'}`}
+              >
                 <span
                   className="text-[36px] leading-[44px] tracking-[-0.72px] text-black shrink-0"
                   style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
@@ -95,38 +94,68 @@ export default function WhatToExpect() {
                 >
                   {step.title}
                 </span>
-              </div>
-              <div className="flex gap-[28px] h-full items-start">
-                <div className="flex flex-col items-center h-full w-[11px] shrink-0">
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="flex flex-1 gap-[28px] min-w-0 pt-1">
+            <div className="relative flex w-[15px] shrink-0 flex-col items-center">
+              {/* One line from first dot center to last dot center (139×3 + 110 row heights) */}
+              <motion.div
+                aria-hidden
+                className="absolute left-1/2 z-0 w-[2px] origin-top -translate-x-1/2 bg-[#d1d5db]"
+                style={{
+                  top: '69.5px',
+                  bottom: '55px',
+                }}
+                initial={{ scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{
+                  duration: 1,
+                  ease: [0.33, 1, 0.68, 1],
+                }}
+              />
+              {STEPS.map((step, i) => (
+                <div
+                  key={step.num}
+                  className={`flex w-full items-center justify-center ${step.isLast ? 'h-[110px]' : 'h-[139px]'}`}
+                >
                   <motion.div
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.2 + 0.3, duration: 0.35, type: 'spring', stiffness: 300 }}
-                    className={`w-[11px] h-[11px] rounded-full shrink-0 mt-[4px]
-                                ${step.isFirst ? 'bg-[#18181b]' : 'bg-[#71717a]'}`}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{
+                      delay: 0.08 + i * 0.18,
+                      duration: 0.5,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    className="relative z-1 size-[15px] shrink-0 rounded-full bg-[#52525B]"
                   />
-                  {!step.isLast && (
-                    <motion.div
-                      initial={{ scaleY: 0 }}
-                      whileInView={{ scaleY: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.2 + 0.5, duration: 0.45, ease: 'easeOut' }}
-                      className="flex-1 w-px bg-[#d1d5db] mt-[4px] origin-top"
-                    />
-                  )}
                 </div>
-                <div className="flex flex-col items-start w-[362px]">
+              ))}
+            </div>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              {STEPS.map((step, i) => (
+                <motion.div
+                  key={step.num}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.12, duration: 0.45 }}
+                  className={`flex items-center ${step.isLast ? 'min-h-[110px]' : 'min-h-[139px]'}`}
+                >
                   <p
-                    className="text-[16px] leading-[24px] text-[#18181b]"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                    className="max-w-[362px] text-[16px] leading-[24px] text-[#18181b]"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {step.desc}
                   </p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
 
       </div>

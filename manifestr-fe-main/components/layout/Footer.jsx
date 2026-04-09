@@ -208,24 +208,24 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[80px]">
         <div className="border-t border-white/20 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2 md:gap-6 order-1 md:order-2">
+          <div className="flex flex-nowrap items-center justify-between gap-2 sm:justify-start sm:gap-4 md:gap-6 order-1 md:order-2 max-md:w-full">
             <Link
               href="/privacy"
-              className="text-[14px] md:text-[18px] leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors p-1"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="text-[14px] md:text-[18px] leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors p-1"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Terms of Service
             </Link>
             <Link
               href="/cookies"
-              className="text-[14px] md:text-[18px] leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors p-1"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Cookies Settings

@@ -11,10 +11,10 @@ export default function AffiliateHero() {
           src={HERO_BG}
           alt=""
           className="w-full h-full object-cover"
-          style={{ objectPosition: 'center top', transform: 'rotate(180deg) scaleY(-1)' }}
+          style={{ objectPosition: 'center top', transform: '' }}
           priority
         />
-        <div className="absolute inset-0 bg-black/50 md:bg-black/20" />
+        <div className="absolute inset-0 " />
       </div>
 
       <div className="absolute inset-0 flex items-center justify-center px-6">
