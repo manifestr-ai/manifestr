@@ -42,6 +42,16 @@ const SOCIAL_ICONS = {
   ),
 }
 
+const SOCIAL_LINKS = {
+  linkedin: 'https://www.linkedin.com/company/manifestr',
+  tiktok: 'https://www.tiktok.com/@manifestr.ai',
+  instagram: 'https://www.instagram.com/manifestr.ai',
+  facebook: 'https://www.facebook.com/people/Manifestr/61580508084931/',
+  twitter: 'https://x.com/manifestr_ai',
+  threads: 'https://www.threads.com/@manifestr.ai',
+  youtube: 'https://www.youtube.com/@Manifestr-ai',
+}
+
 const productLinks = [
   { label: 'The Toolkit', href: '/toolkit' },
   { label: 'Pricing', href: '/pricing' },
@@ -192,7 +202,9 @@ export default function Footer() {
                 {Object.entries(SOCIAL_ICONS).map(([name, icon]) => (
                   <a
                     key={name}
-                    href="#"
+                    href={SOCIAL_LINKS[name]}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-10 h-10 flex items-center justify-center text-white hover:text-white/70 transition-colors"
                     aria-label={name}
                   >
