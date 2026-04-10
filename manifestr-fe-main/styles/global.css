@@ -474,3 +474,11 @@
 .TkLdA {
   display: none !important;
 }
+.polotno-workspace-container {
+  /* background-color: #ffffff !important; */
+  overflow: hidden !important;
+  }
+
+/* .bp5-popover-target{
+  display: none !important;
+} */
