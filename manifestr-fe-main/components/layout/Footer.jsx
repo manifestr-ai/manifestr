@@ -73,9 +73,9 @@ const supportLinks = [
 
 function FooterLinkColumn({ title, links }) {
   return (
-    <div className="flex flex-col gap-4 md:gap-8">
+    <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
       <h3
-        className="text-[16px] md:text-[32px] leading-[24px] md:leading-[36px] text-[#f9fafb] tracking-0 md:tracking-[-0.64px] font-medium"
+        className="text-[16px] md:text-[22px] lg:text-[28px] xl:text-[32px] leading-[24px] md:leading-[28px] lg:leading-[32px] xl:leading-[36px] text-[#f9fafb] tracking-0 lg:tracking-[-0.64px] font-medium"
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
         <span className="md:hidden">{title}</span>
@@ -86,12 +86,12 @@ function FooterLinkColumn({ title, links }) {
           {title}
         </span>
       </h3>
-      <div className="flex flex-col gap-2 md:gap-7">
+      <div className="flex flex-col gap-2 md:gap-5 lg:gap-7">
         {links.map((link) => (
           <Link
             key={link.label}
             href={link.href}
-            className="text-[14px] md:text-[18px] leading-[20px] text-white font-medium hover:text-white/80 transition-colors p-1 md:p-0"
+            className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-white font-medium hover:text-white/80 transition-colors p-1 md:p-0"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             {link.label}
@@ -107,21 +107,21 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#09090b] text-white w-full">
-      {/* Logo */}
-      <div className="w-full overflow-hidden py-6 md:py-10">
+      {/* Logo — scale up gradually; full wordmark height from lg */}
+      <div className="w-full overflow-hidden py-6 md:py-8 lg:py-10">
         <CldImage
           src={FOOTER_LOGO}
           alt="MANIFESTR"
-          className="w-full max-h-[43px] md:max-h-[161px] object-contain"
+          className="w-full max-h-[43px] md:max-h-[88px] lg:max-h-[120px] xl:max-h-[161px] object-contain"
         />
       </div>
 
       {/* Main content */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[80px] pb-6 md:py-16">
-        <div className="flex flex-col lg:flex-row justify-between gap-8 lg:gap-20">
+      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[80px] pb-6 md:py-12 lg:py-16">
+        <div className="flex flex-col lg:flex-row justify-between gap-8 md:gap-10 lg:gap-20">
 
           {/* Link columns — mobile: Product+Company side by side, Support below; desktop: all in a row */}
-          <div className="flex flex-col gap-8 md:flex-row md:gap-[80px] lg:gap-[127px]">
+          <div className="flex flex-col gap-8 md:flex-row md:gap-10 lg:gap-[127px]">
             <div className="flex gap-10 md:contents">
               <div className="flex-1">
                 <FooterLinkColumn title="Product" links={productLinks} />
@@ -134,27 +134,27 @@ export default function Footer() {
           </div>
 
           {/* Newsletter + Social */}
-          <div className="flex flex-col gap-6 md:gap-8 lg:max-w-[460px]">
+          <div className="flex flex-col gap-6 md:gap-7 lg:gap-8 lg:max-w-[460px] w-full lg:w-auto">
             <div className="flex flex-col gap-4 md:gap-6">
               <p
-                className="text-[14px] md:text-[18px] leading-[20px] text-[#d4d4d8] md:text-white font-medium"
+                className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#d4d4d8] md:text-white font-medium"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 Unlock exclusive updates
               </p>
 
               {/* Mobile: stacked input + button; Desktop: side by side */}
-              <div className="hidden md:flex gap-2">
+              <div className="hidden md:flex flex-col lg:flex-row gap-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 h-[54px] px-3 py-2 bg-white rounded-md text-[18px] text-[#71717a] placeholder:text-[#71717a] outline-none"
+                  className="flex-1 min-w-0 h-[48px] lg:h-[54px] px-3 py-2 bg-white rounded-md text-[16px] lg:text-[18px] text-[#71717a] placeholder:text-[#71717a] outline-none"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                 />
                 <button
-                  className="h-[54px] px-6 bg-white rounded-md text-[18px] text-black font-medium hover:bg-white/90 transition-colors cursor-pointer"
+                  className="h-[48px] lg:h-[54px] shrink-0 px-5 lg:px-6 bg-white rounded-md text-[16px] lg:text-[18px] text-black font-medium hover:bg-white/90 transition-colors cursor-pointer"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                 >
                   Subscribe
@@ -178,7 +178,7 @@ export default function Footer() {
               </div>
 
               <p
-                className="text-[14px] md:text-[18px] leading-[20px] text-[#d4d4d8] md:text-white font-medium"
+                className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#d4d4d8] md:text-white font-medium"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 Only insights that move your work forward
@@ -187,7 +187,7 @@ export default function Footer() {
 
             <div>
               <h3
-                className="text-[20px] md:text-[32px] leading-[28px] md:leading-[36px] text-white md:text-[#f9fafb] tracking-0 md:tracking-[-0.64px] font-medium mb-4"
+                className="text-[20px] md:text-[22px] lg:text-[28px] xl:text-[32px] leading-[28px] md:leading-[28px] lg:leading-[32px] xl:leading-[36px] text-white md:text-[#f9fafb] tracking-0 lg:tracking-[-0.64px] font-medium mb-4"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 <span className="md:hidden">Follow us</span>
@@ -198,7 +198,7 @@ export default function Footer() {
                   Follow us
                 </span>
               </h3>
-              <div className="flex justify-between md:justify-start md:gap-4">
+              <div className="flex flex-wrap justify-between gap-3 md:justify-start md:gap-3 lg:gap-4">
                 {Object.entries(SOCIAL_ICONS).map(([name, icon]) => (
                   <a
                     key={name}
@@ -218,33 +218,33 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[80px]">
+      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[80px]">
         <div className="border-t border-white/20 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex flex-nowrap items-center justify-between gap-2 sm:justify-start sm:gap-4 md:gap-6 order-1 md:order-2 max-md:w-full">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:justify-start sm:gap-4 md:gap-5 lg:gap-6 order-1 md:order-2 max-md:w-full">
             <Link
               href="/privacy"
-              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Terms of Service
             </Link>
             <Link
               href="/cookies"
-              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Cookies Settings
             </Link>
           </div>
           <p
-            className="text-[14px] md:text-[18px] leading-[20px] text-[#a1a1aa] md:text-white order-2 md:order-1"
+            className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#a1a1aa] md:text-white order-2 md:order-1"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             &copy; 2025 MANIFESTR. All rights reserved.

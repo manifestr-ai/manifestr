@@ -129,16 +129,16 @@ export default function Header() {
   return (
     <>
       <header className="bg-[rgba(255,255,255,0.9)] fixed top-0 left-0 right-0 z-50 border-b border-[#e4e4e7] backdrop-blur-sm">
-        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-[80px] py-[20px]">
-          <div className="flex items-center justify-between md:justify-start">
+        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-8 lg:px-[80px] py-4 lg:py-[20px]">
+          <div className="flex items-center justify-between md:justify-start gap-2 md:gap-3 lg:gap-0">
 
             {/* Mobile: Logo */}
             <div className="md:hidden">
               <Logo size="sm" />
             </div>
 
-            {/* Desktop Left Navigation */}
-            <div className="hidden md:flex items-center gap-[44px] flex-1">
+            {/* Desktop Left Navigation — compact on tablet (md–lg), full spacing at lg+ */}
+            <div className="hidden md:flex items-center gap-4 lg:gap-[44px] flex-1 min-w-0">
               <Link href="/" className={navLink('/')}>Home</Link>
               <Link href="/tools" className={navLink('/tools')}>Toolkit</Link>
               <NavDropdown
@@ -150,14 +150,17 @@ export default function Header() {
               <Link href="/blog" className={navLink('/blog')}>Blog</Link>
             </div>
 
-            {/* Desktop Logo - Centered */}
-            <div className="hidden md:flex w-[271.392px] justify-center">
+            {/* Desktop Logo — smaller on tablet so nav fits without overflow */}
+            <div className="hidden md:flex lg:hidden w-[min(140px,18vw)] shrink-0 justify-center">
+              <Logo size="sm" />
+            </div>
+            <div className="hidden lg:flex w-[271.392px] justify-center shrink-0">
               <Logo size="md" />
             </div>
 
             {/* Desktop Right Navigation */}
-            <div className="hidden md:flex items-center gap-[24px] flex-1 justify-end">
-              <div className="flex items-center gap-[44px]">
+            <div className="hidden md:flex items-center gap-2 lg:gap-[24px] flex-1 justify-end min-w-0">
+              <div className="flex items-center gap-3 lg:gap-[44px] shrink min-w-0">
                 <Link href="/pricing" className={navLink('/pricing')}>Pricing</Link>
                 <NavDropdown
                   label="Support"
@@ -167,7 +170,7 @@ export default function Header() {
                   isActive={SUPPORT_ROUTES.includes(path)}
                 />
               </div>
-              <div className="flex items-center gap-[12px]">
+              <div className="flex items-center gap-2 lg:gap-[12px] shrink-0">
                 {user ? (
                   <Link
                     href="/home"

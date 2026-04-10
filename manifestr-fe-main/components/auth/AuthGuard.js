@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const UNPROTECTED_ROUTES = [
     '/',
     '/login',
+    '/demo-page',
     '/signup',
     '/forgot-password',
     '/verify-email',
