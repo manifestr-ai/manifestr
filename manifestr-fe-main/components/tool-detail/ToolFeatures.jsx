@@ -10,13 +10,13 @@ export default function ToolFeatures({ tool }) {
 
   return (
     <section className="w-full bg-white py-[48px] md:py-[100px]">
-      <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
+      <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-[80px]">
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center text-black text-[32px] md:text-[51px] leading-[1.2] tracking-[-0.64px] md:tracking-[-1.02px] mb-[32px] md:mb-[72px]"
+          className="text-center text-black text-[32px] md:text-[40px] lg:text-[51px] leading-[1.2] tracking-[-0.64px] lg:tracking-[-1.02px] mb-[32px] md:mb-[48px] lg:mb-[72px]"
         >
           {featureHeading ? (
             featureHeading.map((part, i) =>
@@ -40,7 +40,7 @@ export default function ToolFeatures({ tool }) {
         </motion.h2>
 
         {/* Rows match Figma 12468:22075 (image left) & 12468:22082 (image right) */}
-        <div className="flex flex-col gap-[24px] md:gap-[36px]">
+        <div className="flex flex-col gap-[24px] md:gap-[28px] lg:gap-[36px]">
           {howItWorks.map((item, i) => {
             const imageLeft = i % 2 === 0
             const imageUrl = featureImages?.[i]
@@ -51,10 +51,10 @@ export default function ToolFeatures({ tool }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
-                className={`flex flex-col ${imageLeft ? 'md:flex-row' : 'md:flex-row-reverse'} items-center justify-center gap-[24px] md:gap-[64px]`}
+                className={`flex flex-col ${imageLeft ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center justify-center gap-[24px] md:gap-8 lg:gap-[64px]`}
               >
                 <div
-                  className={`order-1 md:order-0 shrink-0 w-full max-w-[502px] mx-auto md:mx-0 h-[231px] md:h-[387px] md:w-[502px] rounded-[12px] overflow-hidden ${imageUrl ? '' : 'bg-[#E3E3E3] flex items-center justify-center'}`}
+                  className={`order-1 lg:order-0 shrink-0 w-full max-w-[502px] mx-auto lg:mx-0 h-[231px] md:h-[300px] lg:h-[387px] lg:w-[502px] rounded-[12px] overflow-hidden ${imageUrl ? '' : 'bg-[#E3E3E3] flex items-center justify-center'}`}
                 >
                   {imageUrl ? (
                     <CldImage src={imageUrl} alt="" className="w-full h-full object-cover pointer-events-none rounded-[12px]" />
@@ -67,7 +67,7 @@ export default function ToolFeatures({ tool }) {
                   )}
                 </div>
 
-                <div className="order-2 md:order-0 flex flex-1 min-w-0 flex-row gap-5 items-start w-full text-left">
+                <div className="order-2 lg:order-0 flex flex-1 min-w-0 flex-row gap-5 items-start w-full text-left">
                   <span
                     className="shrink-0 text-black text-[30px] leading-[38px] whitespace-nowrap"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}

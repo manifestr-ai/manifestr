@@ -74,24 +74,48 @@ export default function OpenRoles() {
   const role = ROLES[selected]
 
   return (
-    <section id="roles" className="w-full bg-white py-[48px] md:py-[120px]">
-      <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
-
-        {/* Heading */}
-        <div className="text-center mb-[16px] md:mb-[20px]">
-          <h2 className="text-[30px] md:text-[60px] leading-[normal] md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px] text-black max-w-[266px] md:max-w-none mx-auto">
+    <section
+      id="roles"
+      className="w-full bg-white overflow-x-hidden
+                 py-[48px]
+                 md:max-lg:py-[72px]
+                 lg:py-[120px]"
+    >
+      <div
+        className="mx-auto w-full min-w-0 max-w-[1280px]
+                   px-4 sm:px-6
+                   md:max-lg:px-8
+                   lg:px-[80px]"
+      >
+        {/* Heading — md–lg: ~72% scale of lg for same visual ratio */}
+        <div
+          className="text-center
+                     mb-4
+                     md:max-lg:mb-4
+                     lg:mb-5"
+        >
+          <h2
+            className="mx-auto text-black
+                       text-[30px] leading-[normal] tracking-[-0.6px] max-w-[266px]
+                       md:max-lg:max-w-full md:max-lg:text-[40px] md:max-lg:leading-[48px] md:max-lg:tracking-[-0.8px]
+                       lg:text-[60px] lg:leading-[72px] lg:tracking-[-1.2px] lg:max-w-none"
+          >
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Find Your Next Role</span>
           </h2>
         </div>
+
         <p
-          className="text-center text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525b] max-w-[459px] mx-auto mb-[24px] md:mb-[60px]"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          className="mx-auto text-center text-[#52525b]
+                     text-[14px] leading-[20px] max-w-[459px] mb-6
+                     md:max-lg:max-w-[min(100%,34rem)] md:max-lg:text-[14px] md:max-lg:leading-[22px] md:max-lg:mb-10
+                     lg:text-[16px] lg:leading-[24px] lg:mb-[60px] lg:max-w-[459px]"
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
         >
           Empowering ambitious minds with AI Toolkit to thrive without sacrificing their spark or well-being.
         </p>
 
         {/* Mobile — horizontally scrolling role cards */}
-        <div className="md:hidden flex gap-[24px] overflow-x-auto -mx-6 px-6 pb-[4px] scrollbar-hide">
+        <div className="md:hidden flex gap-6 overflow-x-auto -mx-6 px-6 pb-1 scrollbar-hide">
           {ROLES.map((r, i) => {
             const isActive = i === selected
             return (
@@ -102,27 +126,27 @@ export default function OpenRoles() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
                 onClick={() => setSelected(i)}
-                className={`bg-[#fafafa] rounded-[12px] p-[24px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] cursor-pointer
-                            border shrink-0 w-[295px] flex flex-col gap-[16px]
+                className={`bg-[#fafafa] rounded-xl p-6 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] cursor-pointer
+                            border shrink-0 w-[295px] flex flex-col gap-4
                             ${isActive ? 'border-[#18181b]' : 'border-[#e4e4e7]'}`}
               >
-                <div className="flex items-start justify-between gap-[12px]">
-                  <div className="flex flex-col gap-[4px]">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-1">
                     <h3
-                      className="text-[24px] leading-[32px] text-black italic font-medium"
+                      className="text-2xl leading-8 text-black italic font-medium"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
                     >
                       {r.title}
                     </h3>
                     <p
-                      className="text-[13px] leading-[20px] text-[#52525b]"
-                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                      className="text-[13px] leading-5 text-[#52525b]"
+                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                     >
                       {r.location}
                     </p>
                   </div>
                   <div
-                    className={`shrink-0 w-[32px] h-[32px] rounded-md flex items-center justify-center
+                    className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center
                                 ${isActive ? 'bg-[#18181b]' : 'bg-[#ebebeb]'}`}
                   >
                     <ArrowUpRight
@@ -133,8 +157,8 @@ export default function OpenRoles() {
                   </div>
                 </div>
                 <p
-                  className="text-[16px] leading-[24px] text-[#52525b]"
-                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                  className="text-base leading-6 text-[#52525b]"
+                  style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                 >
                   {r.desc}
                 </p>
@@ -143,9 +167,18 @@ export default function OpenRoles() {
           })}
         </div>
 
-        {/* Desktop — Two-column layout */}
-        <div className="hidden md:flex flex-row gap-[40px] items-stretch justify-center">
-          <div className="w-[626px] shrink-0 flex flex-col gap-[24px]">
+        {/* Tablet (768–1023) + Desktop (lg+) — two-column layout */}
+        <div
+          className="hidden md:flex w-full min-w-0 flex-row items-stretch
+                     md:max-lg:gap-6
+                     lg:justify-center lg:gap-10"
+        >
+          {/* Left: role cards */}
+          <div
+            className="flex min-w-0 flex-col
+                       md:max-lg:basis-[47%] md:max-lg:max-w-[47%] md:max-lg:shrink-0 md:max-lg:gap-4
+                       lg:w-[626px] lg:shrink-0 lg:gap-6"
+          >
             {ROLES.map((r, i) => {
               const isActive = i === selected
               return (
@@ -156,39 +189,54 @@ export default function OpenRoles() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
                   onClick={() => setSelected(i)}
-                  className={`bg-[#fafafa] rounded-[12px] p-[24px] shadow-xs cursor-pointer
-                              border transition-colors flex-1
+                  className={`bg-[#fafafa] shadow-xs cursor-pointer border transition-colors flex-1
+                              md:max-lg:p-4 md:max-lg:rounded-xl
+                              lg:p-6 lg:rounded-xl
                               ${isActive ? 'border-[#18181b]' : 'border-[#e4e4e7]'}`}
                 >
-                  <div className="flex items-start justify-between gap-[12px] mb-[16px]">
-                    <div>
+                  <div
+                    className="flex items-start justify-between
+                               md:max-lg:gap-2 md:max-lg:mb-3
+                               lg:gap-3 lg:mb-4"
+                  >
+                    <div className="min-w-0 flex-1 pr-1">
                       <h3
-                        className="text-[24px] leading-[32px] text-black"
+                        className="text-black break-words
+                                   md:max-lg:text-[18px] md:max-lg:leading-[24px]
+                                   lg:text-[24px] lg:leading-8"
                         style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                       >
                         {r.title}
                       </h3>
                       <p
-                        className="text-[14px] leading-[20px] text-[#52525b]"
-                        style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                        className="text-[#52525b]
+                                   md:max-lg:text-[12px] md:max-lg:leading-[16px]
+                                   lg:text-[14px] lg:leading-5"
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                       >
                         {r.location}
                       </p>
                     </div>
                     <div
-                      className={`shrink-0 w-[32px] h-[32px] rounded-md flex items-center justify-center
+                      className={`shrink-0 rounded-md flex items-center justify-center
+                                  md:max-lg:h-7 md:max-lg:w-7
+                                  lg:h-8 lg:w-8
                                   ${isActive ? 'bg-[#18181b]' : 'bg-[#ebebeb]'}`}
                     >
                       <ArrowUpRight
-                        className={`w-4 h-4 shrink-0 origin-center transition-transform duration-200 ease-out
+                        className={`shrink-0 origin-center transition-transform duration-200 ease-out
+                                    md:max-lg:h-3.5 md:max-lg:w-3.5
+                                    lg:h-4 lg:w-4
                                     ${isActive ? 'rotate-0 text-white' : 'rotate-90 text-black'}`}
                         aria-hidden
                       />
                     </div>
                   </div>
                   <p
-                    className="text-[16px] leading-[24px] text-[#52525b]"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                    className="text-[#52525b] break-words
+                               md:max-lg:text-[13px] md:max-lg:leading-[20px]
+                               lg:text-base lg:leading-6"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {r.desc}
                   </p>
@@ -197,36 +245,52 @@ export default function OpenRoles() {
             })}
           </div>
 
+          {/* Right: detail panel */}
           <motion.div
             key={selected}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex-1 bg-[#f4f4f5] rounded-[12px] p-[24px] flex flex-col gap-[24px]"
+            className="min-w-0 flex-1 bg-[#f4f4f5] flex flex-col
+                       md:max-lg:gap-4 md:max-lg:rounded-xl md:max-lg:p-4
+                       lg:gap-6 lg:rounded-xl lg:p-6"
           >
-            <div className="flex flex-col gap-[16px]">
+            <div
+              className="flex min-w-0 flex-col overflow-hidden
+                         md:max-lg:gap-3
+                         lg:gap-4"
+            >
               <DetailSection title="Responsibilities" items={role.responsibilities} />
               <DetailSection title="Requirements:" items={role.requirements} />
               <DetailSection title="Nice-to-Haves" items={role.niceToHaves} />
               <DetailSection title="Benefits Teaser:" items={role.benefits} />
             </div>
-            <div className="flex items-center justify-end gap-[24px]">
+
+            <div
+              className="flex w-full min-w-0 flex-row items-center gap-2
+                         md:max-lg:mt-auto md:max-lg:gap-3
+                         lg:justify-end lg:gap-6"
+            >
               <Link
                 href="#"
-                className="inline-flex items-center h-[44px] px-[24px] rounded-md bg-white border border-[#e4e4e7]
-                           text-[#18181b] text-[14px] font-medium hover:bg-[#fafafa] transition-colors"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                className="inline-flex flex-1 min-w-0 items-center justify-center rounded-md bg-white border border-[#e4e4e7]
+                           text-[#18181b] font-medium hover:bg-[#fafafa] transition-colors
+                           md:max-lg:h-10 md:max-lg:px-4 md:max-lg:text-[12px] md:max-lg:leading-tight
+                           lg:h-11 lg:flex-initial lg:px-6 lg:text-sm lg:leading-normal"
+                style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 More Opportunities
               </Link>
               <Link
                 href="#"
-                className="inline-flex items-center gap-[8px] h-[44px] px-[24px] rounded-md bg-[#18181b] text-white
-                           text-[14px] font-medium hover:opacity-90 transition-opacity"
-                style={{ fontFamily: "Inter, sans-serif" }}
+                className="inline-flex flex-1 min-w-0 items-center justify-center gap-1 rounded-md bg-[#18181b] text-white
+                           font-medium hover:opacity-90 transition-opacity
+                           md:max-lg:h-10 md:max-lg:gap-1.5 md:max-lg:px-4 md:max-lg:text-[12px] md:max-lg:leading-tight
+                           lg:h-11 lg:flex-initial lg:gap-2 lg:px-6 lg:text-sm lg:leading-normal"
+                style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 Apply Now
-                <ArrowUpRight className="w-4 h-4" />
+                <ArrowUpRight className="shrink-0 md:max-lg:h-3.5 md:max-lg:w-3.5 lg:h-4 lg:w-4" />
               </Link>
             </div>
           </motion.div>
@@ -238,19 +302,28 @@ export default function OpenRoles() {
 
 function DetailSection({ title, items }) {
   return (
-    <div className="flex flex-col gap-[8px]">
+    <div className="flex min-w-0 flex-col md:max-lg:gap-1.5 lg:gap-2">
       <h4
-        className="text-[18px] leading-[28px] text-black font-semibold"
-        style={{ fontFamily: "Inter, sans-serif" }}
+        className="text-black font-semibold break-words
+                   md:max-lg:text-[14px] md:max-lg:leading-[20px]
+                   lg:text-lg lg:leading-7"
+        style={{ fontFamily: 'Inter, sans-serif' }}
       >
         {title}
       </h4>
-      <ul className="list-disc ml-[24px] flex flex-col gap-[4px]">
+      <ul
+        className="list-disc flex flex-col
+                   ml-3 pl-0.5
+                   md:max-lg:ml-4 md:max-lg:gap-0.5
+                   lg:ml-6 lg:gap-1 lg:pl-0"
+      >
         {items.map((item, i) => (
           <li
             key={i}
-            className="text-[14px] md:text-[16px] leading-[24px] text-[#52525b]"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+            className="min-w-0 break-words text-[#52525b]
+                       md:max-lg:text-[13px] md:max-lg:leading-[20px]
+                       lg:text-base lg:leading-6"
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
             {item}
           </li>

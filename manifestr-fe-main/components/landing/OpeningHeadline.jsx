@@ -51,10 +51,10 @@ export default function OpeningHeadline() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="relative flex flex-col items-center md:flex-row md:items-start md:justify-center mb-3 md:mb-4"
+          className="grid w-full max-w-[1100px] mx-auto grid-cols-1 justify-items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-x-8 lg:gap-x-10 mb-3 md:mb-4"
         >
           <h2
-            className="text-[30px] sm:text-[44px] md:text-[60px] leading-normal md:leading-[62px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center max-w-[900px]"
+            className="w-full min-w-0 max-w-[900px] text-[30px] sm:text-[44px] md:text-[60px] leading-normal md:leading-[62px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center md:col-start-1 md:row-start-1 px-1"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
           >
             Professional documentation for
@@ -71,8 +71,8 @@ export default function OpeningHeadline() {
             </span>
           </h2>
 
-          {/* M. logomark — below headline on mobile, absolute on desktop */}
-          <div className="mt-3 md:mt-0 md:absolute md:top-2 md:right-[60px] w-[56px] h-[56px] md:w-[96px] md:h-[96px] shrink-0">
+          {/* M. logomark — second grid column on md+ so text and mark never share the same box */}
+          <div className="shrink-0 w-[56px] h-[56px] md:w-[96px] md:h-[96px] md:col-start-2 md:row-start-1 md:pt-2">
             <CldImage src={IMG_LOGOMARK} alt="M." className="w-full h-full object-contain" />
           </div>
         </motion.div>
