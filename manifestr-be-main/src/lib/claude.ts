@@ -51,9 +51,27 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
 
             return json as T;
 
-        } catch (e) {
-            // Prepare for retry: Feed back the error to Claude
-            let errorMessage = (e as Error).message;
+        } catch (e: any) {
+            // Check for non-retryable API errors
+            const errorMessage = e?.message || String(e);
+            const statusCode = e?.status || e?.response?.status;
+            
+            // Non-retryable errors - fail immediately
+            if (statusCode === 529 || errorMessage.includes('overloaded_error')) {
+                throw new Error(`Claude API is overloaded (529). Please try again in a few moments. Request ID: ${e?.request_id || 'N/A'}`);
+            }
+            if (statusCode === 429 || errorMessage.includes('rate_limit')) {
+                throw new Error(`Rate limit exceeded (429). Please wait before trying again.`);
+            }
+            if (statusCode === 401 || errorMessage.includes('authentication')) {
+                throw new Error(`Authentication failed (401). Please check your Claude API key.`);
+            }
+            if (statusCode === 403) {
+                throw new Error(`Access forbidden (403). Your API key may not have access to this model.`);
+            }
+            
+            // Retryable errors (JSON/validation issues) - continue with retry logic
+            let retryableErrorMessage = errorMessage;
             if (e instanceof ZodError) {
                 // Format Zod errors to be more readable for Claude
                 const issues = e.issues.map(err => ({
@@ -63,12 +81,12 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
                     received: (err as any).received
                 }));
                 
-                errorMessage = `Schema Validation Failed: ${e.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ')}`;
+                retryableErrorMessage = `Schema Validation Failed: ${e.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ')}`;
             }
 
             // If we've reached max retries, throw the final error
             if (attempt >= maxRetries) {
-                throw new Error(`Failed to generate/validate JSON after ${maxRetries} attempts. Last error: ${errorMessage}`);
+                throw new Error(`Failed to generate/validate JSON after ${maxRetries} attempts. Last error: ${retryableErrorMessage}`);
             }
 
             // Append the bad response and the error to the history
@@ -78,7 +96,7 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
 
             messages.push({
                 role: "user",
-                content: `The previous response was invalid. Please fix the following errors and return ONLY the valid JSON:\n\nError: ${errorMessage}`
+                content: `The previous response was invalid. Please fix the following errors and return ONLY the valid JSON:\n\nError: ${retryableErrorMessage}`
             });
         }
     }
