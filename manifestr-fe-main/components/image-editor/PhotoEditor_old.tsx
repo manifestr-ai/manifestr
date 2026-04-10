@@ -8,12 +8,8 @@ import { observer } from "mobx-react-lite";
 
 import { Button } from "@blueprintjs/core";
 
-import EditorBottomToolbar from "../editor/EditorBottomToolbar";
-import ToolPanel from "../editor/panels/image-editor/ToolPanel";
-
 interface PhotoEditorProps {
   imageSrc?: string;
-  onStoreReady?: (store: any) => void;
 }
 
 const sections = DEFAULT_SECTIONS.filter(
@@ -25,22 +21,35 @@ const sections = DEFAULT_SECTIONS.filter(
 
 const EditorUI = observer(({ store }: { store: any }) => {
   return (
-    <div className="flex flex-col h-full w-full bg-[#e7e7e7]">
-      {/* TOP CENTER TOGGLE */}
-      {/* <div className="flex justify-center pt-4">
-        <div className="bg-white rounded-full shadow-sm p-1 flex gap-1">
-          <button className="px-4 py-1.5 rounded-full bg-gray-100 text-sm font-medium">
-            Image
-          </button>
-          <button className="px-4 py-1.5 rounded-full text-sm text-gray-500">
-            Video
-          </button>
+    <div className="flex flex-col h-full w-full">
+      <div className="h-auto">
+        <Toolbar store={store} />
+      </div>
+      <div className="flex flex-row h-full w-full overflow-hidden">
+        <div
+          className="flex-none h-full"
+          style={{ width: "400px", display: "flex", flexDirection: "column" }}
+        >
+          <SidePanel
+            store={store}
+            sections={sections}
+            defaultSection="photos"
+          />
         </div>
-      </div> */}
-
-      {/* CANVAS AREA */}
-      <div className="flex-grow flex items-center justify-center relative  overflow-hidden">
-        <Workspace store={store} pageControlsEnabled={false} />
+        <div className="flex-grow h-full relative relative-app-workspace bg-gray-100">
+          <Workspace store={store} pageControlsEnabled={false} />
+          <ZoomButtons store={store} />
+          <div className="absolute top-4 right-20 z-10">
+            <Button
+              className="!bg-gray-900 !text-white !border-none hover:!bg-gray-800"
+              onClick={() => {
+                store.saveAsImage({ fileName: "manifestr-edit.png" });
+              }}
+            >
+              Download
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -48,7 +57,6 @@ const EditorUI = observer(({ store }: { store: any }) => {
 
 export default function PhotoEditor({
   imageSrc = "/assets/dummy/dummy-trainer.jpg",
-  onStoreReady,
 }: PhotoEditorProps) {
   const [store] = useState(() =>
     createStore({
@@ -56,12 +64,6 @@ export default function PhotoEditor({
       showCredit: false,
     }),
   );
-
-  useEffect(() => {
-    if (onStoreReady && store) {
-      onStoreReady(store);
-    }
-  }, [store, onStoreReady]);
 
   useEffect(() => {
     console.log(
@@ -120,31 +122,9 @@ export default function PhotoEditor({
     }
   }, [imageSrc, store]);
 
-  const [activeTool, setActiveTool] = useState<
-    | "ai"
-    | "format"
-    | "adjust"
-    | "text"
-    | "color"
-    | "effects"
-    | "filters"
-    | "insert"
-  >("insert");
-
   return (
-    <div className="w-full h-full bg-[#f3f4f6] flex flex-col relative">
-      <div className="flex-1 flex overflow-hidden">
-        <EditorUI store={store} />
-      </div>
-      {/* BOTTOM TOOLBAR */}
-
-      <ToolPanel activeTool={activeTool} store={store} />
-
-      <EditorBottomToolbar
-        activeTool={activeTool}
-        setActiveTool={setActiveTool}
-        editorType="image"
-      />
+    <div className="w-full h-full bg-white relative">
+      <EditorUI store={store} />
     </div>
   );
 }

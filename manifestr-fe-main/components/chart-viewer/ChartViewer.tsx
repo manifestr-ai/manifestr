@@ -1,14 +1,52 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import {
+  Bar,
+  Line,
+  Pie,
+  Doughnut,
+  Radar,
+  PolarArea,
+  Scatter,
+  Bubble,
+} from "react-chartjs-2";
 import api from "../../lib/api";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+);
 
 export default function ChartViewer() {
   const router = useRouter();
   const { id: jobId } = router.query;
-  const chartRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chartData, setChartData] = useState<any>(null);
+  const [charts, setCharts] = useState<any[]>([]);
 
   useEffect(() => {
     if (!jobId) {
@@ -34,33 +72,73 @@ export default function ChartViewer() {
         }
 
         console.log("✅ Chart data loaded");
-        setChartData(editorState);
 
-        // Load Highcharts dynamically
-        await loadHighcharts();
+        // Extract data and create multiple charts
+        let labels: string[] = [];
+        let datasets: any[] = [];
+        let chartTitle = editorState.name || "AI Generated Chart";
 
-        // Extract data and create chart
         // NEW FORMAT: chartState (from collaborative editor)
         if (editorState.chartState) {
           console.log(
             "📊 Loading from chartState format (collaborative editor)",
           );
-          createChartFromState(
-            editorState.chartState,
-            editorState.name || "AI Generated Chart",
-          );
+          labels = editorState.chartState.labels || [];
+          datasets = editorState.chartState.datasets || [];
+          chartTitle = editorState.chartState.chartTitle || chartTitle;
+          console.log("✅ Extracted labels:", labels);
+          console.log("✅ Extracted datasets:", datasets);
         }
         // OLD FORMAT: sheets (from original AI generation)
         else if (editorState.sheets) {
           console.log("📊 Loading from sheets format (original AI generation)");
           const firstSheet = Object.values(editorState.sheets)[0] as any;
           if (firstSheet?.cellData) {
-            createChart(
-              firstSheet.cellData,
-              editorState.name || "AI Generated Chart",
-            );
+            const converted = convertCellDataToSeries(firstSheet.cellData);
+            labels = converted.categories;
+            datasets = converted.series.map((s: any) => ({
+              label: s.name,
+              data: s.data,
+              backgroundColor: getRandomColor(0.6),
+              borderColor: getRandomColor(1),
+              borderWidth: 2,
+            }));
+            console.log("✅ Converted labels:", labels);
+            console.log("✅ Converted datasets:", datasets);
           }
         }
+
+        console.log("📊 FINAL DATA - Labels:", labels, "Datasets:", datasets);
+
+        // Create multiple chart types
+        const chartTypes = [
+          { type: "bar", title: "Bar Chart" },
+          { type: "line", title: "Trend Chart" },
+          { type: "doughnut", title: "Efficiency Gain" },
+          { type: "horizontalBar", title: "Horizontal Bar" },
+          { type: "radar", title: "Radar Chart" },
+          { type: "area", title: "Area Chart" },
+          { type: "scatter", title: "Scatter Plot" },
+          { type: "bubble", title: "Bubble Chart" },
+          { type: "histogram", title: "Histogram" },
+          { type: "waterfall", title: "Waterfall Chart" },
+          { type: "funnel", title: "Funnel Chart" },
+          { type: "gauge", title: "KPI Gauge" },
+          { type: "boxplot", title: "Box & Whisker" },
+        ];
+
+        const generatedCharts = chartTypes.map((ct) => ({
+          type: ct.type,
+          title: ct.title,
+          labels,
+          datasets: datasets.map((ds, idx) => ({
+            ...ds,
+            backgroundColor: getChartColor(idx, ct.type, 0.6),
+            borderColor: getChartColor(idx, ct.type, 1),
+          })),
+        }));
+
+        setCharts(generatedCharts);
       } catch (err: any) {
         console.error("❌ Failed to load chart:", err);
         setError(err.message);
@@ -72,774 +150,162 @@ export default function ChartViewer() {
     loadAndDisplayChart();
   }, [jobId]);
 
-  const loadHighcharts = async (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      // Check if already loaded
-      if ((window as any).Highcharts) {
-        resolve();
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = "/assets/highcharts-editor/highstock.js";
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Highcharts"));
-      document.body.appendChild(script);
-    });
-  };
-
-  const createChart = (cellData: any, title: string) => {
-    if (!chartRef.current) return;
-
-    const Highcharts = (window as any).Highcharts;
-    if (!Highcharts) {
-      console.error("Highcharts not loaded");
-      return;
-    }
-
-    // Convert cell data to series
-    const { categories, series } = convertCellDataToSeries(cellData);
-
-    renderHighcharts(categories, series, title);
-  };
-
-  const createChartFromState = (chartState: any, title: string) => {
-    if (!chartRef.current) return;
-
-    const Highcharts = (window as any).Highcharts;
-    if (!Highcharts) {
-      console.error("Highcharts not loaded");
-      return;
-    }
-
-    // Use data from chart state
-    const categories = chartState.labels || [];
-    const series = (chartState.datasets || []).map((ds: any) => ({
-      name: ds.label,
-      data: ds.data,
-    }));
-
-    renderHighcharts(categories, series, chartState.chartTitle || title);
-  };
-
-  const renderHighcharts = (
-    categories: string[],
-    series: any[],
-    title: string,
-  ) => {
-    if (!chartRef.current) return;
-
-    const Highcharts = (window as any).Highcharts;
-
-    // Create container for multiple charts
-    chartRef.current.innerHTML = `
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div id="column-chart" style="min-height: 400px;"></div>
-                <div id="line-chart" style="min-height: 400px;"></div>
-                <div id="pie-chart" style="min-height: 400px;"></div>
-                <div id="area-chart" style="min-height: 400px;"></div>
-                <div id="radar-chart" style="min-height: 400px;"></div>
-                <div id="doughnut-chart" style="min-height: 400px;"></div>
-                <div id="horizontal-bar-chart" style="min-height: 400px;"></div>
-                <div id="polar-chart" style="min-height: 400px;"></div>
-                <div id="scatter-chart" style="min-height: 400px;"></div>
-                <div id="histogram-chart" style="min-height: 400px;"></div>
-                <div id="waterfall-chart" style="min-height: 400px;"></div>
-                <div id="funnel-chart" style="min-height: 400px;"></div>
-                <div id="gauge-chart" style="min-height: 400px;"></div>
-                <div id="gantt-chart" style="min-height: 400px;"></div>
-                <div id="boxplot-chart" style="min-height: 400px;"></div>
-            </div>
-        `;
-
-    const commonOptions = {
-      chart: {
-        backgroundColor: "#ffffff",
-        style: {
-          fontFamily: "Hanken Grotesk, Inter, sans-serif",
-        },
-      },
-      title: {
-        style: {
-          fontSize: "20px",
-          fontWeight: "600",
-          color: "#18181b",
-        },
-      },
-      credits: { enabled: false },
-      legend: {
-        itemStyle: {
-          fontSize: "13px",
-          fontWeight: "500",
-        },
-      },
-    };
-
-    // Create Column Chart
-    Highcharts.chart("column-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "column",
-      },
-      title: {
-        text: title + " - Column Chart",
-        style: {
-          fontSize: "22px",
-          fontWeight: "600",
-          color: "#18181b",
-        },
-      },
-      subtitle: {
-        text: "Bar Chart View",
-        style: {
-          fontSize: "13px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-        crosshair: true,
-      },
-      yAxis: {
-        min: 0,
-        title: { text: "Values" },
-      },
-      tooltip: {
-        shared: true,
-        useHTML: true,
-      },
-      plotOptions: {
-        column: {
-          dataLabels: { enabled: true },
-        },
-      },
-      series: series,
-    });
-
-    // Create Line Chart
-    Highcharts.chart("line-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "line",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Line Chart",
-      },
-      subtitle: {
-        text: "Trend Analysis View",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-      },
-      yAxis: {
-        title: { text: "Values" },
-      },
-      tooltip: {
-        shared: true,
-      },
-      plotOptions: {
-        line: {
-          dataLabels: { enabled: false },
-          enableMouseTracking: true,
-        },
-      },
-      series: series,
-    });
-
-    // Create Pie Chart (using first series only)
-    const pieData =
-      series.length > 0
-        ? categories.map((cat, idx) => ({
-            name: cat,
-            y: series[0].data[idx],
-          }))
-        : [];
-
-    Highcharts.chart("pie-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "pie",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Distribution View",
-      },
-      subtitle: {
-        text: series[0]?.name || "Pie Chart",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      tooltip: {
-        pointFormat: "<b>{point.percentage:.1f}%</b>",
-      },
-      plotOptions: {
-        pie: {
-          allowPointSelect: true,
-          cursor: "pointer",
-          dataLabels: {
-            enabled: true,
-            format: "<b>{point.name}</b>: {point.percentage:.1f}%",
-          },
-        },
-      },
-      series: [
-        {
-          name: "Share",
-          data: pieData,
-        },
-      ],
-    });
-
-    // Create Area Chart
-    Highcharts.chart("area-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "area",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Area Chart",
-      },
-      subtitle: {
-        text: "Trend with Fill",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-      },
-      yAxis: {
-        title: { text: "Values" },
-      },
-      tooltip: {
-        shared: true,
-      },
-      plotOptions: {
-        area: {
-          fillOpacity: 0.5,
-          marker: {
-            enabled: false,
-            symbol: "circle",
-            radius: 2,
-          },
-        },
-      },
-      series: series,
-    });
-
-    // Create Radar Chart (Spider Web)
-    Highcharts.chart("radar-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "line",
-        polar: true,
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Radar Chart",
-      },
-      subtitle: {
-        text: "Spider Web View",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-        tickmarkPlacement: "on",
-        lineWidth: 0,
-      },
-      yAxis: {
-        gridLineInterpolation: "polygon",
-        lineWidth: 0,
-        min: 0,
-      },
-      tooltip: {
-        shared: true,
-      },
-      series: series,
-    });
-
-    // Create Doughnut Chart
-    Highcharts.chart("doughnut-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "pie",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Doughnut Chart",
-      },
-      subtitle: {
-        text: "Ring Chart View",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      tooltip: {
-        pointFormat: "<b>{point.percentage:.1f}%</b>",
-      },
-      plotOptions: {
-        pie: {
-          innerSize: "60%",
-          allowPointSelect: true,
-          cursor: "pointer",
-          dataLabels: {
-            enabled: true,
-            format: "<b>{point.name}</b>: {point.percentage:.1f}%",
-          },
-        },
-      },
-      series: [
-        {
-          name: "Share",
-          data: pieData,
-        },
-      ],
-    });
-
-    // Create Horizontal Bar Chart
-    Highcharts.chart("horizontal-bar-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "bar",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Horizontal Bar",
-      },
-      subtitle: {
-        text: "Horizontal View",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-      },
-      yAxis: {
-        min: 0,
-        title: { text: "Values" },
-      },
-      tooltip: {
-        shared: true,
-      },
-      plotOptions: {
-        bar: {
-          dataLabels: { enabled: true },
-        },
-      },
-      series: series,
-    });
-
-    // Create Polar Area Chart
-    Highcharts.chart("polar-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "column",
-        polar: true,
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Polar Chart",
-      },
-      subtitle: {
-        text: "Radial View",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-        tickmarkPlacement: "on",
-      },
-      yAxis: {
-        min: 0,
-      },
-      tooltip: {
-        shared: true,
-      },
-      series: series,
-    });
-
-    // Create Scatter Chart
-    Highcharts.chart("scatter-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "scatter",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Scatter Plot",
-      },
-      subtitle: {
-        text: "Data Point Distribution",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        title: { text: "Index" },
-      },
-      yAxis: {
-        title: { text: "Values" },
-      },
-      tooltip: {
-        shared: true,
-      },
-      series: series.map((s: any, idx: number) => ({
-        ...s,
-        data: s.data.map((y: number, i: number) => [i + 1, y]),
-      })),
-    });
-
-    // Create Histogram
-    const allValues = series[0]?.data || [];
-    const min = Math.min(...allValues);
-    const max = Math.max(...allValues);
-    const binCount = 10;
-    const binSize = (max - min) / binCount;
-    const bins = Array(binCount).fill(0);
-    allValues.forEach((val: number) => {
-      const binIndex = Math.min(Math.floor((val - min) / binSize), binCount - 1);
-      bins[binIndex]++;
-    });
-
-    Highcharts.chart("histogram-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "column",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Histogram",
-      },
-      subtitle: {
-        text: "Frequency Distribution",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: bins.map((_, i) => 
-          `${(min + i * binSize).toFixed(1)}-${(min + (i + 1) * binSize).toFixed(1)}`
-        ),
-      },
-      yAxis: {
-        title: { text: "Frequency" },
-      },
-      series: [{
-        name: "Frequency",
-        data: bins,
-        color: "#3b82f6",
-      }],
-    });
-
-    // Create Waterfall Chart
-    let cumulative = 0;
-    const waterfallData = (series[0]?.data || []).map((val: number, idx: number) => {
-      const start = cumulative;
-      cumulative += val;
-      return {
-        name: categories[idx],
-        y: val,
-        color: val >= 0 ? "#10b981" : "#ef4444",
-      };
-    });
-
-    Highcharts.chart("waterfall-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "waterfall",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Waterfall Chart",
-      },
-      subtitle: {
-        text: "Cumulative Changes",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: categories,
-      },
-      yAxis: {
-        title: { text: "Values" },
-      },
-      series: [{
-        name: series[0]?.name || "Values",
-        data: waterfallData,
-      }],
-    });
-
-    // Create Funnel Chart
-    const sortedData = [...(series[0]?.data || [])].sort((a, b) => b - a);
-    const funnelData = sortedData.map((val: number, idx: number) => [
-      categories[idx] || `Stage ${idx + 1}`,
-      val,
-    ]);
-
-    Highcharts.chart("funnel-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "funnel",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Funnel Chart",
-      },
-      subtitle: {
-        text: "Conversion Analysis",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      plotOptions: {
-        funnel: {
-          dataLabels: {
-            enabled: true,
-            format: "<b>{point.name}</b>: {point.y}",
-          },
-        },
-      },
-      series: [{
-        name: "Conversion",
-        data: funnelData,
-      }],
-    });
-
-    // Create KPI Gauge
-    const avgValue = series[0]?.data.reduce((a: number, b: number) => a + b, 0) / series[0]?.data.length || 0;
-    const maxVal = Math.max(...(series[0]?.data || []), 100);
-
-    Highcharts.chart("gauge-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "solidgauge",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - KPI Gauge",
-      },
-      subtitle: {
-        text: `Average: ${avgValue.toFixed(1)}`,
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      pane: {
-        startAngle: -90,
-        endAngle: 90,
-        background: {
-          backgroundColor: "#EEE",
-          innerRadius: "60%",
-          outerRadius: "100%",
-          shape: "arc",
-        },
-      },
-      yAxis: {
-        min: 0,
-        max: maxVal,
-        stops: [
-          [0.3, "#ef4444"],
-          [0.5, "#f59e0b"],
-          [0.7, "#eab308"],
-          [0.9, "#10b981"],
-        ],
-        lineWidth: 0,
-        tickWidth: 0,
-        minorTickInterval: null,
-        labels: {
-          y: 16,
-        },
-      },
-      series: [{
-        name: "Performance",
-        data: [avgValue],
-        dataLabels: {
-          format: '<div style="text-align:center"><span style="font-size:25px">{y:.1f}</span></div>',
-        },
-      }],
-    });
-
-    // Create Gantt Chart
-    const ganttData = (series[0]?.data || []).map((val: number, idx: number) => ({
-      name: categories[idx] || `Task ${idx + 1}`,
-      start: idx * 10,
-      end: idx * 10 + Math.abs(val),
-      y: idx,
-    }));
-
-    Highcharts.chart("gantt-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "xrange",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Gantt Chart",
-      },
-      subtitle: {
-        text: "Project Timeline",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        type: "linear",
-      },
-      yAxis: {
-        categories: categories,
-        reversed: true,
-      },
-      series: [{
-        name: "Tasks",
-        data: ganttData.map((d: any) => ({
-          x: d.start,
-          x2: d.end,
-          y: d.y,
-          name: d.name,
-        })),
-      }],
-    });
-
-    // Create Box Plot
-    const calculateStats = (data: number[]) => {
-      const sorted = [...data].sort((a, b) => a - b);
-      return {
-        low: sorted[0],
-        q1: sorted[Math.floor(sorted.length / 4)],
-        median: sorted[Math.floor(sorted.length / 2)],
-        q3: sorted[Math.floor((sorted.length * 3) / 4)],
-        high: sorted[sorted.length - 1],
-      };
-    };
-
-    Highcharts.chart("boxplot-chart", {
-      ...commonOptions,
-      chart: {
-        ...commonOptions.chart,
-        type: "boxplot",
-      },
-      title: {
-        ...commonOptions.title,
-        text: title + " - Box & Whisker Plot",
-      },
-      subtitle: {
-        text: "Statistical Distribution",
-        style: {
-          fontSize: "14px",
-          color: "#71717a",
-        },
-      },
-      xAxis: {
-        categories: series.map((s: any) => s.name),
-      },
-      yAxis: {
-        title: { text: "Values" },
-      },
-      series: [{
-        name: "Distribution",
-        data: series.map((s: any) => {
-          const stats = calculateStats(s.data);
-          return [stats.low, stats.q1, stats.median, stats.q3, stats.high];
-        }),
-      }],
-    });
-
-    console.log("✅ All charts rendered successfully!");
-  };
-
   const convertCellDataToSeries = (cellData: any) => {
-    const rows: any[][] = [];
-    const maxRow = Math.max(...Object.keys(cellData).map((k) => parseInt(k)));
+    const rows = Object.keys(cellData)
+      .map(Number)
+      .sort((a, b) => a - b);
+    const cols = Object.keys(cellData[rows[0]] || {})
+      .map(Number)
+      .sort((a, b) => a - b);
 
-    for (let r = 0; r <= maxRow; r++) {
-      const rowData = cellData[r] || {};
-      const maxCol = Math.max(...Object.keys(rowData).map((k) => parseInt(k)));
-      const row: any[] = [];
+    const categories: string[] = [];
+    const series: any[] = [];
 
-      for (let c = 0; c <= maxCol; c++) {
-        const cell = rowData[c];
-        row.push(cell?.v !== undefined ? cell.v : "");
-      }
-      rows.push(row);
-    }
+    // Row 0 = headers
+    const headerRow = cellData[rows[0]];
+    cols.slice(1).forEach((col) => {
+      const header = headerRow[col]?.v || `Series ${col}`;
+      series.push({ name: header, data: [] });
+    });
 
-    // First row is headers
-    const headers = rows[0] || [];
-    const dataRows = rows.slice(1);
+    // Data rows
+    rows.slice(1).forEach((row) => {
+      const rowData = cellData[row];
+      const label = rowData[cols[0]]?.v || "";
+      categories.push(String(label));
 
-    // Create categories from first column
-    const categories = dataRows.map((row) => String(row[0] || ""));
-
-    // Create series from remaining columns
-    const series = headers
-      .slice(1)
-      .map((header, idx) => {
-        const columnIndex = idx + 1;
-        const data = dataRows.map((row) => {
-          const value = row[columnIndex];
-          return typeof value === "number" ? value : parseFloat(value) || 0;
-        });
-
-        return {
-          name: String(header),
-          data: data,
-        };
-      })
-      .filter((s) => s.data.some((v) => v !== 0)); // Only include series with data
+      cols.slice(1).forEach((col, idx) => {
+        const value = rowData[col]?.v;
+        series[idx].data.push(typeof value === "number" ? value : 0);
+      });
+    });
 
     return { categories, series };
   };
 
+  const getRandomColor = (opacity: number) => {
+    const colors = [
+      `rgba(59, 130, 246, ${opacity})`,
+      `rgba(239, 68, 68, ${opacity})`,
+      `rgba(16, 185, 129, ${opacity})`,
+      `rgba(245, 158, 11, ${opacity})`,
+      `rgba(139, 92, 246, ${opacity})`,
+      `rgba(236, 72, 153, ${opacity})`,
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  const getChartColor = (index: number, chartType: string, opacity: number) => {
+    const colors = [
+      [59, 130, 246],
+      [239, 68, 68],
+      [16, 185, 129],
+      [245, 158, 11],
+      [139, 92, 246],
+      [236, 72, 153],
+    ];
+    const color = colors[index % colors.length];
+    return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${opacity})`;
+  };
+
+  const renderChart = (chart: any) => {
+    const chartData = {
+      labels: chart.labels,
+      datasets: chart.datasets,
+    };
+
+    const options: any = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top" as const,
+        },
+        title: {
+          display: true,
+          text: chart.title,
+          font: { size: 16, weight: "bold" },
+        },
+      },
+      scales:
+        chart.type !== "pie" &&
+        chart.type !== "doughnut" &&
+        chart.type !== "radar" &&
+        chart.type !== "polarArea"
+          ? {
+              y: {
+                beginAtZero: true,
+                grid: { display: true },
+              },
+              x: {
+                grid: { display: false },
+              },
+            }
+          : undefined,
+    };
+
+    switch (chart.type) {
+      case "bar":
+        return <Bar data={chartData} options={options} />;
+      case "horizontalBar":
+        return (
+          <Bar
+            data={chartData}
+            options={{ ...options, indexAxis: "y" as const }}
+          />
+        );
+      case "line":
+        return <Line data={chartData} options={options} />;
+      case "area":
+        const areaData = {
+          ...chartData,
+          datasets: chartData.datasets.map((ds: any) => ({
+            ...ds,
+            fill: true,
+          })),
+        };
+        return <Line data={areaData} options={options} />;
+      case "pie":
+        return <Pie data={chartData} options={options} />;
+      case "doughnut":
+        return <Doughnut data={chartData} options={options} />;
+      case "radar":
+        return <Radar data={chartData} options={options} />;
+      case "polarArea":
+        return <PolarArea data={chartData} options={options} />;
+      case "scatter":
+        const scatterData = {
+          datasets: chartData.datasets.map((ds: any, idx: number) => ({
+            ...ds,
+            data: ds.data.map((y: number, i: number) => ({ x: i + 1, y })),
+            showLine: false,
+          })),
+        };
+        return <Scatter data={scatterData} options={options} />;
+      case "bubble":
+        const bubbleData = {
+          datasets: chartData.datasets.map((ds: any) => ({
+            ...ds,
+            data: ds.data.map((y: number, i: number) => ({
+              x: i + 1,
+              y,
+              r: Math.abs(y) / 2 + 5,
+            })),
+          })),
+        };
+        return <Bubble data={bubbleData} options={options} />;
+      default:
+        return <Bar data={chartData} options={options} />;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="w-full h-full bg-white flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">
-            Generating your chart...
-          </p>
-          <p className="text-gray-400 text-sm mt-2">
-            AI is analyzing your data
-          </p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Loading charts...</p>
         </div>
       </div>
     );
@@ -847,70 +313,60 @@ export default function ChartViewer() {
 
   if (error) {
     return (
-      <div className="w-full h-full bg-white flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-            <div className="text-red-600 text-2xl font-bold">!</div>
-          </div>
-          <p className="text-gray-900 text-lg font-semibold mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
             Failed to Load Chart
-          </p>
-          <p className="text-gray-600 text-sm">{error}</p>
+          </h2>
+          <p className="text-gray-600">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full bg-gray-50 p-8 overflow-auto">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            AI Generated Charts
-          </h1>
-          <p className="text-gray-600">Multiple visualizations of your data</p>
-        </div>
+    <div className="w-full bg-gray-50">
+      <div className="py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                  AI Generated Charts
+                </h1>
+                <p className="text-gray-600 mb-4">
+                  Multiple visualizations of your data as:{" "}
+                  {charts.map((c) => c.title.toLowerCase()).join(", ")}
+                </p>
+              </div>
+              <button
+                onClick={() => router.push(`/chart-editor?id=${jobId}`)}
+                className="ml-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md whitespace-nowrap"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Edit in Chart Editor
+              </button>
+            </div>
+          </div>
 
-        {/* Charts Container */}
-        <div ref={chartRef} className="w-full space-y-8" />
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-center gap-4">
-          <button
-            onClick={() => router.push(`/chart-editor?id=${jobId}`)}
-            className="bg-white border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-md"
-          >
-            Open in Editor
-          </button>
-          <button
-            onClick={() => {
-              const Highcharts = (window as any).Highcharts;
-              if (Highcharts) {
-                // Download first chart
-                const charts = Highcharts.charts.filter((c: any) => c);
-                if (charts.length > 0) {
-                  charts[0].exportChart({
-                    type: "image/png",
-                    filename: "ai-chart-column",
-                  });
-                }
-              }
-            }}
-            className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-md"
-          >
-            Download Charts
-          </button>
-        </div>
-
-        {/* Info Text */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            These charts were automatically generated by AI from your data
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Showing: Bar • Line • Pie • Area • Radar • Doughnut • Horizontal Bar • Polar • Scatter • Histogram • Waterfall • Funnel • KPI Gauge • Gantt • Box & Whisker
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+            {charts.map((chart, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
+              >
+                <div className="h-80">{renderChart(chart)}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
