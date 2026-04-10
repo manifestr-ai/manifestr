@@ -71,27 +71,30 @@ const supportLinks = [
   { label: 'Security', href: '/security' },
 ]
 
+/** Desktop footer — MANIFESTR Marketing Site (Figma node 12072:34743): newsletter column max 460px */
+const NEWSLETTER_MAX_W = 460
+
 function FooterLinkColumn({ title, links }) {
   return (
-    <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
+    <div className="flex flex-col gap-4 md:gap-6 lg:gap-6 xl:gap-8">
       <h3
-        className="text-[16px] md:text-[22px] lg:text-[28px] xl:text-[32px] leading-[24px] md:leading-[28px] lg:leading-[32px] xl:leading-[36px] text-[#f9fafb] tracking-0 lg:tracking-[-0.64px] font-medium"
+        className="text-[16px] md:text-[20px] lg:text-[22px] xl:text-[32px] leading-[24px] md:leading-[26px] lg:leading-[28px] xl:leading-[36px] text-[#f9fafb] tracking-0 xl:tracking-[-0.64px] font-semibold whitespace-nowrap"
         style={{ fontFamily: "'Inter', sans-serif" }}
       >
-        <span className="md:hidden">{title}</span>
+        <span className="lg:hidden">{title}</span>
         <span
-          className="hidden md:inline"
+          className="hidden lg:inline"
           style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
         >
           {title}
         </span>
       </h3>
-      <div className="flex flex-col gap-2 md:gap-5 lg:gap-7">
+      <div className="flex flex-col gap-2 md:gap-5 lg:gap-5 xl:gap-7">
         {links.map((link) => (
           <Link
             key={link.label}
             href={link.href}
-            className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-white font-medium hover:text-white/80 transition-colors p-1 md:p-0"
+            className="text-[14px] md:text-[15px] lg:text-[16px] xl:text-[18px] leading-[20px] text-white font-medium hover:text-white/80 transition-colors p-1 lg:p-0 whitespace-nowrap"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
             {link.label}
@@ -106,71 +109,60 @@ export default function Footer() {
   const [email, setEmail] = useState('')
 
   return (
-    <footer className="bg-[#09090b] text-white w-full">
-      {/* Logo — scale up gradually; full wordmark height from lg */}
+    <footer className="bg-black text-white w-full">
+      {/* Logo — large wordmark on desktop per marketing spec */}
       <div className="w-full overflow-hidden py-6 md:py-8 lg:py-10">
         <CldImage
           src={FOOTER_LOGO}
           alt="MANIFESTR"
-          className="w-full max-h-[43px] md:max-h-[88px] lg:max-h-[120px] xl:max-h-[161px] object-contain"
+          className="w-full max-h-[43px] sm:max-h-[56px] md:max-h-[88px] lg:max-h-[120px] xl:max-h-[161px] object-contain"
         />
       </div>
 
-      {/* Main content */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[80px] pb-6 md:py-12 lg:py-16">
-        <div className="flex flex-col lg:flex-row justify-between gap-8 md:gap-10 lg:gap-20">
+      {/* Main: 3 link columns + column 4 (newsletter + follow us) on desktop */}
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-[80px] pb-6 md:py-10 lg:py-16">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-8 md:gap-10 lg:gap-10 xl:gap-20">
 
-          {/* Link columns — mobile: Product+Company side by side, Support below; desktop: all in a row */}
-          <div className="flex flex-col gap-8 md:flex-row md:gap-10 lg:gap-[127px]">
+          {/* Columns 1–3: Product, Company, Support */}
+          <div className="flex flex-col gap-8 md:flex-row md:gap-10 lg:gap-10 xl:gap-[127px] lg:flex-1 lg:min-w-0">
             <div className="flex gap-10 md:contents">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <FooterLinkColumn title="Product" links={productLinks} />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <FooterLinkColumn title="Company" links={companyLinks} />
               </div>
             </div>
-            <FooterLinkColumn title="Support" links={supportLinks} />
+            <div className="min-w-0">
+              <FooterLinkColumn title="Support" links={supportLinks} />
+            </div>
           </div>
 
-          {/* Newsletter + Social */}
-          <div className="flex flex-col gap-6 md:gap-7 lg:gap-8 lg:max-w-[460px] w-full lg:w-auto">
-            <div className="flex flex-col gap-4 md:gap-6">
+          {/* Column 4: subscription + subtext + Follow us + icons */}
+          <div
+            className="flex flex-col gap-6 lg:gap-8 w-full lg:w-[340px] xl:w-[460px] lg:shrink-0"
+          >
+            <div className="flex flex-col gap-4">
               <p
-                className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#d4d4d8] md:text-white font-medium"
+                className="text-[14px] lg:text-[16px] xl:text-[18px] leading-[20px] text-[#d4d4d8] lg:text-white font-medium"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 Unlock exclusive updates
               </p>
 
-              {/* Mobile: stacked input + button; Desktop: side by side */}
-              <div className="hidden md:flex flex-col lg:flex-row gap-2">
+              {/* xl+: input + Subscribe side-by-side; below that: stacked */}
+              <div className="flex flex-col gap-3 w-full xl:flex-row xl:items-stretch xl:gap-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 min-w-0 h-[48px] lg:h-[54px] px-3 py-2 bg-white rounded-md text-[16px] lg:text-[18px] text-[#71717a] placeholder:text-[#71717a] outline-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                />
-                <button
-                  className="h-[48px] lg:h-[54px] shrink-0 px-5 lg:px-6 bg-white rounded-md text-[16px] lg:text-[18px] text-black font-medium hover:bg-white/90 transition-colors cursor-pointer"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                >
-                  Subscribe
-                </button>
-              </div>
-              <div className="flex flex-col gap-4 md:hidden">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-[46px] px-3 py-3 bg-[#0d0d0d] border border-[#e1e1e1] rounded-[8px] text-[14px] text-[#e1e1e1] placeholder:text-[#e1e1e1] outline-none tracking-[-0.098px]"
+                  className="w-full min-w-0 xl:flex-1 h-[46px] lg:h-[48px] xl:h-[54px] px-3 py-3 lg:py-2 rounded-[8px] lg:rounded-md text-[14px] lg:text-[16px] xl:text-[18px] outline-none tracking-[-0.098px] lg:tracking-normal bg-[#0d0d0d] border border-[#e1e1e1] text-[#e1e1e1] placeholder:text-[#e1e1e1] lg:bg-white lg:border-0 lg:text-[#71717a] lg:placeholder:text-[#71717a]"
                   style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}
                 />
                 <button
-                  className="w-full h-[40px] bg-white rounded-[6px] text-[14px] text-[#18181b] font-medium hover:bg-white/90 transition-colors cursor-pointer"
+                  type="button"
+                  className="w-full xl:w-auto xl:shrink-0 h-[40px] lg:h-[48px] xl:h-[54px] px-6 rounded-[6px] lg:rounded-md text-[14px] lg:text-[16px] xl:text-[18px] font-medium transition-colors cursor-pointer bg-white text-[#18181b] hover:bg-white/90 lg:text-black"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                 >
                   Subscribe
@@ -178,34 +170,35 @@ export default function Footer() {
               </div>
 
               <p
-                className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#d4d4d8] md:text-white font-medium"
+                className="text-[14px] lg:text-[16px] xl:text-[18px] leading-[20px] text-[#d4d4d8] lg:text-white font-medium"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 Only insights that move your work forward
               </p>
             </div>
 
-            <div>
+            {/* Follow us — inside column 4 on mobile + desktop; hidden on tablet (moves to full-width row) */}
+            <div className="flex flex-col gap-4 pt-2 md:hidden lg:flex">
               <h3
-                className="text-[20px] md:text-[22px] lg:text-[28px] xl:text-[32px] leading-[28px] md:leading-[28px] lg:leading-[32px] xl:leading-[36px] text-white md:text-[#f9fafb] tracking-0 lg:tracking-[-0.64px] font-medium mb-4"
+                className="text-[20px] lg:text-[22px] xl:text-[32px] leading-tight text-white lg:text-[#f9fafb] tracking-0 xl:tracking-[-0.64px] font-semibold"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
-                <span className="md:hidden">Follow us</span>
+                <span className="lg:hidden">Follow us</span>
                 <span
-                  className="hidden md:inline"
+                  className="hidden lg:inline"
                   style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
                 >
                   Follow us
                 </span>
               </h3>
-              <div className="flex flex-wrap justify-between gap-3 md:justify-start md:gap-3 lg:gap-4">
+              <div className="flex flex-row flex-wrap items-center gap-3 sm:gap-4 lg:gap-4">
                 {Object.entries(SOCIAL_ICONS).map(([name, icon]) => (
                   <a
                     key={name}
                     href={SOCIAL_LINKS[name]}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 flex items-center justify-center text-white hover:text-white/70 transition-colors"
+                    className="w-10 h-10 shrink-0 flex items-center justify-center text-white hover:text-white/70 transition-colors"
                     aria-label={name}
                   >
                     {icon}
@@ -215,40 +208,64 @@ export default function Footer() {
             </div>
           </div>
         </div>
+
+        {/* Tablet-only: Follow us as a full-width row above the divider (md–lg) */}
+        <div className="hidden md:flex lg:hidden flex-row items-center gap-5 mt-10">
+          <h3
+            className="text-[22px] leading-tight text-white font-semibold shrink-0"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            Follow us
+          </h3>
+          <div className="flex flex-row flex-nowrap items-center gap-3">
+            {Object.entries(SOCIAL_ICONS).map(([name, icon]) => (
+              <a
+                key={name}
+                href={SOCIAL_LINKS[name]}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 shrink-0 flex items-center justify-center text-white hover:text-white/70 transition-colors"
+                aria-label={name}
+              >
+                {icon}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-8 lg:px-[80px]">
-        <div className="border-t border-white/20 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:justify-start sm:gap-4 md:gap-5 lg:gap-6 order-1 md:order-2 max-md:w-full">
+      {/* Bottom bar — copyright left, legal links right (desktop) */}
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-[80px]">
+        <div className="border-t border-white py-6 flex flex-col-reverse lg:flex-row items-start lg:items-center lg:justify-between gap-4">
+          <p
+            className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#a1a1aa] lg:text-white"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            &copy; 2025 MANIFESTR. All rights reserved.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-6 lg:gap-8 w-full lg:w-auto lg:justify-end">
             <Link
               href="/privacy"
-              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] lg:leading-[20px] text-[#a1a1aa] lg:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Privacy Policy
             </Link>
             <Link
-              href="/terms"
-              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
+              href="/terms-of-service"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] lg:leading-[20px] text-[#a1a1aa] lg:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Terms of Service
             </Link>
             <Link
               href="/cookies"
-              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] md:leading-[20px] text-[#a1a1aa] md:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
+              className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] lg:leading-[20px] text-[#a1a1aa] lg:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
               Cookies Settings
             </Link>
           </div>
-          <p
-            className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#a1a1aa] md:text-white order-2 md:order-1"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            &copy; 2025 MANIFESTR. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>
