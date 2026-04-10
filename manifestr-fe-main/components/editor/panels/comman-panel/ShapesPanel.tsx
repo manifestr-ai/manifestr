@@ -7,39 +7,49 @@ interface ShapesPanelProps {
 const shapes = [
   {
     name: "Rectangle",
-    render: () => <div className="w-6 h-4 bg-gray-600 rounded-sm" />,
+    render: () => (
+      <div className="w-6 h-4 border border-black rounded-sm bg-transparent" />
+    ),
     action: (store: any) =>
       store.activePage.addElement({
         type: "figure",
         subtype: "rect",
         width: 150,
         height: 100,
+        stroke: "#000000",
+        fill: "none",
       }),
   },
   {
     name: "Circle",
-    render: () => <div className="w-5 h-5 bg-gray-600 rounded-full" />,
+    render: () => (
+      <div className="w-5 h-5 border border-black rounded-full bg-transparent" />
+    ),
     action: (store: any) =>
       store.activePage.addElement({
         type: "figure",
-        subType: "circle", // Use capital T
+        subType: "circle",
         width: 100,
         height: 100,
-        fill: "#10B981",
+        stroke: "#000000",
+        fill: "none",
       }),
   },
   {
     name: "Triangle",
     render: () => (
-      <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[16px] border-b-gray-600" />
+      <svg width={20} height={16} viewBox="0 0 20 16" className="block">
+        <polygon points="10,0 20,16 0,16" fill="none" stroke="black" strokeWidth={2} />
+      </svg>
     ),
     action: (store: any) =>
       store.activePage.addElement({
         type: "figure",
-        subType: "triangle", // Use capital T
+        subType: "triangle",
         width: 120,
         height: 120,
-        fill: "#EF4444",
+        stroke: "#000000",
+        fill: "none",
       }),
   },
 ];

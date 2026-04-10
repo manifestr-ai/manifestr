@@ -1,8 +1,11 @@
 import React from "react";
 import InsertPanel from "./InsertPanel";
-// import FormatPanel from "./FormatPanel";
-// import LayoutPanel from "./LayoutPanel";
-// import AnimationPanel from "./AnimationPanel";
+import FormatPanel from "../comman-panel/FormatPanel";
+import AdjustPanel from "./AdjustPanel";
+import StylePanel from "../comman-panel/StylePanel";
+import TransformPanel from "./TransformPanel";
+import FiltersPanel from "./FiltersPanel";
+
 
 interface ToolPanelProps {
   activeTool: string;
@@ -16,14 +19,20 @@ export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
     case "insert":
       return <InsertPanel store={store} />;
 
-    // case "format":
-    //   return <FormatPanel store={store} />;
+    case "format":
+      return <FormatPanel store={store} />;
 
-    // case "layout":
-    //   return <LayoutPanel store={store} />;
+    case "adjust":
+      return <AdjustPanel store={store} />;
 
-    // case "animation":
-    //   return <AnimationPanel store={store} />;
+    case "style":
+      return <StylePanel store={store} />;
+
+    case "transform":
+      return <TransformPanel store={store} />;
+
+    case "filter":
+      return <FiltersPanel store={store} />;
 
     default:
       return null;

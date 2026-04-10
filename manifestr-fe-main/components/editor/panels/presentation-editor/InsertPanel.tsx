@@ -174,7 +174,6 @@ export default function InsertPanel({ store }: InsertPanelProps) {
                 input.click();
               }
             }}
-       
             className="flex flex-col items-center group"
             tabIndex={0}
             type="button"
@@ -214,11 +213,66 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           </button>
           {/* Table */}
           <button
-            onClick={() =>
-              store.activePage?.addElement?.({
-                type: "svg",
-              })
-            }
+            onClick={() => {
+              const page = store.activePage;
+              if (!page) return;
+
+              const rows = 3;
+              const cols = 3;
+              const cellWidth = 120;
+              const cellHeight = 60;
+
+              const startX = store.width / 2 - (cols * cellWidth) / 2;
+              const startY = store.height / 2 - (rows * cellHeight) / 2;
+
+              const createdElements: any[] = [];
+
+              for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                  const x = startX + c * cellWidth;
+                  const y = startY + r * cellHeight;
+
+                  const rect = page.addElement({
+                    type: "shape",
+                    shapeType: "rect",
+                    x,
+                    y,
+                    width: cellWidth - 1,
+                    height: cellHeight - 1,
+                    stroke: "#000",
+                    strokeWidth: 1,
+                    fill: "#fff",
+                  });
+
+                  const text = page.addElement({
+                    type: "text",
+                    text: `R${r + 1}C${c + 1}`,
+                    x: x + 10,
+                    y: y + 15,
+                    fontSize: 14,
+                  });
+
+                  createdElements.push(rect, text);
+                }
+              }
+
+              const border = page.addElement({
+                type: "shape",
+                shapeType: "rect",
+                x: startX,
+                y: startY,
+                width: cols * cellWidth,
+                height: rows * cellHeight,
+                stroke: "#000",
+                strokeWidth: 2,
+                fill: "transparent",
+              });
+
+              createdElements.push(border);
+
+              // ✅ Select all (simulate group)
+              store.selectElements(createdElements);
+            }}
             className="flex flex-col items-center group"
             tabIndex={0}
             type="button"
@@ -282,20 +336,65 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             </span>
           </button>
           {/* Chart */}
-          <button
-            onClick={() => store.activePage.addElement({
-              type: "chart",
-              chartType: "bar",
-              data: [
+          {/* <button
+            onClick={() => {
+              const page = store.activePage;
+              if (!page) return;
+
+              const data = [
                 { label: "A", value: 30 },
                 { label: "B", value: 50 },
-                { label: "C", value: 20 }
-              ],
-              width: 200,
-              height: 120,
-              fill: "#3B82F6"
-            })}
-       
+                { label: "C", value: 20 },
+              ];
+
+              const barWidth = 40;
+              const gap = 30;
+              const maxHeight = 120;
+
+              const startX =
+                store.width / 2 -
+                (data.length * barWidth + (data.length - 1) * gap) / 2;
+
+              const baseY = store.height / 2 + maxHeight / 2;
+
+              const maxValue = Math.max(...data.map((d) => d.value));
+
+              data.forEach((item, i) => {
+                const barHeight = (item.value / maxValue) * maxHeight;
+
+                const x = startX + i * (barWidth + gap);
+                const y = baseY - barHeight;
+
+                // Bar
+                page.addElement({
+                  type: "shape",
+                  shapeType: "rect",
+                  x,
+                  y,
+                  width: barWidth,
+                  height: barHeight,
+                  fill: "#3B82F6",
+                });
+
+                // Label
+                page.addElement({
+                  type: "text",
+                  text: item.label,
+                  x: x + 10,
+                  y: baseY + 5,
+                  fontSize: 14,
+                });
+
+                // Value
+                page.addElement({
+                  type: "text",
+                  text: String(item.value),
+                  x: x + 5,
+                  y: y - 20,
+                  fontSize: 12,
+                });
+              });
+            }}
             className="flex flex-col items-center group"
             tabIndex={0}
             type="button"
@@ -350,7 +449,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             >
               Chart
             </span>
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
