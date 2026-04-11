@@ -358,14 +358,16 @@ export default function ChartViewer() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
-            {charts.map((chart, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
-              >
-                <div className="h-80">{renderChart(chart)}</div>
-              </div>
-            ))}
+            {charts.map((chart, index) => {
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
+                >
+                  <div className="h-80">{renderChart(chart)}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
