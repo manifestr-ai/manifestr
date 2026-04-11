@@ -406,7 +406,7 @@ export default function Vault() {
     if (type.includes('presentation')) {
       path = `/presentation-editor?id=${project.id}`
     } else if (type.includes('chart')) {
-      path = `/chart-viewer?id=${project.id}`
+      path = `/chart-editor?id=${project.id}`
     } else if (type.includes('spreadsheet') || type.includes('sheet')) {
       path = `/spreadsheet-editor?id=${project.id}`
     } else if (type.includes('image')) {

@@ -901,12 +901,6 @@ export default function ChartJsEditor() {
                     >
                         Download PNG
                     </button>
-                    <button
-                        onClick={() => router.push(`/chart-viewer?id=${jobId}`)}
-                        className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                        Back to View
-                    </button>
                 </div>
                 
                 {/* Chart Info */}
