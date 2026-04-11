@@ -74,6 +74,10 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                 return 'Download XLSX';
             case 'presentation':
                 return 'Download PPTX';
+            case 'chart':
+                return 'Download PNG';
+            case 'image':
+                return 'Download PNG';
             default:
                 return 'Download';
         }
@@ -233,7 +237,15 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                               
                                 text="PPTX"
                                 disabled={!store}
-                                onClick={() => store && downloadPPTX(store)}
+                                onClick={() => {
+                                    if (editorType === 'presentation' && store) {
+                                        downloadPPTX(store);
+                                    } else if ((editorType === 'chart' || editorType === 'image') && store?.downloadChart) {
+                                        store.downloadChart();
+                                    } else if (store) {
+                                        downloadPPTX(store);
+                                    }
+                                }}
                                 />
                             </Menu>
                             }
