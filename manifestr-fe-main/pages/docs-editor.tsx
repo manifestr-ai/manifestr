@@ -6,7 +6,7 @@ import TopHeader from "../components/spreadsheet/TopHeader";
 import TiptapEditor from "../components/docs/TiptapEditor";
 import DocumentOutline from "../components/docs/DocumentOutline";
 import RightSidebar from "../components/spreadsheet/RightSidebar";
-import BottomToolbar from "../components/spreadsheet/BottomToolbar";
+import DocsEditorBottomToolbar from "../components/editor/DocsEditorBottomToolbar";
 import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 
 // Dynamically import collaborative editor (uses Y.js)
@@ -277,7 +277,7 @@ export default function DocsEditor() {
 
         {/* Bottom Section */}
         <div className="flex-none z-30">
-          <BottomToolbar />
+          <DocsEditorBottomToolbar />
         </div>
       </div>
     </GenerationLoaderUI>
