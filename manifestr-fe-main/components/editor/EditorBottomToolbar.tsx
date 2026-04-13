@@ -587,6 +587,150 @@ const tools = [
     editor_for: ["image"],
   },
   {
+    key: "ai",
+    label: "AI Prompter",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <g clip-path="url(#clip0_10297_388369)">
+          <path
+            d="M7.34496 1.87239C7.37353 1.71946 7.45468 1.58133 7.57436 1.48193C7.69404 1.38254 7.84472 1.32812 8.00029 1.32812C8.15587 1.32812 8.30655 1.38254 8.42623 1.48193C8.54591 1.58133 8.62706 1.71946 8.65563 1.87239L9.35629 5.57772C9.40606 5.84115 9.53408 6.08347 9.72365 6.27304C9.91322 6.4626 10.1555 6.59062 10.419 6.64039L14.1243 7.34106C14.2772 7.36962 14.4154 7.45077 14.5147 7.57045C14.6141 7.69014 14.6686 7.84081 14.6686 7.99639C14.6686 8.15196 14.6141 8.30264 14.5147 8.42232C14.4154 8.54201 14.2772 8.62316 14.1243 8.65172L10.419 9.35239C10.1555 9.40215 9.91322 9.53017 9.72365 9.71974C9.53408 9.90931 9.40606 10.1516 9.35629 10.4151L8.65563 14.1204C8.62706 14.2733 8.54591 14.4114 8.42623 14.5108C8.30655 14.6102 8.15587 14.6647 8.00029 14.6647C7.84472 14.6647 7.69404 14.6102 7.57436 14.5108C7.45468 14.4114 7.37353 14.2733 7.34496 14.1204L6.64429 10.4151C6.59453 10.1516 6.46651 9.90931 6.27694 9.71974C6.08737 9.53017 5.84506 9.40215 5.58163 9.35239L1.87629 8.65172C1.72336 8.62316 1.58524 8.54201 1.48584 8.42232C1.38644 8.30264 1.33203 8.15196 1.33203 7.99639C1.33203 7.84081 1.38644 7.69014 1.48584 7.57045C1.58524 7.45077 1.72336 7.36962 1.87629 7.34106L5.58163 6.64039C5.84506 6.59062 6.08737 6.4626 6.27694 6.27304C6.46651 6.08347 6.59453 5.84115 6.64429 5.57772L7.34496 1.87239Z"
+            stroke="currentColor"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M13.332 1.33594V4.0026"
+            stroke="currentColor"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M14.6667 2.66406H12"
+            stroke="currentColor"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M2.66536 14.6667C3.40174 14.6667 3.9987 14.0697 3.9987 13.3333C3.9987 12.597 3.40174 12 2.66536 12C1.92898 12 1.33203 12.597 1.33203 13.3333C1.33203 14.0697 1.92898 14.6667 2.66536 14.6667Z"
+            stroke="currentColor"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </g>
+        <defs>
+          <clipPath id="clip0_10297_388369">
+            <rect width="16" height="16" fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
+    ),
+    editor_for: ["chart"],
+  },
+  {
+    key: "home",
+    label: "Home",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M2 6L8 1.33333L14 6V13.3333C14 13.687 13.8595 14.0261 13.6095 14.2761C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2761C2.14048 14.0261 2 13.687 2 13.3333V6Z"
+          stroke="currentColor"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M6 14.6667V8H10V14.6667"
+          stroke="currentColor"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    editor_for: ["chart"],
+  },
+  {
+    key: "insert",
+    label: "Insert",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M3.33203 8H12.6654"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M8 3.33594V12.6693"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    ),
+    editor_for: ["chart"],
+  },
+  {
+    key: "format",
+    label: "Format",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M8 2.66406V13.3307"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M2.66797 4.66406V3.33073C2.66797 3.15392 2.73821 2.98435 2.86323 2.85932C2.98826 2.7343 3.15782 2.66406 3.33464 2.66406H12.668C12.8448 2.66406 13.0143 2.7343 13.1394 2.85932C13.2644 2.98435 13.3346 3.15392 13.3346 3.33073V4.66406"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M6 13.3359H10"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    ),
+    editor_for: ["chart"],
+  },
+  {
     key: "charts",
     label: "Charts",
     icon: (
@@ -674,6 +818,42 @@ const tools = [
           strokeWidth="1.33333"
           strokeLinecap="round"
           strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    editor_for: ["chart"],
+  },
+  {
+    key: "page-layout",
+    label: "Page Layout",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M2 6H14"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M6 14V6"
+          stroke="currentColor"
+          stroke-width="1.33333"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         />
       </svg>
     ),
