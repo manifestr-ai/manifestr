@@ -71,6 +71,7 @@ export default function Login() {
         }
       } catch (err) {
 
+        console.log(err);
         // Always reset submitting state on error
         setIsSubmitting(false)
 
@@ -171,7 +172,7 @@ export default function Login() {
                 <h1 className="text-[30px] leading-[38px] font-bold text-base-foreground font-hero">
                   Welcome back
                 </h1>
-                <p className="text-b2-regular text-base-muted-foreground">
+                <p className="text-b2-regular text-base-muted-foreground text-[#71717b]">
                   Think bold. Move fast. Stay limitless.
                 </p>
               </div>

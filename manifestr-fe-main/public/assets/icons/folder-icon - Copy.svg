@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <filter id="filter0_dd_10135_22397" x="0" y="0" width="135" height="98" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_dropShadow_10135_22397"/>
+      <feOffset dy="2"/>
+      <feGaussianBlur stdDeviation="2"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_10135_22397"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feMorphology radius="1" operator="erode" in="SourceAlpha" result="effect2_dropShadow_10135_22397"/>
+      <feOffset dy="4"/>
+      <feGaussianBlur stdDeviation="3"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+      <feBlend mode="normal" in2="effect1_dropShadow_10135_22397" result="effect2_dropShadow_10135_22397"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_10135_22397" result="shape"/>
+    </filter>
+    <linearGradient id="paint0_linear_10135_22397" x1="5" y1="9" x2="77.6447" y2="122.507" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A8B5A5"/>
+      <stop offset="1" stop-color="#8F9C8C"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#filter0_dd_10135_22397)" transform="matrix(3.985117, 0, 0, 4.726873, -18.427719, 81.005592)" style="">
+    <path d="M5 19C5 13.4772 9.47715 9 15 9H120C125.523 9 130 13.4772 130 19V79C130 84.5229 125.523 89 120 89H15C9.47715 89 5 84.5229 5 79V19Z" fill="url(#paint0_linear_10135_22397)" shape-rendering="crispEdges"/>
+    <path d="M21 5C21 2.79086 22.7909 1 25 1H65C67.2091 1 69 2.79086 69 5V13H21V5Z" fill="#C2CFBF"/>
+  </g>
+</svg>
+
+

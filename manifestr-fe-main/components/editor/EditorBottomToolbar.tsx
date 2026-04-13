@@ -18,34 +18,34 @@ const tools = [
         viewBox="0 0 16 16"
         fill="none"
       >
-        <g clip-path="url(#clip0_10297_388369)">
+        <g clipPath="url(#clip0_10297_388369)">
           <path
             d="M7.34496 1.87239C7.37353 1.71946 7.45468 1.58133 7.57436 1.48193C7.69404 1.38254 7.84472 1.32812 8.00029 1.32812C8.15587 1.32812 8.30655 1.38254 8.42623 1.48193C8.54591 1.58133 8.62706 1.71946 8.65563 1.87239L9.35629 5.57772C9.40606 5.84115 9.53408 6.08347 9.72365 6.27304C9.91322 6.4626 10.1555 6.59062 10.419 6.64039L14.1243 7.34106C14.2772 7.36962 14.4154 7.45077 14.5147 7.57045C14.6141 7.69014 14.6686 7.84081 14.6686 7.99639C14.6686 8.15196 14.6141 8.30264 14.5147 8.42232C14.4154 8.54201 14.2772 8.62316 14.1243 8.65172L10.419 9.35239C10.1555 9.40215 9.91322 9.53017 9.72365 9.71974C9.53408 9.90931 9.40606 10.1516 9.35629 10.4151L8.65563 14.1204C8.62706 14.2733 8.54591 14.4114 8.42623 14.5108C8.30655 14.6102 8.15587 14.6647 8.00029 14.6647C7.84472 14.6647 7.69404 14.6102 7.57436 14.5108C7.45468 14.4114 7.37353 14.2733 7.34496 14.1204L6.64429 10.4151C6.59453 10.1516 6.46651 9.90931 6.27694 9.71974C6.08737 9.53017 5.84506 9.40215 5.58163 9.35239L1.87629 8.65172C1.72336 8.62316 1.58524 8.54201 1.48584 8.42232C1.38644 8.30264 1.33203 8.15196 1.33203 7.99639C1.33203 7.84081 1.38644 7.69014 1.48584 7.57045C1.58524 7.45077 1.72336 7.36962 1.87629 7.34106L5.58163 6.64039C5.84506 6.59062 6.08737 6.4626 6.27694 6.27304C6.46651 6.08347 6.59453 5.84115 6.64429 5.57772L7.34496 1.87239Z"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M13.332 1.33594V4.0026"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M14.6667 2.66406H12"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M2.66536 14.6667C3.40174 14.6667 3.9987 14.0697 3.9987 13.3333C3.9987 12.597 3.40174 12 2.66536 12C1.92898 12 1.33203 12.597 1.33203 13.3333C1.33203 14.0697 1.92898 14.6667 2.66536 14.6667Z"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </g>
         <defs>
@@ -55,7 +55,7 @@ const tools = [
         </defs>
       </svg>
     ),
-    editor_for: ["presentation", "image"],
+    editor_for: ["presentation", "image","spreadsheet"],
   },
   {
     key: "format",
@@ -71,27 +71,27 @@ const tools = [
         <path
           d="M8 2.66406V13.3307"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M2.66797 4.66406V3.33073C2.66797 3.15392 2.73821 2.98435 2.86323 2.85932C2.98826 2.7343 3.15782 2.66406 3.33464 2.66406H12.668C12.8448 2.66406 13.0143 2.7343 13.1394 2.85932C13.2644 2.98435 13.3346 3.15392 13.3346 3.33073V4.66406"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M6 13.3359H10"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
-    editor_for: ["presentation", "image"],
+    editor_for: ["presentation", "image","spreadsheet"],
   },
   {
     key: "insert",
@@ -107,20 +107,20 @@ const tools = [
         <path
           d="M3.33203 8H12.6654"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M8 3.33594V12.6693"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
-    editor_for: ["presentation", "image"],
+    editor_for: ["presentation", "image","spreadsheet"],
   },
   {
     key: "layout",
@@ -136,27 +136,27 @@ const tools = [
         <path
           d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M2 6H14"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M6 14V6"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
-    editor_for: ["presentation"],
+    editor_for: ["presentation","spreadsheet"],
   },
   {
     key: "style",
@@ -169,27 +169,27 @@ const tools = [
         viewBox="0 0 16 16"
         fill="none"
       >
-        <g clip-path="url(#clip0_10297_388346)">
+        <g clipPath="url(#clip0_10297_388346)">
           <path
             d="M9.74891 11.9342L2.62891 9.99219"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M12.2516 1.75043C12.383 1.61902 12.539 1.51478 12.7107 1.44366C12.8824 1.37254 13.0664 1.33594 13.2523 1.33594C13.4381 1.33594 13.6221 1.37254 13.7938 1.44366C13.9655 1.51478 14.1215 1.61902 14.2529 1.75043C14.3843 1.88184 14.4886 2.03784 14.5597 2.20954C14.6308 2.38123 14.6674 2.56525 14.6674 2.75109C14.6674 2.93694 14.6308 3.12096 14.5597 3.29265C14.4886 3.46435 14.3843 3.62035 14.2529 3.75176L11.5743 6.43109C11.5118 6.4936 11.4767 6.57837 11.4767 6.66676C11.4767 6.75515 11.5118 6.83992 11.5743 6.90243L12.2036 7.53176C12.5048 7.83306 12.6741 8.24169 12.6741 8.66776C12.6741 9.09383 12.5048 9.50246 12.2036 9.80376L11.5743 10.4331C11.5117 10.4956 11.427 10.5307 11.3386 10.5307C11.2502 10.5307 11.1654 10.4956 11.1029 10.4331L5.57025 4.90109C5.50776 4.83858 5.47266 4.75382 5.47266 4.66543C5.47266 4.57704 5.50776 4.49227 5.57025 4.42976L6.19959 3.80043C6.50089 3.49917 6.90951 3.32993 7.33559 3.32993C7.76166 3.32993 8.17028 3.49917 8.47159 3.80043L9.10092 4.42976C9.16343 4.49225 9.2482 4.52736 9.33659 4.52736C9.42497 4.52736 9.50974 4.49225 9.57225 4.42976L12.2516 1.75043Z"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M6.0019 5.33594C4.79923 7.1426 3.35523 7.6426 1.61323 7.96794C1.55544 7.97849 1.5014 8.00392 1.45644 8.04172C1.41147 8.07952 1.37713 8.12839 1.35681 8.1835C1.33649 8.23862 1.33088 8.29808 1.34054 8.35603C1.3502 8.41397 1.3748 8.4684 1.4119 8.51394L6.2919 14.4359C6.39102 14.5412 6.52168 14.6114 6.66418 14.6359C6.80667 14.6605 6.95328 14.638 7.0819 14.5719C8.4919 13.6059 10.6686 11.1973 10.6686 10.0026"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </g>
         <defs>
@@ -199,7 +199,7 @@ const tools = [
         </defs>
       </svg>
     ),
-    editor_for: ["presentation", "image"],
+    editor_for: ["presentation", "image","spreadsheet"],
   },
   {
     key: "arrange",
@@ -212,48 +212,48 @@ const tools = [
         viewBox="0 0 16 16"
         fill="none"
       >
-        <g clip-path="url(#clip0_10297_388336)">
+        <g clipPath="url(#clip0_10297_388336)">
           <path
             d="M8 1.33594V14.6693"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M10 12.6641L8 14.6641L6 12.6641"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M12.668 6L14.668 8L12.668 10"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M1.33203 8H14.6654"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M3.33203 6L1.33203 8L3.33203 10"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M6 3.33594L8 1.33594L10 3.33594"
             stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1.33333"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </g>
         <defs>
@@ -281,16 +281,16 @@ const tools = [
         <path
           d="M3.33203 8H12.6654"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M8 3.33594L12.6667 8.0026L8 12.6693"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
@@ -311,9 +311,9 @@ const tools = [
         <path
           d="M2.66503 9.32986C2.53888 9.33029 2.41519 9.29492 2.30834 9.22785C2.20148 9.16078 2.11586 9.06477 2.0614 8.95097C2.00694 8.83717 1.9859 8.71025 2.0007 8.58497C2.0155 8.45968 2.06555 8.34117 2.14503 8.24319L8.74503 1.44319C8.79454 1.38605 8.86201 1.34743 8.93636 1.33368C9.0107 1.31993 9.08752 1.33187 9.15419 1.36753C9.22086 1.40319 9.27342 1.46046 9.30326 1.52993C9.33309 1.59941 9.33842 1.67696 9.31837 1.74986L8.03837 5.76319C8.00062 5.86421 7.98795 5.97287 8.00143 6.07987C8.01491 6.18686 8.05414 6.28898 8.11576 6.37748C8.17738 6.46598 8.25955 6.5382 8.35522 6.58797C8.45089 6.63773 8.5572 6.66355 8.66503 6.66319H13.3317C13.4579 6.66276 13.5815 6.69814 13.6884 6.76521C13.7952 6.83228 13.8809 6.92829 13.9353 7.04209C13.9898 7.15589 14.0108 7.2828 13.996 7.40809C13.9812 7.53338 13.9312 7.65189 13.8517 7.74986L7.2517 14.5499C7.20219 14.607 7.13473 14.6456 7.06038 14.6594C6.98603 14.6731 6.90922 14.6612 6.84255 14.6255C6.77588 14.5899 6.72331 14.5326 6.69348 14.4631C6.66364 14.3936 6.65832 14.3161 6.67837 14.2432L7.95837 10.2299C7.99611 10.1288 8.00879 10.0202 7.99531 9.91319C7.98183 9.8062 7.94259 9.70407 7.88097 9.61558C7.81935 9.52708 7.73719 9.45485 7.64152 9.40509C7.54585 9.35532 7.43954 9.32951 7.3317 9.32986H2.66503Z"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
@@ -334,9 +334,9 @@ const tools = [
         <path
           d="M3.33203 3.33373C3.33196 3.09912 3.39379 2.86865 3.51129 2.66559C3.62878 2.46252 3.79777 2.29406 4.0012 2.17719C4.20463 2.06033 4.43529 1.99921 4.66989 2.00001C4.90449 2.0008 5.13474 2.06349 5.33736 2.18173L13.3354 6.84706C13.5372 6.96418 13.7048 7.13223 13.8213 7.3344C13.9379 7.53657 13.9993 7.76579 13.9995 7.99915C13.9997 8.23251 13.9387 8.46184 13.8225 8.66422C13.7063 8.86659 13.539 9.03493 13.3374 9.15239L5.33736 13.8191C5.13474 13.9373 4.90449 14 4.66989 14.0008C4.43529 14.0016 4.20463 13.9405 4.0012 13.8236C3.79777 13.7067 3.62878 13.5383 3.51129 13.3352C3.39379 13.1321 3.33196 12.9017 3.33203 12.6671V3.33373Z"
           stroke="#D1D5DC"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     ),
