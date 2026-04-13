@@ -211,7 +211,8 @@ export default function Home() {
         {/* Main Content */}
         <main className="pt-[72px] bg-[#f4f4f4] min-h-screen relative flex flex-col items-center">
           <div className="w-full max-w-[1440px] relative flex flex-col items-center md:block md:h-[980px] px-4 md:px-0 py-8 md:py-0">
-
+         
+               
             {/* Welcome Heading */}
             <motion.div
               animate={isFocused ? { y: -50, opacity: 0 } : { y: 0, opacity: 1 }}
@@ -219,7 +220,18 @@ export default function Home() {
               className="relative md:absolute md:top-[75px] md:left-1/2 md:transform md:-translate-x-1/2 z-10 w-full text-center mb-6 md:mb-0"
             >
               <h1 className="text-[32px] md:text-[48.531px] font-bold leading-tight md:leading-[46.104px] text-black font-hero whitespace-normal md:whitespace-nowrap">
-                Welcome Back, Leah
+              {(() => {
+                let user = null;
+                try {
+                  user = JSON.parse(localStorage.getItem('user'));
+                } catch {}
+                const name = user
+                  ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || user.email
+                  : "User";
+                return <>Welcome Back, {name}</>;
+              })()}
+     
+           
               </h1>
             </motion.div>
 

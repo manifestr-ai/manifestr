@@ -413,7 +413,18 @@ export default function Notifications() {
                 Notify.
               </h1>
               <p className="text-[18px] leading-[28px] text-[#71717a] mb-6">
-                Welcome back, Leah. Here's what's new in your Collabs.
+
+              {(() => {
+                let user = null;
+                try {
+                  user = JSON.parse(localStorage.getItem('user'));
+                } catch {}
+                const name = user
+                  ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || user.email
+                  : "User";
+                return <>Welcome Back, {name}. Here's what's new in your Collabs.</>;
+              })()}
+               
               </p>
 
               {/* Tabs */}
