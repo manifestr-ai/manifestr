@@ -106,14 +106,14 @@ const tools = [
       >
         <path
           d="M3.33203 8H12.6654"
-          stroke="#101828"
+          stroke="#D1D5DC"
           stroke-width="1.33333"
           stroke-linecap="round"
           stroke-linejoin="round"
         />
         <path
           d="M8 3.33594V12.6693"
-          stroke="#101828"
+          stroke="#D1D5DC"
           stroke-width="1.33333"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -157,6 +157,49 @@ const tools = [
       </svg>
     ),
     editor_for: ["presentation"],
+  },
+  {
+    key: "style",
+    label: "Style",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <g clip-path="url(#clip0_10297_388346)">
+          <path
+            d="M9.74891 11.9342L2.62891 9.99219"
+            stroke="#D1D5DC"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M12.2516 1.75043C12.383 1.61902 12.539 1.51478 12.7107 1.44366C12.8824 1.37254 13.0664 1.33594 13.2523 1.33594C13.4381 1.33594 13.6221 1.37254 13.7938 1.44366C13.9655 1.51478 14.1215 1.61902 14.2529 1.75043C14.3843 1.88184 14.4886 2.03784 14.5597 2.20954C14.6308 2.38123 14.6674 2.56525 14.6674 2.75109C14.6674 2.93694 14.6308 3.12096 14.5597 3.29265C14.4886 3.46435 14.3843 3.62035 14.2529 3.75176L11.5743 6.43109C11.5118 6.4936 11.4767 6.57837 11.4767 6.66676C11.4767 6.75515 11.5118 6.83992 11.5743 6.90243L12.2036 7.53176C12.5048 7.83306 12.6741 8.24169 12.6741 8.66776C12.6741 9.09383 12.5048 9.50246 12.2036 9.80376L11.5743 10.4331C11.5117 10.4956 11.427 10.5307 11.3386 10.5307C11.2502 10.5307 11.1654 10.4956 11.1029 10.4331L5.57025 4.90109C5.50776 4.83858 5.47266 4.75382 5.47266 4.66543C5.47266 4.57704 5.50776 4.49227 5.57025 4.42976L6.19959 3.80043C6.50089 3.49917 6.90951 3.32993 7.33559 3.32993C7.76166 3.32993 8.17028 3.49917 8.47159 3.80043L9.10092 4.42976C9.16343 4.49225 9.2482 4.52736 9.33659 4.52736C9.42497 4.52736 9.50974 4.49225 9.57225 4.42976L12.2516 1.75043Z"
+            stroke="#D1D5DC"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M6.0019 5.33594C4.79923 7.1426 3.35523 7.6426 1.61323 7.96794C1.55544 7.97849 1.5014 8.00392 1.45644 8.04172C1.41147 8.07952 1.37713 8.12839 1.35681 8.1835C1.33649 8.23862 1.33088 8.29808 1.34054 8.35603C1.3502 8.41397 1.3748 8.4684 1.4119 8.51394L6.2919 14.4359C6.39102 14.5412 6.52168 14.6114 6.66418 14.6359C6.80667 14.6605 6.95328 14.638 7.0819 14.5719C8.4919 13.6059 10.6686 11.1973 10.6686 10.0026"
+            stroke="#D1D5DC"
+            stroke-width="1.33333"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </g>
+        <defs>
+          <clipPath id="clip0_10297_388346">
+            <rect width="16" height="16" fill="white" />
+          </clipPath>
+        </defs>
+      </svg>
+    ),
+    editor_for: ["presentation", "image"],
   },
   {
     key: "arrange",
@@ -221,50 +264,9 @@ const tools = [
       </svg>
     ),
     editor_for: ["presentation"],
+    disabled: true,
   },
-  {
-    key: "style",
-    label: "Style",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <g clip-path="url(#clip0_10297_388346)">
-          <path
-            d="M9.74891 11.9342L2.62891 9.99219"
-            stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M12.2516 1.75043C12.383 1.61902 12.539 1.51478 12.7107 1.44366C12.8824 1.37254 13.0664 1.33594 13.2523 1.33594C13.4381 1.33594 13.6221 1.37254 13.7938 1.44366C13.9655 1.51478 14.1215 1.61902 14.2529 1.75043C14.3843 1.88184 14.4886 2.03784 14.5597 2.20954C14.6308 2.38123 14.6674 2.56525 14.6674 2.75109C14.6674 2.93694 14.6308 3.12096 14.5597 3.29265C14.4886 3.46435 14.3843 3.62035 14.2529 3.75176L11.5743 6.43109C11.5118 6.4936 11.4767 6.57837 11.4767 6.66676C11.4767 6.75515 11.5118 6.83992 11.5743 6.90243L12.2036 7.53176C12.5048 7.83306 12.6741 8.24169 12.6741 8.66776C12.6741 9.09383 12.5048 9.50246 12.2036 9.80376L11.5743 10.4331C11.5117 10.4956 11.427 10.5307 11.3386 10.5307C11.2502 10.5307 11.1654 10.4956 11.1029 10.4331L5.57025 4.90109C5.50776 4.83858 5.47266 4.75382 5.47266 4.66543C5.47266 4.57704 5.50776 4.49227 5.57025 4.42976L6.19959 3.80043C6.50089 3.49917 6.90951 3.32993 7.33559 3.32993C7.76166 3.32993 8.17028 3.49917 8.47159 3.80043L9.10092 4.42976C9.16343 4.49225 9.2482 4.52736 9.33659 4.52736C9.42497 4.52736 9.50974 4.49225 9.57225 4.42976L12.2516 1.75043Z"
-            stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M6.0019 5.33594C4.79923 7.1426 3.35523 7.6426 1.61323 7.96794C1.55544 7.97849 1.5014 8.00392 1.45644 8.04172C1.41147 8.07952 1.37713 8.12839 1.35681 8.1835C1.33649 8.23862 1.33088 8.29808 1.34054 8.35603C1.3502 8.41397 1.3748 8.4684 1.4119 8.51394L6.2919 14.4359C6.39102 14.5412 6.52168 14.6114 6.66418 14.6359C6.80667 14.6605 6.95328 14.638 7.0819 14.5719C8.4919 13.6059 10.6686 11.1973 10.6686 10.0026"
-            stroke="#D1D5DC"
-            stroke-width="1.33333"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </g>
-        <defs>
-          <clipPath id="clip0_10297_388346">
-            <rect width="16" height="16" fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
-    ),
-    editor_for: ["presentation"],
-  },
+
   {
     key: "transition",
     label: "Transitions",
@@ -293,6 +295,7 @@ const tools = [
       </svg>
     ),
     editor_for: ["presentation"],
+    disabled: true,
   },
   {
     key: "animation",
@@ -315,6 +318,7 @@ const tools = [
       </svg>
     ),
     editor_for: ["presentation"],
+    disabled: true,
   },
   {
     key: "slideshow",
@@ -337,6 +341,7 @@ const tools = [
       </svg>
     ),
     editor_for: ["presentation"],
+    disabled: true,
   },
 
   {
@@ -424,42 +429,42 @@ const tools = [
     ),
     editor_for: ["image"],
   },
-  {
-    key: "text",
-    label: "Text",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M8 2.66797V13.3346"
-          stroke="#D1D5DC"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2.66797 4.66797V3.33464C2.66797 3.15782 2.73821 2.98826 2.86323 2.86323C2.98826 2.73821 3.15782 2.66797 3.33464 2.66797H12.668C12.8448 2.66797 13.0143 2.73821 13.1394 2.86323C13.2644 2.98826 13.3346 3.15782 13.3346 3.33464V4.66797"
-          stroke="#D1D5DC"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M6 13.332H10"
-          stroke="#D1D5DC"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["image"],
-  },
+  // {
+  //   key: "text",
+  //   label: "Text",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M8 2.66797V13.3346"
+  //         stroke="#D1D5DC"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M2.66797 4.66797V3.33464C2.66797 3.15782 2.73821 2.98826 2.86323 2.86323C2.98826 2.73821 3.15782 2.66797 3.33464 2.66797H12.668C12.8448 2.66797 13.0143 2.73821 13.1394 2.86323C13.2644 2.98826 13.3346 3.15782 13.3346 3.33464V4.66797"
+  //         stroke="#D1D5DC"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M6 13.332H10"
+  //         stroke="#D1D5DC"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["image"],
+  // },
   {
     key: "color",
     label: "Color",
@@ -505,6 +510,72 @@ const tools = [
         <path
           d="M5.66536 5.33464C5.84946 5.33464 5.9987 5.1854 5.9987 5.0013C5.9987 4.81721 5.84946 4.66797 5.66536 4.66797C5.48127 4.66797 5.33203 4.81721 5.33203 5.0013C5.33203 5.1854 5.48127 5.33464 5.66536 5.33464Z"
           fill="#D1D5DC"
+          stroke="#D1D5DC"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    editor_for: ["image"],
+  },
+
+  {
+    key: "filter",
+    label: "Filters",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M6.66512 13.3333C6.66507 13.4572 6.69953 13.5787 6.76465 13.6841C6.82977 13.7895 6.92297 13.8746 7.03379 13.93L8.36712 14.5967C8.46879 14.6475 8.58175 14.6714 8.69529 14.6663C8.80882 14.6612 8.91916 14.6271 9.01581 14.5673C9.11247 14.5075 9.19224 14.424 9.24754 14.3247C9.30284 14.2254 9.33184 14.1137 9.33179 14V9.33333C9.33194 9.00292 9.45477 8.68433 9.67646 8.43933L14.4918 3.11333C14.5781 3.01771 14.6349 2.89912 14.6552 2.77192C14.6755 2.64472 14.6586 2.51435 14.6064 2.39658C14.5542 2.27881 14.469 2.17868 14.3611 2.1083C14.2532 2.03792 14.1273 2.0003 13.9985 2H1.99846C1.86953 2.00005 1.74338 2.03748 1.63529 2.10776C1.5272 2.17804 1.44181 2.27815 1.38946 2.39598C1.33711 2.5138 1.32005 2.64427 1.34034 2.77159C1.36063 2.89892 1.41741 3.01762 1.50379 3.11333L6.32046 8.43933C6.54215 8.68433 6.66497 9.00292 6.66512 9.33333V13.3333Z"
+          stroke="#D1D5DC"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    editor_for: ["image"],
+  },
+  {
+    key: "transform",
+    label: "Transform",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
+        <path
+          d="M3 6V3H6"
+          stroke="#D1D5DC"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M13 10V13H10"
+          stroke="#D1D5DC"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M6 3L13 10"
+          stroke="#D1D5DC"
+          strokeWidth="1.33333"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M3 6L10 13"
           stroke="#D1D5DC"
           strokeWidth="1.33333"
           strokeLinecap="round"
@@ -563,28 +634,7 @@ const tools = [
       </svg>
     ),
     editor_for: ["image"],
-  },
-  {
-    key: "filter",
-    label: "Filters",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M6.66512 13.3333C6.66507 13.4572 6.69953 13.5787 6.76465 13.6841C6.82977 13.7895 6.92297 13.8746 7.03379 13.93L8.36712 14.5967C8.46879 14.6475 8.58175 14.6714 8.69529 14.6663C8.80882 14.6612 8.91916 14.6271 9.01581 14.5673C9.11247 14.5075 9.19224 14.424 9.24754 14.3247C9.30284 14.2254 9.33184 14.1137 9.33179 14V9.33333C9.33194 9.00292 9.45477 8.68433 9.67646 8.43933L14.4918 3.11333C14.5781 3.01771 14.6349 2.89912 14.6552 2.77192C14.6755 2.64472 14.6586 2.51435 14.6064 2.39658C14.5542 2.27881 14.469 2.17868 14.3611 2.1083C14.2532 2.03792 14.1273 2.0003 13.9985 2H1.99846C1.86953 2.00005 1.74338 2.03748 1.63529 2.10776C1.5272 2.17804 1.44181 2.27815 1.38946 2.39598C1.33711 2.5138 1.32005 2.64427 1.34034 2.77159C1.36063 2.89892 1.41741 3.01762 1.50379 3.11333L6.32046 8.43933C6.54215 8.68433 6.66497 9.00292 6.66512 9.33333V13.3333Z"
-          stroke="#D1D5DC"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["image"],
+    disabled: true,
   },
   {
     key: "ai",
@@ -930,18 +980,22 @@ export default function EditorBottomToolbar({
         )
         .map((tool) => {
           const isActive = activeTool === tool.key;
-
+          const isDisabled = tool.disabled;
           return (
             <button
               key={tool.key}
-              onClick={() => setActiveTool(tool.key)}
+              onClick={() => {
+                if (isDisabled) return;
+                setActiveTool(tool.key);
+              }}
               className={`
-                px-3 py-1.5 rounded-md transition
-                flex items-center gap-2
+                px-3 py-1.5 rounded-md transition flex items-center gap-2
                 ${
-                  isActive
-                    ? "bg-white text-black"
-                    : "text-gray-300 hover:bg-[#3a3a3a] hover:text-white"
+                  isDisabled
+                    ? "opacity-40 cursor-not-allowed"
+                    : isActive
+                      ? "bg-white text-black"
+                      : "text-gray-300 hover:bg-[#3a3a3a] hover:text-white"
                 }
               `}
             >
