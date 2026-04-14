@@ -10,26 +10,27 @@ import StylePanel from "./StylePanel";
 interface ToolPanelProps {
   activeTool: string | null;
   store?: any;
+  editor?: any;
 }
 
-export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
+export default function ToolPanel({ activeTool, store, editor }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
     case "ai-prompt":
-      return <AIPromptPanel store={store} />;
+      return <AIPromptPanel store={store} editor={editor} />;
     case "format":
-      return <FormatPanel store={store} />;
+      return <FormatPanel store={store} editor={editor} />;
     case "insert":
-      return <InsertPanel store={store} />;
+      return <InsertPanel store={store} editor={editor} />;
     case "layout":
-      return <LayoutPanel store={store} />;
+      return <LayoutPanel store={store} editor={editor} />;
     case "references":
-      return <ReferencesPanel store={store} />;
+      return <ReferencesPanel store={store} editor={editor} />;
     case "review":
-      return <ReviewPanel store={store} />;
+      return <ReviewPanel store={store} editor={editor} />;
     case "style":
-      return <StylePanel store={store} />;
+      return <StylePanel store={store} editor={editor} />;
     default:
       return null;
   }

@@ -3,9 +3,10 @@ import ToolPanel from "./panels/docs-editor/ToolPanel";
 
 interface DocsEditorBottomToolbarProps {
   store?: any;
+  editor?: any;
 }
 
-export default function DocsEditorBottomToolbar({ store }: DocsEditorBottomToolbarProps) {
+export default function DocsEditorBottomToolbar({ store, editor }: DocsEditorBottomToolbarProps) {
   const [activeTool, setActiveTool] = useState<string | null>("format");
 
   // Icon URLs from Figma
@@ -66,7 +67,7 @@ export default function DocsEditorBottomToolbar({ store }: DocsEditorBottomToolb
     <div className="flex flex-col">
       {/* Tool Panel (shows above toolbar) */}
       {activeTool && activeTool !== "ai-prompt" && (
-        <ToolPanel activeTool={activeTool} store={store} />
+        <ToolPanel activeTool={activeTool} store={store} editor={editor} />
       )}
 
       {/* Bottom Toolbar */}

@@ -91,6 +91,37 @@
   to   { transform: rotate(360deg); }
 }
 
+/* Toast notification animations */
+@keyframes fade-in-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
 /* Marquee animations for seamless looping - using will-change for smooth performance */
 @keyframes marquee-left {
   0% {
@@ -160,6 +191,23 @@
   img {
     max-width: 100%;
     height: auto;
+  }
+
+  /* Ensure all tables in editors are visible */
+  table {
+    border-collapse: collapse !important;
+  }
+
+  table td,
+  table th {
+    border: 2px solid #000000 !important;
+    padding: 8px 12px !important;
+    background-color: #ffffff !important;
+  }
+
+  table th {
+    background-color: #e5e7eb !important;
+    font-weight: 700 !important;
   }
 }
 
@@ -482,3 +530,174 @@
 /* .bp5-popover-target{
   display: none !important;
 } */
+
+/* Tiptap Table Styles */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1rem 0;
+  overflow: hidden;
+  border: 3px solid #000000;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  min-width: 1em;
+  border: 3px solid #000000;
+  padding: 12px 16px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+  background-color: #ffffff;
+}
+
+.ProseMirror table th {
+  font-weight: 700;
+  text-align: left;
+  background-color: #e5e7eb;
+  color: #000000;
+}
+
+.ProseMirror table .selectedCell {
+  background-color: #dbeafe;
+}
+
+.ProseMirror table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #3b82f6;
+  pointer-events: none;
+}
+
+.ProseMirror table p {
+  margin: 0;
+}
+
+/* Make sure tables are visible in editor */
+.simple-editor table,
+.collaborative-editor table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1rem 0;
+  border: 3px solid #000000;
+}
+
+.simple-editor table td,
+.simple-editor table th,
+.collaborative-editor table td,
+.collaborative-editor table th {
+  min-width: 1em;
+  border: 3px solid #000000;
+  padding: 12px 16px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+  background-color: #ffffff;
+}
+
+.simple-editor table th,
+.collaborative-editor table th {
+  font-weight: 700;
+  text-align: left;
+  background-color: #e5e7eb;
+  color: #000000;
+}
+
+/* Tiptap Editor Styles */
+.ProseMirror {
+  outline: none;
+  min-height: 200px;
+}
+
+.ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+.ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 2px solid #d1d5db;
+  margin: 2rem 0;
+}
+
+/* Search Highlight */
+.search-highlight {
+  background-color: #fef08a !important;
+  padding: 2px 0;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px #fef08a;
+}
+
+/* Comment Highlight */
+.comment-highlight {
+  background-color: #fef3c7 !important;
+  border-bottom: 2px solid #f59e0b;
+  cursor: help;
+  position: relative;
+}
+
+/* Hide comments when toggled */
+.ProseMirror.hide-comments .comment-highlight,
+.ProseMirror.hide-comments [data-comment],
+.ProseMirror.hide-comments mark[style*="background-color: rgb(254, 243, 199)"],
+.ProseMirror.hide-comments mark[style*="background-color:#fef3c7"] {
+  background-color: transparent !important;
+  border-bottom: none !important;
+}
+
+/* Document Header/Footer Styles */
+.doc-header,
+.doc-footer {
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 6px;
+  color: #6b7280;
+  font-size: 14px;
+  position: relative;
+  user-select: none;
+}
+
+.doc-header::before {
+  content: 'HEADER';
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+}
+
+.doc-footer::before {
+  content: 'FOOTER';
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+}
+
+@media print {
+  .doc-header::before,
+  .doc-footer::before {
+    display: none;
+  }
+  
+  .doc-header,
+  .doc-footer {
+    border: none;
+    background: transparent;
+  }
+}
