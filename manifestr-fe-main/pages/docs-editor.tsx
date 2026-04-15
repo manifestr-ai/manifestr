@@ -35,9 +35,10 @@ import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 
 export default function DocsEditor() {
   const router = useRouter();
-  const { id: documentId } = router.query; // Get document ID from URL
+  const { id: documentId } = router.query;
   const [headings, setHeadings] = useState([]);
   const [editorHTML, setEditorHTML] = useState("");
+  const [editorInstance, setEditorInstance] = useState(null);
   const { loading, error, status, content, id } = useGenerationLoader();
 
   const extractHeadings = (html) => {
@@ -255,11 +256,13 @@ export default function DocsEditor() {
                 documentId={actualDocumentId}
                 initialContent={editorContent}
                 onUpdate={extractHeadings}
+                onEditorReady={setEditorInstance}
               />
             ) : (
               <TiptapEditor
                 onUpdate={extractHeadings}
                 content={editorContent}
+                onEditorReady={setEditorInstance}
               />
             )}
           </div>
@@ -277,7 +280,7 @@ export default function DocsEditor() {
 
         {/* Bottom Section */}
         <div className="flex-none z-30">
-          <DocsEditorBottomToolbar />
+          <DocsEditorBottomToolbar editor={editorInstance} />
         </div>
       </div>
     </GenerationLoaderUI>
