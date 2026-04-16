@@ -4,7 +4,9 @@ import FormatPanel from "../comman-panel/FormatPanel";
 import ArrangePanel from "./ArrangePanel";
 import StylePanel from "../comman-panel/StylePanel";
 import LayoutPanel from "./LayoutPanel";
-// import AnimationPanel from "./AnimationPanel";
+import AnimationPanel from "./AnimationPanel";
+import TransitionsPanel from "./TransitionsPanel";
+import SlideShowPanel from "./SlideShowPanel";
 
 interface ToolPanelProps {
   activeTool: string;
@@ -30,8 +32,14 @@ export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
     case "layout":
       return <LayoutPanel store={store} />;
 
-    // case "animation":
-    //   return <AnimationPanel store={store} />;
+    case "animation":
+      return <AnimationPanel store={store} />;
+
+    case "transition":
+      return <TransitionsPanel store={store} />;
+
+    case "slideshow":
+      return <SlideShowPanel store={store} />;
 
     default:
       return null;

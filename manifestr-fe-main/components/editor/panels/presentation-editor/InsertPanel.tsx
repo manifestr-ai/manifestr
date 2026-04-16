@@ -10,10 +10,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
   if (!store) return null;
 
   return (
-    <div className="h-[90px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0">
+    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0">
       {/* Content */}
       <div className="flex flex-col items-center min-w-[210px]">
-        <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-1.5">
+        <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
           Content
         </span>
 
@@ -23,7 +23,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             onClick={() =>
               store.activePage?.addElement?.({ type: "text", text: "Text" })
             }
-            className="flex flex-col items-center group"
+            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
           >
@@ -87,7 +87,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             }
           >
             <button
-              className="flex flex-col items-center group"
+              className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
               tabIndex={0}
               type="button"
             >
@@ -146,7 +146,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
 
       {/* Media */}
       <div className="flex flex-col items-center min-w-[210px]">
-        <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-1.5">
+        <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
           Media
         </span>
         <div className="flex flex-row items-center gap-[34px]">
@@ -174,7 +174,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
                 input.click();
               }
             }}
-            className="flex flex-col items-center group"
+            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
           >
@@ -273,7 +273,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
               // ✅ Select all (simulate group)
               store.selectElements(createdElements);
             }}
-            className="flex flex-col items-center group"
+            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
           >
@@ -336,7 +336,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             </span>
           </button>
           {/* Chart */}
-          {/* <button
+          <button
             onClick={() => {
               const page = store.activePage;
               if (!page) return;
@@ -395,7 +395,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
                 });
               });
             }}
-            className="flex flex-col items-center group"
+            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
           >
@@ -449,7 +449,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             >
               Chart
             </span>
-          </button> */}
+          </button>
         </div>
       </div>
     </div>
