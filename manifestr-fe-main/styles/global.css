@@ -637,6 +637,12 @@
   border: 1px solid rgba(0, 0, 0, 0.00) !important;
   background: #F3F3F5 !important;
 }
+
+
+footer > .univer-box-border{
+  background: #F9FAFB !important;
+}
+
 /* Tiptap Table Styles */
 .ProseMirror table {
   border-collapse: collapse;

@@ -17,6 +17,7 @@ import spreadsheetData from "../assets/dummy/spreadsheet-data.json";
 import useGenerationLoader from "../hooks/useGenerationLoader";
 import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 import EditorBottomToolbar from "../components/editor/EditorBottomToolbar";
+import ToolPanel from "../components/editor/panels/spreadsheet-editor/ToolPanel";
 
 const CollaborativeUniverSheet = dynamic(
   () => import("../components/spreadsheet/CollaborativeUniverSheet"),
@@ -440,7 +441,7 @@ export default function SpreadsheetEditor() {
         </div>
 
         {/* BOTTOM TOOLBAR */}
-        {/* <ToolPanel activeTool={activeTool} store={store} /> */}
+        <ToolPanel activeTool={activeTool} store={univerRef} />
 
         <EditorBottomToolbar
           activeTool={activeTool}

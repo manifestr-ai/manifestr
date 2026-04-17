@@ -1,6 +1,6 @@
 import React from "react";
 import InsertPanel from "./InsertPanel";
-import FormatPanel from "../comman-panel/FormatPanel";
+import FormatPanel from "./FormatPanel";
 import ArrangePanel from "./ArrangePanel";
 import StylePanel from "../comman-panel/StylePanel";
 import LayoutPanel from "./LayoutPanel";
