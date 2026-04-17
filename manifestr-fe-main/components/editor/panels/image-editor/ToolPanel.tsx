@@ -5,7 +5,9 @@ import AdjustPanel from "./AdjustPanel";
 import StylePanel from "../comman-panel/StylePanel";
 import TransformPanel from "./TransformPanel";
 import FiltersPanel from "./FiltersPanel";
-
+import TextPanel from "./TextPanel";
+import ColorPanel from "./ColorPanel";
+import EffectPanel from "./EffectPanel";
 
 interface ToolPanelProps {
   activeTool: string;
@@ -33,6 +35,15 @@ export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
 
     case "filter":
       return <FiltersPanel store={store} />;
+
+    case "text":
+      return <TextPanel store={store} />;
+
+    case "color":
+      return <ColorPanel store={store} />;
+
+    case "effects":
+      return <EffectPanel store={store} />;
 
     default:
       return null;
