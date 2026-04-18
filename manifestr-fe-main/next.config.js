@@ -9,13 +9,6 @@ const nextConfig = {
                 : 'http://localhost:8000'),
     },
     images: {
-        domains: [
-            'images.unsplash.com',
-            'plus.unsplash.com',
-            'source.unsplash.com',
-            'res.cloudinary.com',
-            'localhost'
-        ],
         remotePatterns: [
             {
                 protocol: 'https',
