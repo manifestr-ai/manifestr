@@ -1,12 +1,12 @@
 import React from "react";
 import InsertPanel from "./InsertPanel";
-// import FormatPanel from "./FormatPanel";
-// import ArrangePanel from "./ArrangePanel";
-// import StylePanel from "../comman-panel/StylePanel";
-// import LayoutPanel from "./LayoutPanel";
-// import AnimationPanel from "./AnimationPanel";
-// import TransitionsPanel from "./TransitionsPanel";
-// import SlideShowPanel from "./SlideShowPanel";
+import HomePanel from "./HomePanel";
+import FormatPanel from "./FormatPanel";
+import FormulasPanel from "./FormulasPanel";
+import DataPanel from "./DataPanel";
+import PageLayoutPanel from "./PageLayoutPanel";
+import StylePanel from "./StylePanel";
+import AiPrompterPanel from "../comman-panel/AiPrompterPanel";
 
 interface ToolPanelProps {
   activeTool: string;
@@ -17,29 +17,29 @@ export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
+    case "ai_prompter":
+      return <AiPrompterPanel store={store} />;
+
     case "insert":
       return <InsertPanel store={store} />;
 
-    // case "format":
-    //   return <FormatPanel store={store} />;
+    case "home":
+      return <HomePanel store={store} />;
 
-    // case "arrange":
-    //   return <ArrangePanel store={store} />;
+    case "format":
+      return <FormatPanel store={store} />;
 
-    // case "style":
-    //   return <StylePanel store={store} />;
+    case "style":
+      return <StylePanel store={store} />;
 
-    // case "layout":
-    //   return <LayoutPanel store={store} />;
+    case "page_layout":
+      return <PageLayoutPanel store={store} />;
 
-    // case "animation":
-    //   return <AnimationPanel store={store} />;
+    case "formulas":
+      return <FormulasPanel store={store} />;
 
-    // case "transition":
-    //   return <TransitionsPanel store={store} />;
-
-    // case "slideshow":
-    //   return <SlideShowPanel store={store} />;
+    case "data":
+      return <DataPanel store={store} />;
 
     default:
       return null;

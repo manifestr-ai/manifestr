@@ -8,7 +8,7 @@ interface EditorBottomToolbarProps {
 
 const tools = [
   {
-    key: "ai",
+    key: "ai_prompter",
     label: "AI Prompter",
     icon: (
       <svg

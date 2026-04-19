@@ -7,6 +7,7 @@ import LayoutPanel from "./LayoutPanel";
 import AnimationPanel from "./AnimationPanel";
 import TransitionsPanel from "./TransitionsPanel";
 import SlideShowPanel from "./SlideShowPanel";
+import AiPrompterPanel from "../comman-panel/AiPrompterPanel";
 
 interface ToolPanelProps {
   activeTool: string;
@@ -17,6 +18,8 @@ export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
+    case "ai_prompter":
+      return <AiPrompterPanel store={store} />;
     case "insert":
       return <InsertPanel store={store} />;
 

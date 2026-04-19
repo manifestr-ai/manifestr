@@ -225,7 +225,13 @@ export default function SpreadsheetEditor() {
   };
 
   const [activeTool, setActiveTool] = useState<
-    "ai" | "format" | "insert" | "formulas" | "layout" | "data" | "style"
+    | "ai_prompter"
+    | "format"
+    | "insert"
+    | "formulas"
+    | "layout"
+    | "data"
+    | "style"
   >("insert");
 
   return (
@@ -440,14 +446,21 @@ export default function SpreadsheetEditor() {
           <FloatingFAB />
         </div>
 
-        {/* BOTTOM TOOLBAR */}
-        <ToolPanel activeTool={activeTool} store={univerRef} />
+        {/* TOP PANELS (except AI Prompter) */}
+        {activeTool !== "ai_prompter" && (
+          <ToolPanel activeTool={activeTool} store={univerRef} />
+        )}
 
         <EditorBottomToolbar
           activeTool={activeTool}
           setActiveTool={setActiveTool}
           editorType="spreadsheet"
         />
+
+        {/* AI PROMPTER BELOW TOOLBAR */}
+        {activeTool === "ai_prompter" && (
+          <ToolPanel activeTool={activeTool} store={univerRef} />
+        )}
       </div>
     </GenerationLoaderUI>
   );

@@ -159,9 +159,9 @@ const PolotnoEditorUI = observer(
               PageControls: ({ page }) => (
                 <div
                   style={{
-                    position: 'absolute',
-                    top: '4%', // Exactly on slide content area
-                    right: '25%',
+                    position: "absolute",
+                    top: "4%", // Exactly on slide content area
+                    right: "25%",
                     zIndex: 10,
                   }}
                 >
@@ -171,19 +171,18 @@ const PolotnoEditorUI = observer(
                     intent="none"
                     onClick={() => {
                       // Defensive: check page.id exists and store.deletePages available
-                      if (!page?.id || typeof store.deletePages !== "function") return;
+                      if (!page?.id || typeof store.deletePages !== "function")
+                        return;
 
                       const shouldDelete = window.confirm(
-                        "Are you sure you want to delete this slide?"
+                        "Are you sure you want to delete this slide?",
                       );
                       if (shouldDelete) {
                         store.deletePages([page.id]);
                       }
                     }}
-              
                   />
                 </div>
-          
               ),
             }}
           />
@@ -453,7 +452,7 @@ export default function CollaborativePresentationEditor({
   }, [store, generationId, lastSavedContent]);
 
   const [activeTool, setActiveTool] = useState<
-    | "ai"
+    | "ai_prompter"
     | "format"
     | "insert"
     | "layout"
@@ -987,13 +986,21 @@ export default function CollaborativePresentationEditor({
 
       {/* BOTTOM TOOLBAR */}
 
-      <ToolPanel activeTool={activeTool} store={store} />
+      {/* TOP PANELS (except AI Prompter) */}
+      {activeTool !== "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} />
+      )}
 
       <EditorBottomToolbar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
-        editorType ="presentation"
+        editorType="presentation"
       />
+
+      {/* AI PROMPTER BELOW TOOLBAR */}
+      {activeTool === "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} />
+      )}
     </div>
   );
 }
