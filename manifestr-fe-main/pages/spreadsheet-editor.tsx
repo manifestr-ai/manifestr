@@ -5,7 +5,7 @@ import { saveAs } from "file-saver";
 import TopHeader from "../components/spreadsheet/TopHeader";
 // import FormulaBar from '../components/spreadsheet/FormulaBar';
 import UniverSheet from "../components/spreadsheet/UniverSheet";
-import RightSidebar from "../components/spreadsheet/RightSidebar";
+import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
 import {
   FloatingSheetTab,
@@ -435,11 +435,11 @@ export default function SpreadsheetEditor() {
           </div>
 
           {/* Right Sidebar (Floating over grid on the right) */}
-          {/* <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
-                        <div className="pointer-events-auto">
-                            <RightSidebar />
-                        </div>
-                    </div> */}
+          <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
+            <div className="pointer-events-auto">
+              <RightSidebar />
+            </div>
+          </div>
 
           {/* Floating Elements */}
           <FloatingSheetTab />
