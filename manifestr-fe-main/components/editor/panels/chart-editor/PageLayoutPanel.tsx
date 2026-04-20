@@ -1,24 +1,11 @@
 import React from "react";
+import { Maximize, Layout, ArrowUpDown, Layers, Minimize, Sparkles, Type, MousePointer, Move, Grid3x3, Heading, FileText, RotateCw } from "lucide-react";
 
 interface PageLayoutPanelProps {
   store: any;
 }
 
 export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
-  // Icon URLs from Figma - PAGE LAYOUT TAB
-  const imgAutoFit = "https://www.figma.com/api/mcp/asset/46384c7d-ad75-4d81-8334-255a00c4e97b";
-  const imgPadding = "https://www.figma.com/api/mcp/asset/7f91f6df-417f-4064-93e7-5f3a212d8243";
-  const imgReorder = "https://www.figma.com/api/mcp/asset/6a5b990f-0fe3-4521-afc9-aac98e027135";
-  const imgStacking = "https://www.figma.com/api/mcp/asset/164566d6-b9d1-4ed9-8965-32f07a115273";
-  const imgMinMax = "https://www.figma.com/api/mcp/asset/c5cdfb00-3332-4bb3-ad3e-341eda4dccc8";
-  const imgAISuggest = "https://www.figma.com/api/mcp/asset/7e2bde2d-515b-4289-996a-5ca3d2792332";
-  const imgTitleLabel = "https://www.figma.com/api/mcp/asset/c7ab351f-76e0-4175-8015-516f2527b065";
-  const imgClickEdit = "https://www.figma.com/api/mcp/asset/bf0c040e-fc94-478f-a58a-dfbdbc5f32eb";
-  const imgDragReorder = "https://www.figma.com/api/mcp/asset/98879636-e8c7-4b3c-8729-e194a7091167";
-  const imgGridlines = "https://www.figma.com/api/mcp/asset/92317d60-0b0c-436e-875e-486cd4fbe014";
-  const imgHeadings = "https://www.figma.com/api/mcp/asset/892c6e67-a96e-40ad-a5bc-8a7f781d3d2d";
-  const imgPageSetup = "https://www.figma.com/api/mcp/asset/ffbdf035-6574-4175-8c99-5bc177db0452";
-  const imgOrientation = "https://www.figma.com/api/mcp/asset/447ec6ba-d708-4229-bea5-1fd9d4ae62c1";
 
   const [headingsActive, setHeadingsActive] = React.useState(true);
 
@@ -32,7 +19,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgAutoFit} />
+              <Maximize className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Auto-fit
               </p>
@@ -40,7 +27,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgPadding} />
+              <Layout className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Padding
               </p>
@@ -60,7 +47,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgReorder} />
+              <ArrowUpDown className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Reorder
               </p>
@@ -68,7 +55,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[73px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgStacking} />
+              <Layers className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Stacking
               </p>
@@ -88,7 +75,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[70px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgMinMax} />
+              <Minimize className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Min/Max
               </p>
@@ -96,7 +83,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[82px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgAISuggest} />
+              <Sparkles className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 AI Suggest
               </p>
@@ -116,7 +103,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[81px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgTitleLabel} />
+              <Type className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Title/Label
               </p>
@@ -124,7 +111,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[92px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgClickEdit} />
+              <MousePointer className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Click-to-Edit
               </p>
@@ -143,7 +130,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgDragReorder} />
+            <Move className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
               Drag Reorder
             </p>
@@ -162,7 +149,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent bg-[rgba(255,255,255,0.5)] h-[54px] w-[72px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgGridlines} />
+              <Grid3x3 className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Gridlines
               </p>
@@ -177,7 +164,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
             }`}
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgHeadings} />
+              <Heading className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className={`font-inter font-normal leading-[14px] text-[11px] tracking-[0.065px] ${
                 headingsActive ? "text-[#155dfc]" : "text-[#364153]"
               }`}>
@@ -198,7 +185,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgPageSetup} />
+            <FileText className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
               Page Setup
             </p>
@@ -234,7 +221,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgOrientation} />
+            <RotateCw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
               Orientation
             </p>

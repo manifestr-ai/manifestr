@@ -1,25 +1,11 @@
 import React from "react";
+import { Database, Shield, Upload, Edit, Wand2, AlertCircle, Sparkles, ArrowUpDown, Filter, Columns, CheckSquare, FolderTree, Ungroup, Download } from "lucide-react";
 
 interface DataPanelProps {
   store: any;
 }
 
 export default function DataPanel({ store }: DataPanelProps) {
-  // Icon URLs from Figma - DATA TAB
-  const imgImport = "https://www.figma.com/api/mcp/asset/1089af09-6f3d-4f5f-907f-3b5223fb34e7";
-  const imgVault = "https://www.figma.com/api/mcp/asset/82aa2aec-784e-47c1-9c96-2ea324280126";
-  const imgUpload = "https://www.figma.com/api/mcp/asset/a6f600d0-b8f0-4eab-bf12-a37e37f8ac99";
-  const imgManual = "https://www.figma.com/api/mcp/asset/a530b4e5-3db4-41f6-9527-15787e62e203";
-  const imgAutoFormat = "https://www.figma.com/api/mcp/asset/03dff6bb-2bdb-4b72-b837-9832663078f1";
-  const imgMissing = "https://www.figma.com/api/mcp/asset/60baa77a-5408-488c-86f8-f6f805b848ca";
-  const imgClean = "https://www.figma.com/api/mcp/asset/fcba760a-278a-4818-adec-8da15a152014";
-  const imgSort = "https://www.figma.com/api/mcp/asset/02d42060-9d63-45b5-ba4d-eec517c1a679";
-  const imgFilter = "https://www.figma.com/api/mcp/asset/281057ae-5fef-4eef-9c15-9180abe66d23";
-  const imgTextColumns = "https://www.figma.com/api/mcp/asset/0cdfd49f-0e56-427a-9601-3bc19171b7e4";
-  const imgValidation = "https://www.figma.com/api/mcp/asset/4bc037f1-3033-4805-a698-0fe4680d3987";
-  const imgGroup = "https://www.figma.com/api/mcp/asset/cdef8fa6-8982-400f-bc9b-ca74d9e4be4a";
-  const imgUngroup = "https://www.figma.com/api/mcp/asset/cc7277c0-ef50-470b-9e95-b906883f0df7";
-  const imgExport = "https://www.figma.com/api/mcp/asset/f26f3162-ca21-43a8-986b-5cb839ff5c4e";
 
   return (
     <div className="bg-white border-t border-[#e4e4e7] flex items-center gap-3 h-[78px] overflow-x-auto px-6">
@@ -31,7 +17,7 @@ export default function DataPanel({ store }: DataPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[88px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgImport} />
+              <Database className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Import Data
               </p>
@@ -39,7 +25,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[92px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgVault} />
+              <Shield className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Vault Source
               </p>
@@ -47,7 +33,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[85px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgUpload} />
+              <Upload className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 File Upload
               </p>
@@ -55,7 +41,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[102px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgManual} />
+              <Edit className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Manual Entry
               </p>
@@ -75,7 +61,7 @@ export default function DataPanel({ store }: DataPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[93px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgAutoFormat} />
+              <Wand2 className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Auto-Format
               </p>
@@ -83,7 +69,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[95px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgMissing} />
+              <AlertCircle className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Missing Data
               </p>
@@ -91,7 +77,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[83px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgClean} />
+              <Sparkles className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Clean Data
               </p>
@@ -111,7 +97,7 @@ export default function DataPanel({ store }: DataPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgSort} />
+              <ArrowUpDown className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Sort
               </p>
@@ -119,7 +105,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgFilter} />
+              <Filter className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Filter
               </p>
@@ -139,7 +125,7 @@ export default function DataPanel({ store }: DataPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[110px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgTextColumns} />
+              <Columns className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Text to Columns
               </p>
@@ -147,7 +133,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[78px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgValidation} />
+              <CheckSquare className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Validation
               </p>
@@ -167,7 +153,7 @@ export default function DataPanel({ store }: DataPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-[54px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgGroup} />
+              <FolderTree className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Group
               </p>
@@ -175,7 +161,7 @@ export default function DataPanel({ store }: DataPanelProps) {
           </button>
           <button className="border border-transparent h-[54px] w-[71px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgUngroup} />
+              <Ungroup className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
                 Ungroup
               </p>
@@ -194,7 +180,7 @@ export default function DataPanel({ store }: DataPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgExport} />
+            <Download className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
               Export
             </p>

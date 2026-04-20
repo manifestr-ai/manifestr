@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ToolPanel from "./panels/docs-editor/ToolPanel";
+import { Sparkles, Type, Plus, PanelBottomOpen, Link2, MessageSquare, Wand2 } from "lucide-react";
 
 interface DocsEditorBottomToolbarProps {
   store?: any;
@@ -9,50 +10,41 @@ interface DocsEditorBottomToolbarProps {
 export default function DocsEditorBottomToolbar({ store, editor }: DocsEditorBottomToolbarProps) {
   const [activeTool, setActiveTool] = useState<string | null>("format");
 
-  // Icon URLs from Figma
-  const imgAIPrompt = "https://www.figma.com/api/mcp/asset/75e42433-bc9b-4596-a961-c842d9c63add";
-  const imgFormat = "https://www.figma.com/api/mcp/asset/13a3f1da-cf15-4551-8e68-d20acea74cff";
-  const imgInsert = "https://www.figma.com/api/mcp/asset/a17aa667-81f1-4674-82ea-7386764c8c4d";
-  const imgLayout = "https://www.figma.com/api/mcp/asset/b49eddc8-269b-4108-b609-e3153685cca6";
-  const imgReferences = "https://www.figma.com/api/mcp/asset/20ec8492-a4ef-4f64-9a62-5a904a5adff4";
-  const imgReview = "https://www.figma.com/api/mcp/asset/afa6036d-bf6e-47c2-83d9-6ac4a8e3b04d";
-  const imgStyle = "https://www.figma.com/api/mcp/asset/d7e1b147-ed28-4fba-9b90-c2ab581227b9";
-
   const tools = [
     {
       id: "ai-prompt",
       label: "AI Prompter",
-      icon: imgAIPrompt,
+      icon: Sparkles,
     },
     {
       id: "format",
       label: "Format",
-      icon: imgFormat,
+      icon: Type,
     },
     {
       id: "insert",
       label: "Insert",
-      icon: imgInsert,
+      icon: Plus,
     },
     {
       id: "layout",
       label: "Layout",
-      icon: imgLayout,
+      icon: PanelBottomOpen,
     },
     {
       id: "references",
       label: "References",
-      icon: imgReferences,
+      icon: Link2,
     },
     {
       id: "review",
       label: "Review",
-      icon: imgReview,
+      icon: MessageSquare,
     },
     {
       id: "style",
       label: "Style",
-      icon: imgStyle,
+      icon: Wand2,
     },
   ];
 
@@ -85,10 +77,10 @@ export default function DocsEditorBottomToolbar({ store, editor }: DocsEditorBot
                   : "hover:bg-[#4a4a4a]"
               }`}
             >
-              <img 
-                alt="" 
-                className="block size-4" 
-                src={tool.icon} 
+              <tool.icon
+                className="size-4" 
+                stroke={isActive ? "#101828" : "#d1d5dc"}
+                strokeWidth={1.5} 
               />
               <p className={`font-inter font-normal text-sm leading-5 tracking-[-0.15px] whitespace-nowrap ${
                 isActive ? "text-[#101828]" : "text-[#d1d5dc]"

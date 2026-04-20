@@ -1,18 +1,11 @@
 import React from "react";
+import { Table2, Plus, BarChart3, Shapes, Smile, Link2, Hash } from "lucide-react";
 
 interface InsertPanelProps {
   store: any;
 }
 
 export default function InsertPanel({ store }: InsertPanelProps) {
-  // Icon URLs from Figma
-  const imgTable = "https://www.figma.com/api/mcp/asset/52862161-ba8c-4352-a1a9-8fd49b5f93fd";
-  const imgPlus = "https://www.figma.com/api/mcp/asset/b0fab9e2-4346-4f12-b59b-f056cbaaff04";
-  const imgChart = "https://www.figma.com/api/mcp/asset/92508f20-17d1-411c-acb0-2b812e068bec";
-  const imgShapes = "https://www.figma.com/api/mcp/asset/49dc22f9-49de-4535-985b-dbdcc1e5dcbd";
-  const imgIcons = "https://www.figma.com/api/mcp/asset/daa4cfbc-de49-41cf-8573-cc59d500fe97";
-  const imgLink = "https://www.figma.com/api/mcp/asset/5ddcbf2f-a37f-445a-aee9-76bbec4ad698";
-  const imgSymbol = "https://www.figma.com/api/mcp/asset/872e0179-cc76-46ff-b16a-c8ff717ee138";
 
   return (
     <div className="bg-white border-t border-[#e4e4e7] flex items-center gap-3 h-[104px] overflow-x-auto px-6">
@@ -23,7 +16,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
-            <img alt="" className="block size-5" src={imgTable} />
+            <Table2 className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
               Table
             </p>
@@ -42,7 +35,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex gap-2 h-20">
           <button className="border border-transparent h-20 w-[83px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-5" src={imgPlus} />
+              <Plus className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
                 Insert Row
               </p>
@@ -50,7 +43,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           </button>
           <button className="border border-transparent h-20 w-[93px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-5" src={imgPlus} />
+              <Plus className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
                 Insert Column
               </p>
@@ -69,7 +62,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
-            <img alt="" className="block size-5" src={imgChart} />
+            <BarChart3 className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
               Chart
             </p>
@@ -88,7 +81,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex gap-2">
           <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1.5 items-center justify-center h-full">
-              <img alt="" className="block size-5" src={imgShapes} />
+              <Shapes className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
                 Shapes
               </p>
@@ -96,7 +89,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           </button>
           <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
             <div className="flex flex-col gap-1.5 items-center justify-center h-full">
-              <img alt="" className="block size-5" src={imgIcons} />
+              <Smile className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
                 Icons
               </p>
@@ -115,7 +108,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
-            <img alt="" className="block size-5" src={imgLink} />
+            <Link2 className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
               Link
             </p>
@@ -133,7 +126,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
-            <img alt="" className="block size-5" src={imgSymbol} />
+            <Hash className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
               Symbol
             </p>

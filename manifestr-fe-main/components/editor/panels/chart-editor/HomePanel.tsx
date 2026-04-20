@@ -1,18 +1,11 @@
 import React from "react";
+import { FileSpreadsheet, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 interface HomePanelProps {
   store: any;
 }
 
 export default function HomePanel({ store }: HomePanelProps) {
-  // Icon URLs from Figma
-  const imgTemplates = "https://www.figma.com/api/mcp/asset/1d31d99d-afd9-4946-bb5c-806ba8345bcb";
-  const imgBold = "https://www.figma.com/api/mcp/asset/4541aa5e-4fc7-46b2-9291-bdec1ab77fb4";
-  const imgItalic = "https://www.figma.com/api/mcp/asset/bbeb3244-bc27-4b45-88c2-cbb0f8fc5783";
-  const imgUnderline = "https://www.figma.com/api/mcp/asset/8680c3a2-d8f7-41ff-8c0c-8ff6467925c1";
-  const imgLeft = "https://www.figma.com/api/mcp/asset/034a92ca-63a7-401c-a9b9-22139e33c0cc";
-  const imgCenter = "https://www.figma.com/api/mcp/asset/6708a106-610a-45e3-b4fc-d05ab7bd1b63";
-  const imgRight = "https://www.figma.com/api/mcp/asset/d704b347-6d0a-4b91-ae91-ff1a825c9575";
 
   return (
     <div className="bg-white border-t border-[#e4e4e7] flex gap-4 items-center pl-6 pt-px h-[88px]">
@@ -27,7 +20,7 @@ export default function HomePanel({ store }: HomePanelProps) {
           <div className="flex-1 w-[92.125px] border border-transparent rounded-[14px]">
             <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
               <div className="shrink-0 size-5">
-                <img alt="" className="block size-full" src={imgTemplates} />
+                <FileSpreadsheet className="size-full" stroke="#364153" strokeWidth={1.5} />
               </div>
               <div className="h-4 shrink-0">
                 <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -55,7 +48,7 @@ export default function HomePanel({ store }: HomePanelProps) {
               <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
-                    <img alt="" className="block size-full" src={imgBold} />
+                    <Bold className="size-full" stroke="#364153" strokeWidth={1.5} />
                   </div>
                   <div className="h-4 shrink-0">
                     <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -67,7 +60,7 @@ export default function HomePanel({ store }: HomePanelProps) {
               <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
-                    <img alt="" className="block size-full" src={imgItalic} />
+                    <Italic className="size-full" stroke="#364153" strokeWidth={1.5} />
                   </div>
                   <div className="h-4 shrink-0">
                     <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -79,7 +72,7 @@ export default function HomePanel({ store }: HomePanelProps) {
               <button className="border border-transparent flex-1 h-16 rounded-[14px] hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
-                    <img alt="" className="block size-full" src={imgUnderline} />
+                    <Underline className="size-full" stroke="#364153" strokeWidth={1.5} />
                   </div>
                   <div className="h-4 shrink-0">
                     <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -109,7 +102,7 @@ export default function HomePanel({ store }: HomePanelProps) {
               <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
-                    <img alt="" className="block size-full" src={imgLeft} />
+                    <AlignLeft className="size-full" stroke="#364153" strokeWidth={1.5} />
                   </div>
                   <div className="h-4 shrink-0">
                     <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -121,7 +114,7 @@ export default function HomePanel({ store }: HomePanelProps) {
               <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
-                    <img alt="" className="block size-full" src={imgCenter} />
+                    <AlignCenter className="size-full" stroke="#364153" strokeWidth={1.5} />
                   </div>
                   <div className="h-4 shrink-0">
                     <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -133,7 +126,7 @@ export default function HomePanel({ store }: HomePanelProps) {
               <button className="border border-transparent flex-1 h-16 rounded-[14px] hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
-                    <img alt="" className="block size-full" src={imgRight} />
+                    <AlignRight className="size-full" stroke="#364153" strokeWidth={1.5} />
                   </div>
                   <div className="h-4 shrink-0">
                     <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
