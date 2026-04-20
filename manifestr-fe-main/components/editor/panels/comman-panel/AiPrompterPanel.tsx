@@ -89,14 +89,14 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
           "linear-gradient(135deg, #E2E8F0 0%, #F3F4F6 50%, #E4E4E7 100%)",
       }}
     >
-      <div className="p-6 space-y-6 mx-auto">
+      <div className="p-4 sm:p-6 space-y-6 mx-auto max-w-full">
         {/* Row 1: Toggles */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
           <div
             className="
               flex gap-1
               p-1
-              w-[323.383px]
+              w-full sm:w-[323.383px]
               h-[46px]
               rounded-[16777200px]
               border
@@ -109,7 +109,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
               <button
                 key={t}
                 onClick={() => setMode(t)}
-                className={`flex items-center gap-[8.4px] pl-[25.2px] w-[167.475px] h-[37.8px] rounded-[16777200px] text-[13px] font-semibold transition-all
+                className={`flex items-center gap-[8.4px] pl-[15px] sm:pl-[25.2px] w-1/2 sm:w-[167.475px] h-[37.8px] rounded-[16777200px] text-[13px] font-semibold transition-all
                   ${
                     mode === t
                       ? "bg-gradient-to-r from-[#90A1B9] to-[#6A7282] text-white shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)]"
@@ -117,7 +117,6 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                   }
                 `}
                 style={{
-                  // fallback for background if tailwind couldn't parse gradient
                   background:
                     mode === t
                       ? "linear-gradient(90deg, #90A1B9 0%, #6A7282 100%)"
@@ -143,12 +142,12 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
         {mode === "Prompt Mode" && (
           <div>
             {/* Row 2: Tabs */}
-            <div className="flex items-center h-10">
+            <div className="flex flex-wrap items-center h-auto sm:h-10 gap-2 sm:gap-0">
               {prompterTabs.map((tab, idx) => (
                 <div key={tab.name} className="flex items-center">
                   <button
                     onClick={() => setActiveTab(tab.name)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                       activeTab === tab.name
                         ? "bg-white text-[#1E293B] shadow-sm border border-[#E2E8F0]"
                         : "text-[#64748B] hover:bg-slate-200/50"
@@ -173,7 +172,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     </span>
                   </button>
                   {idx < prompterTabs.length - 1 && (
-                    <div className="w-[1px] h-4 bg-[#CBD5E1] mx-4" />
+                    <div className="hidden sm:block w-[1px] h-4 bg-[#CBD5E1] mx-4" />
                   )}
                 </div>
               ))}
@@ -189,15 +188,15 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
             {/* Row 3: Freestyle */}
             {activeTab === "Freestyle" && (
               <div
-                className=" self-stretch rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-6 space-y-5"
+                className="self-stretch rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-4 sm:p-6 space-y-5"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
                 }}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-4">
                   <div
-                    className="flex justify-center items-center rounded-[16px] w-10 h-10"
+                    className="flex justify-center items-center rounded-[16px] w-10 h-10 mb-2 sm:mb-0"
                     style={{
                       background:
                         "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
@@ -209,7 +208,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                   </div>
 
                   <h2
-                    className="font-inter"
+                    className="font-inter text-base sm:text-lg"
                     style={{
                       color: "#0A0A0A",
                       fontFamily: "Inter, sans-serif",
@@ -228,35 +227,35 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                   <textarea
                     placeholder="Describe what you'd like to modify... For example: 'Change the header to navy blue, make the buttons larger, and add spacing between sections.'"
                     className="
-                flex
-                w-full
-                h-[140px]
-                p-2
-                px-3
-                items-start
-                flex-shrink-0
-                self-stretch
-                rounded-[16px]
-                border
-                border-white/80
-                bg-white/50
-                shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                text-[#374151]
-                resize-none
-                text-[15px]
-                leading-relaxed
-                placeholder:text-[#94A3B8]
-                font-medium
-                focus:ring-0
-                border-solid
-              "
+                      flex
+                      w-full
+                      h-[110px] sm:h-[140px]
+                      p-2
+                      px-3
+                      items-start
+                      flex-shrink-0
+                      self-stretch
+                      rounded-[16px]
+                      border
+                      border-white/80
+                      bg-white/50
+                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                      text-[#374151]
+                      resize-none
+                      text-[15px]
+                      leading-relaxed
+                      placeholder:text-[#94A3B8]
+                      font-medium
+                      focus:ring-0
+                      border-solid
+                    "
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-[#E5E7EB]">
-                  <div className="flex items-center gap-4 text-[#6B7280]  font-medium">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-[#E5E7EB] gap-3 sm:gap-0">
+                  <div className="flex items-center gap-3 sm:gap-4 text-[#6B7280] font-medium mb-2 sm:mb-0">
                     <span
-                      className="bg-white/80 px-3 py-1 rounded-full border border-[#E5E7EB] shadow-sm text-[#0A0A0A]"
+                      className="bg-white/80 px-3 py-1 rounded-full border border-[#E5E7EB] shadow-sm text-[#0A0A0A] text-xs sm:text-sm"
                       style={{
                         fontFamily: "Inter, sans-serif",
                         fontSize: "14px",
@@ -266,38 +265,34 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     >
                       10 characters
                     </span>
-                    <div className="flex items-center gap-2  px-3 py-1">
-                      <span className="text-[14px] ">Press</span>
+                    <div className="flex items-center gap-2 px-3 py-1">
+                      <span className="text-[12px] sm:text-[14px]">Press</span>
                       <div className="flex items-center gap-1 border border-[#D1D5DB] rounded-md px-1.5 py-0.5 min-w-[20px] justify-center bg-[#F9FAFB] shadow-[0_1px_0_#9CA3AF]">
                         <Command className="w-3 h-3" />
                       </div>
                       <span className="text-[#9CA3AF]">+</span>
                       <div className="flex items-center gap-1 border border-[#D1D5DB] rounded-md px-2 py-0.5 bg-[#F9FAFB] shadow-[0_1px_0_#9CA3AF]">
-                        <span className="text-[10px] font-bold ">Enter</span>
+                        <span className="text-[10px] font-bold">Enter</span>
                       </div>
                     </div>
                   </div>
 
                   <button
                     className="
-                flex
-                justify-center
-                items-start
-                gap-2
-                rounded-[16px]
-                border
-                border-white/40
-                shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
-                transition-all
-                active:scale-95
-                bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                px-[12.93px]
-                py-[8.5px]
-                pt-[8.5px]
-                pb-[7.5px]
-                pl-[13px]
-                pr-[12.93px]
-              "
+                      flex
+                      justify-center
+                      items-start
+                      gap-2
+                      rounded-[16px]
+                      border
+                      border-white/40
+                      shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
+                      transition-all
+                      active:scale-95
+                      bg-gradient-to-r from-[#62748E] to-[#4A5565]
+                      px-[10px] sm:px-[12.93px]
+                      py-[8px] sm:py-[8.5px]
+                    "
                     style={{
                       color: "#FFF",
                       fontFamily: "Inter, sans-serif",
@@ -317,14 +312,14 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
             {/* Row 3: Talk To Me */}
             {activeTab === "Talk To Me" && (
               <div
-                className=" flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
+                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
                 }}
               >
-                <div className="flex flex-col items-center gap-1 p-10">
-                  <div className="flex flex-col items-center gap-2 mb-10">
+                <div className="flex flex-col items-center gap-1 p-6 sm:p-10">
+                  <div className="flex flex-col items-center gap-2 mb-8 sm:mb-10">
                     <div className="flex items-center gap-3">
                       <div
                         style={{
@@ -345,6 +340,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       </div>
 
                       <h2
+                        className="text-lg sm:text-2xl"
                         style={{
                           color: "#0A0A0A",
                           textAlign: "center",
@@ -381,7 +377,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     )}
                     <button
                       onClick={() => setIsRecording(!isRecording)}
-                      className={`relative z-10 w-32 h-32 flex items-center justify-center transition-all duration-300`}
+                      className={`relative z-10 w-20 h-20 sm:w-32 sm:h-32 flex items-center justify-center transition-all duration-300`}
                       style={{
                         borderRadius: "16777200px",
                         background:
@@ -391,7 +387,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       }}
                     >
                       <Mic
-                        className={`w-12 h-12 text-white transition-all ${isRecording ? "animate-pulse" : ""}`}
+                        className={`w-8 h-8 sm:w-12 sm:h-12 text-white transition-all ${isRecording ? "animate-pulse" : ""}`}
                       />
                     </button>
                   </div>
@@ -407,7 +403,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       lineHeight: "20px",
                       letterSpacing: "-0.15px",
                     }}
-                    className="mt-10"
+                    className="mt-8 sm:mt-10"
                   >
                     {isRecording ? "Recording..." : "Ready to record"}
                   </p>
@@ -417,17 +413,17 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
             {/* Row 3: Dropzone */}
             {activeTab === "Dropzone" && (
               <div
-                className=" flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
+                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
                 }}
               >
-                <div className="flex flex-col items-center gap-4 p-10">
+                <div className="flex flex-col items-center gap-2 sm:gap-4 p-6 sm:p-10">
                   <div className="flex flex-col items-center justify-center w-full">
-                    <div className="flex flex-col items-center justify-center mb-6">
+                    <div className="flex flex-col items-center justify-center mb-4 sm:mb-6">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="relative flex items-center justify-center w-[56px] h-[56px] mb-3 ">
+                        <div className="relative flex items-center justify-center w-12 h-12 sm:w-[56px] sm:h-[56px] mb-2 sm:mb-3 ">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="48"
@@ -438,23 +434,23 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                             <path
                               d="M24 6V30"
                               stroke="#45556C"
-                              stroke-width="3"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             />
                             <path
                               d="M34 16L24 6L14 16"
                               stroke="#45556C"
-                              stroke-width="3"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             />
                             <path
                               d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30"
                               stroke="#45556C"
-                              stroke-width="3"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
+                              strokeWidth="3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             />
                           </svg>
                         </div>
@@ -474,16 +470,16 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                           Upload Logo
                         </span>
                       </div>
-                      <span className="text-[#64748B] text-sm mt-1">
+                      <span className="text-[#64748B] text-xs sm:text-sm mt-1">
                         Images must be less than{" "}
                         <span className="font-medium text-[#4B5563]">5 MB</span>{" "}
                         in size
                       </span>
                     </div>
-                    <div className="flex gap-3 mt-2">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full">
                       <button
                         type="button"
-                        className="flex items-center gap-2 px-4 py-2 rounded-[14px] border border-[rgba(202,213,226,0.80)] bg-[rgba(255,255,255,0.80)] hover:bg-[#F3F4F6] text-[#0A0A0A] font-medium transition focus:outline-none shadow-[0_1px_3px_0_rgba(0,0,0,0.10),0_1px_2px_-1px_rgba(0,0,0,0.10)]"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px] border border-[rgba(202,213,226,0.80)] bg-[rgba(255,255,255,0.80)] hover:bg-[#F3F4F6] text-[#0A0A0A] font-medium transition focus:outline-none shadow-[0_1px_3px_0_rgba(0,0,0,0.10),0_1px_2px_-1px_rgba(0,0,0,0.10)] w-full sm:w-auto"
                       >
                         <span className="text-xl leading-none">+</span>
                         Import from drive
@@ -491,13 +487,14 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       <label
                         htmlFor="file-upload"
                         className="
-                      flex items-center gap-2 px-4 py-2 rounded-[14px]
-                      border border-white/40
-                      bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                      shadow-[0_10px_15px_-3px_rgba(98,116,142,0.30),0_4px_6px_-4px_rgba(98,116,142,0.30)]
-                      text-white font-medium
-                      cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
-                    "
+                          flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px]
+                          border border-white/40
+                          bg-gradient-to-r from-[#62748E] to-[#4A5565]
+                          shadow-[0_10px_15px_-3px_rgba(98,116,142,0.30),0_4px_6px_-4px_rgba(98,116,142,0.30)]
+                          text-white font-medium
+                          cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
+                          w-full sm:w-auto
+                        "
                         tabIndex={0}
                       >
                         <Upload className="w-4 h-4 mr-1 text-white" />
@@ -518,14 +515,14 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
             {/* Row 3: Brief Me */}
             {activeTab === "Brief Me" && (
               <div
-                className=" flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
+                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
                 }}
               >
-                <div className="w-full p-8 pt-5">
-                  <div className="flex items-center gap-3 mb-4">
+                <div className="w-full px-3 py-4 sm:p-8 sm:pt-5">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-4">
                     <div
                       style={{
                         display: "flex",
@@ -545,6 +542,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     </div>
 
                     <h2
+                      className="text-lg sm:text-2xl"
                       style={{
                         color: "#0A0A0A",
                         textAlign: "center",
@@ -559,7 +557,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       Brief Me
                     </h2>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex flex-col">
                       <label
                         className="mb-1"
@@ -577,20 +575,20 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       <input
                         type="text"
                         className="
-                      flex
-                      h-[45px]
-                      p-[8px_12px]
-                      items-start
-                      flex-shrink-0
-                      self-stretch
-                      rounded-[14px]
-                      border border-white/80
-                      bg-white/50
-                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                      text-sm
-                      placeholder-[#717182]
-                      focus:outline-none
-                    "
+                          flex
+                          h-[45px]
+                          p-[8px_12px]
+                          items-start
+                          flex-shrink-0
+                          self-stretch
+                          rounded-[14px]
+                          border border-white/80
+                          bg-white/50
+                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                          text-sm
+                          placeholder-[#717182]
+                          focus:outline-none
+                        "
                         placeholder="Describe what you want to create or modify..."
                       />
                     </div>
@@ -611,20 +609,20 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       <input
                         type="text"
                         className="
-                      flex
-                      h-[45px]
-                      p-[8px_12px]
-                      items-start
-                      flex-shrink-0
-                      self-stretch
-                      rounded-[14px]
-                      border border-white/80
-                      bg-white/50
-                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                      text-sm
-                      focus:outline-none
-                      placeholder-[#717182]
-                    "
+                          flex
+                          h-[45px]
+                          p-[8px_12px]
+                          items-start
+                          flex-shrink-0
+                          self-stretch
+                          rounded-[14px]
+                          border border-white/80
+                          bg-white/50
+                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                          text-sm
+                          focus:outline-none
+                          placeholder-[#717182]
+                        "
                         placeholder="Specify the area or component..."
                       />
                     </div>
@@ -645,20 +643,20 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       <input
                         type="text"
                         className="
-                      flex
-                      h-[45px]
-                      p-[8px_12px]
-                      items-start
-                      flex-shrink-0
-                      self-stretch
-                      rounded-[14px]
-                      border border-white/80
-                      bg-white/50
-                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                      text-sm
-                     placeholder-[#717182]
-                      focus:outline-none
-                    "
+                          flex
+                          h-[45px]
+                          p-[8px_12px]
+                          items-start
+                          flex-shrink-0
+                          self-stretch
+                          rounded-[14px]
+                          border border-white/80
+                          bg-white/50
+                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                          text-sm
+                          placeholder-[#717182]
+                          focus:outline-none
+                        "
                         placeholder="Describe the style, tone, or aesthetic..."
                       />
                     </div>
@@ -679,25 +677,25 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       <input
                         type="text"
                         className="
-                      flex
-                      h-[45px]
-                      p-[8px_12px]
-                      items-start
-                      flex-shrink-0
-                      self-stretch
-                      rounded-[14px]
-                      border border-white/80
-                      bg-white/50
-                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                      text-sm
-                     placeholder-[#717182]
-                      focus:outline-none
-                    "
+                          flex
+                          h-[45px]
+                          p-[8px_12px]
+                          items-start
+                          flex-shrink-0
+                          self-stretch
+                          rounded-[14px]
+                          border border-white/80
+                          bg-white/50
+                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                          text-sm
+                          placeholder-[#717182]
+                          focus:outline-none
+                        "
                         placeholder="Specify the format or presentation..."
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col mt-4">
+                  <div className="flex flex-col mt-2 sm:mt-4">
                     <label
                       className="mb-1"
                       style={{
@@ -714,36 +712,36 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     <input
                       type="text"
                       className="
-                      flex
-                      h-[45px]
-                      p-[8px_12px]
-                      items-start
-                      flex-shrink-0
-                      self-stretch
-                      rounded-[14px]
-                      border border-white/80
-                      bg-white/50
-                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                      text-sm
-                      placeholder-[#717182]
-                      focus:outline-none
-                    "
+                        flex
+                        h-[45px]
+                        p-[8px_12px]
+                        items-start
+                        flex-shrink-0
+                        self-stretch
+                        rounded-[14px]
+                        border border-white/80
+                        bg-white/50
+                        shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                        text-sm
+                        placeholder-[#717182]
+                        focus:outline-none
+                      "
                       placeholder="List any specific requirements or constraints..."
                     />
                   </div>
                   <button
                     type="button"
                     className="
-                  w-full mt-8
-                  flex items-center justify-center
-                  text-white
-                  font-semibold
-                  text-base
-                  py-2
-                  transition
-                  hover:bg-[#475569]
-                  disabled:bg-[#CBD5E1]
-                "
+                      w-full mt-4 sm:mt-8
+                      flex items-center justify-center
+                      text-white
+                      font-semibold
+                      text-base
+                      py-2
+                      transition
+                      hover:bg-[#475569]
+                      disabled:bg-[#CBD5E1]
+                    "
                     style={{
                       borderRadius: "16px",
                       border: "1px solid rgba(255, 255, 255, 0.40)",
@@ -759,20 +757,20 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       viewBox="0 0 16 16"
                       fill="none"
                     >
-                      <g clip-path="url(#clip0_10665_105076)">
+                      <g clipPath="url(#clip0_10665_105076)">
                         <path
                           d="M9.68924 14.4572C9.71456 14.5203 9.75859 14.5742 9.81542 14.6116C9.87224 14.6489 9.93914 14.668 10.0071 14.6663C10.0751 14.6646 10.141 14.6421 10.1958 14.6018C10.2506 14.5616 10.2918 14.5055 10.3139 14.4412L14.6472 1.77454C14.6686 1.71547 14.6726 1.65154 14.659 1.59024C14.6453 1.52894 14.6145 1.4728 14.57 1.42839C14.5256 1.38398 14.4695 1.35314 14.4082 1.33947C14.3469 1.3258 14.283 1.32987 14.2239 1.35121L1.55723 5.68454C1.4929 5.7066 1.43685 5.74782 1.39662 5.80266C1.35638 5.85749 1.33388 5.92332 1.33214 5.99131C1.3304 6.05931 1.3495 6.1262 1.38687 6.18303C1.42425 6.23985 1.47811 6.28388 1.54123 6.30921L6.8279 8.42921C6.99503 8.49612 7.14687 8.59618 7.27428 8.72336C7.40169 8.85054 7.50202 9.0022 7.56924 9.16921L9.68924 14.4572Z"
                           stroke="white"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M14.5707 1.43115L7.27734 8.72382"
                           stroke="white"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </g>
                       <defs>
@@ -793,9 +791,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
           <div>
             {!mockHistory || mockHistory.length === 0 ? (
               <div
-                className="flex flex-col items-center justify-center w-full h-[200px]"
+                className="flex flex-col items-center justify-center w-full h-[140px] sm:h-[200px]"
                 style={{
-                  minHeight: "190px",
+                  minHeight: "120px",
                   borderRadius: "14px",
                   border: "1px solid rgba(255, 255, 255, 0.90)",
                   background: "rgba(255, 255, 255, 0.80)",
@@ -810,8 +808,8 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                   <div
                     style={{
                       display: "flex",
-                      height: "58px",
-                      width: "56px",
+                      height: "46px",
+                      width: "44px",
                       justifyContent: "center",
                       alignItems: "center",
                       borderRadius: "16777200px",
@@ -822,31 +820,31 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      width="30"
-                      height="30"
+                      width="24"
+                      height="24"
                       viewBox="0 0 24 24"
                       fill="none"
                     >
                       <path
                         d="M3 12C3 13.78 3.52784 15.5201 4.51677 17.0001C5.50571 18.4802 6.91131 19.6337 8.55585 20.3149C10.2004 20.9961 12.01 21.1743 13.7558 20.8271C15.5016 20.4798 17.1053 19.6226 18.364 18.364C19.6226 17.1053 20.4798 15.5016 20.8271 13.7558C21.1743 12.01 20.9961 10.2004 20.3149 8.55585C19.6337 6.91131 18.4802 5.50571 17.0001 4.51677C15.5201 3.52784 13.78 3 12 3C9.48395 3.00947 7.06897 3.99122 5.26 5.74L3 8"
                         stroke="#90A1B9"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                       <path
                         d="M3 3V8H8"
                         stroke="#90A1B9"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                       <path
                         d="M12 7V12L16 14"
                         stroke="#90A1B9"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </svg>
                   </div>
@@ -883,16 +881,15 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
 
                   <button
                     className="
-                    flex items-center gap-1.5
-                    text-[#0A0A0A]
-                    font-inter
-                    text-[14px] font-medium
-                    px-4 py-[7px]
-                    transition-all
-                    leading-[15px]
-                    tracking-[0.117px]
-               
-                  "
+                      flex items-center gap-1.5
+                      text-[#0A0A0A]
+                      font-inter
+                      text-[14px] font-medium
+                      px-4 py-[7px]
+                      transition-all
+                      leading-[15px]
+                      tracking-[0.117px]
+                    "
                     onClick={() => setMode("Prompt Mode")}
                   >
                     <svg
@@ -902,34 +899,34 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       viewBox="0 0 16 16"
                       fill="none"
                     >
-                      <g clip-path="url(#clip0_10665_106407)">
+                      <g clipPath="url(#clip0_10665_106407)">
                         <path
                           d="M7.34496 1.87581C7.37353 1.72287 7.45468 1.58475 7.57436 1.48535C7.69404 1.38595 7.84472 1.33154 8.00029 1.33154C8.15587 1.33154 8.30655 1.38595 8.42623 1.48535C8.54591 1.58475 8.62706 1.72287 8.65563 1.87581L9.35629 5.58114C9.40606 5.84457 9.53408 6.08688 9.72365 6.27645C9.91322 6.46602 10.1555 6.59404 10.419 6.64381L14.1243 7.34447C14.2772 7.37304 14.4154 7.45419 14.5147 7.57387C14.6141 7.69355 14.6686 7.84423 14.6686 7.99981C14.6686 8.15538 14.6141 8.30606 14.5147 8.42574C14.4154 8.54542 14.2772 8.62657 14.1243 8.65514L10.419 9.35581C10.1555 9.40557 9.91322 9.53359 9.72365 9.72316C9.53408 9.91273 9.40606 10.155 9.35629 10.4185L8.65563 14.1238C8.62706 14.2767 8.54591 14.4149 8.42623 14.5143C8.30655 14.6137 8.15587 14.6681 8.00029 14.6681C7.84472 14.6681 7.69404 14.6137 7.57436 14.5143C7.45468 14.4149 7.37353 14.2767 7.34496 14.1238L6.64429 10.4185C6.59453 10.155 6.46651 9.91273 6.27694 9.72316C6.08737 9.53359 5.84506 9.40557 5.58163 9.35581L1.87629 8.65514C1.72336 8.62657 1.58524 8.54542 1.48584 8.42574C1.38644 8.30606 1.33203 8.15538 1.33203 7.99981C1.33203 7.84423 1.38644 7.69355 1.48584 7.57387C1.58524 7.45419 1.72336 7.37304 1.87629 7.34447L5.58163 6.64381C5.84506 6.59404 6.08737 6.46602 6.27694 6.27645C6.46651 6.08688 6.59453 5.84457 6.64429 5.58114L7.34496 1.87581Z"
                           stroke="#0A0A0A"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M13.332 1.3335V4.00016"
                           stroke="#0A0A0A"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M14.6667 2.66666H12"
                           stroke="#0A0A0A"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                         <path
                           d="M2.66536 14.6667C3.40174 14.6667 3.9987 14.0697 3.9987 13.3333C3.9987 12.597 3.40174 12 2.66536 12C1.92898 12 1.33203 12.597 1.33203 13.3333C1.33203 14.0697 1.92898 14.6667 2.66536 14.6667Z"
                           stroke="#0A0A0A"
-                          stroke-width="1.33333"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </g>
                       <defs>
@@ -946,7 +943,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
               <div className="space-y-6">
                 {/* Search Bar */}
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                  <div className="absolute inset-y-0 left-3 sm:left-5 flex items-center pointer-events-none">
                     <div
                       className="flex justify-center items-center text-white"
                       style={{
@@ -967,7 +964,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     placeholder="Search your prompt history..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-14 pl-16 pr-6 outline-none transition-all"
+                    className="w-full h-12 sm:h-14 pl-12 sm:pl-16 pr-2 sm:pr-6 outline-none transition-all"
                     style={{
                       borderRadius: "16px",
                       border: "2px solid rgba(255, 255, 255, 0.90)",
@@ -986,7 +983,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                 </div>
 
                 {/* History Filters */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
                   <button
                     onClick={() => setHistoryFilter("All")}
                     className={`flex justify-center items-center text-white text-[13px] font-semibold transition-all whitespace-nowrap`}
@@ -1035,13 +1032,13 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                 <div
                   className="space-y-3 overflow-y-auto"
                   style={{
-                    maxHeight: "320px", // adjust height as needed for your layout
+                    maxHeight: "280px",
                   }}
                 >
                   {mockHistory.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#E2E8F0] p-4 flex gap-4 items-start shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 flex gap-2 sm:gap-4 items-start shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                     >
                       <div
                         className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${item.color} mt-2`}
@@ -1053,7 +1050,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                         <item.icon className="w-4 h-4" />
                       </div>
                       <div className="space-y-1.5 min-w-0">
-                        <div className="flex items-center gap-2 text-[11px] font-bold">
+                        <div className="flex items-center gap-1 sm:gap-2 text-[11px] font-bold">
                           <span
                             className="bg-[#F8FAFC] px-2 py-0.5"
                             style={{

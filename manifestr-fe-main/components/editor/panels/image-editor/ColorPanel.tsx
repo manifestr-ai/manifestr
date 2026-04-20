@@ -145,7 +145,7 @@ export default function ColorPanel({ store }: ColorPanelProps) {
 </svg>`;
 
   return (
-    <div className="bg-white border-b px-6 py-2 flex flex-col gap-2 h-[102px]">
+    <div className="bg-white border-b px-6 py-2 flex flex-col gap-2 h-[102px] overflow-x-auto">
       {/* 🔴 TOP ROW → Color */}
       <div className="flex items-center">
         {/* Color Section */}

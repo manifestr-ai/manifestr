@@ -44,7 +44,7 @@ export default function TextPanel({ store }: TextPanelProps) {
   const disable = (available = true) => !available;
 
   return (
-    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4">
+    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4 overflow-x-auto">
       {/* Font */}
       <div className="flex flex-col items-center min-w-[300px]">
         <span className="text-xs text-gray-500 mb-3">Font</span>

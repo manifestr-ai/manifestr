@@ -8,7 +8,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
   if (!store) return null;
 
   return (
-    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0">
+    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
       {/* Sheet Options */}
       <div className="flex flex-col items-center min-w-[210px]">
         <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">

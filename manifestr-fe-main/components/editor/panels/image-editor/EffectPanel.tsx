@@ -16,7 +16,7 @@ export default function EffectPanel({ store }: EffectPanelProps) {
   //   );
   // }
   return (
-    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0">
+    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
       <div className="flex flex-col items-center min-w-[210px]">
         <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10">
           {/* None */}

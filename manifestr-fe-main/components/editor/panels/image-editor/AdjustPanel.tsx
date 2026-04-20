@@ -124,7 +124,7 @@ export default function AdjustPanel({ store }: AdjustPanelProps) {
 </svg>`;
 
   return (
-    <div className="h-[102px] bg-white border-b px-6 flex items-center gap-2">
+    <div className="h-[102px] bg-white border-b px-6 flex items-center gap-2 overflow-x-auto">
       <div className="flex flex-col items-center min-w-[300px]">
         <div className="flex flex-row items-center gap-[2px]">
           <Slider label="Exposure" keyName="exposure" icon={svgBright} />

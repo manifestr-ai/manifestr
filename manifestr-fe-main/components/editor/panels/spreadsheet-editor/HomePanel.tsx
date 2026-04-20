@@ -44,7 +44,7 @@ export default function HomePanel({ store }: HomePanelProps) {
   const disable = (available = true) => !available;
 
   return (
-    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4">
+    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4 overflow-x-auto">
       <div className="flex flex-col items-center  min-w-[100px]">
         <span className="text-xs text-gray-500 mb-3">File</span>
         <div className="flex flex-row items-center gap-[34px]">

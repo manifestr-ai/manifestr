@@ -16,7 +16,7 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
   }
 
   return (
-    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10">
+    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10 overflow-x-auto">
       {/* Slide Size */}
       <div className="flex flex-col items-center">
         <span className="text-xs text-gray-500 mb-1">Slide Layouts</span>

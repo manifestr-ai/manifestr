@@ -1237,7 +1237,13 @@ export default function EditorBottomToolbar({
   editorType,
 }: EditorBottomToolbarProps) {
   return (
-    <div className="h-[60px] bg-[#2F2F2F] text-white flex items-center px-6 gap-5 text-[13px]">
+    <div
+      className="h-[60px] bg-[#2F2F2F] text-white flex items-center px-6 gap-5 text-[13px]
+        overflow-x-auto scrollbar-thin scrollbar-thumb-[#666] scrollbar-track-transparent
+        sm:h-[50px] sm:px-3 sm:gap-2 sm:text-[12px]
+        xs:h-auto xs:flex-nowrap xs:justify-start xs:px-2 xs:gap-1 xs:text-[11px]"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       {tools
         .filter(
           (tool) =>
@@ -1258,7 +1264,8 @@ export default function EditorBottomToolbar({
               }}
               className={`
                 px-3 py-1.5 rounded-[15px] transition flex items-center gap-2
-           
+                sm:px-2 sm:py-1 sm:rounded-[12px] sm:gap-1
+                xs:px-1 xs:py-1 xs:rounded-lg xs:gap-0.5
                 ${
                   isDisabled
                     ? "opacity-40 cursor-not-allowed"
@@ -1267,9 +1274,10 @@ export default function EditorBottomToolbar({
                       : "text-gray-300 hover:bg-[#3a3a3a] hover:text-white"
                 }
               `}
+              style={{ flex: "0 0 auto" }}
             >
               <span className="w-4 h-4 flex items-center">{tool.icon}</span>
-              {tool.label}
+              <span className="hidden xs:inline sm:inline">{tool.label}</span>
             </button>
           );
         })}
