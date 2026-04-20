@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import Head from "next/head";
 import TopHeader from "../components/spreadsheet/TopHeader";
-import RightSidebar from "../components/spreadsheet/RightSidebar";
+import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
 import {
   FloatingSheetTab,
@@ -17,7 +17,8 @@ const PresentationEditor = dynamic(
 );
 
 const CollaborativePresentationEditor = dynamic(
-  () => import("../components/presentation-editor/CollaborativePresentationEditor"),
+  () =>
+    import("../components/presentation-editor/CollaborativePresentationEditor"),
   { ssr: false },
 );
 
@@ -33,13 +34,12 @@ export default function PresentationEditorPage() {
   const editorKey = isValidContent ? "ai-generated" : "preview";
 
   // Ensure generationId is string
-  const actualGenerationId = typeof id === 'string' 
-    ? id 
-    : Array.isArray(id) 
-      ? id[0] 
-      : undefined;
-  
+  const actualGenerationId =
+    typeof id === "string" ? id : Array.isArray(id) ? id[0] : undefined;
+
   const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
+
+  const [store, setStore] = useState<any>(null);
 
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
@@ -50,7 +50,8 @@ export default function PresentationEditorPage() {
 
         {/* Top Section */}
         <div className="flex-none z-30">
-          <TopHeader 
+          <TopHeader
+            store={store}
             editorType="presentation"
             documentId={actualGenerationId}
             documentTitle={content?.title || "Untitled presentation"}
@@ -67,6 +68,7 @@ export default function PresentationEditorPage() {
                 key={editorKey}
                 data={content}
                 generationId={actualGenerationId}
+                onStoreReady={setStore}
               />
             ) : (
               <PresentationEditor
@@ -87,11 +89,6 @@ export default function PresentationEditorPage() {
           {/* Floating Elements */}
           <FloatingSheetTab />
           <FloatingFAB />
-        </div>
-
-        {/* Bottom Section */}
-        <div className="flex-none z-30">
-          <BottomToolbar />
         </div>
       </div>
     </GenerationLoaderUI>

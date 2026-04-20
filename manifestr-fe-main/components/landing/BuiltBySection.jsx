@@ -31,18 +31,29 @@ const ALL_LOGOS = [
     name: 'Octagon',
     src: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943312/Octogon_1_r8bun8.png',
     width: 160,
+    mobileWidth: 220,
   },
   {
     name: 'Bank of America',
     src: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943312/pngfind.com-logo-america-png-6828898_1_1_1_ulidji.png',
     width: 220,
+    mobileWidth: 280,
   },
   {
     name: 'Jack Morton',
-    src: 'https://www.figma.com/api/mcp/asset/1b1ceb46-bfa5-4617-b437-1afac9e5238a',
+    src: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941383/Jack_Morton_2_duiyyy.svg',
     width: 180,
   },
 ]
+
+// Mobile layout configuration
+const MOBILE_LAYOUT = [
+  { row: 1, logos: [0, 1] }, // Harvard, George P. Johnson
+  { row: 2, logos: [5, 6, 3] }, // Octagon, Bank of America, Mastercard
+  { row: 3, logos: [2, 4, 7] }, // State Street, Darkhorse, Jack Morton
+]
+
+const MOBILE_LOGOS = MOBILE_LAYOUT.flatMap(row => row.logos)
 
 export default function BuiltBySection() {
   return (
@@ -95,8 +106,8 @@ export default function BuiltBySection() {
           </p>
         </motion.div>
 
-        {/* Logo grid — 2 cols mobile, 4 cols desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 md:gap-x-10 gap-y-8 md:gap-y-12 items-center justify-items-center pt-6 md:pt-12">
+        {/* Logo grid — custom mobile layout, 4 cols desktop */}
+        <div className="hidden md:grid md:grid-cols-4 md:gap-x-10 md:gap-y-12 md:items-center md:justify-items-center md:pt-12">
           {ALL_LOGOS.map((logo, i) => (
             <motion.div
               key={logo.name}
@@ -104,15 +115,51 @@ export default function BuiltBySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.06 }}
-              className="flex items-center justify-center h-[48px] md:h-[56px] w-full"
+              className="flex items-center justify-center h-[56px] w-full"
             >
               <CldImage
                 src={logo.src}
                 alt={logo.name}
                 className="max-h-full object-contain"
-                style={{ maxWidth: logo.width }}
+                style={{ 
+                  maxWidth: `${logo.width}px`,
+                  width: '100%',
+                }}
               />
             </motion.div>
+          ))}
+        </div>
+
+        {/* Mobile layout - 3 custom rows */}
+        <div className="md:hidden space-y-8 pt-6">
+          {MOBILE_LAYOUT.map((row, rowIdx) => (
+            <div key={`row-${rowIdx}`} className={`grid gap-x-6 gap-y-8 items-center justify-items-center ${
+              row.logos.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+            }`}>
+              {row.logos.map((logoIdx, colIdx) => {
+                const logo = ALL_LOGOS[logoIdx]
+                return (
+                  <motion.div
+                    key={logo.name}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: (rowIdx * 3 + colIdx) * 0.06 }}
+                    className="flex items-center justify-center h-[48px] w-full"
+                  >
+                    <CldImage
+                      src={logo.src}
+                      alt={logo.name}
+                      className="max-h-full object-contain"
+                      style={{ 
+                        maxWidth: logo.mobileWidth ? `${logo.mobileWidth}px` : `${logo.width}px`,
+                        width: '100%',
+                      }}
+                    />
+                  </motion.div>
+                )
+              })}
+            </div>
           ))}
         </div>
 

@@ -71,6 +71,29 @@ export class SupabaseDB {
         return data;
     }
 
+    static async deleteUser(id: string) {
+        // Delete all user-related data (cascade should handle most)
+        // But we'll explicitly delete some tables for safety
+        
+        // Delete vault items
+        await supabaseAdmin.from('vault_items').delete().eq('user_id', id);
+        
+        // Delete style guides
+        await supabaseAdmin.from('style_guides').delete().eq('user_id', id);
+        
+        // Delete generation jobs
+        await supabaseAdmin.from('generation_jobs').delete().eq('user_id', id);
+        
+        // Finally delete user
+        const { error } = await supabaseAdmin
+            .from('users')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return true;
+    }
+
     // ===== EARLY ACCESS =====
     static async createEarlyAccess(data: {
         first_name: string;

@@ -28,6 +28,8 @@ import * as Y from "yjs";
 import { SupabaseProvider } from "../../lib/supabase-yjs-provider";
 import { supabase } from "../../lib/supabase";
 import api from "../../lib/api";
+import EditorBottomToolbar from "../editor/EditorBottomToolbar";
+import ToolPanel from "../editor/panels/presentation-editor/ToolPanel";
 
 import "@univerjs/preset-sheets-core/lib/index.css";
 
@@ -103,9 +105,9 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
             container: containerRef.current,
             header: true,
             footer: {
-              menus: true,
-              sheetBar: true,
-              statisticBar: true,
+              menus: false,
+              sheetBar: true,   // keep tabs
+              statisticBar: false,
               zoomSlider: false,
             },
             formula: {
@@ -428,10 +430,11 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
       return () => clearInterval(interval);
     }, [generationId, isEditing]);
 
+  
     return (
       <>
         {/* Active Users Bar */}
-        {activeUsers.length > 0 && (
+        {/* {activeUsers.length > 0 && (
           <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-[9999]">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-blue-900">
@@ -462,7 +465,7 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
               Changes sync automatically
             </span>
           </div>
-        )}
+        )} */}
 
         {/* Save Status Indicator */}
         {/* <div className="absolute top-4 right-[200px] z-[9999] flex gap-2">
@@ -485,7 +488,13 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
                     </div>
                 </div> */}
 
-        <div ref={containerRef} className="w-full h-full overflow-hidden" />
+     
+
+        <div ref={containerRef} className="w-full h-full" />
+
+        
+
+      
       </>
     );
   },

@@ -8,6 +8,7 @@ import Checkbox from '../components/forms/Checkbox'
 import Button from '../components/ui/Button'
 import GoogleIcon from '../components/icons/GoogleIcon'
 import { Toaster, Intent } from '@blueprintjs/core'
+import { useToast } from '../components/ui/Toast'
 
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/router'
@@ -20,6 +21,7 @@ const AppToaster = typeof window !== 'undefined' ? Toaster.create({
 
 export default function Login() {
   const router = useRouter()
+  const { error: showError } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -69,6 +71,7 @@ export default function Login() {
         }
       } catch (err) {
 
+        console.log(err);
         // Always reset submitting state on error
         setIsSubmitting(false)
 
@@ -110,12 +113,12 @@ export default function Login() {
               timeout: 5000,
             })
           } catch (toastError) {
-            // Fallback: at least show alert
-            alert(errorMessage)
+            // Fallback: use our toast system
+            showError(errorMessage)
           }
         } else {
-          // Fallback: show alert
-          alert(errorMessage)
+          // Fallback: use our toast system
+          showError(errorMessage)
         }
 
         // Also set server error for the inline display
@@ -169,7 +172,7 @@ export default function Login() {
                 <h1 className="text-[30px] leading-[38px] font-bold text-base-foreground font-hero">
                   Welcome back
                 </h1>
-                <p className="text-b2-regular text-base-muted-foreground">
+                <p className="text-b2-regular text-base-muted-foreground text-[#71717b]">
                   Think bold. Move fast. Stay limitless.
                 </p>
               </div>

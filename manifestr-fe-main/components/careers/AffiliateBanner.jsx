@@ -60,7 +60,7 @@ export default function AffiliateBanner() {
             alt=""
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0" />
           <div className="absolute inset-0 flex flex-col justify-center gap-[24px] px-[60px]">
             <h2
               className="text-[54px] leading-[72px] tracking-[-1.08px] text-white max-w-[608px]"

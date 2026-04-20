@@ -5,8 +5,8 @@ import Head from "next/head";
 import TopHeader from "../components/spreadsheet/TopHeader";
 import TiptapEditor from "../components/docs/TiptapEditor";
 import DocumentOutline from "../components/docs/DocumentOutline";
-import RightSidebar from "../components/spreadsheet/RightSidebar";
-import BottomToolbar from "../components/spreadsheet/BottomToolbar";
+import { RightSidebar } from "../components/spreadsheet/RightSidebar";
+import DocsEditorBottomToolbar from "../components/editor/DocsEditorBottomToolbar";
 import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 
 // Dynamically import collaborative editor (uses Y.js)
@@ -35,9 +35,10 @@ import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 
 export default function DocsEditor() {
   const router = useRouter();
-  const { id: documentId } = router.query; // Get document ID from URL
+  const { id: documentId } = router.query;
   const [headings, setHeadings] = useState([]);
   const [editorHTML, setEditorHTML] = useState("");
+  const [editorInstance, setEditorInstance] = useState(null);
   const { loading, error, status, content, id } = useGenerationLoader();
 
   const extractHeadings = (html) => {
@@ -255,11 +256,13 @@ export default function DocsEditor() {
                 documentId={actualDocumentId}
                 initialContent={editorContent}
                 onUpdate={extractHeadings}
+                onEditorReady={setEditorInstance}
               />
             ) : (
               <TiptapEditor
                 onUpdate={extractHeadings}
                 content={editorContent}
+                onEditorReady={setEditorInstance}
               />
             )}
           </div>
@@ -277,7 +280,7 @@ export default function DocsEditor() {
 
         {/* Bottom Section */}
         <div className="flex-none z-30">
-          <BottomToolbar />
+          <DocsEditorBottomToolbar editor={editorInstance} />
         </div>
       </div>
     </GenerationLoaderUI>

@@ -177,9 +177,20 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
             {/* Modal Header */}
             <div className="border-b border-[#e4e4e7] p-4 relative">
               <div className="flex items-center justify-between">
-                <h2 className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
+                <h2
+                  className="font-inter text-[16px] font-semibold leading-[24px] text-[var(--base-foreground,#18181B)]"
+                  style={{
+                    color: "var(--base-foreground, #18181B)",
+                    fontFamily: "Inter",
+                    fontSize: "16px",
+                    fontStyle: "normal",
+                    fontWeight: 600,
+                    lineHeight: "24px"
+                  }}
+                >
                   {mode === 'edit' ? 'Edit Project' : 'Create New Collab'}
                 </h2>
+           
                 <motion.button
                   onClick={onClose}
                   whileHover={{ scale: 1.1 }}
@@ -198,11 +209,21 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 <label className="text-[14px] font-medium leading-[20px] text-[#464649]">
                   Collab Cover Image
                 </label>
-                <div className="relative bg-[#f4f4f4] h-[240px] rounded-[10px] overflow-hidden">
+                <div className="relative bg-[#f4f4f4] h-[240px] rounded-[10px] overflow-hidden mt-1">
                   {/* Watermark Text */}
-                  <p className="absolute font-accent text-[98.087px] font-semibold italic leading-normal text-black opacity-[0.03] left-[28px] top-[120px] w-[564px]">
+                  <p
+                    className="absolute text-black opacity-[0.03] left-[28px] top-[135px] w-[564px]"
+                    style={{
+                      fontFamily: '"IvyPresto Headline", serif',
+                      fontSize: "98.087px",
+                      fontStyle: "italic",
+                      fontWeight: 600,
+                      lineHeight: "normal",
+                    }}
+                  >
                     BOSS VIBES
                   </p>
+             
                   
                   {coverImage ? (
                     <div className="relative w-full h-full">
@@ -258,7 +279,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                   value={collabName}
                   onChange={(e) => setCollabName(e.target.value)}
                   placeholder="Give your workspace a clear, memorable name."
-                  className="w-full h-[36px] px-3 bg-white border border-[#e4e4e7] rounded-md text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent"
+                  className="w-full h-[36px] px-3 bg-white border border-[#e4e4e7] rounded-md text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent mt-1"
                 />
               </div>
 
@@ -272,7 +293,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                     value={purposeNotes}
                     onChange={(e) => setPurposeNotes(e.target.value)}
                     placeholder="Notes..."
-                    className="w-full h-[132px] px-[14px] py-3 bg-white border border-[#e4e4e7] rounded-md text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent resize-none"
+                    className="w-full h-[132px] px-[14px] py-3 bg-white border border-[#e4e4e7] rounded-md text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent resize-none mt-1"
                   />
                   {/* Resize handle indicator */}
                   <div className="absolute bottom-[6px] right-[6px] w-3 h-3 opacity-30 pointer-events-none">
@@ -288,7 +309,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
                   Tag
                 </label>
-                <div className="bg-white border border-[#e4e4e7] rounded-md px-3 py-2 min-h-[36px] flex flex-wrap gap-2 items-center">
+                <div className="bg-white border border-[#e4e4e7] rounded-md px-3 py-2 min-h-[36px] flex flex-wrap gap-2 items-center mt-1">
                   {tags.map((tag, index) => (
                     <motion.div
                       key={index}
@@ -327,7 +348,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
                   Invite Users
                 </label>
-                <div className="bg-white border border-[#e4e4e7] rounded-md px-3 py-2 min-h-[36px] flex flex-wrap gap-2 items-center">
+                <div className="bg-white border border-[#e4e4e7] rounded-md px-3 py-2 min-h-[36px] flex flex-wrap gap-2 items-center mt-1">
                   {inviteEmails.map((email, index) => (
                     <motion.div
                       key={index}
@@ -366,7 +387,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
                   Role
                 </label>
-                <div className="relative">
+                <div className="relative mt-1">
                   <motion.button
                     onClick={() => setShowRoleDropdown(!showRoleDropdown)}
                     whileHover={{ scale: 1.01 }}

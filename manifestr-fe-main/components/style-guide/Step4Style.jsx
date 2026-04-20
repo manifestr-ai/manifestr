@@ -3,7 +3,7 @@ import { Folder, Type, Palette, Grid, FileText, Plus, ArrowRight, X, Volume2 } f
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 
-export default function StyleGuideStep4Style({ data, updateData, onBack, onNext }) {
+export default function StyleGuideStep4Style({ data, updateData, onBack, onNext, onSaveExit }) {
   // Use data from props or defaults
   const selectedToneDescriptors = data?.style?.toneDescriptors || ['Professional', 'Bold', 'Innovative']
   const selectedAudience = data?.style?.audience || ['Technical / Executive-level']
@@ -161,7 +161,7 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext 
                 <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
                   Skip
                 </Button>
-                <Button variant="secondary" size="md" className="flex-1 md:flex-none justify-center">
+                <Button variant="secondary" size="md" onClick={onSaveExit} className="flex-1 md:flex-none justify-center">
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">

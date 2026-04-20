@@ -49,3 +49,15 @@ export const updateStyleGuide = async (id, data) => {
     });
     return response.data;
 };
+
+/**
+ * Delete a Style Guide
+ * @param {string} id - Style Guide UUID
+ * @returns {Promise<{data: Object}>} Deletion response
+ */
+export const deleteStyleGuide = async (id) => {
+    const response = await api.delete(ENDPOINTS.STYLE_GUIDES.DELETE(id), {
+        baseURL: API_BASE_URL,
+    });
+    return response.data;
+};

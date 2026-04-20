@@ -26,6 +26,7 @@ import "../components/tiptap-ui-primitive/badge/badge.scss"
 import { SidebarProvider } from '../contexts/SidebarContext'
 import { AuthProvider } from '../contexts/AuthContext'
 import AuthGuard from '../components/auth/AuthGuard'
+import { ToastProvider } from '../components/ui/Toast'
 import '../styles/global.css'
 import { useEffect } from 'react'
 
@@ -80,11 +81,13 @@ export default function App({ Component, pageProps }) {
       <AuthProvider>
         <AuthGuard>
           <SidebarProvider>
-            {Component.getLayout ? (
-              Component.getLayout(<Component {...pageProps} />)
-            ) : (
-              <Component {...pageProps} />
-            )}
+            <ToastProvider>
+              {Component.getLayout ? (
+                Component.getLayout(<Component {...pageProps} />)
+              ) : (
+                <Component {...pageProps} />
+              )}
+            </ToastProvider>
           </SidebarProvider>
         </AuthGuard>
       </AuthProvider>

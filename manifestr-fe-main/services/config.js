@@ -1,20 +1,33 @@
-export const API_BASE_URL = 'http://localhost:8000/api';
+// Get base URL and remove any trailing slashes
+const getBaseUrl = () => {
+    const url = process.env.NEXT_PUBLIC_API_URL || 
+        (process.env.NODE_ENV === 'production' 
+            ? 'https://api.manifestr.ai' 
+            : 'http://localhost:8000');
+    return url.replace(/\/+$/, ''); // Remove trailing slashes
+};
 
+// Base URL WITHOUT /api prefix (routes define their own prefixes)
+const baseUrl = getBaseUrl();
+export const API_BASE_URL = baseUrl;
+
+// Endpoints with full paths (some have /api, some don't)
 export const ENDPOINTS = {
     UPLOADS: {
-        PRESIGN: '/uploads/presign',
+        PRESIGN: '/api/uploads/presign',
     },
     VAULTS: {
-        LIST: '/vaults',
-        CREATE_FOLDER: '/vaults/folder',
-        CREATE_FILE: '/vaults',
-        UPDATE: (id) => `/vaults/${id}`,
-        DELETE: (id) => `/vaults/${id}`,
+        LIST: '/api/vaults',
+        CREATE_FOLDER: '/api/vaults/folder',
+        CREATE_FILE: '/api/vaults',
+        UPDATE: (id) => `/api/vaults/${id}`,
+        DELETE: (id) => `/api/vaults/${id}`,
     },
     STYLE_GUIDES: {
-        LIST: '/style-guides',
-        DETAILS: (id) => `/style-guides/${id}`,
-        CREATE: '/style-guides',
-        UPDATE: (id) => `/style-guides/${id}`,
+        LIST: '/api/style-guides',
+        DETAILS: (id) => `/api/style-guides/${id}`,
+        CREATE: '/api/style-guides',
+        UPDATE: (id) => `/api/style-guides/${id}`,
+        DELETE: (id) => `/api/style-guides/${id}`,
     }
 };

@@ -6,7 +6,7 @@ import ChartViewer from '../components/chart-viewer/ChartViewer';
 
 export default function ChartViewerPage() {
     return (
-        <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
+        <div className="flex flex-col h-screen bg-white font-sans">
             <Head>
                 <title>Chart Viewer | Manifestr</title>
             </Head>
@@ -16,9 +16,9 @@ export default function ChartViewerPage() {
                 <TopHeader editorType="document" />
             </div>
 
-            {/* Main Content Area */}
-            <div className="flex-grow flex relative overflow-hidden bg-gray-100">
-                <div className="flex-grow overflow-hidden relative z-10">
+            {/* Main Content Area - SCROLLABLE */}
+            <div className="flex-grow flex relative bg-gray-100 overflow-y-auto">
+                <div className="flex-grow relative z-10">
                     <ChartViewer />
                 </div>
             </div>

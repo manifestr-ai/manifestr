@@ -19,6 +19,10 @@ import { Typography } from "@tiptap/extension-typography";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
+import { Underline } from "@tiptap/extension-underline";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Link } from "@tiptap/extension-link";
+import { FontFamily } from "../../lib/tiptap-font-family-extension";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
@@ -29,11 +33,19 @@ import * as Y from "yjs";
 import { SupabaseProvider } from "../../lib/supabase-yjs-provider";
 import { supabase } from "../../lib/supabase";
 import api from "../../lib/api";
+import { FontSize } from "../../lib/tiptap-font-size-extension";
+import { PageBreak } from "../../lib/tiptap-page-break-extension";
+import { DocumentHeader } from "../../lib/tiptap-document-header-extension";
+import { DocumentFooter } from "../../lib/tiptap-document-footer-extension";
+import { ParagraphIndent } from "../../lib/tiptap-paragraph-indent-extension";
+import { ParagraphSpacing } from "../../lib/tiptap-paragraph-spacing-extension";
+import { SearchHighlight } from "../../lib/tiptap-search-highlight-extension";
 
 interface CollaborativeTiptapEditorProps {
   documentId: string;
   initialContent?: any;
   onUpdate?: (html: string) => void;
+  onEditorReady?: (editor: any) => void;
 }
 
 // Generate consistent color for user
@@ -56,21 +68,22 @@ export default function CollaborativeTiptapEditor({
   documentId,
   initialContent,
   onUpdate,
+  onEditorReady,
 }: CollaborativeTiptapEditorProps) {
   const router = useRouter();
   const [ydoc] = useState(() => new Y.Doc());
   const [provider, setProvider] = useState<SupabaseProvider | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
-  const [lastSavedContent, setLastSavedContent] = useState<string>(''); // Track last saved state
+  const [lastSavedContent, setLastSavedContent] = useState<string>(""); // Track last saved state
   const [isTyping, setIsTyping] = useState(false); // Track if user is actively typing
 
   // Handle auth errors - redirect to login
   const handleAuthError = (error: any) => {
     if (error?.response?.status === 401 || error?.response?.status === 403) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      router.push('/login');
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      router.push("/login");
       return true;
     }
     return false;
@@ -87,7 +100,7 @@ export default function CollaborativeTiptapEditor({
     if (!documentId || !currentUser?.id) return;
 
     // Add Y.Doc change observer for debugging
-        // Y.Doc syncs automatically
+    // Y.Doc syncs automatically
 
     const newProvider = new SupabaseProvider(ydoc, documentId, supabase);
     setProvider(newProvider);
@@ -140,7 +153,7 @@ export default function CollaborativeTiptapEditor({
   }, [documentId]);
 
   const editor = useEditor({
-    immediatelyRender: false, // Avoid SSR hydration issues
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -149,28 +162,55 @@ export default function CollaborativeTiptapEditor({
       Highlight.configure({ multicolor: true }),
       Image,
       Typography,
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 underline',
+        },
+      }),
+      TextStyle,
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
+      FontSize.configure({
+        types: ['textStyle'],
+      }),
+      Underline,
       Superscript,
       Subscript,
+      PageBreak,
+      DocumentHeader,
+      DocumentFooter,
+      ParagraphIndent.configure({
+        types: ['paragraph', 'heading'],
+      }),
+      ParagraphSpacing.configure({
+        types: ['paragraph', 'heading'],
+      }),
+      SearchHighlight.configure({
+        searchTerm: '',
+        caseSensitive: false,
+      }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
       TableCell,
-      // Y.js Collaboration - CRITICAL for sync
       Collaboration.configure({
         document: ydoc,
-        fragment: ydoc.getXmlFragment("prosemirror"), // Explicit fragment
+        fragment: ydoc.getXmlFragment("prosemirror"),
       }),
-      // Colored Cursors - skip for now, will add after provider is ready
     ],
     onCreate: ({ editor }) => {
       if (onUpdate) {
         onUpdate(editor.getHTML());
       }
+      if (onEditorReady) {
+        onEditorReady(editor);
+      }
     },
     onUpdate: ({ editor }) => {
-      // Mark user as typing
       setIsTyping(true);
-      
+
       if (onUpdate) {
         onUpdate(editor.getHTML());
       }
@@ -191,17 +231,17 @@ export default function CollaborativeTiptapEditor({
     const saveToDatabase = async () => {
       try {
         const currentContent = JSON.stringify(editor.getJSON());
-        
+
         // SMART SAVE: Only save if content actually changed
         if (currentContent === lastSavedContent) {
           return; // No changes, skip save
         }
-        
+
         const json = editor.getJSON();
         await api.patch(`/ai/generation/${documentId}`, {
           content: json,
         });
-        
+
         // Update last saved state
         setLastSavedContent(currentContent);
       } catch (error: any) {
@@ -216,17 +256,17 @@ export default function CollaborativeTiptapEditor({
     // Also save when user stops typing (debounced)
     let debounceTimer: NodeJS.Timeout;
     let typingTimer: NodeJS.Timeout;
-    
+
     const debouncedSave = () => {
       // Mark as typing
       setIsTyping(true);
-      
+
       // Reset typing flag 3 seconds after last keystroke
       clearTimeout(typingTimer);
       typingTimer = setTimeout(() => {
         setIsTyping(false);
       }, 3000);
-      
+
       // Save 2 seconds after typing stops
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(saveToDatabase, 2000);
@@ -267,24 +307,25 @@ export default function CollaborativeTiptapEditor({
       if (isTyping) return;
       try {
         const response = await api.get(`/ai/generation/${documentId}`);
-        
-        if (response.data?.status === 'success') {
+
+        if (response.data?.status === "success") {
           const latestContent = response.data.data?.result?.editorState;
-          
+
           if (latestContent) {
             const currentContent = editor.getJSON();
-            const latestJSON = typeof latestContent === 'string'
-              ? JSON.parse(latestContent)
-              : latestContent;
+            const latestJSON =
+              typeof latestContent === "string"
+                ? JSON.parse(latestContent)
+                : latestContent;
 
             // Update if content changed
             if (JSON.stringify(currentContent) !== JSON.stringify(latestJSON)) {
               // Save cursor position
               const cursorPos = editor.state.selection.anchor;
-              
+
               // Update content
               editor.commands.setContent(latestJSON);
-              
+
               // Restore cursor (only if not typing)
               if (!isTyping) {
                 setTimeout(() => {

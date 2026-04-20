@@ -5,7 +5,7 @@ import Button from '../ui/Button'
 import Card from '../ui/Card'
 import Select from '../forms/Select'
 
-export default function StyleGuideStep5Review({ data, updateData, onBack, onNext, isSubmitting }) {
+export default function StyleGuideStep5Review({ data, updateData, onBack, onNext, isSubmitting, isEditMode = false }) {
   // Derive state from props
   const selectedColors = data?.colors?.selected || []
   const permittedBackgroundTypes = data?.backgrounds?.permitted || 'light-dark'
@@ -279,8 +279,8 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
                   disabled={isSubmitting}
                   className="flex-1 md:flex-none justify-center"
                 >
-                  {isSubmitting ? 'Applying...' : 'Apply Workspace Default'}{' '}
-                  
+                  {isSubmitting ? (isEditMode ? 'Saving...' : 'Applying...') : (isEditMode ? 'Save Changes' : 'Apply Workspace Default')}{' '}
+
                 </Button>
               </div>
             </div>
@@ -1098,7 +1098,7 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
               Back
             </Button>
             <Button variant="primary" size="md" onClick={onNext} disabled={isSubmitting} className="flex-1 md:flex-none justify-center">
-              {isSubmitting ? 'Creating...' : 'Create Brand Kit'} <ArrowRight className="w-4 h-4 ml-1" />
+              {isSubmitting ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Brand Kit')} <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
         </div>

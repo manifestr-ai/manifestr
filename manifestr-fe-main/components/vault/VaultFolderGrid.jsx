@@ -13,7 +13,7 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
         </h2>
       </div>
 
-      <div className="flex items-center gap-10 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="flex items-center gap-3 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
         {foldersToDisplay.map((folder, index) => {
           const folderName = typeof folder === 'string' ? folder : folder.name
           const folderHref = typeof folder === 'string' ? null : folder.href
@@ -27,7 +27,7 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
                 <img
                   src="/assets/icons/folder-icon.svg"
                   alt={folderName}
-                  className="w-full h-full object-cover"
+                  className=""
                 />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-2 z-10">
@@ -44,6 +44,7 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
                 </div>
               </div>
             </div>
+      
           )
 
           return (

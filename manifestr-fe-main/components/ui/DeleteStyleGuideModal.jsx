@@ -1,0 +1,122 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { Trash2, X, AlertTriangle } from 'lucide-react'
+import { useState } from 'react'
+
+export default function DeleteStyleGuideModal({ isOpen, onClose, onConfirm, styleGuideName }) {
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleConfirm = async () => {
+    setIsDeleting(true)
+    await onConfirm()
+    setIsDeleting(false)
+  }
+
+  const handleClose = () => {
+    if (!isDeleting) {
+      onClose()
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClose}
+            className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center"
+          >
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-xl shadow-2xl border border-[#e4e4e7] w-[90%] max-w-[520px] overflow-hidden"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-[#e4e4e7]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
+                      <Trash2 className="w-5 h-5 text-red-600" />
+                    </div>
+                    <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
+                      Delete Style Guide
+                    </h3>
+                  </div>
+                  <button
+                    onClick={handleClose}
+                    disabled={isDeleting}
+                    className="text-[#71717a] hover:text-[#18181b] transition-colors disabled:opacity-50"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                {/* Warning Box */}
+                {/* <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <div className="flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="text-[16px] font-semibold leading-[24px] text-[#18181b] mb-2">
+                        Warning: This action cannot be undone
+                      </h4>
+                      <p className="text-[14px] leading-[20px] text-[#71717a]">
+                        Deleting this style guide will permanently remove all associated data, including colors, typography, logos, and brand guidelines.
+                      </p>
+                    </div>
+                  </div>
+                </div> */}
+
+                <p className="text-[16px] leading-[24px] text-[#71717a]">
+                  Are you sure you want to delete <span className="font-semibold text-[#18181b]">"{styleGuideName}"</span>? This will remove all projects associated with this style guide.
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 bg-[#f4f4f5] border-t border-[#e4e4e7] flex gap-3 justify-end">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleClose}
+                  disabled={isDeleting}
+                  className="px-4 py-2 h-[40px] border border-[#e4e4e7] rounded-md bg-white text-[#18181b] font-medium text-[14px] leading-[20px] hover:bg-[#f4f4f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: isDeleting ? 1 : 1.02 }}
+                  whileTap={{ scale: isDeleting ? 1 : 0.98 }}
+                  onClick={handleConfirm}
+                  disabled={isDeleting}
+                  className="px-4 py-2 h-[40px] bg-red-600 text-white rounded-md font-medium text-[14px] leading-[20px] hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete Style Guide
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}

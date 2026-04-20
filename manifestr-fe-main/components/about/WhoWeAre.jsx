@@ -22,9 +22,9 @@ export default function WhoWeAre() {
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
           className="text-center text-[30px] md:text-[36px] leading-[normal] md:leading-[49px] tracking-[-0.6px] md:tracking-[-0.72px] text-black max-w-[901px] mb-[12px] md:mb-[24px]"
-          style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+          style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
         >
-          Shaped by experience and pressure.{' '}
+          Shaped by Experience and Pressure.{' '}<br />
           Designed To Raise The Standard Of{' '}
           <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
             Professional{' '}
@@ -62,7 +62,7 @@ export default function WhoWeAre() {
             className="h-[48px] md:h-[54px] px-[24px] flex items-center justify-center rounded-[8px] md:rounded-md border border-[#e4e4e7] bg-white text-[#18181b] text-[16px] md:text-[18px] font-medium hover:bg-gray-50 transition-colors"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
-            Explore Our Toolkit
+            Explore The Toolkit
           </Link>
         </motion.div>
 

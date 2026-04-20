@@ -119,12 +119,21 @@ export function AuthProvider({ children }) {
     const login = async (email, password) => {
         try {
             const response = await api.post('/auth/login', { email, password })
-            const { user, accessToken } = response.data.details
+
+            const details = response.data?.details
+
+            if (!details) {
+                throw new Error("Incorrect email or password. Please try again.")
+            }
+
+            const { user, accessToken } = details
+            // const { user, accessToken } = response.data.details
 
             localStorage.setItem('accessToken', accessToken)
             localStorage.setItem('user', JSON.stringify(user))
             setUser(user)
 
+          
             // Redirect to home or previous page
             router.push('/home')
             return response.data

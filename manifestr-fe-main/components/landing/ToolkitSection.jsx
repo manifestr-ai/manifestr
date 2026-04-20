@@ -258,7 +258,7 @@ export default function ToolkitSection() {
         <div className="relative z-10 w-full max-w-[1440px] mx-auto px-[80px] h-full flex items-start mt-32">
           <div className="flex flex-row gap-0 w-full">
             {/* Left: vertical title + copy + button */}
-            <div className="flex flex-row items-start gap-12 w-[312px] shrink-0">
+            <div className="flex flex-row items-start gap-10 w-[312px] shrink-0">
               <div className="flex items-center justify-center w-[56px] h-[302px]">
                 <div className="-rotate-90 whitespace-nowrap">
                   <span
@@ -279,23 +279,29 @@ export default function ToolkitSection() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-5 w-[220px]">
-                <p
-                  className="text-[16px] leading-[24px] text-white font-normal"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                >
-                  MANIFESTR works with you to create high-quality decks, briefs,
-                  strategies, reports, visuals, budgets, and more fast. Impress,
-                  win, and elevate your impact with polished outputs in minutes.
-                </p>
-                <Link
-                  href="/tools"
-                  className="inline-flex items-center justify-center h-[54px] w-[160px] border border-white rounded-md text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                >
-                  Explore
-                </Link>
-              </div>
+              <div className="mt-2 flex flex-col gap-5">
+              <p
+                className="text-[16px] text-white"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                <span className="font-bold leading-[24px]">
+                  Eight tools. One system.
+                  <br />
+                </span>
+                <span className="leading-[24px]">
+                  Designed to support every part of professional work. Each tool
+                  plays a distinct role, delivering consistent output from
+                  planning through execution.
+                </span>
+              </p>
+              <Link
+                href="/tools"
+                className="inline-flex items-center justify-center h-[54px] w-[160px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Explore Toolkit
+              </Link>
+            </div>
             </div>
 
             {/* Tool cards row */}

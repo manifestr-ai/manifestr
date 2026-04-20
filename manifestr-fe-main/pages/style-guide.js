@@ -5,16 +5,24 @@ import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import { Search, Mic, ChevronDown, Clock, Grid3x3, List, MoreVertical, Plus } from 'lucide-react'
 import AppHeader from '../components/layout/AppHeader'
-import Button from '../components/ui/Button'
 import StyleGuideCard from '../components/style-guide/StyleGuideCard'
+import RenameStyleGuideModal from '../components/ui/RenameStyleGuideModal'
+import DeleteStyleGuideModal from '../components/ui/DeleteStyleGuideModal'
+import { useToast } from '../components/ui/Toast'
 
 export default function StyleGuide() {
   const router = useRouter()
+  const { success, error: showError } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
 
   const [styleGuides, setStyleGuides] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Modal states
+  const [showRenameModal, setShowRenameModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedGuide, setSelectedGuide] = useState(null)
 
   useEffect(() => {
     const fetchStyleGuides = async () => {
@@ -25,7 +33,7 @@ export default function StyleGuide() {
         const response = await listStyleGuides()
 
         // Map API response to UI props
-        // API returns: { id, name, brand_name, type, config: { colors, ... }, created_at, ... }
+        // API returns: { id, name, brand_name, logo, typography, colors, style, is_completed, created_at, updated_at, ... }
         const mappedGuides = (response.data || []).map((guide, index) => {
           // Generate a deterministic gradient based on index or ID if not stored
           const gradients = [
@@ -38,11 +46,35 @@ export default function StyleGuide() {
           ]
           const gradient = gradients[index % gradients.length]
 
+          // Format dates
+          const updatedDate = guide.updated_at 
+            ? new Date(guide.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : ''
+
+          // Count elements
+          const logoCount = (guide.logo?.logos || []).length
+          const colorCount = (guide.colors?.selected || []).length + (guide.colors?.custom || []).length
+          const hasTypography = guide.typography && (guide.typography.headings || guide.typography.body)
+          
+          // Build subtitle with useful info
+          let subtitleParts = []
+          if (logoCount > 0) subtitleParts.push(`${logoCount} Logo${logoCount !== 1 ? 's' : ''}`)
+          if (colorCount > 0) subtitleParts.push(`${colorCount} Color${colorCount !== 1 ? 's' : ''}`)
+          if (hasTypography) subtitleParts.push('Typography')
+          
+          const subtitle = subtitleParts.length > 0 
+            ? subtitleParts.join(' • ') 
+            : (guide.is_completed ? 'Completed' : 'In Progress')
+
+          // Determine display values
+          const displayName = guide.brand_name || guide.name || 'Untitled Style Guide'
+          const categoryText = guide.is_completed ? '✓ Completed' : (updatedDate ? `Updated ${updatedDate}` : 'Draft')
+
           return {
             id: guide.id,
-            category: guide.name || 'Untitled Guide', // Keeping category/title mapping flexible
-            title: guide.brand_name || 'Brand Name',
-            subtitle: 'Brand Style Guide', // Static for now or derive
+            category: categoryText,
+            title: displayName,
+            subtitle: subtitle,
             projectCount: 0, // Not in API yet
             gradient: gradient,
           }
@@ -59,6 +91,95 @@ export default function StyleGuide() {
 
   const handleCreateNew = () => {
     router.push('/create-style-guide')
+  }
+
+  // Handle opening a style guide
+  const handleOpenGuide = (guide) => {
+    router.push(`/style-guide/${guide.id}`)
+  }
+
+  // Handle renaming
+  const handleRenameClick = (guide) => {
+    setSelectedGuide(guide)
+    setShowRenameModal(true)
+  }
+
+  const handleRenameConfirm = async (newName) => {
+    try {
+      const { updateStyleGuide } = await import('../services/style-guide')
+      await updateStyleGuide(selectedGuide.id, { brand_name: newName })
+      
+      // Update local state
+      setStyleGuides(prevGuides => 
+        prevGuides.map(g => 
+          g.id === selectedGuide.id 
+            ? { ...g, title: newName } 
+            : g
+        )
+      )
+      
+      setShowRenameModal(false)
+      setSelectedGuide(null)
+      success('Style guide renamed successfully!')
+    } catch (error) {
+      console.error('Failed to rename style guide:', error)
+      showError('Failed to rename style guide. Please try again.')
+    }
+  }
+
+  // Handle download - fetch full data and download as JSON
+  const handleDownload = async (guide) => {
+    try {
+      // Fetch full style guide data from backend
+      const { getStyleGuideDetails } = await import('../services/style-guide')
+      const response = await getStyleGuideDetails(guide.id)
+      const fullData = response.data
+
+      // Create downloadable JSON file
+      const fileName = `${fullData.brand_name || fullData.name || 'style-guide'}-${fullData.id}.json`.replace(/[^a-z0-9.-]/gi, '_')
+      const jsonString = JSON.stringify(fullData, null, 2)
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      
+      // Create temporary link and trigger download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      success('Style guide downloaded successfully!')
+    } catch (error) {
+      console.error('Failed to download style guide:', error)
+      showError('Failed to download style guide. Please try again.')
+    }
+  }
+
+  // Handle delete
+  const handleDeleteClick = (guide) => {
+    setSelectedGuide(guide)
+    setShowDeleteModal(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const { deleteStyleGuide } = await import('../services/style-guide')
+      await deleteStyleGuide(selectedGuide.id)
+      
+      // Remove from local state
+      setStyleGuides(prevGuides => 
+        prevGuides.filter(g => g.id !== selectedGuide.id)
+      )
+      
+      setShowDeleteModal(false)
+      setSelectedGuide(null)
+      success('Style guide deleted successfully!')
+    } catch (error) {
+      console.error('Failed to delete style guide:', error)
+      showError('Failed to delete style guide. Please try again.')
+    }
   }
 
   // Effect to redirect if loaded and empty. 
@@ -178,9 +299,11 @@ export default function StyleGuide() {
                     projectCount={guide.projectCount}
                     gradient={guide.gradient}
                     index={index}
-                    onClick={() => {
-                      // Handle card click
-                    }}
+                    onClick={() => handleOpenGuide(guide)}
+                    onOpen={() => handleOpenGuide(guide)}
+                    onRename={() => handleRenameClick(guide)}
+                    onDownload={() => handleDownload(guide)}
+                    onDelete={() => handleDeleteClick(guide)}
                   />
                 ))}
               </div>
@@ -192,10 +315,8 @@ export default function StyleGuide() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-white rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between hover:shadow-lg transition-shadow cursor-pointer gap-4 md:gap-0"
-                    onClick={() => {
-                      // Handle card click
-                    }}
+                    className="relative bg-white rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between hover:shadow-lg transition-shadow cursor-pointer gap-4 md:gap-0"
+                    onClick={() => handleOpenGuide(guide)}
                   >
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 flex-1 w-full md:w-auto">
                       <div
@@ -217,15 +338,7 @@ export default function StyleGuide() {
                         {guide.projectCount} Projects
                       </div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        // Handle menu click
-                      }}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#f4f4f5] transition-colors absolute top-4 right-4 md:relative md:top-auto md:right-auto"
-                    >
-                      <MoreVertical className="w-5 h-5 text-[#71717a]" />
-                    </button>
+                    {/* Note: For list view, using a simpler button approach since StyleGuideCard handles grid view */}
                   </motion.div>
                 ))}
               </div>
@@ -244,6 +357,28 @@ export default function StyleGuide() {
           M.
         </motion.button>
       </div>
+
+      {/* Rename Modal */}
+      <RenameStyleGuideModal
+        isOpen={showRenameModal}
+        onClose={() => {
+          setShowRenameModal(false)
+          setSelectedGuide(null)
+        }}
+        onConfirm={handleRenameConfirm}
+        currentName={selectedGuide?.title || ''}
+      />
+
+      {/* Delete Modal */}
+      <DeleteStyleGuideModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setSelectedGuide(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        styleGuideName={selectedGuide?.title || ''}
+      />
     </>
   )
 }

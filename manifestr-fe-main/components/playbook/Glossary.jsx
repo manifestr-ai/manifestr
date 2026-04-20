@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
@@ -56,6 +56,31 @@ export default function Glossary() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeLetter, setActiveLetter] = useState('A')
   const contentRef = useRef(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const id = window.location.hash?.slice(1)
+    if (!id) return undefined
+
+    if (id === 'glossary-alphabet') {
+      const t = window.setTimeout(() => {
+        document.getElementById('glossary-alphabet')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 0)
+      return () => window.clearTimeout(t)
+    }
+
+    if (id.startsWith('glossary-')) {
+      const letter = id.replace('glossary-', '')
+      if (!ACTIVE_LETTERS.includes(letter)) return undefined
+      setActiveLetter(letter)
+      const t = window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+      return () => window.clearTimeout(t)
+    }
+
+    return undefined
+  }, [])
 
   const handleLetterClick = (letter) => {
     if (!ACTIVE_LETTERS.includes(letter)) return
@@ -147,14 +172,22 @@ export default function Glossary() {
             />
           </div>
 
-          {/* CTA */}
-          <Link
-            href="/signup"
-            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            Enter MANIFESTR
-          </Link>
+          <div className="flex flex-col items-center gap-[16px] w-full">
+            <a
+              href="#glossary-alphabet"
+              className="text-[14px] leading-[20px] text-white/90 underline underline-offset-4 hover:text-white transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+            >
+              Browse by letter
+            </a>
+            <Link
+              href="/signup"
+              className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Enter MANIFESTR
+            </Link>
+          </div>
         </motion.div>
       </section>
 
@@ -162,7 +195,10 @@ export default function Glossary() {
       <PlaybookTabs />
 
       {/* ─── Alphabet Bar ─── */}
-      <div className="w-full bg-white border-t border-b border-[#e5e7eb] px-6 md:px-[112px] py-[20px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] sticky top-[76px] z-20">
+      <div
+        id="glossary-alphabet"
+        className="w-full bg-white border-t border-b border-[#e5e7eb] px-6 md:px-[112px] py-[20px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] sticky top-[76px] z-20 scroll-mt-[76px]"
+      >
         <div className="flex gap-[8px] flex-wrap">
           {ALPHABET.map((letter) => {
             const hasTerms = ACTIVE_LETTERS.includes(letter)
@@ -192,7 +228,11 @@ export default function Glossary() {
       <section ref={contentRef} className="w-full bg-white px-6 md:px-[112px] pt-[32px] pb-[96px]">
         <div className="flex flex-col gap-[48px]">
           {Object.entries(filteredGlossary).map(([letter, terms]) => (
-            <div key={letter} id={`glossary-${letter}`} className="flex flex-col gap-[24px]">
+            <div
+              key={letter}
+              id={`glossary-${letter}`}
+              className="flex flex-col gap-[24px] scroll-mt-[148px] md:scroll-mt-[148px]"
+            >
               <div className="border-b border-[#cbd5e1] pb-[14px]">
                 <h2
                   className="text-[36px] leading-[44px] tracking-[-0.72px] text-[#0b091e]"

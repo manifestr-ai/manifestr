@@ -11,11 +11,53 @@ import {
     Plus,
     Download
 } from 'lucide-react';
+import pptxgen from "pptxgenjs";
+import { Button, Menu, MenuItem, Popover, Position } from "@blueprintjs/core";
 
 // Dynamically import ShareModal to avoid SSR issues
 const ShareModal = dynamic(() => import('../collaboration/ShareModal'), { ssr: false });
 
-export default function TopHeader({ onDownload = () => { }, editorType = 'spreadsheet', documentId = null, documentTitle = 'Untitled document', enableCollaboration = false }) {
+
+
+const downloadPPTX = async (store) => {
+  try {
+    const pptx = new pptxgen();
+
+    const widthInch = store.width / 96;
+    const heightInch = store.height / 96;
+
+    pptx.defineLayout({
+      name: "CUSTOM",
+      width: widthInch,
+      height: heightInch,
+    });
+
+    pptx.layout = "CUSTOM";
+
+    for (const page of store.pages) {
+      const slide = pptx.addSlide();
+
+      const dataUrl = await store.toDataURL({
+        pageId: page.id,
+        pixelRatio: 2,
+      });
+
+      slide.addImage({
+        data: dataUrl,
+        x: 0,
+        y: 0,
+        w: widthInch,
+        h: heightInch,
+      });
+    }
+
+    pptx.writeFile({ fileName: "presentation.pptx" });
+  } catch (err) {
+    console.error("Failed to generate PPTX:", err);
+  }
+};
+
+export default function TopHeader({ onDownload = () => { }, store = null, editorType = 'spreadsheet', documentId = null, documentTitle = 'Untitled document', enableCollaboration = false }) {
     const router = useRouter();
     const [status, setStatus] = useState('In Progress');
     const [mode, setMode] = useState('Editing');
@@ -32,6 +74,10 @@ export default function TopHeader({ onDownload = () => { }, editorType = 'spread
                 return 'Download XLSX';
             case 'presentation':
                 return 'Download PPTX';
+            case 'chart':
+                return 'Download PNG';
+            case 'image':
+                return 'Download PNG';
             default:
                 return 'Download';
         }
@@ -166,15 +212,131 @@ export default function TopHeader({ onDownload = () => { }, editorType = 'spread
                         Download DOCX
                     </button>
                 )}
-                {/* Share Button - Opens collaboration modal if enabled */}
-                <button
+
+                    {/* Download Button - Only for presentation editor */}
+
+                    {editorType === 'presentation' && (
+                        <Popover
+                            position={Position.BOTTOM_RIGHT}
+                            content={
+                            <Menu>
+                                <MenuItem
+                                text="Share"
+                                disabled={!enableCollaboration}
+                                onClick={() => enableCollaboration && setShowShareModal(true)}
+                                />
+                                <MenuItem
+                                
+                                text="PDF"
+                                disabled={!store}
+                                onClick={() =>
+                                    store?.saveAsPDF({ fileName: "presentation.pdf" })
+                                }
+                                />
+                                <MenuItem
+                              
+                                text="PPTX"
+                                disabled={!store}
+                                onClick={() => {
+                                    if (editorType === 'presentation' && store) {
+                                        downloadPPTX(store);
+                                    } else if ((editorType === 'chart' || editorType === 'image') && store?.downloadChart) {
+                                        store.downloadChart();
+                                    } else if (store) {
+                                        downloadPPTX(store);
+                                    }
+                                }}
+                                />
+                            </Menu>
+                            }
+                        >
+                            <Button
+                                className={`
+                                    flex 
+                                    items-center 
+                                    justify-center
+                                    gap-[8px]
+                                    h-[40px]
+                                    px-[16px]
+                                    py-[8px]
+                                    !border-none
+                                    !text-white
+                                `}
+                                style={{
+                                    borderRadius: "var(--border-radius-default, 6px)",
+                                    background: "var(--base-secondary, #18181B)",
+                                }}
+                                disabled={!store}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Share size={16} />
+                                    <span>Share &amp; Download</span>
+                                </span>
+                            </Button>
+                       
+                        </Popover>
+                        )}
+
+
+                         {/* Download Button - Only for image editor */}
+
+                    {editorType === 'image' && (
+                        <Popover
+                            position={Position.BOTTOM_RIGHT}
+                            content={
+                            <Menu>
+                                <MenuItem
+                                text="Share"
+                                disabled={!enableCollaboration}
+                                onClick={() => enableCollaboration && setShowShareModal(true)}
+                                />
+                                <MenuItem
+                                
+                                text="PNG"
+                                disabled={!store}
+                                onClick={() =>
+                                    store?.saveAsImage({ fileName: "manifestr-edit.png" })
+                                }
+                                />
+                              
+                            </Menu>
+                            }
+                        >
+                            <Button
+                                className={`
+                                    flex 
+                                    items-center 
+                                    justify-center
+                                    gap-[8px]
+                                    h-[40px]
+                                    px-[16px]
+                                    py-[8px]
+                                    !border-none
+                                    !text-white
+                                `}
+                                style={{
+                                    borderRadius: "var(--border-radius-default, 6px)",
+                                    background: "var(--base-secondary, #18181B)",
+                                }}
+                                disabled={!store}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Share size={16} />
+                                    <span>Share &amp; Download</span>
+                                </span>
+                            </Button>
+                       
+                        </Popover>
+                        )}
+                    {/* Share Button - Opens collaboration modal if enabled */}
+                    {(editorType !== 'presentation' && editorType !== 'image' ) && (   <button
                     onClick={() => enableCollaboration && setShowShareModal(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!enableCollaboration}
                 >
                     <Share size={16} />
                     Share
-                </button>
+                </button>  )}
             </div>
 
             {/* Share Modal - Only render if collaboration enabled */}

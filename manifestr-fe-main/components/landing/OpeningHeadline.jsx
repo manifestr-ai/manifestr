@@ -19,15 +19,15 @@ function ManifestrCircle() {
 
       {/* Static centre — black circle + arrow, sits on top and doesn't rotate */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-[52px] h-[52px] md:w-[72px] md:h-[72px] bg-[#18181b] rounded-full flex items-center justify-center">
+        <div className="w-[52px] h-[52px] md:w-[87px] md:h-[87px] bg-[#18181b] rounded-full flex items-center justify-center">
           <svg
-            className="w-[28px] h-[28px] md:w-[38px] md:h-[38px]"
+            className="w-[28px] h-[28px] md:w-[44px] md:h-[44px]"
             viewBox="0 0 40 40"
             fill="none"
             stroke="white"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeWidth="4"
+            strokeLinecap=""
+            strokeLinejoin=""
           >
             <path d="M10 30L30 10" />
             <path d="M13 10h17v17" />
@@ -51,10 +51,10 @@ export default function OpeningHeadline() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="relative flex flex-col items-center md:flex-row md:items-start md:justify-center mb-3 md:mb-4"
+          className="grid w-full max-w-[1100px] mx-auto grid-cols-1 justify-items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-x-8 lg:gap-x-10 mb-3 md:mb-4"
         >
           <h2
-            className="text-[30px] sm:text-[44px] md:text-[60px] leading-normal md:leading-[62px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center max-w-[900px]"
+            className="w-full min-w-0 max-w-[900px] text-[30px] sm:text-[44px] md:text-[60px] leading-normal md:leading-[62px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center md:col-start-1 md:row-start-1 px-1"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
           >
             Professional documentation for
@@ -71,8 +71,8 @@ export default function OpeningHeadline() {
             </span>
           </h2>
 
-          {/* M. logomark — below headline on mobile, absolute on desktop */}
-          <div className="mt-3 md:mt-0 md:absolute md:top-2 md:right-[60px] w-[56px] h-[56px] md:w-[96px] md:h-[96px] shrink-0">
+          {/* M. logomark — second grid column on md+ so text and mark never share the same box */}
+          <div className="shrink-0 w-[56px] h-[56px] md:w-[96px] md:h-[96px] md:col-start-2 md:row-start-1 md:pt-2">
             <CldImage src={IMG_LOGOMARK} alt="M." className="w-full h-full object-contain" />
           </div>
         </motion.div>
@@ -115,7 +115,7 @@ export default function OpeningHeadline() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-center text-[18px] md:text-[28px] leading-[36px] text-[#18181b] font-medium mt-6 md:mt-0 mb-0 md:mb-16"
+          className="hidden md:block text-center text-[18px] md:text-[28px] leading-[36px] text-[#18181b] font-medium mt-0 mb-0 md:mb-16"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
           You were hired for your expertise, not to format documents.

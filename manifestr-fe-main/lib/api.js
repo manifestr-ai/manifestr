@@ -1,12 +1,11 @@
 import axios from 'axios';
 import Router from 'next/router';
 
-// Default base URL - can be overridden by env var
-// Assuming /auth is the prefix for auth routes, but the base API might be different. 
-// The doc says "Base URL: /auth", which usually means endpoints start with /auth.
-// e.g. POST /auth/signup. 
-// So the API Base URL is just the root.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Default base URL - Production vs Development
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 
+    (process.env.NODE_ENV === 'production' 
+        ? 'https://api.manifestr.ai' 
+        : 'http://localhost:8000');
 
 const api = axios.create({
     baseURL: API_URL,

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const HERO_IMAGE = 'https://www.figma.com/api/mcp/asset/34930df2-f9f5-44c0-8de4-e5864300e41e'
+const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563456/ImageWithFallback_twnne0.png'
 
 const ACCORDION_ITEMS = [
   {
@@ -31,19 +31,19 @@ const ACCORDION_ITEMS = [
 const PACK_CARDS = [
   {
     title: 'SOC 2 Type II Summary Report',
-    image: 'https://www.figma.com/api/mcp/asset/701541ee-d773-415d-9276-266a49cd7e76',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563457/Container_epzsmg.png',
   },
   {
     title: 'GDPR & CPRA compliance documentation.',
-    image: 'https://www.figma.com/api/mcp/asset/7e2fdf1f-e2da-42ee-9164-e96708a5ee74',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563457/Container-1_uql3xw.png',
   },
   {
     title: 'HIPAA safeguard details (if applicable).',
-    image: 'https://www.figma.com/api/mcp/asset/74149ca1-2e1e-424e-8ba5-3c66d5222236',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563455/Container-2_w7rdqc.png',
   },
   {
     title: 'ISO 27001 roadmap and expected certification timeline.',
-    image: 'https://www.figma.com/api/mcp/asset/22851646-764b-4c10-a48e-2367ff7784b1',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563456/Container-3_hrxxzu.png',
   },
 ]
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import {
     Chart as ChartJS,
@@ -15,7 +15,7 @@ import {
     Filler,
     ChartOptions,
 } from 'chart.js';
-import { Bar, Line, Pie, Doughnut, Radar, PolarArea } from 'react-chartjs-2';
+import { Bar, Line, Pie, Doughnut, Radar, PolarArea, Scatter, Bubble } from 'react-chartjs-2';
 import api from '../../lib/api';
 
 // Register Chart.js components
@@ -33,7 +33,7 @@ ChartJS.register(
     Filler
 );
 
-type ChartType = 'bar' | 'line' | 'pie' | 'doughnut' | 'radar' | 'polarArea' | 'horizontalBar' | 'area';
+type ChartType = 'bar' | 'line' | 'pie' | 'doughnut' | 'radar' | 'polarArea' | 'horizontalBar' | 'area' | 'scatter' | 'bubble' | 'histogram' | 'boxplot' | 'waterfall' | 'funnel' | 'gauge' | 'gantt';
 
 export default function ChartJsEditor() {
     const router = useRouter();
@@ -158,6 +158,292 @@ export default function ChartJsEditor() {
         return { labels: extractedLabels, datasets: extractedDatasets };
     };
 
+    // Helper: Transform data for scatter/bubble charts
+    const transformToScatterData = () => {
+        const colors = colorSchemes[selectedColorScheme];
+        
+        if (chartType === 'bubble') {
+            // For bubble charts, calculate dynamic sizing
+            const allValues = datasets.flatMap(ds => ds.data);
+            const maxValue = Math.max(...allValues.map(v => Math.abs(v)));
+            const minValue = Math.min(...allValues.map(v => Math.abs(v)));
+            const range = maxValue - minValue || 1;
+            
+            return datasets.map((dataset, idx) => {
+                const color = colors[idx % colors.length];
+                return {
+                    label: dataset.label,
+                    data: dataset.data.map((y: number, i: number) => {
+                        // Scale bubble size between 5 and 15 (smaller bubbles)
+                        const normalizedValue = (Math.abs(y) - minValue) / range;
+                        const bubbleSize = 5 + (normalizedValue * 10);
+                        
+                        return {
+                            x: i + 1,
+                            y: y,
+                            r: bubbleSize
+                        };
+                    }),
+                    backgroundColor: color + '99', // 60% opacity
+                    borderColor: color,
+                    borderWidth: 2,
+                    hoverBackgroundColor: color + 'CC', // 80% opacity on hover
+                    hoverBorderWidth: 3,
+                };
+            });
+        } else {
+            // For scatter charts
+            return datasets.map((dataset, idx) => {
+                const color = colors[idx % colors.length];
+                return {
+                    label: dataset.label,
+                    data: dataset.data.map((y: number, i: number) => ({
+                        x: i + 1,
+                        y: y
+                    })),
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: borderWidth,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: color,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2,
+                };
+            });
+        }
+    };
+
+    // Helper: Transform data for histogram
+    const transformToHistogramData = () => {
+        const allValues = datasets[0]?.data || [];
+        const min = Math.min(...allValues);
+        const max = Math.max(...allValues);
+        const binCount = 10;
+        const binSize = (max - min) / binCount;
+        
+        const bins = Array(binCount).fill(0);
+        allValues.forEach((val: number) => {
+            const binIndex = Math.min(Math.floor((val - min) / binSize), binCount - 1);
+            bins[binIndex]++;
+        });
+        
+        return {
+            labels: bins.map((_, i) => `${(min + i * binSize).toFixed(1)}-${(min + (i + 1) * binSize).toFixed(1)}`),
+            datasets: [{
+                label: 'Frequency',
+                data: bins,
+                backgroundColor: colorSchemes[selectedColorScheme][0] + Math.round(opacity * 255).toString(16).padStart(2, '0'),
+                borderColor: colorSchemes[selectedColorScheme][0],
+                borderWidth: borderWidth,
+            }]
+        };
+    };
+
+    // Helper: Transform data for waterfall chart
+    const transformToWaterfallData = () => {
+        const colors = colorSchemes[selectedColorScheme];
+        const waterfallData: number[] = [];
+        const backgroundColors: string[] = [];
+        let cumulative = 0;
+        
+        datasets[0]?.data.forEach((val: number, idx: number) => {
+            waterfallData.push(cumulative);
+            waterfallData.push(val);
+            cumulative += val;
+            
+            backgroundColors.push('transparent');
+            backgroundColors.push(val >= 0 ? colors[1] : colors[2]);
+        });
+        
+        return {
+            labels: labels,
+            datasets: [{
+                label: datasets[0]?.label || 'Values',
+                data: waterfallData,
+                backgroundColor: backgroundColors,
+                borderColor: colors[0],
+                borderWidth: borderWidth,
+            }]
+        };
+    };
+
+    // Helper: Transform data for funnel chart
+    const transformToFunnelData = () => {
+        const sortedData = [...(datasets[0]?.data || [])].sort((a, b) => b - a);
+        const colors = colorSchemes[selectedColorScheme];
+        
+        return {
+            labels: labels,
+            datasets: [{
+                label: datasets[0]?.label || 'Values',
+                data: sortedData,
+                backgroundColor: sortedData.map((_, idx) => colors[idx % colors.length] + Math.round(opacity * 255).toString(16).padStart(2, '0')),
+                borderColor: sortedData.map((_, idx) => colors[idx % colors.length]),
+                borderWidth: borderWidth,
+            }]
+        };
+    };
+
+    // Helper: Transform data for gauge (using doughnut) - Industrial Standard KPI
+    const transformToGaugeData = () => {
+        // Calculate average or use first value
+        const allValues = datasets.flatMap(ds => ds.data).filter(v => typeof v === 'number');
+        const value = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+        const max = Math.max(...allValues, 100);
+        const percentage = (value / max) * 100;
+        
+        // Industrial standard color coding (Red-Amber-Green)
+        let gaugeColor = '#dc2626'; // Red for poor (0-50%)
+        let colorName = 'Critical';
+        if (percentage >= 90) {
+            gaugeColor = '#16a34a'; // Green for excellent (90-100%)
+            colorName = 'Excellent';
+        } else if (percentage >= 75) {
+            gaugeColor = '#84cc16'; // Light green for good (75-90%)
+            colorName = 'Good';
+        } else if (percentage >= 50) {
+            gaugeColor = '#f59e0b'; // Amber for fair (50-75%)
+            colorName = 'Fair';
+        }
+        
+        return {
+            labels: ['Value', 'Remaining'],
+            datasets: [{
+                data: [percentage, 100 - percentage],
+                backgroundColor: [
+                    gaugeColor,
+                    '#e5e7eb' // Light gray for background
+                ],
+                borderWidth: 0,
+                borderRadius: 2,
+                cutout: '75%', // More compact donut
+                circumference: 180,
+                rotation: 270,
+            }],
+            colorName,
+            actualValue: value,
+            maxValue: max,
+            percentage
+        };
+    };
+
+    // Helper: Transform data for boxplot (statistical) - Industrial Standard
+    const transformToBoxplotData = () => {
+        const colors = colorSchemes[selectedColorScheme];
+        
+        // Calculate proper statistical quartiles using standard methodology
+        const calculateStats = (data: number[]) => {
+            const sorted = [...data].sort((a, b) => a - b);
+            const n = sorted.length;
+            
+            // Standard statistical calculations
+            const min = sorted[0];
+            const max = sorted[n - 1];
+            
+            // Median (Q2)
+            const median = n % 2 === 0 
+                ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 
+                : sorted[Math.floor(n / 2)];
+            
+            // Q1 (25th percentile)
+            const q1Index = Math.floor(n * 0.25);
+            const q1 = sorted[q1Index];
+            
+            // Q3 (75th percentile)
+            const q3Index = Math.floor(n * 0.75);
+            const q3 = sorted[q3Index];
+            
+            // IQR (Interquartile Range) - important for outlier detection
+            const iqr = q3 - q1;
+            
+            // Calculate mean for additional stats
+            const mean = sorted.reduce((a, b) => a + b, 0) / n;
+            
+            // Calculate standard deviation
+            const variance = sorted.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+            const stdDev = Math.sqrt(variance);
+            
+            // Detect outliers (values beyond 1.5 * IQR from Q1 or Q3)
+            const lowerFence = q1 - 1.5 * iqr;
+            const upperFence = q3 + 1.5 * iqr;
+            const outliers = sorted.filter(val => val < lowerFence || val > upperFence);
+            
+            return { 
+                min, q1, median, q3, max, 
+                mean, stdDev, iqr, 
+                lowerFence, upperFence, 
+                outliers: outliers.length,
+                dataPoints: n 
+            };
+        };
+        
+        // Create boxplot-style data using horizontal bars to simulate box and whiskers
+        const allStats = datasets.map(ds => calculateStats(ds.data));
+        
+        return {
+            labels: datasets.map(ds => ds.label),
+            datasets: datasets.map((dataset, idx) => {
+                const stats = allStats[idx];
+                const color = colors[idx % colors.length];
+                
+                return {
+                    label: dataset.label,
+                    data: [
+                        { 
+                            x: [stats.min, stats.q1], 
+                            y: idx,
+                            type: 'whisker-low'
+                        },
+                        { 
+                            x: [stats.q1, stats.q3], 
+                            y: idx,
+                            type: 'box'
+                        },
+                        { 
+                            x: [stats.q3, stats.max], 
+                            y: idx,
+                            type: 'whisker-high'
+                        }
+                    ],
+                    backgroundColor: color + '60', // 40% opacity for box
+                    borderColor: color,
+                    borderWidth: 2,
+                    stats: stats
+                };
+            }),
+            allStats
+        };
+    };
+
+    // Helper: Transform data for Gantt chart
+    const transformToGanttData = () => {
+        const colors = colorSchemes[selectedColorScheme];
+        const ganttData: any[] = [];
+        
+        // Create task bars for each data point
+        datasets[0]?.data.forEach((value: number, idx: number) => {
+            const start = idx * 10;
+            const duration = Math.abs(value);
+            ganttData.push({
+                x: [start, start + duration],
+                y: labels[idx] || `Task ${idx + 1}`,
+            });
+        });
+        
+        return {
+            labels: labels,
+            datasets: [{
+                label: 'Timeline',
+                data: ganttData.map(d => d.x),
+                backgroundColor: colors.map((c, idx) => c + Math.round(opacity * 255).toString(16).padStart(2, '0')),
+                borderColor: colors[0],
+                borderWidth: borderWidth,
+                barThickness: 20,
+            }]
+        };
+    };
+
     const applyColorScheme = (datasets: any[]) => {
         const colors = colorSchemes[selectedColorScheme];
         return datasets.map((dataset, idx) => {
@@ -186,107 +472,146 @@ export default function ChartJsEditor() {
         });
     };
 
-    const chartData = {
-        labels: labels,
-        datasets: applyColorScheme(datasets)
-    };
+    const chartData = useMemo(() => {
+        switch (chartType) {
+            case 'scatter':
+            case 'bubble':
+                return { datasets: transformToScatterData() };
+            case 'histogram':
+                return transformToHistogramData();
+            case 'waterfall':
+                return transformToWaterfallData();
+            case 'funnel':
+                return transformToFunnelData();
+            case 'gauge':
+                return transformToGaugeData();
+            case 'boxplot':
+                return transformToBoxplotData();
+            case 'gantt':
+                return transformToGanttData();
+            default:
+                return {
+                    labels: labels,
+                    datasets: applyColorScheme(datasets)
+                };
+        }
+    }, [chartType, labels, datasets, selectedColorScheme, opacity, borderWidth]);
 
-    const chartOptions: ChartOptions<any> = {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: enableAnimation ? {
-            duration: 1000,
-            easing: 'easeInOutQuart'
-        } : false,
-        plugins: {
-            legend: {
-                display: showLegend,
-                position: legendPosition,
-                labels: {
+    const chartOptions = useMemo((): ChartOptions<any> => {
+        const baseOptions: ChartOptions<any> = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: enableAnimation ? {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            } : false,
+            plugins: {
+                legend: {
+                    display: showLegend && chartType !== 'gauge',
+                    position: legendPosition,
+                    labels: {
+                        font: {
+                            size: fontSize,
+                            family: 'Hanken Grotesk, Inter, sans-serif'
+                        },
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                },
+                title: {
+                    display: true,
+                    text: [chartTitle, chartSubtitle].filter(Boolean),
                     font: {
-                        size: fontSize,
+                        size: fontSize + 10,
+                        weight: 'bold',
                         family: 'Hanken Grotesk, Inter, sans-serif'
                     },
-                    padding: 15,
-                    usePointStyle: true
-                }
-            },
-            title: {
-                display: true,
-                text: [chartTitle, chartSubtitle].filter(Boolean),
-                font: {
-                    size: fontSize + 10,
-                    weight: 'bold',
-                    family: 'Hanken Grotesk, Inter, sans-serif'
+                    padding: { bottom: 20 }
                 },
-                padding: { bottom: 20 }
-            },
-            tooltip: {
-                enabled: true,
-                backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                titleFont: {
-                    size: fontSize,
-                    weight: 'bold'
-                },
-                bodyFont: {
-                    size: fontSize - 1
-                },
-                padding: 12,
-                cornerRadius: 8
-            },
-            datalabels: showDataLabels ? {
-                display: true,
-                color: '#18181b',
-                font: {
-                    size: fontSize - 2,
-                    weight: '600'
-                }
-            } : {
-                display: false
-            }
-        },
-        scales: !['pie', 'doughnut', 'radar', 'polarArea'].includes(chartType) ? {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    display: showGrid,
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                title: {
-                    display: !!yAxisLabel,
-                    text: yAxisLabel,
-                    font: {
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    titleFont: {
                         size: fontSize,
-                        weight: '600'
-                    }
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: fontSize - 1
+                    },
+                    padding: 12,
+                    cornerRadius: 8
                 },
-                ticks: {
-                    font: {
-                        size: fontSize - 2
-                    }
-                }
-            },
-            x: {
-                grid: {
-                    display: showGrid,
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                title: {
-                    display: !!xAxisLabel,
-                    text: xAxisLabel,
-                    font: {
-                        size: fontSize,
-                        weight: '600'
-                    }
-                },
-                ticks: {
-                    font: {
-                        size: fontSize - 2
-                    }
+                datalabels: {
+                    display: false
                 }
             }
-        } : undefined
-    };
+        };
+
+        // Special options for gauge - Industrial standard
+        if (chartType === 'gauge') {
+            return {
+                ...baseOptions,
+                circumference: 180,
+                rotation: 270,
+                cutout: '75%',
+                plugins: {
+                    ...baseOptions.plugins,
+                    title: {
+                        display: false
+                    },
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            };
+        }
+
+        // Add scales for chart types that need them
+        if (!['pie', 'doughnut', 'radar', 'polarArea', 'gauge'].includes(chartType)) {
+            baseOptions.scales = {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: showGrid,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    title: {
+                        display: !!yAxisLabel,
+                        text: yAxisLabel,
+                        font: {
+                            size: fontSize,
+                            weight: '600'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: fontSize - 2
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: showGrid,
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    title: {
+                        display: !!xAxisLabel,
+                        text: xAxisLabel,
+                        font: {
+                            size: fontSize,
+                            weight: '600'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: fontSize - 2
+                        }
+                    }
+                }
+            };
+        }
+
+        return baseOptions;
+    }, [chartType, showLegend, legendPosition, fontSize, chartTitle, chartSubtitle, enableAnimation, showGrid, xAxisLabel, yAxisLabel]);
 
     const downloadChart = () => {
         if (chartRef.current) {
@@ -332,7 +657,7 @@ export default function ChartJsEditor() {
                 {/* Chart Type */}
                 <div className="mb-6">
                     <label className="block text-sm font-bold text-gray-800 mb-3">Chart Type</label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto pr-2">
                         {[
                             { value: 'bar', label: 'Bar', desc: 'Vertical bars' },
                             { value: 'horizontalBar', label: 'Horizontal Bar', desc: 'Horizontal bars' },
@@ -341,7 +666,15 @@ export default function ChartJsEditor() {
                             { value: 'pie', label: 'Pie', desc: 'Pie slices' },
                             { value: 'doughnut', label: 'Doughnut', desc: 'Ring chart' },
                             { value: 'radar', label: 'Radar', desc: 'Spider web' },
-                            { value: 'polarArea', label: 'Polar', desc: 'Radial chart' }
+                            { value: 'polarArea', label: 'Polar', desc: 'Radial chart' },
+                            { value: 'scatter', label: 'Scatter', desc: 'Data points' },
+                            { value: 'bubble', label: 'Bubble', desc: 'Sized points' },
+                            { value: 'histogram', label: 'Histogram', desc: 'Distribution' },
+                            { value: 'boxplot', label: 'Box & Whisker', desc: 'Statistical' },
+                            { value: 'waterfall', label: 'Waterfall', desc: 'Cumulative' },
+                            { value: 'funnel', label: 'Funnel', desc: 'Conversion' },
+                            { value: 'gauge', label: 'KPI Gauge', desc: 'Performance' },
+                            { value: 'gantt', label: 'Gantt Chart', desc: 'Timeline' }
                         ].map(option => (
                             <button
                                 key={option.value}
@@ -568,12 +901,6 @@ export default function ChartJsEditor() {
                     >
                         Download PNG
                     </button>
-                    <button
-                        onClick={() => router.push(`/chart-viewer?id=${jobId}`)}
-                        className="w-full bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                        Back to View
-                    </button>
                 </div>
                 
                 {/* Chart Info */}
@@ -591,30 +918,230 @@ export default function ChartJsEditor() {
             <div className="flex-1 p-8 overflow-auto">
                 <div className="max-w-5xl mx-auto">
                     <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-10">
-                        <div style={{ height: '600px' }}>
+                        <div style={{ height: '600px' }} key={chartType}>
                             {chartType === 'bar' && (
-                                <Bar ref={chartRef} data={chartData} options={chartOptions} />
+                                <Bar key="bar-chart" ref={chartRef} data={chartData} options={chartOptions} />
                             )}
                             {chartType === 'horizontalBar' && (
-                                <Bar ref={chartRef} data={chartData} options={{ ...chartOptions, indexAxis: 'y' as const }} />
+                                <Bar key="horizontal-bar-chart" ref={chartRef} data={chartData} options={{ ...chartOptions, indexAxis: 'y' as const }} />
                             )}
                             {chartType === 'line' && (
-                                <Line ref={chartRef} data={chartData} options={chartOptions} />
+                                <Line key="line-chart" ref={chartRef} data={chartData} options={chartOptions} />
                             )}
                             {chartType === 'area' && (
-                                <Line ref={chartRef} data={chartData} options={chartOptions} />
+                                <Line key="area-chart" ref={chartRef} data={chartData} options={chartOptions} />
                             )}
                             {chartType === 'pie' && (
-                                <Pie ref={chartRef} data={chartData} options={chartOptions} />
+                                <Pie key="pie-chart" ref={chartRef} data={chartData} options={chartOptions} />
                             )}
                             {chartType === 'doughnut' && (
-                                <Doughnut ref={chartRef} data={chartData} options={chartOptions} />
+                                <Doughnut key="doughnut-chart" ref={chartRef} data={chartData} options={chartOptions} />
                             )}
                             {chartType === 'radar' && (
-                                <Radar ref={chartRef} data={chartData} options={chartOptions} />
+                                <Radar key="radar-chart" ref={chartRef} data={chartData} options={chartOptions} />
                             )}
                             {chartType === 'polarArea' && (
-                                <PolarArea ref={chartRef} data={chartData} options={chartOptions} />
+                                <PolarArea key="polar-chart" ref={chartRef} data={chartData} options={chartOptions} />
+                            )}
+                            {chartType === 'scatter' && (
+                                <Scatter key="scatter-chart" ref={chartRef} data={chartData} options={chartOptions} />
+                            )}
+                            {chartType === 'bubble' && (
+                                <Bubble key="bubble-chart" ref={chartRef} data={chartData} options={chartOptions} />
+                            )}
+                            {chartType === 'histogram' && (
+                                <Bar key="histogram-chart" ref={chartRef} data={chartData} options={chartOptions} />
+                            )}
+                            {chartType === 'boxplot' && (
+                                <div className="h-full flex flex-col overflow-auto">
+                                    <div className="relative" style={{ height: '350px', minHeight: '350px' }}>
+                                        <Bar key="boxplot-chart" ref={chartRef} data={{
+                                            labels: datasets.map(ds => ds.label),
+                                            datasets: datasets.map((dataset, idx) => {
+                                                const colors = colorSchemes[selectedColorScheme];
+                                                const color = colors[idx % colors.length];
+                                                
+                                                // Calculate stats
+                                                const sorted = [...dataset.data].sort((a, b) => a - b);
+                                                const n = sorted.length;
+                                                const min = sorted[0];
+                                                const max = sorted[n - 1];
+                                                const median = n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+                                                const q1 = sorted[Math.floor(n * 0.25)];
+                                                const q3 = sorted[Math.floor(n * 0.75)];
+                                                
+                                                return {
+                                                    label: dataset.label,
+                                                    data: [{ x: dataset.label, y: [min, q1, median, q3, max] }],
+                                                    backgroundColor: color + '60',
+                                                    borderColor: color,
+                                                    borderWidth: 2,
+                                                    outlierBackgroundColor: color,
+                                                    outlierBorderColor: color,
+                                                    outlierRadius: 4,
+                                                    itemRadius: 0
+                                                };
+                                            })
+                                        }} options={{
+                                            ...chartOptions,
+                                            indexAxis: 'x' as const
+                                        }} />
+                                    </div>
+                                    <div className="mt-4 grid grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2">
+                                        {datasets.map((dataset, idx) => {
+                                            const sorted = [...dataset.data].sort((a, b) => a - b);
+                                            const n = sorted.length;
+                                            const min = sorted[0];
+                                            const max = sorted[n - 1];
+                                            const median = n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+                                            const q1 = sorted[Math.floor(n * 0.25)];
+                                            const q3 = sorted[Math.floor(n * 0.75)];
+                                            const iqr = q3 - q1;
+                                            const mean = sorted.reduce((a, b) => a + b, 0) / n;
+                                            const variance = sorted.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                                            const stdDev = Math.sqrt(variance);
+                                            const colors = colorSchemes[selectedColorScheme];
+                                            const color = colors[idx % colors.length];
+                                            
+                                            return (
+                                                <div key={idx} className="bg-gray-50 rounded-lg p-3 border-2" style={{ borderColor: color }}>
+                                                    <div className="flex items-center gap-1.5 mb-2">
+                                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }}></div>
+                                                        <h4 className="font-semibold text-xs text-gray-900 truncate">{dataset.label}</h4>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <div className="flex justify-between text-[11px]">
+                                                            <span className="text-gray-600">Min</span>
+                                                            <span className="font-bold text-gray-900">{min.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[11px]">
+                                                            <span className="text-gray-600">Q1</span>
+                                                            <span className="font-bold text-gray-900">{q1.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[11px] bg-blue-50 px-1.5 py-0.5 rounded">
+                                                            <span className="text-blue-700 font-semibold">Med</span>
+                                                            <span className="font-bold text-blue-700">{median.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[11px]">
+                                                            <span className="text-gray-600">Q3</span>
+                                                            <span className="font-bold text-gray-900">{q3.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[11px]">
+                                                            <span className="text-gray-600">Max</span>
+                                                            <span className="font-bold text-gray-900">{max.toFixed(2)}</span>
+                                                        </div>
+                                                        <div className="border-t border-gray-300 pt-1 mt-1">
+                                                            <div className="flex justify-between text-[11px]">
+                                                                <span className="text-gray-500">μ</span>
+                                                                <span className="font-semibold text-gray-800">{mean.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-[11px]">
+                                                                <span className="text-gray-500">σ</span>
+                                                                <span className="font-semibold text-gray-800">{stdDev.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-[11px]">
+                                                                <span className="text-gray-500">IQR</span>
+                                                                <span className="font-semibold text-gray-800">{iqr.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-[11px]">
+                                                                <span className="text-gray-500">n</span>
+                                                                <span className="font-semibold text-gray-800">{n}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                            {chartType === 'waterfall' && (
+                                <Bar key="waterfall-chart" ref={chartRef} data={chartData} options={{ ...chartOptions, indexAxis: 'x' as const }} />
+                            )}
+                            {chartType === 'funnel' && (
+                                <Bar key="funnel-chart" ref={chartRef} data={chartData} options={{ ...chartOptions, indexAxis: 'y' as const }} />
+                            )}
+                            {chartType === 'gauge' && (
+                                <div className="flex items-center justify-center h-full">
+                                    <div className="w-full max-w-md">
+                                        <div className="relative" style={{ height: '280px' }}>
+                                            <Doughnut key="gauge-chart" ref={chartRef} data={chartData} options={chartOptions} />
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ top: '55%' }}>
+                                                <div className="text-6xl font-bold text-gray-900 leading-none">
+                                                    {(() => {
+                                                        const allValues = datasets.flatMap(ds => ds.data).filter(v => typeof v === 'number');
+                                                        const value = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+                                                        return value.toFixed(1);
+                                                    })()}
+                                                </div>
+                                                <div className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-wider">
+                                                    {(() => {
+                                                        const allValues = datasets.flatMap(ds => ds.data).filter(v => typeof v === 'number');
+                                                        const value = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+                                                        const max = Math.max(...allValues, 100);
+                                                        return `of ${max.toFixed(0)}`;
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-sm font-medium text-gray-700">Status</span>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                    (() => {
+                                                        const allValues = datasets.flatMap(ds => ds.data).filter(v => typeof v === 'number');
+                                                        const value = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+                                                        const max = Math.max(...allValues, 100);
+                                                        const pct = (value / max) * 100;
+                                                        if (pct >= 90) return 'bg-green-100 text-green-800';
+                                                        if (pct >= 75) return 'bg-lime-100 text-lime-800';
+                                                        if (pct >= 50) return 'bg-amber-100 text-amber-800';
+                                                        return 'bg-red-100 text-red-800';
+                                                    })()
+                                                }`}>
+                                                    {(() => {
+                                                        const allValues = datasets.flatMap(ds => ds.data).filter(v => typeof v === 'number');
+                                                        const value = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+                                                        const max = Math.max(...allValues, 100);
+                                                        const pct = (value / max) * 100;
+                                                        if (pct >= 90) return 'Excellent';
+                                                        if (pct >= 75) return 'Good';
+                                                        if (pct >= 50) return 'Fair';
+                                                        return 'Critical';
+                                                    })()}
+                                                </span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-600">Performance</span>
+                                                    <span className="font-semibold text-gray-900">
+                                                        {(() => {
+                                                            const allValues = datasets.flatMap(ds => ds.data).filter(v => typeof v === 'number');
+                                                            const value = allValues.length > 0 ? allValues.reduce((a, b) => a + b, 0) / allValues.length : 0;
+                                                            const max = Math.max(...allValues, 100);
+                                                            return ((value / max) * 100).toFixed(1);
+                                                        })()}%
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-600">Data Points</span>
+                                                    <span className="font-semibold text-gray-900">
+                                                        {datasets.flatMap(ds => ds.data).length}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-600">Metric</span>
+                                                    <span className="font-semibold text-gray-900 truncate max-w-[150px]">
+                                                        {datasets[0]?.label || 'KPI'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {chartType === 'gantt' && (
+                                <Bar key="gantt-chart" ref={chartRef} data={chartData} options={{ ...chartOptions, indexAxis: 'y' as const }} />
                             )}
                         </div>
                     </div>

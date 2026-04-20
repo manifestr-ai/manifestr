@@ -16,6 +16,7 @@ import api from '../lib/api'
 import ContextSidebar from '../components/create-project/ContextSidebar'
 import Button from '../components/ui/Button'
 import LogoFooter from '../components/home/LogoFooter'
+import { useToast } from '../components/ui/Toast'
 
 // Tools ordered to match Figma layout:
 // Row 1: THE strategist, THE briefcase, THE analyser, DESIGN studio
@@ -155,6 +156,7 @@ Outputs: Detailed financial spreadsheets`,
 
 export default function CreateProject() {
   const router = useRouter()
+  const { error: showError } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedToolId, setSelectedToolId] = useState(null)
   const [selectedDocument, setSelectedDocument] = useState(null)
@@ -340,7 +342,7 @@ export default function CreateProject() {
             // Redirect to image editor with job ID (will be saved in vault!)
             router.push(`/image-editor?id=${jobId}`)
           } else {
-            alert('Failed to generate image. Please try again.')
+            showError('Failed to generate image. Please try again.')
           }
           setIsGenerating(false)
           return
@@ -372,7 +374,7 @@ export default function CreateProject() {
         }
       } catch (err) {
         console.error('Generation error:', err)
-        alert('Generation failed. Please try again.')
+        showError('Generation failed. Please try again.')
       } finally {
         setIsGenerating(false)
       }

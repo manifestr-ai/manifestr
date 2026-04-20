@@ -151,13 +151,14 @@ export default function SearchDropdown({ isOpen, onClose }) {
           >
             <div className="w-full max-w-[600px] mx-auto px-8">
               <form onSubmit={handleSubmit}>
-                <div className="relative flex items-center w-full bg-white rounded-b-lg shadow-md border border-[#e4e4e7] overflow-hidden">
+                <div className="relative flex items-center w-full bg-white rounded-b-xl shadow-md border border-[#e4e4e7] border-t-transparent overflow-hidden p-2">
+           
                   {/* Search Icon Container */}
                   <div
-                    className="flex items-center justify-center w-8 h-8 border border-[#f3f4f6cc] rounded-md m-1.5 shrink-0"
+                    className="flex items-center justify-center w-8 h-8 border border-[#f3f4f6cc] rounded-lg m-1.5 shrink-0"
                     style={{ background: 'linear-gradient(135deg, #F9FAFB 0%, #FFF 100%)' }}
                   >
-                    <Search className="w-3 h-3 text-[#3c3f45]" />
+                    <Search className="w-4 h-4 text-[#3c3f45]" />
                   </div>
                   
                   {/* Input Field */}
@@ -171,15 +172,16 @@ export default function SearchDropdown({ isOpen, onClose }) {
                   />
                   
                   {/* Keyboard Shortcut Indicator */}
-                  <div className="flex items-center justify-center gap-1 px-2 py-1.5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-lg m-1.5 shrink-0">
-                    <span className="text-[11px] leading-[14px] text-[#18181b] font-normal" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                  <div className="flex items-center justify-center gap-1 px-2.5 py-1.5 bg-[#F9FAFB] border border-[#F3F4F6] rounded-lg m-1.5 shrink-0">
+                    <span className="text-[10px] leading-[14px] text-[#71717a] font-normal" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                       ⌘
                     </span>
-                    <span className="text-[11px] leading-[14px] text-[#18181b] font-normal" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    <span className="text-[11px] leading-[14px] text-[#71717a] font-normal" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                       K 
                     </span>
                   </div>
                 </div>
+          
               </form>
 
               {/* Search Results Dropdown */}

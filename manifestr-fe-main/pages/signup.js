@@ -226,17 +226,20 @@ export default function SignUp() {
       case 1:
         return {
           title: 'Step 1: Create Your MANIFESTR Account',
-          subtitle: 'Quick setup. Secure sign-in. Access tools built to give you clarity, wins and focus.'
+          subtitle: 'Quick setup. Secure sign-in. Access tools built to give you clarity, wins and focus.',
+          placeholder: 'Enter your email and password, Your data says private and protected is missing'
         }
       case 2:
         return {
           title: 'Step 2: Tell us who you are',
-          subtitle: 'Add your name so we can personalize your experience.'
+          subtitle: 'Add your name so we can personalize your experience.',
+          placeholder: ''
         }
       case 3:
         return {
           title: 'Step 3: Complete Your Profile',
-          subtitle: 'Just a few more details to get you started.'
+          subtitle: 'Just a few more details to get you started.',
+          placeholder: ''
         }
       default:
         return { title: '', subtitle: '' }
@@ -312,9 +315,19 @@ export default function SignUp() {
                   </h1>
                   {getStepTitle().subtitle && (
                     <div className="flex flex-col gap-2">
-                      <p className="text-b2-regular text-[#2b2b35] font-semibold">
-                        {getStepTitle().subtitle}
+                      <p className="text-b2-regular text-[#2b2b35] font-extrabold">
+                 
+                      <span className="font-semibold">{getStepTitle().subtitle}</span>
+                 
                       </p>
+
+                    {getStepTitle().placeholder && (
+                      <p className="text-b2-regular text-[#71717b] font-normal">
+                        {getStepTitle().placeholder}
+                      </p>
+                    )}
+               
+               
                     </div>
                   )}
                 </div>

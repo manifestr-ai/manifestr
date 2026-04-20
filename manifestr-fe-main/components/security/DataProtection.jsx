@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const HERO_IMAGE = 'https://www.figma.com/api/mcp/asset/7670149a-516c-4be1-a645-201da6efb764'
+const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563447/ImageWithFallback_jal7be.png'
 
 const ACCORDION_ITEMS = [
   {
@@ -32,12 +32,12 @@ const COMPLIANCE_CARDS_ROW1 = [
   {
     title: 'Data Processing Agreements (DPA)',
     description: 'Available to customers to document roles and responsibilities for personal data handling.',
-    image: 'https://www.figma.com/api/mcp/asset/676abf04-8715-4c8c-b4ed-5e90e57ea638',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563446/Container_dtwfuf.png',
   },
   {
     title: 'Vendor & Subprocessor Due Diligence',
     description: 'All subprocessors undergo security reviews to ensure alignment with our data protection commitments.',
-    image: 'https://www.figma.com/api/mcp/asset/8707818e-cd6a-4e29-b9df-18e3266cfd80',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563446/Container-1_vyu6pu.png',
   },
 ]
 
@@ -45,17 +45,17 @@ const COMPLIANCE_CARDS_ROW2 = [
   {
     title: 'HIPAA (where applicable)',
     description: 'For healthcare clients, HIPAA-aligned safeguards are available under Business Associate Agreements (BAA).',
-    image: 'https://www.figma.com/api/mcp/asset/aad9e3e6-e9f1-4756-b812-7c124cf7f61b',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563447/ImageWithFallback-1_hjkuct.png',
   },
   {
     title: 'SOC 2 Type II',
     description: 'Annual independent audit confirms effectiveness of our security, availability, and confidentiality controls.',
-    image: 'https://www.figma.com/api/mcp/asset/81f4cf0c-fc4e-4ea2-bcec-04cc001c6507',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563447/ImageWithFallback-2_p3iyh5.png',
   },
   {
     title: 'GDPR (EU) & CPRA (California)',
     description: 'User rights to access, portability, and deletion are fully supported.',
-    image: 'https://www.figma.com/api/mcp/asset/96039b7d-0d5d-476f-914c-9c7a04181a33',
+    image: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775563447/ImageWithFallback-3_zil1iq.png',
   },
 ]
 

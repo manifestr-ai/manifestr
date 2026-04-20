@@ -27,13 +27,15 @@ const SUPPORT_LINKS = [
 const ABOUT_ROUTES = ['/about', '/careers', '/affiliates']
 const SUPPORT_ROUTES = ['/playbook', '/faqs', '/contact', '/terms-of-service', '/security', '/privacy', '/cookies', '/support']
 
+/** Desktop nav: full Figma spacing from xl (1280px); lg–xl (1024–1279) uses tighter gaps so the bar fits. */
+
 function NavDropdown({ label, href, links, align = 'left', isActive }) {
   return (
     <div className="relative group">
       {/* Clicking the label goes to href; hovering the whole group shows dropdown */}
       <Link
         href={href}
-        className="flex items-center gap-2 text-l2-medium text-base-foreground px-1"
+        className="flex items-center gap-2 text-base-foreground px-1 lg:max-xl:text-[13px] lg:max-xl:leading-[18px] xl:text-[14px] xl:leading-5 xl:font-medium"
       >
         <span
           className={`pb-1 border-b-2 transition-colors ${isActive ? 'border-base-foreground' : 'border-transparent'}`}
@@ -122,25 +124,26 @@ export default function Header() {
   const path = router.pathname
 
   const navLink = (href) =>
-    `text-l2-medium text-base-foreground px-1 pb-1 border-b-2 transition-colors ${
+    `text-base-foreground px-1 pb-1 border-b-2 transition-colors lg:max-xl:text-[13px] lg:max-xl:leading-[18px] xl:text-[14px] xl:leading-5 xl:font-medium ${
       path === href ? 'border-base-foreground' : 'border-transparent'
     }`
 
   return (
     <>
       <header className="bg-[rgba(255,255,255,0.9)] fixed top-0 left-0 right-0 z-50 border-b border-[#e4e4e7] backdrop-blur-sm">
-        <div className="w-full max-w-[1440px] mx-auto px-6 md:px-[80px] py-[20px]">
-          <div className="flex items-center justify-between md:justify-start">
+        {/* lg+ = full nav; matches main pt-[76px]. lg:max-xl = narrow desktop (1024–1279); xl+ = Figma padding */}
+        <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:max-xl:px-10 xl:px-[80px] py-4 lg:min-h-[76px] lg:py-0 lg:flex lg:items-center">
+          <div className="flex w-full items-center justify-between lg:justify-start gap-2 lg:gap-0">
 
-            {/* Mobile: Logo */}
-            <div className="md:hidden">
+            {/* Compact screens (under 1024px): logo + hamburger */}
+            <div className="lg:hidden">
               <Logo size="sm" />
             </div>
 
-            {/* Desktop Left Navigation */}
-            <div className="hidden md:flex items-center gap-[44px] flex-1">
+            {/* Desktop Left Navigation — lg+ */}
+            <div className="hidden lg:flex items-center flex-1 min-w-0 gap-[22px] xl:gap-[44px]">
               <Link href="/" className={navLink('/')}>Home</Link>
-              <Link href="/tools" className={navLink('/tools')}>Tools</Link>
+              <Link href="/tools" className={navLink('/tools')}>Toolkit</Link>
               <NavDropdown
                 label="About"
                 href="/about"
@@ -150,14 +153,13 @@ export default function Header() {
               <Link href="/blog" className={navLink('/blog')}>Blog</Link>
             </div>
 
-            {/* Desktop Logo - Centered */}
-            <div className="hidden md:flex w-[271.392px] justify-center">
+            <div className="hidden lg:flex justify-center shrink-0 lg:max-xl:w-[220px] xl:w-[271.392px]">
               <Logo size="md" />
             </div>
 
             {/* Desktop Right Navigation */}
-            <div className="hidden md:flex items-center gap-[24px] flex-1 justify-end">
-              <div className="flex items-center gap-[44px]">
+            <div className="hidden lg:flex items-center lg:max-xl:gap-3 xl:gap-6 flex-1 justify-end min-w-0">
+              <div className="flex items-center min-w-0 gap-[22px] xl:gap-[44px]">
                 <Link href="/pricing" className={navLink('/pricing')}>Pricing</Link>
                 <NavDropdown
                   label="Support"
@@ -167,7 +169,7 @@ export default function Header() {
                   isActive={SUPPORT_ROUTES.includes(path)}
                 />
               </div>
-              <div className="flex items-center gap-[12px]">
+              <div className="flex items-center gap-[12px] shrink-0">
                 {user ? (
                   <Link
                     href="/home"
@@ -194,11 +196,14 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile Hamburger */}
-            <div className="md:hidden">
+            {/* Menu trigger: phones + tablets until 1024 */}
+            <div className="lg:hidden">
               <button
+                type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-2 -mr-2 text-gray-800"
+                aria-expanded={isMobileMenuOpen}
+                aria-label="Open menu"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -245,7 +250,7 @@ export default function Header() {
                   className={`text-lg font-medium ${path === '/tools' ? 'text-black border-b-2 border-black pb-1' : 'text-gray-900'}`}
                   onClick={closeMobile}
                 >
-                  Tools
+                  Toolkit
                 </Link>
                 <MobileAccordion label="About" href="/about" links={ABOUT_LINKS} onNavigate={closeMobile} />
                 <Link

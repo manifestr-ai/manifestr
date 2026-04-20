@@ -12,6 +12,10 @@ import { Typography } from "@tiptap/extension-typography";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
+import { Underline } from "@tiptap/extension-underline";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Link } from "@tiptap/extension-link";
+import { FontFamily } from "../../../lib/tiptap-font-family-extension";
 import { Selection } from "@tiptap/extensions";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
@@ -65,6 +69,13 @@ import { useCursorVisibility } from "../../../hooks/use-cursor-visibility";
 
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from "../../../lib/tiptap-utils";
+import { FontSize } from "../../../lib/tiptap-font-size-extension";
+import { PageBreak } from "../../../lib/tiptap-page-break-extension";
+import { DocumentHeader } from "../../../lib/tiptap-document-header-extension";
+import { DocumentFooter } from "../../../lib/tiptap-document-footer-extension";
+import { ParagraphIndent } from "../../../lib/tiptap-paragraph-indent-extension";
+import { ParagraphSpacing } from "../../../lib/tiptap-paragraph-spacing-extension";
+import { SearchHighlight } from "../../../lib/tiptap-search-highlight-extension";
 
 // --- Styles ---
 
@@ -175,9 +186,11 @@ const MobileToolbarContent = ({
 export function SimpleEditor({
   onUpdate,
   content: providedContent,
+  onEditorReady,
 }: {
   onUpdate?: (content: string) => void;
   content?: any;
+  onEditorReady?: (editor: any) => void;
 }) {
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
@@ -200,10 +213,6 @@ export function SimpleEditor({
     extensions: [
       StarterKit.configure({
         horizontalRule: false,
-        link: {
-          openOnClick: false,
-          enableClickSelection: true,
-        },
       }),
       HorizontalRule,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -212,8 +221,35 @@ export function SimpleEditor({
       Highlight.configure({ multicolor: true }),
       Image,
       Typography,
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 underline',
+        },
+      }),
+      TextStyle,
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
+      FontSize.configure({
+        types: ['textStyle'],
+      }),
+      Underline,
       Superscript,
       Subscript,
+      PageBreak,
+      DocumentHeader,
+      DocumentFooter,
+      ParagraphIndent.configure({
+        types: ['paragraph', 'heading'],
+      }),
+      ParagraphSpacing.configure({
+        types: ['paragraph', 'heading'],
+      }),
+      SearchHighlight.configure({
+        searchTerm: '',
+        caseSensitive: false,
+      }),
       Selection,
       Table.configure({
         resizable: true,
@@ -231,9 +267,11 @@ export function SimpleEditor({
     ],
     content: providedContent || content,
     onCreate({ editor }) {
-      // Call onUpdate when editor is first created with content
       if (onUpdate) {
         onUpdate(editor.getHTML());
+      }
+      if (onEditorReady) {
+        onEditorReady(editor);
       }
     },
     onUpdate({ editor }) {
