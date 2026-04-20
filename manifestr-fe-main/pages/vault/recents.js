@@ -145,8 +145,8 @@ export default function VaultRecents() {
 
   // Background image URL for the header
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/wheel-banner.png`
-    : 'http://localhost:3000/assets/banners/wheel-banner.png'
+    ? `${window.location.origin}/assets/banners/Rectangle.png`
+    : 'http://localhost:3000/assets/banners/Rectangle.png'
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
   const filteredCards = documentCards.filter((card) => {

@@ -29,9 +29,9 @@ export default function VaultHeader({ title = 'THE vault', description = 'Your s
         <div className="mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-0">
             {/* Left Section */}
-            <div className="flex flex-col gap-2 w-full md:max-w-[300px]">
+            <div className={`flex flex-col gap-2 w-full ${showActionButtons ? 'md:max-w-[300px]' : ''}`}>
               {typeof title === 'string' ? (
-                <h1 className={`text-[34px] leading-[48px] tracking-[0.4063px] ${isBlack ? 'text-[#181818]' : 'text-[#18181b]'}`}>
+                <h1 className={`text-[34px] leading-[48px] tracking-[0.4063px] ${isBlack ? 'text-white' : 'text-[#18181b]'}`}>
                   {title.split(' ').map((word, index) => {
                     if (index === 0) {
                       // First word: bold, uppercase, sans-serif (Hanken Grotesk)
@@ -56,7 +56,7 @@ export default function VaultHeader({ title = 'THE vault', description = 'Your s
                 </h1>
               )}
               {description && (
-                <p className={`text-[16px] leading-[24px] tracking-[-0.3125px] max-w-[560px] ${isBlack ? 'text-[#181818]' : 'text-[#181818]'}`}>
+                <p className={`text-[16px] leading-[24px] tracking-[-0.3125px] max-w-[560px] ${isBlack ? 'text-white/80' : 'text-[#181818]'}`}>
                   {description}
                 </p>
               )}

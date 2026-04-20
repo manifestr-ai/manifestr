@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
-import { Search, Plus, Menu, X } from 'lucide-react'
+import { Search, Plus, Menu, X, Settings } from 'lucide-react'
 import Logo from '../logo/Logo'
 import ProfileDropdown from './ProfileDropdown'
 import WinsDropdown from './WinsDropdown'
@@ -49,14 +49,14 @@ export default function AppHeader({ showRightActions = true }) {
   const NavItem = ({ href, label, isActive, onClick }) => {
     if (isActive) {
       return (
-        <div className="bg-[#f4f4f5] border border-transparent rounded-md px-3 py-2">
-          <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">{label}</p>
+        <div className="bg-[#F4F4F5] border border-[#E4E4E7] rounded-md px-3 py-1.5">
+          <p className="text-[14px] font-semibold leading-[24px] text-[#18181b]">{label}</p>
         </div>
       )
     }
     return (
       <Link href={href} className="px-3 py-2 rounded-md" onClick={onClick}>
-        <p className="text-[16px] font-semibold leading-[24px] text-[#52525b]">{label}</p>
+        <p className="text-[14px] font-semibold leading-[24px] text-[#52525b]">{label}</p>
       </Link>
     )
   }
@@ -68,13 +68,13 @@ export default function AppHeader({ showRightActions = true }) {
           <div className="flex items-center justify-between h-full">
             {/* Left Section: Logo + Navigation */}
             <div className="flex items-center gap-8">
-              <div className="w-[120.656px]">
+              <div className="w-[125.656px]">
                 <Logo size="sm" />
               </div>
 
               {/* Desktop Nav */}
               <nav className="hidden md:flex items-center gap-4">
-                <NavItem href="/home" label="Home" isActive={isActive('/home')} />
+                <NavItem href="/home" label="Dashboard" isActive={isActive('/home')} />
                 <NavItem href="/toolkit" label="Toolkit" isActive={isActive('/toolkit')} />
                 <NavItem href="/vault" label="The Vault" isActive={isActive('/vault')} />
                 <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} />
@@ -84,23 +84,33 @@ export default function AppHeader({ showRightActions = true }) {
 
             {/* Right Section: Actions (Desktop) */}
             {showRightActions && (
-              <div className="hidden md:flex items-center gap-6">
+              <div className="hidden md:flex items-center gap-4">
                 <motion.button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white rounded-md p-3  transition-colors cursor-pointer"
+                  className="bg-white rounded-md p-3 transition-colors cursor-pointer"
                 >
-                  <Search className="w-5 h-5 text-[#52525B]" />
+                  <Search className="w-5 h-5 text-[#71717A]" />
                 </motion.button>
                 <Link href="/create-project">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
+                    className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[36px] flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span className="text-[14px] font-medium leading-[20px]">Create</span>
+                  </motion.button>
+                </Link>
+                <Link href="/settings">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white rounded-md p-3 transition-colors cursor-pointer"
+                    aria-label="Settings"
+                  >
+                    <Settings className="w-5 h-5 text-[#52525B]" />
                   </motion.button>
                 </Link>
                 <div className="flex items-center gap-4">
@@ -194,4 +204,3 @@ export default function AppHeader({ showRightActions = true }) {
     </>
   )
 }
-

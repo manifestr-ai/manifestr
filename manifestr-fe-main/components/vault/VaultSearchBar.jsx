@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Mic, ChevronDown, Grid, List, Clock, Plus, Users, Check } from 'lucide-react'
 
-export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => {}, query, onQueryChange }) {
+export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => {}, query, onQueryChange, placeholder = 'Search The Vault...' }) {
   const [localQuery, setLocalQuery] = useState('')
   const searchQuery = typeof query === 'string' ? query : localQuery
   const setSearchQuery = onQueryChange || setLocalQuery
@@ -39,7 +39,7 @@ export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => 
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search The Vault..."
+            placeholder={placeholder}
             className="w-full h-full pl-10 pr-12 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

@@ -6,11 +6,13 @@ import AppHeader from '../../../components/layout/AppHeader'
 import SidebarLayout from '../../../components/layout/SidebarLayout'
 import VaultHeader from '../../../components/vault/VaultHeader'
 import VaultSearchBar from '../../../components/vault/VaultSearchBar'
+import VaultFolderGrid from '../../../components/vault/VaultFolderGrid'
 import VaultGrid from '../../../components/vault/VaultGrid'
 import AddDocumentToCollabModal from '../../../components/vault/AddDocumentToCollabModal'
 import InviteMemberModal from '../../../components/vault/InviteMemberModal'
 import { Loader2, Users, FileText, UserPlus, FilePlus, Settings } from 'lucide-react'
 import api from '../../../lib/api'
+import { VAULT_FOLDERS, VAULT_FOLDER_DESCRIPTION, getVaultFolderById, getVaultFolderDocuments, getVaultFolderHref } from '../../../components/vault/vaultFolders'
 
 export default function CollabDetailPage() {
   const router = useRouter()
@@ -24,17 +26,30 @@ export default function CollabDetailPage() {
   const [showInviteModal, setShowInviteModal] = useState(false)
 
   useEffect(() => {
-    if (folderId) {
-      fetchCollabDetails()
-    }
-  }, [folderId])
+    if (!router.isReady) return
+    if (typeof folderId !== 'string' || folderId.length === 0) return
 
-  const fetchCollabDetails = async () => {
+    const vaultFolder = getVaultFolderById(folderId)
+    if (vaultFolder) {
+      setCollabData({
+        name: vaultFolder.name,
+        purpose_notes: VAULT_FOLDER_DESCRIPTION,
+        cover_image: null,
+      })
+      setDocumentCards(getVaultFolderDocuments(folderId))
+      setIsLoading(false)
+      return
+    }
+
+    fetchCollabDetails(folderId)
+  }, [router.isReady, folderId])
+
+  const fetchCollabDetails = async (id) => {
     try {
       setIsLoading(true)
-      console.log(`📊 Fetching collab details for: ${folderId}`)
+      console.log(`📊 Fetching collab details for: ${id}`)
 
-      const response = await api.get(`/collab-projects/${folderId}`)
+      const response = await api.get(`/collab-projects/${id}`)
 
       if (response.data.status === 'success') {
         const data = response.data.data
@@ -80,26 +95,32 @@ export default function CollabDetailPage() {
       }
     } catch (error) {
       console.error('❌ Failed to fetch collab details:', error)
+      setCollabData(null)
+      setDocumentCards([])
     } finally {
       setIsLoading(false)
     }
   }
 
+  const isVaultFolder = typeof folderId === 'string' && !!getVaultFolderById(folderId)
+  const vaultFolder = typeof folderId === 'string' ? getVaultFolderById(folderId) : null
+
   const handleProjectClick = (card) => {
     if (!card?.id) return
-    
-    const docType = card?.rawData?.type || card?.type
-    
-    // Route to correct editor based on type
-    if (docType === 'presentation') {
+    if (card?.isDummy) return
+
+    const type = (card?.rawData?.type || card?.type || 'document').toLowerCase()
+
+    if (type.includes('presentation')) {
       router.push(`/presentation-editor?id=${card.id}`)
-    } else if (docType === 'document') {
-      router.push(`/document-editor?id=${card.id}`)
-    } else if (docType === 'spreadsheet') {
+    } else if (type.includes('chart')) {
+      router.push(`/chart-viewer?id=${card.id}`)
+    } else if (type.includes('spreadsheet') || type.includes('sheet')) {
       router.push(`/spreadsheet-editor?id=${card.id}`)
+    } else if (type.includes('image')) {
+      router.push(`/image-editor?id=${card.id}`)
     } else {
-      // Fallback to results page if type is unknown
-      router.push(`/results/${card.id}`)
+      router.push(`/docs-editor?id=${card.id}`)
     }
   }
 
@@ -134,11 +155,11 @@ export default function CollabDetailPage() {
 
       <div className="flex-1 flex flex-col overflow-y-auto">
         <VaultHeader
-          title={collabData?.name?.toUpperCase() || 'COLLAB PROJECT'}
-          description={collabData?.purpose_notes || null}
+          title={(isVaultFolder ? vaultFolder?.headerTitle : collabData?.name?.toUpperCase()) || 'COLLAB PROJECT'}
+          description={(isVaultFolder ? VAULT_FOLDER_DESCRIPTION : collabData?.purpose_notes) || null}
           isBlack={false}
-          backgroundImage={collabData?.cover_image || headerBackgroundImage}
-          showActionButtons={false}
+          backgroundImage={(isVaultFolder ? headerBackgroundImage : collabData?.cover_image) || headerBackgroundImage}
+          showActionButtons={isVaultFolder}
         />
 
         {isLoading ? (
@@ -154,53 +175,55 @@ export default function CollabDetailPage() {
         ) : (
           <>
             {/* Collab Info Bar */}
-            <div className="px-4 md:px-[38px] py-4 bg-white border-b border-[#e4e4e7]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#71717a]" />
-                    <span className="text-[14px] font-medium text-[#18181b]">
-                      {collabData.members?.length || 0} Members
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#71717a]" />
-                    <span className="text-[14px] font-medium text-[#18181b]">
-                      {documentCards.length} Projects
-                    </span>
-                  </div>
-                  {collabData.tags && collabData.tags.length > 0 && (
+            {!isVaultFolder && (
+              <div className="px-4 md:px-[38px] py-4 bg-white border-b border-[#e4e4e7]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      {collabData.tags.map((tag, i) => (
-                        <span key={i} className="px-2 py-1 bg-[#f4f4f5] text-[#52525b] text-[12px] font-medium rounded-md">
-                          {tag}
-                        </span>
-                      ))}
+                      <Users className="w-5 h-5 text-[#71717a]" />
+                      <span className="text-[14px] font-medium text-[#18181b]">
+                        {collabData.members?.length || 0} Members
+                      </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    onClick={() => setShowAddDocModal(true)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-3 py-2 bg-[#18181b] text-white rounded-md text-[14px] font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
-                  >
-                    <FilePlus className="w-4 h-4" />
-                    New Project
-                  </motion.button>
-                  <motion.button
-                    onClick={() => setShowInviteModal(true)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-3 py-2 bg-white border border-[#e4e4e7] text-[#18181b] rounded-md text-[14px] font-medium flex items-center gap-2 hover:bg-[#f4f4f5] transition-colors"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    Invite
-                  </motion.button>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-[#71717a]" />
+                      <span className="text-[14px] font-medium text-[#18181b]">
+                        {documentCards.length} Projects
+                      </span>
+                    </div>
+                    {collabData.tags && collabData.tags.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        {collabData.tags.map((tag, i) => (
+                          <span key={i} className="px-2 py-1 bg-[#f4f4f5] text-[#52525b] text-[12px] font-medium rounded-md">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <motion.button
+                      onClick={() => setShowAddDocModal(true)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-3 py-2 bg-[#18181b] text-white rounded-md text-[14px] font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
+                    >
+                      <FilePlus className="w-4 h-4" />
+                      New Project
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setShowInviteModal(true)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-3 py-2 bg-white border border-[#e4e4e7] text-[#18181b] rounded-md text-[14px] font-medium flex items-center gap-2 hover:bg-[#f4f4f5] transition-colors"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Invite
+                    </motion.button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <VaultSearchBar
               viewMode={viewMode}
@@ -209,11 +232,21 @@ export default function CollabDetailPage() {
               onQueryChange={setSearchQuery}
             />
 
+            {isVaultFolder && (
+              <VaultFolderGrid
+                folders={VAULT_FOLDERS.map((f) => ({
+                  id: f.id,
+                  name: f.name,
+                  href: getVaultFolderHref(f.id),
+                }))}
+              />
+            )}
+
             {filteredCards.length === 0 ? (
               <div className="px-4 md:px-[38px] py-12 w-full text-center">
                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg mb-2">
-                  {normalizedQuery ? 'No results found' : 'No projects in this collab yet'}
+                  {normalizedQuery ? 'No results found' : isVaultFolder ? 'No documents in this folder yet' : 'No projects in this collab yet'}
                 </p>
                 {!normalizedQuery && (
                   <p className="text-gray-400 text-sm">Add your first project to get started!</p>
@@ -232,27 +265,31 @@ export default function CollabDetailPage() {
       </div>
 
       {/* Add Document Modal */}
-      <AddDocumentToCollabModal
-        isOpen={showAddDocModal}
-        onClose={() => setShowAddDocModal(false)}
-        collabProjectId={folderId}
-        onDocumentAdded={() => {
-          setShowAddDocModal(false)
-          fetchCollabDetails()
-        }}
-      />
+      {!isVaultFolder && (
+        <AddDocumentToCollabModal
+          isOpen={showAddDocModal}
+          onClose={() => setShowAddDocModal(false)}
+          collabProjectId={folderId}
+          onDocumentAdded={() => {
+            setShowAddDocModal(false)
+            if (typeof folderId === 'string') fetchCollabDetails(folderId)
+          }}
+        />
+      )}
 
       {/* Invite Member Modal */}
-      <InviteMemberModal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        collabProjectId={folderId}
-        collabName={collabData?.name || 'Collab'}
-        onMemberAdded={() => {
-          setShowInviteModal(false)
-          fetchCollabDetails()
-        }}
-      />
+      {!isVaultFolder && (
+        <InviteMemberModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          collabProjectId={folderId}
+          collabName={collabData?.name || 'Collab'}
+          onMemberAdded={() => {
+            setShowInviteModal(false)
+            if (typeof folderId === 'string') fetchCollabDetails(folderId)
+          }}
+        />
+      )}
     </>
   )
 }
@@ -265,4 +302,3 @@ CollabDetailPage.getLayout = function getLayout(page) {
     </div>
   )
 }
-

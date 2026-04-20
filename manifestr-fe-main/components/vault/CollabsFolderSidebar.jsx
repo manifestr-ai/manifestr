@@ -21,7 +21,7 @@ export default function CollabsFolderSidebar() {
       <button
         type="button"
         onClick={() => toggleSidebar('collabsFolder')}
-        className="absolute left-0 top-3 w-6 h-6 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition-colors"
+        className="absolute -left-3.5 top-5 w-6 h-6 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition-colors"
       >
         <ChevronLeft className="w-4 h-4 text-[#18181b]" />
       </button>
@@ -47,7 +47,7 @@ export default function CollabsFolderSidebar() {
                     }`}
                   >
                     <Folder className="w-4 h-4 text-[#18181b]" />
-                    <span className={`text-[14px] leading-[21px] ${
+                    <span className={`text-[13px] leading-[21px] ${
                       folderIsActive ? 'font-medium text-[#18181b]' : 'text-[#18181b]'
                     }`}>
                       {folder.name}
