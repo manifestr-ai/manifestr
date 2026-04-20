@@ -6,7 +6,15 @@ interface EditorBottomToolbarProps {
   editorType?: string;
 }
 
-const tools = [
+type BottomToolbarTool = {
+  key: string;
+  label: string;
+  icon: React.ReactNode;
+  editor_for: string[];
+  disabled?: boolean;
+};
+
+const tools: BottomToolbarTool[] = [
   {
     key: "ai_prompter",
     label: "AI Prompter",
@@ -951,6 +959,7 @@ const tools = [
       </svg>
     ),
     editor_for: ["chart"],
+    disabled: true,
   },
   {
     key: "home",
@@ -1010,42 +1019,42 @@ const tools = [
     ),
     editor_for: ["chart"],
   },
-  {
-    key: "format",
-    label: "Format",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M8 2.66406V13.3307"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M2.66797 4.66406V3.33073C2.66797 3.15392 2.73821 2.98435 2.86323 2.85932C2.98826 2.7343 3.15782 2.66406 3.33464 2.66406H12.668C12.8448 2.66406 13.0143 2.7343 13.1394 2.85932C13.2644 2.98435 13.3346 3.15392 13.3346 3.33073V4.66406"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M6 13.3359H10"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["chart"],
-  },
+  // {
+  //   key: "format",
+  //   label: "Format",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M8 2.66406V13.3307"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M2.66797 4.66406V3.33073C2.66797 3.15392 2.73821 2.98435 2.86323 2.85932C2.98826 2.7343 3.15782 2.66406 3.33464 2.66406H12.668C12.8448 2.66406 13.0143 2.7343 13.1394 2.85932C13.2644 2.98435 13.3346 3.15392 13.3346 3.33073V4.66406"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M6 13.3359H10"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["chart"],
+  // },
   {
     key: "charts",
     label: "Charts",
@@ -1089,92 +1098,92 @@ const tools = [
     ),
     editor_for: ["chart"],
   },
-  {
-    key: "data",
-    label: "Data",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2 6H14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2 10H14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M6 2V14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M10 2V14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["chart"],
-  },
-  {
-    key: "page-layout",
-    label: "Page Layout",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M2 6H14"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M6 14V6"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["chart"],
-  },
+  // {
+  //   key: "data",
+  //   label: "Data",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M2 6H14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M2 10H14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M6 2V14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M10 2V14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["chart"],
+  // },
+  // {
+  //   key: "page-layout",
+  //   label: "Page Layout",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M2 6H14"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M6 14V6"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["chart"],
+  // },
   {
     key: "style",
     label: "Style",

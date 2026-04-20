@@ -30,6 +30,6 @@ export const DocumentHeader = Node.create({
           content: [{ type: 'text', text: 'Header text here...' }]
         });
       },
-    };
+    } as any;
   },
 });

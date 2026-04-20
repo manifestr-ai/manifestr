@@ -203,7 +203,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
         </p>
         <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgAutoFit} />
+            <Layout className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[14px] text-[#364153] text-[11px] tracking-[0.065px]">
               Margins
             </p>

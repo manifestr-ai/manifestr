@@ -6,6 +6,8 @@ interface HomePanelProps {
 }
 
 export default function HomePanel({ store }: HomePanelProps) {
+  const hasSelection = !!store?.selectedTextTarget
+  const selectedFormat = store?.getSelectedTextFormat ? store.getSelectedTextFormat() : null
 
   return (
     <div className="bg-white border-t border-[#e4e4e7] flex gap-4 items-center pl-6 pt-px h-[88px]">
@@ -45,7 +47,13 @@ export default function HomePanel({ store }: HomePanelProps) {
           </div>
           <div className="flex-1 w-[254.508px]">
             <div className="flex gap-2 items-center size-full">
-              <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+              <button
+                disabled={!hasSelection}
+                onClick={() => store?.toggleTextFormat?.('bold')}
+                className={`border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] transition-colors ${
+                  !hasSelection ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'
+                } ${selectedFormat?.bold ? 'bg-gray-50' : ''}`}
+              >
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
                     <Bold className="size-full" stroke="#364153" strokeWidth={1.5} />
@@ -57,7 +65,13 @@ export default function HomePanel({ store }: HomePanelProps) {
                   </div>
                 </div>
               </button>
-              <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+              <button
+                disabled={!hasSelection}
+                onClick={() => store?.toggleTextFormat?.('italic')}
+                className={`border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] transition-colors ${
+                  !hasSelection ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'
+                } ${selectedFormat?.italic ? 'bg-gray-50' : ''}`}
+              >
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
                     <Italic className="size-full" stroke="#364153" strokeWidth={1.5} />
@@ -69,7 +83,13 @@ export default function HomePanel({ store }: HomePanelProps) {
                   </div>
                 </div>
               </button>
-              <button className="border border-transparent flex-1 h-16 rounded-[14px] hover:bg-gray-50 transition-colors">
+              <button
+                disabled={!hasSelection}
+                onClick={() => store?.toggleTextFormat?.('underline')}
+                className={`border border-transparent flex-1 h-16 rounded-[14px] transition-colors ${
+                  !hasSelection ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'
+                } ${selectedFormat?.underline ? 'bg-gray-50' : ''}`}
+              >
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
                     <Underline className="size-full" stroke="#364153" strokeWidth={1.5} />
@@ -99,7 +119,13 @@ export default function HomePanel({ store }: HomePanelProps) {
           </div>
           <div className="flex-1 w-[241px]">
             <div className="flex gap-2 items-center size-full">
-              <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+              <button
+                disabled={!hasSelection}
+                onClick={() => store?.setSelectedTextAlign?.('left')}
+                className={`border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] transition-colors ${
+                  !hasSelection ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'
+                }`}
+              >
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
                     <AlignLeft className="size-full" stroke="#364153" strokeWidth={1.5} />
@@ -111,7 +137,13 @@ export default function HomePanel({ store }: HomePanelProps) {
                   </div>
                 </div>
               </button>
-              <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+              <button
+                disabled={!hasSelection}
+                onClick={() => store?.setSelectedTextAlign?.('center')}
+                className={`border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] transition-colors ${
+                  !hasSelection ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'
+                }`}
+              >
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
                     <AlignCenter className="size-full" stroke="#364153" strokeWidth={1.5} />
@@ -123,7 +155,13 @@ export default function HomePanel({ store }: HomePanelProps) {
                   </div>
                 </div>
               </button>
-              <button className="border border-transparent flex-1 h-16 rounded-[14px] hover:bg-gray-50 transition-colors">
+              <button
+                disabled={!hasSelection}
+                onClick={() => store?.setSelectedTextAlign?.('right')}
+                className={`border border-transparent flex-1 h-16 rounded-[14px] transition-colors ${
+                  !hasSelection ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-50'
+                }`}
+              >
                 <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
                   <div className="shrink-0 size-5">
                     <AlignRight className="size-full" stroke="#364153" strokeWidth={1.5} />
