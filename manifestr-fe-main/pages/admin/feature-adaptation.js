@@ -7,6 +7,12 @@ import StatCard from '../../components/admin/overview/StatCard'
 import AdoptionFunnelChart from '../../components/admin/feature-adoption/AdoptionFunnelChart'
 import PlanBreakdownChart from '../../components/admin/feature-adoption/PlanBreakdownChart'
 import TopFeaturesTable from '../../components/admin/feature-adoption/TopFeaturesTable'
+import WorkspacesCreated from '../../components/admin/feature-adoption/WorkspacesCreated'
+import MembersAdded from '../../components/admin/feature-adoption/MembersAdded'
+import CommentsPerDocument from '../../components/admin/feature-adoption/CommentsPerDocument'
+import SharedVsSoloUsage from '../../components/admin/feature-adoption/SharedVsSoloUsage'
+import TopCollaborativeProjects from '../../components/admin/feature-adoption/TopCollaborativeProjects'
+import TeamTable from '../../components/admin/feature-adoption/TeamTable'
 import { getAdminFeatureAdoptionData } from '../../services/admin/feature-adoption'
 
 export default function AdminFeatureAdoption({ featureAdoptionData }) {
@@ -53,6 +59,26 @@ export default function AdminFeatureAdoption({ featureAdoptionData }) {
               <PlanBreakdownChart data={featureAdoptionData?.planBreakdown} />
 
               <TopFeaturesTable data={featureAdoptionData?.topFeatures} />
+
+              <div className="pt-2">
+                <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
+                  Collaboration Hub
+                </p>
+              </div>
+
+              <div className="flex gap-[18px] items-stretch">
+                <WorkspacesCreated data={featureAdoptionData?.workspacesCreated} />
+                <MembersAdded data={featureAdoptionData?.membersAdded} />
+              </div>
+
+              <CommentsPerDocument data={featureAdoptionData?.commentsPerDocument} />
+
+              <div className="flex gap-[18px] items-stretch">
+                <SharedVsSoloUsage data={featureAdoptionData?.sharedVsSolo} />
+                <TopCollaborativeProjects data={featureAdoptionData?.topCollaborativeProjects} />
+              </div>
+
+              <TeamTable data={featureAdoptionData?.team} />
             </div>
           </div>
         </div>

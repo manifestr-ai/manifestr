@@ -9,6 +9,17 @@ import TimeToFirstOutput from '../../components/admin/product-usage/TimeToFirstO
 import CategoryPieChart from '../../components/admin/product-usage/CategoryPieChart'
 import RewritesVsAccepts from '../../components/admin/product-usage/RewritesVsAccepts'
 import AiStyleSettingsUsage from '../../components/admin/product-usage/AiStyleSettingsUsage'
+import SlideTimeHeatmap from '../../components/admin/product-usage/SlideTimeHeatmap'
+import SlideDropoff from '../../components/admin/product-usage/SlideDropoff'
+import SlideRewritesVsAccepts from '../../components/admin/product-usage/SlideRewritesVsAccepts'
+import RewritesVsAcceptsFlows from '../../components/admin/product-usage/RewritesVsAcceptsFlows'
+import BouncedDecks from '../../components/admin/product-usage/BouncedDecks'
+import CompletionTime from '../../components/admin/product-usage/CompletionTime'
+import ToolUsersGrid from '../../components/admin/product-usage/ToolUsersGrid'
+import MostCommonJourneys from '../../components/admin/product-usage/MostCommonJourneys'
+import TransitionDropoffsFunnel from '../../components/admin/product-usage/TransitionDropoffsFunnel'
+import MultiToolUsage from '../../components/admin/product-usage/MultiToolUsage'
+import ToolPairingMatrix from '../../components/admin/product-usage/ToolPairingMatrix'
 import { getAdminProductUsageData } from '../../services/admin/product-usage'
 
 export default function AdminProductUsage({ productUsageData }) {
@@ -57,6 +68,43 @@ export default function AdminProductUsage({ productUsageData }) {
                 <CategoryPieChart data={productUsageData?.exportTypes} />
                 <AiStyleSettingsUsage data={productUsageData?.aiStyleSettingsUsage} />
               </div>
+
+              <div className="pt-2">
+                <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
+                  Slide Engagement
+                </p>
+              </div>
+
+              <SlideTimeHeatmap data={productUsageData?.slideTimeHeatmap} />
+
+              <div className="flex gap-[18px] items-stretch">
+                <SlideDropoff data={productUsageData?.slideDropoff} />
+                <SlideRewritesVsAccepts data={productUsageData?.slideRewritesVsAccepts} />
+              </div>
+
+              <div className="flex gap-[18px] items-stretch">
+                <RewritesVsAcceptsFlows data={productUsageData?.rewritesVsAcceptsFlows} />
+                <BouncedDecks data={productUsageData?.bouncedDecks} />
+              </div>
+
+              <CompletionTime data={productUsageData?.completionTime} />
+
+              <div className="pt-2">
+                <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
+                  Cross-Tool Journeys
+                </p>
+              </div>
+
+              <ToolUsersGrid data={productUsageData?.toolUsers} />
+
+              <MostCommonJourneys data={productUsageData?.mostCommonJourneys} />
+
+              <div className="flex gap-[18px] items-stretch">
+                <TransitionDropoffsFunnel data={productUsageData?.transitionDropoffsFunnel} />
+                <MultiToolUsage data={productUsageData?.multiToolUsage} />
+              </div>
+
+              <ToolPairingMatrix data={productUsageData?.toolPairingMatrix} />
             </div>
           </div>
         </div>

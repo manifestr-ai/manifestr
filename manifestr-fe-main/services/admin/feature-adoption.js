@@ -62,6 +62,63 @@ const DEFAULT_FEATURE_ADOPTION_DATA = {
       { feature: 'Export', habitual: 29, repeat: 44, firstUse: 58 },
     ],
   },
+  workspacesCreated: {
+    title: 'Workspaces Created',
+    total: '128 total workspaces',
+    rows: [
+      { name: 'Zenith', users: '10,000 users', percent: 35.0 },
+      { name: 'BrightTech', users: '10,000 users', percent: 25.0 },
+      { name: 'Orion Global', users: '10,000 users', percent: 79.8 },
+      { name: 'Horizon Inc', users: '10,000 users', percent: 79.8 },
+    ],
+  },
+  membersAdded: {
+    title: 'Members Added',
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    yLabels: ['250', '200', '150', '100', '50', '0'],
+    max: 250,
+    bars: [60, 80, 50, 70, 40, 90, 60, 110, 70, 180, 90, 60],
+    trend: [55, 75, 65, 65, 60, 85, 75, 100, 90, 160, 110, 100],
+    timeframeOptions: ['Monthly', 'Weekly', 'Yearly'],
+    selectedTimeframe: 'Monthly',
+  },
+  commentsPerDocument: {
+    title: 'Comments per Document',
+    days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    yLabels: ['10', '8', '6', '4', '2', '0'],
+    min: 0,
+    max: 10,
+    data: [1, 2, 3, 4, 5, 6, 8.5],
+  },
+  sharedVsSolo: {
+    title: 'Shared vs Solo Usage',
+    slices: [
+      { label: 'Shared', value: 62, color: '#94a3b8', textColor: 'white' },
+      { label: 'Solo', value: 38, color: '#18181b', textColor: 'white' },
+    ],
+  },
+  topCollaborativeProjects: {
+    title: 'Top Collaborative Projects',
+    searchPlaceholder: 'Search accounts...',
+    rows: [
+      { project: 'Pitch Deck v3', members: 8, docs: 12, exports: 63, lastActive: '15/03/2024' },
+      { project: 'BrightLabs', members: 9, docs: 41, exports: 423, lastActive: '15/03/2024' },
+      { project: 'Nova Health', members: 3, docs: 52, exports: 142, lastActive: '15/03/2024' },
+      { project: 'Pitch Deck v3', members: 45, docs: 13, exports: 15, lastActive: '15/03/2024' },
+      { project: 'Orion Tech', members: 13, docs: 4, exports: 73, lastActive: '15/03/2024' },
+    ],
+  },
+  team: {
+    title: 'Team',
+    searchPlaceholder: 'Search accounts...',
+    rows: [
+      { member: 'J. Smith', role: 'Admin', docsCreated: 12, exports: 63, lastActive: '15/03/2024' },
+      { member: 'L. Wong', role: 'Editor', docsCreated: 41, exports: 423, lastActive: '15/03/2024' },
+      { member: 'A. Khan', role: 'Viewer', docsCreated: 52, exports: 142, lastActive: '15/03/2024' },
+      { member: 'J. Smith', role: 'Editor', docsCreated: 13, exports: 15, lastActive: '15/03/2024' },
+      { member: 'L. Wong', role: 'Editor', docsCreated: 4, exports: 73, lastActive: '15/03/2024' },
+    ],
+  },
 }
 
 export async function getAdminFeatureAdoptionData(params = {}) {
