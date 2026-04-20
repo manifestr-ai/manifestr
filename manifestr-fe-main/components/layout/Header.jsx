@@ -175,7 +175,7 @@ export default function Header() {
                     href="/home"
                     className="bg-[#18181b] text-white h-[36px] px-3 py-2 rounded-md text-l2-medium hover:opacity-90 transition-opacity flex items-center"
                   >
-                    Home
+                    Dashboard
                   </Link>
                 ) : (
                   <>
