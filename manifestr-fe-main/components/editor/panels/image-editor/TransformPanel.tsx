@@ -58,7 +58,7 @@ export default function TransformPanel({ store }: TransformPanelProps) {
   };
 
   return (
-    <div className="h-[100px] bg-white border-b px-6 flex items-center gap-10">
+    <div className="h-[102px] bg-white border-b px-6 flex items-center gap-10 overflow-x-auto">
       {/* Move */}
       <div className="flex flex-col items-center">
         <span className="text-xs text-gray-500 mb-1">Move</span>

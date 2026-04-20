@@ -228,13 +228,42 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                 </div>
                 <button
                     onClick={onSkip}
-                    className="h-[35px] px-2 bg-[#18181b] text-white rounded flex items-center gap-2 hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
+                    className="
+                        w-[321px]
+                        h-[35px]
+                        rounded-[6px]
+                        border border-[#D1D5DC]
+                        bg-white
+                        shadow-[0_1px_4px_0_#EEE]
+                        flex items-center gap-2
+                        transition-opacity
+                        hover:opacity-90
+                        whitespace-nowrap
+                        cursor-pointer
+                        px-2
+                    "
                 >
-                    <span className="text-[14px] leading-[16.5px] font-medium px-2">
+                    <span
+                        style={{
+                            width: "276px",
+                            height: "11px",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            color: "#000",
+                            fontFamily: "Inter",
+                            fontSize: "14px",
+                            fontStyle: "normal",
+                            fontWeight: 500,
+                            lineHeight: "27px"
+                        }}
+                    >
                         Confident it's all correct? Skip this review
                     </span>
-                    <ArrowRight className="w-4 h-4 mr-2" />
+               
+                    <ArrowRight className="w-4 h-4 mr-2 text-[#18181b]" />
                 </button>
+           
             </div>
 
             {/* Executive Summary Box */}

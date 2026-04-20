@@ -73,28 +73,30 @@ const PolotnoEditorUI = observer(
       <div className="flex flex-1 h-full w-full overflow-hidden bg-[#e7e7e7]">
         {/* LEFT SLIDE PANEL */}
         <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: "140px",
-            borderRight: "1px solid #E5E7EB",
-            background: "#FFFFFF",
-            paddingTop: "8px",
-          }}
+          className="
+         flex flex-col
+         border-r border-[#E5E7EB]
+         bg-white
+         pt-2
+         transition-all
+          lg:w-[140px] lg:max-w-[140px] lg:min-w-[70px]
+          sm:w-[70px] sm:max-w-[70px] sm:min-w-[70px]
+          xs:w-[60px] xs:max-w-[60px] xs:min-w-[60px]
+     
+    
+       "
         >
           {/* NEW BUTTON */}
           <div className="flex justify-center w-full mb-[10px]">
             <button
-              style={{
-                width: "104px",
-                height: "28px",
-                background: "#18181B",
-                color: "#FFFFFF",
-                borderRadius: "6px",
-                fontSize: "13px",
-                fontWeight: 500,
-                border: "none",
-              }}
+              className="
+                
+                bg-[#18181B] text-white
+                rounded-[6px] text-[13px] font-medium border-none
+                lg:w-[90px] lg:h-[26px]
+                sm:w-[80px] sm:h-[24px]
+                xs:w-[72px] xs:h-[22px]
+              "
               onClick={() => {
                 store.addPage();
               }}
@@ -119,22 +121,21 @@ const PolotnoEditorUI = observer(
                   <div
                     key={page.id}
                     onClick={() => page.select()}
-                    style={{
-                      width: "120px",
-                      height: "60px",
-                      borderRadius: "8px",
-                      background: "#FFFFFF",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "12px",
-                      color: "#111827",
-                      cursor: "pointer",
-                      border: isActive
-                        ? "2px solid #2563EB"
-                        : "1px solid #E5E7EB",
-                      boxSizing: "border-box",
-                    }}
+                    className={`
+                      flex items-center justify-center 
+                      rounded-[8px] 
+                      bg-white
+                      text-[12px] 
+                      text-[#111827] 
+                      cursor-pointer 
+                      box-border
+                      
+                      lg:w-[96px] lg:h-[52px]
+                      sm:w-[72px] sm:h-[36px]
+                      xs:w-[60px] xs:h-[30px]
+                      border
+                      ${isActive ? "border-[#2563EB] border-2" : "border-[#E5E7EB] border"}
+                    `}
                   >
                     {index + 1}
                   </div>
@@ -159,9 +160,9 @@ const PolotnoEditorUI = observer(
               PageControls: ({ page }) => (
                 <div
                   style={{
-                    position: 'absolute',
-                    top: '4%', // Exactly on slide content area
-                    right: '25%',
+                    position: "absolute",
+                    top: "4%", // Exactly on slide content area
+                    right: "25%",
                     zIndex: 10,
                   }}
                 >
@@ -171,19 +172,18 @@ const PolotnoEditorUI = observer(
                     intent="none"
                     onClick={() => {
                       // Defensive: check page.id exists and store.deletePages available
-                      if (!page?.id || typeof store.deletePages !== "function") return;
+                      if (!page?.id || typeof store.deletePages !== "function")
+                        return;
 
                       const shouldDelete = window.confirm(
-                        "Are you sure you want to delete this slide?"
+                        "Are you sure you want to delete this slide?",
                       );
                       if (shouldDelete) {
                         store.deletePages([page.id]);
                       }
                     }}
-              
                   />
                 </div>
-          
               ),
             }}
           />
@@ -453,7 +453,7 @@ export default function CollaborativePresentationEditor({
   }, [store, generationId, lastSavedContent]);
 
   const [activeTool, setActiveTool] = useState<
-    | "ai"
+    | "ai_prompter"
     | "format"
     | "insert"
     | "layout"
@@ -522,19 +522,20 @@ export default function CollaborativePresentationEditor({
       <div className="h-[60px] flex items-center gap-3 px-6 border-b border-gray-200 bg-white">
         <button
           className={`
-            px-4 py-2 flex items-center gap-2 transition 
+            px-3 py-2 flex items-center gap-2 transition 
             font-medium rounded-[10px] 
             bg-gray-100 text-[#0A0A0A]
             hover:bg-gray-200 hover:shadow-md
             focus:outline-none focus:ring-2 focus:ring-blue-400
             active:bg-gray-300
+            text-[13px] sm:text-[14px] 
+            leading-5 
+            md:px-4
           `}
           style={{
             fontFamily: "Inter",
-            fontSize: "14px",
             fontStyle: "normal",
             fontWeight: 500,
-            lineHeight: "20px",
             letterSpacing: "-0.15px",
           }}
           type="button"
@@ -545,6 +546,7 @@ export default function CollaborativePresentationEditor({
             height="16"
             viewBox="0 0 16 16"
             fill="none"
+            className="w-4 h-4 md:w-4 md:h-4"
           >
             <path
               d="M10.0013 1.33594H4.0013C3.64768 1.33594 3.30854 1.47641 3.05849 1.72646C2.80844 1.97651 2.66797 2.31565 2.66797 2.66927V13.3359C2.66797 13.6896 2.80844 14.0287 3.05849 14.2787C3.30854 14.5288 3.64768 14.6693 4.0013 14.6693H12.0013C12.3549 14.6693 12.6941 14.5288 12.9441 14.2787C13.1942 14.0287 13.3346 13.6896 13.3346 13.3359V4.66927L10.0013 1.33594Z"
@@ -582,7 +584,7 @@ export default function CollaborativePresentationEditor({
               strokeLinejoin="round"
             />
           </svg>
-          Insert From the Vault
+          <span className="hidden lg:inline">Insert From the Vault</span>
         </button>
 
         <div
@@ -597,10 +599,10 @@ export default function CollaborativePresentationEditor({
         />
 
         <button
-          className="px-4 py-2 flex items-center gap-2 rounded-[10px] bg-[#F3F4F6] text-[#0A0A0A] font-medium transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300"
+          className="px-3 py-2 flex items-center gap-2 rounded-[10px] bg-[#F3F4F6] text-[#0A0A0A] font-medium transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300
+            text-[13px] xs:text-[14px] sm:px-4 sm:py-2"
           style={{
             fontFamily: "Inter",
-            fontSize: "14px",
             fontStyle: "normal",
             fontWeight: 500,
             lineHeight: "20px",
@@ -609,6 +611,7 @@ export default function CollaborativePresentationEditor({
           type="button"
         >
           <svg
+            className="w-5 h-5 xs:w-4 xs:h-4"
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
@@ -651,7 +654,7 @@ export default function CollaborativePresentationEditor({
               </clipPath>
             </defs>
           </svg>
-          Insert Theme
+          <span className="hidden lg:inline">Insert Theme</span>
         </button>
       </div>
 
@@ -760,37 +763,37 @@ export default function CollaborativePresentationEditor({
               <path
                 d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
                 stroke="#4A5565"
-                stroke-width="1.33333"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M2 6H14"
                 stroke="#4A5565"
-                stroke-width="1.33333"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M2 10H14"
                 stroke="#4A5565"
-                stroke-width="1.33333"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M6 2V14"
                 stroke="#4A5565"
-                stroke-width="1.33333"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
                 d="M10 2V14"
                 stroke="#4A5565"
-                stroke-width="1.33333"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
             <span
@@ -838,37 +841,37 @@ export default function CollaborativePresentationEditor({
                 <path
                   d="M10.0013 1.33594H4.0013C3.64768 1.33594 3.30854 1.47641 3.05849 1.72646C2.80844 1.97651 2.66797 2.31565 2.66797 2.66927V13.3359C2.66797 13.6896 2.80844 14.0287 3.05849 14.2787C3.30854 14.5288 3.64768 14.6693 4.0013 14.6693H12.0013C12.3549 14.6693 12.6941 14.5288 12.9441 14.2787C13.1942 14.0287 13.3346 13.6896 13.3346 13.3359V4.66927L10.0013 1.33594Z"
                   stroke="#4A5565"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M9.33203 1.33594V4.0026C9.33203 4.35623 9.47251 4.69536 9.72256 4.94541C9.9726 5.19546 10.3117 5.33594 10.6654 5.33594H13.332"
                   stroke="#4A5565"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M6.66536 6H5.33203"
                   stroke="#4A5565"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M10.6654 8.66406H5.33203"
                   stroke="#4A5565"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M10.6654 11.3359H5.33203"
                   stroke="#4A5565"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </div>
@@ -891,34 +894,34 @@ export default function CollaborativePresentationEditor({
                 viewBox="0 0 16 16"
                 fill="none"
               >
-                <g clip-path="url(#clip0_10382_80263)">
+                <g clipPath="url(#clip0_10382_80263)">
                   <path
                     d="M7.15625 3.37846C8.70917 3.1934 10.28 3.52167 11.6288 4.31316C12.9777 5.10465 14.0304 6.31584 14.6263 7.76179C14.6818 7.91147 14.6818 8.07612 14.6263 8.22579C14.3812 8.81979 14.0575 9.37813 13.6636 9.88579"
                     stroke="#0A0A0A"
-                    stroke-width="1.33333"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.33333"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M9.38942 9.43737C9.01222 9.80169 8.50702 10.0033 7.98262 9.99872C7.45823 9.99417 6.9566 9.78383 6.58579 9.41301C6.21497 9.0422 6.00463 8.54057 6.00008 8.01618C5.99552 7.49178 6.19711 6.98658 6.56142 6.60938"
                     stroke="#0A0A0A"
-                    stroke-width="1.33333"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.33333"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M11.6556 11.6704C10.7713 12.1943 9.78458 12.5218 8.76251 12.6307C7.74045 12.7396 6.70691 12.6274 5.73203 12.3017C4.75715 11.976 3.86374 11.4443 3.11242 10.7429C2.36109 10.0415 1.76944 9.18665 1.37761 8.23642C1.32205 8.08674 1.32205 7.92209 1.37761 7.77242C1.9687 6.33899 3.00872 5.13591 4.34161 4.34375"
                     stroke="#0A0A0A"
-                    stroke-width="1.33333"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.33333"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                   <path
                     d="M1.33594 1.32812L14.6693 14.6615"
                     stroke="#0A0A0A"
-                    stroke-width="1.33333"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.33333"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </g>
                 <defs>
@@ -938,23 +941,23 @@ export default function CollaborativePresentationEditor({
                 <path
                   d="M13.3359 2H2.66927C1.93289 2 1.33594 2.59695 1.33594 3.33333V10C1.33594 10.7364 1.93289 11.3333 2.66927 11.3333H13.3359C14.0723 11.3333 14.6693 10.7364 14.6693 10V3.33333C14.6693 2.59695 14.0723 2 13.3359 2Z"
                   stroke="#18181B"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M5.33594 14H10.6693"
                   stroke="#18181B"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
                 <path
                   d="M8 11.3281V13.9948"
                   stroke="#18181B"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </div>
@@ -987,13 +990,21 @@ export default function CollaborativePresentationEditor({
 
       {/* BOTTOM TOOLBAR */}
 
-      <ToolPanel activeTool={activeTool} store={store} />
+      {/* TOP PANELS (except AI Prompter) */}
+      {activeTool !== "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} />
+      )}
 
       <EditorBottomToolbar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
-        editorType ="presentation"
+        editorType="presentation"
       />
+
+      {/* AI PROMPTER BELOW TOOLBAR */}
+      {activeTool === "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} />
+      )}
     </div>
   );
 }

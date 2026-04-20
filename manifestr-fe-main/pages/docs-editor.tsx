@@ -5,7 +5,7 @@ import Head from "next/head";
 import TopHeader from "../components/spreadsheet/TopHeader";
 import TiptapEditor from "../components/docs/TiptapEditor";
 import DocumentOutline from "../components/docs/DocumentOutline";
-import RightSidebar from "../components/spreadsheet/RightSidebar";
+import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import DocsEditorBottomToolbar from "../components/editor/DocsEditorBottomToolbar";
 import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 

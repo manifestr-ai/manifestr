@@ -121,7 +121,7 @@ export default function PhotoEditor({
   }, [imageSrc, store]);
 
   const [activeTool, setActiveTool] = useState<
-    | "ai"
+    | "ai_prompter"
     | "format"
     | "adjust"
     | "text"
@@ -138,13 +138,23 @@ export default function PhotoEditor({
       </div>
       {/* BOTTOM TOOLBAR */}
 
-      <ToolPanel activeTool={activeTool} store={store} />
+      
+
+      {/* TOP PANELS (except AI Prompter) */}
+      {activeTool !== "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} />
+      )}
 
       <EditorBottomToolbar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
         editorType="image"
       />
+
+      {/* AI PROMPTER BELOW TOOLBAR */}
+      {activeTool === "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} />
+      )}
     </div>
   );
 }

@@ -49,7 +49,7 @@ export default function AppHeader({ showRightActions = true }) {
   const NavItem = ({ href, label, isActive, onClick }) => {
     if (isActive) {
       return (
-        <div className="bg-[#f4f4f5] border border-[#e4e4e7] rounded-md px-3 py-2">
+        <div className="bg-[#f4f4f5] border border-transparent rounded-md px-3 py-2">
           <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">{label}</p>
         </div>
       )
@@ -63,7 +63,7 @@ export default function AppHeader({ showRightActions = true }) {
 
   return (
     <>
-      <header className="bg-white border-b border-[#e4e4e7] fixed top-0 left-0 right-0 z-[100] h-[72px]">
+      <header className="bg-white border-b border-transparent fixed top-0 left-0 right-0 z-[100] h-[72px]">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             {/* Left Section: Logo + Navigation */}
@@ -87,11 +87,11 @@ export default function AppHeader({ showRightActions = true }) {
               <div className="hidden md:flex items-center gap-6">
                 <motion.button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white border border-[#e4e4e7] rounded-md p-3 hover:bg-[#f4f4f5] transition-colors cursor-pointer"
+                  className="bg-white rounded-md p-3  transition-colors cursor-pointer"
                 >
-                  <Search className="w-5 h-5 text-[#18181b]" />
+                  <Search className="w-5 h-5 text-[#52525B]" />
                 </motion.button>
                 <Link href="/create-project">
                   <motion.button

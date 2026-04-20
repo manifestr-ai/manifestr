@@ -7,13 +7,13 @@ interface LayoutPanelProps {
 export default function LayoutPanel({ store }: LayoutPanelProps) {
   const page = store.activePage;
 
-  if (!page) {
-    return (
-      <div className="h-[102px] flex items-center justify-center text-gray-400 text-sm">
-        No slide selected
-      </div>
-    );
-  }
+  // if (!page) {
+  //   return (
+  //     <div className="h-[102px] flex items-center justify-center text-gray-400 text-sm">
+  //       No slide selected
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10 overflow-x-auto">

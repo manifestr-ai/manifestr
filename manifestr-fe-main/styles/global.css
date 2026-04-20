@@ -531,6 +531,128 @@
   display: none !important;
 } */
 
+
+/* Spreadsheet css start from here */
+
+/* Remove heavy borders */
+.univer-sheet-container {
+  background: #ffffff !important;
+}
+
+/* Grid background */
+.univer-render-canvas {
+  background: #f9fafb !important;
+}
+
+/* Remove harsh borders */
+.univer-border {
+  border-color: #e5e7eb !important;
+}
+
+/* Sheet tabs cleaner */
+.univer-sheet-bar {
+  background: #ffffff !important;
+  border-top: 1px solid #e5e7eb !important;
+}
+
+/* Input bar */
+.univer-formula-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+[data-u-comp="headerbar"] {
+  display: none !important;
+}
+
+/* ===== Formula Bar Container ===== */
+
+[data-u-comp="formula-bar"] {
+  height: 51px !important;
+  padding: 9px 16px !important;
+}
+
+[data-u-comp="defined-name"] {
+  display: flex !important;
+  width: 60px !important;
+  padding: 7.5px 0 6.5px 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  border-radius: 4px !important;
+  border: 1px solid #E5E7EB !important;
+  background: #F3F4F6 !important;
+}
+
+[data-u-comp="defined-name"] input {
+  color: #0A0A0A !important;
+  text-align: center !important;
+  font-family: Inter, sans-serif !important;
+  font-size: 14px !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  line-height: 20px !important; /* 142.857% */
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-right:5px !important
+}
+
+[data-u-comp="slide-tab-item"] {
+  display: flex !important;
+  height: 34px !important;
+  padding: 0 12px !important;
+  align-items: center !important;
+  border-radius: 4px 4px 0 0 !important;
+  border-top: 2px solid #2B7FFF !important;
+  background: #FFF !important;
+  position: relative;
+  color:#0A0A0A !important;
+}
+
+/* Add pencil icon after the text in each slide tab item */
+[data-u-comp="slide-tab-item"]::after {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='none' stroke='%230A0A0A' stroke-width='1.5' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M16.475 5.408l2.117 2.12a2 2 0 010 2.828l-7.345 7.346a2 2 0 01-.975.547l-4.071 1.017a1 1 0 01-1.215-1.215l1.017-4.071a2 2 0 01.547-.975l7.346-7.345a2 2 0 012.828 0z'/><path d='M15 7l2 2' stroke-linecap='round'/></svg>");
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+[id^="radix-"] {
+  display: none !important;
+}
+
+
+[data-u-comp="formula-bar"] .univer-ring-1 {
+  height: 32px !important;
+  padding: 4px 40px 4px 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.00) !important;
+  background: #F3F3F5 !important;
+}
+
+
+footer > .univer-box-border{
+  background: #F9FAFB !important;
+}
+
+/* Hide dropdown (range selector arrow) */
+.univerjs-icon-dropdown-icon {
+  display: none !important;
+}
+.univerjs-icon-close-icon{
+  display: none !important;
+}
+
+
+
 /* Tiptap Table Styles */
 .ProseMirror table {
   border-collapse: collapse;
@@ -701,3 +823,5 @@
     background: transparent;
   }
 }
+
+
