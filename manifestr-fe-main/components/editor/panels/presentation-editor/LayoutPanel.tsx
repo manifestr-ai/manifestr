@@ -1,6 +1,5 @@
 import { observer } from "mobx-react-lite";
 import { Popover, Position } from "@blueprintjs/core";
-import { useEffect, useMemo, useRef } from "react";
 
 interface LayoutPanelProps {
   store: any;
@@ -42,98 +41,6 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
     };
     input.click();
   };
-
-  const makeSvgDataUrl = (svg: string) => {
-    const cleaned = svg.replace(/\s+/g, " ").trim();
-    const base64 = (() => {
-      if (typeof Buffer !== "undefined") {
-        return Buffer.from(cleaned, "utf8").toString("base64");
-      }
-      const bytes = new TextEncoder().encode(cleaned);
-      let binary = "";
-      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      return btoa(binary);
-    })();
-    return `data:image/svg+xml;base64,${base64}`;
-  };
-
-  const IMAGE_PLACEHOLDER_SRC = useMemo(
-    () =>
-      makeSvgDataUrl(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
-          <rect width="900" height="600" fill="#F3F4F6"/>
-          <rect x="40" y="40" width="820" height="520" rx="18" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="4"/>
-          <g transform="translate(0,10)">
-            <path d="M400 250h100c33 0 60 27 60 60v70c0 33-27 60-60 60H400c-33 0-60-27-60-60v-70c0-33 27-60 60-60z" fill="#EEF2F7" stroke="#9CA3AF" stroke-width="6"/>
-            <circle cx="420" cy="320" r="18" fill="#9CA3AF"/>
-            <path d="M365 418l68-68c8-8 20-8 28 0l52 52 22-22c8-8 20-8 28 0l52 52" fill="none" stroke="#9CA3AF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-          </g>
-          <text x="450" y="505" font-family="Inter, Arial, sans-serif" font-size="28" text-anchor="middle" fill="#6B7280">Click to add image</text>
-        </svg>`,
-      ),
-    [],
-  );
-
-  const VIDEO_PLACEHOLDER_SRC = useMemo(
-    () =>
-      makeSvgDataUrl(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
-          <rect width="900" height="600" fill="#111827"/>
-          <rect x="40" y="40" width="820" height="520" rx="18" fill="#0B1220" stroke="#374151" stroke-width="4"/>
-          <circle cx="450" cy="290" r="84" fill="#1F2937" stroke="#9CA3AF" stroke-width="6"/>
-          <path d="M425 245l78 45-78 45z" fill="#E5E7EB"/>
-          <text x="450" y="505" font-family="Inter, Arial, sans-serif" font-size="28" text-anchor="middle" fill="#D1D5DB">Click to add video</text>
-        </svg>`,
-      ),
-    [],
-  );
-
-  const isMediaPlaceholder = (el: any) =>
-    el?.type === "image" &&
-    typeof el?.name === "string" &&
-    el.name.startsWith("layout-media:");
-
-  const mediaKindFromName = (name: string | undefined) => {
-    if (!name) return null;
-    if (name.startsWith("layout-media:image")) return "image";
-    if (name.startsWith("layout-media:video")) return "video";
-    return null;
-  };
-
-  const isPlaceholderSrc = (kind: "image" | "video", src: any) => {
-    const expected = kind === "video" ? VIDEO_PLACEHOLDER_SRC : IMAGE_PLACEHOLDER_SRC;
-    return typeof src === "string" && src === expected;
-  };
-
-  const selectedElement = store.selectedElements?.[0];
-  const selectedMediaKind = isMediaPlaceholder(selectedElement)
-    ? (mediaKindFromName(selectedElement.name) as "image" | "video" | null)
-    : null;
-  const selectedIsPlaceholder =
-    selectedMediaKind && isPlaceholderSrc(selectedMediaKind, selectedElement?.src);
-
-  const lastSelectionRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!store?.on) return;
-    const unsubscribe = store.on("change", () => {
-      const sel = store.selectedElements?.[0];
-      if (!sel?.id) return;
-      if (sel.id === lastSelectionRef.current) return;
-      lastSelectionRef.current = sel.id;
-      if (!isMediaPlaceholder(sel)) return;
-
-      const kind = mediaKindFromName(sel.name);
-      if (!kind) return;
-      if (!isPlaceholderSrc(kind as any, sel.src)) return;
-
-      promptForImage((src) => {
-        if (sel?.set) {
-          sel.set({ src, name: `layout-media:${kind}:filled` });
-        }
-      });
-    });
-    return () => unsubscribe?.();
-  }, [store, IMAGE_PLACEHOLDER_SRC, VIDEO_PLACEHOLDER_SRC]);
 
   const setSlideSize = (newWidth: number, newHeight: number) => {
     const oldWidth = store.width;
@@ -298,15 +205,19 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
         fontWeight: "bold",
         fill: "#111827",
       });
-      targetPage.addElement({
+      const image = targetPage.addElement({
         type: "image",
-        src: IMAGE_PLACEHOLDER_SRC,
+        src: "/assets/dummy/tool-card-2.png",
         x: padX,
         y: Math.round(h * 0.24),
         width: Math.round(w * 0.8),
         height: Math.round(h * 0.60),
-        name: "layout-media:image:placeholder",
+        name: "layout-image",
       });
+      if (image?.set) {
+        store.selectElements?.([image]);
+        promptForImage((src) => image.set({ src }));
+      }
       return;
     }
 
@@ -466,14 +377,14 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
     }
 
     if (layoutKey === "full_image") {
-      targetPage.addElement({
+      const image = targetPage.addElement({
         type: "image",
-        src: VIDEO_PLACEHOLDER_SRC,
+        src: "/assets/dummy/tool-card-1.jpg",
         x: 0,
         y: 0,
         width: w,
         height: h,
-        name: "layout-media:video:placeholder",
+        name: "layout-image",
       });
       targetPage.addElement({
         type: "shape",
@@ -496,6 +407,10 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
         fontWeight: "700",
         fill: "#FFFFFF",
       });
+      if (image?.set) {
+        store.selectElements?.([image]);
+        promptForImage((src) => image.set({ src }));
+      }
       return;
     }
 
@@ -1420,130 +1335,6 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
           </Popover>
         </div>
       </div>
-
-      {selectedMediaKind && (
-        <>
-          <div className=" w-px h-[50px] bg-[#E3E4EA]" />
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500 mb-1">Media</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-                onClick={() => {
-                  if (!selectedElement?.set) return;
-                  promptForImage((src) =>
-                    selectedElement.set({
-                      src,
-                      name: `layout-media:${selectedMediaKind}:filled`,
-                    }),
-                  );
-                }}
-                aria-label="Choose Media"
-              >
-                <span className="text-[22px] text-[#364153] leading-none">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                  >
-                    <path
-                      d="M8 1.33398V14.6673"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M1.33398 8H14.6673"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-                <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
-                  Choose
-                </span>
-              </button>
-
-              <button
-                type="button"
-                disabled={!!selectedIsPlaceholder}
-                className={`flex flex-col items-center justify-center w-[68px] rounded-md transition py-2 ${
-                  selectedIsPlaceholder
-                    ? "opacity-40 cursor-not-allowed"
-                    : "bg-transparent hover:bg-[#E9EBF0]"
-                }`}
-                onClick={() => {
-                  if (!selectedElement?.set) return;
-                  const nextSrc =
-                    selectedMediaKind === "video"
-                      ? VIDEO_PLACEHOLDER_SRC
-                      : IMAGE_PLACEHOLDER_SRC;
-                  selectedElement.set({
-                    src: nextSrc,
-                    name: `layout-media:${selectedMediaKind}:placeholder`,
-                  });
-                }}
-                aria-label="Remove Media"
-              >
-                <span className="text-[22px] text-[#364153] leading-none">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                  >
-                    <path
-                      d="M6.66797 7.33398V11.334"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M9.33203 7.33398V11.334"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M2 4H14"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68695 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4"
-                      stroke="#364153"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-                <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
-                  Remove
-                </span>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 });
