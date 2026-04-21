@@ -39,6 +39,17 @@ const UNPROTECTED_ROUTES = [
     '/privacy',
     '/cookies',
     '/support',
+    '/admin',
+    '/admin/overview',
+    '/admin/growth',
+    '/admin/product-usage',
+    '/admin/monetization',
+    '/admin/ai-performance',
+    '/admin/platform-health',
+    '/admin/retention',
+    '/admin/lifecycle',
+    '/admin/feature-adaptation',
+    '/admin/[section]',
 ];
 
 export default function AuthGuard({ children }) {
