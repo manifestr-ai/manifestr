@@ -1,10 +1,11 @@
-import React from "react";
+import { observer } from "mobx-react-lite";
+import { Popover, Position } from "@blueprintjs/core";
 
 interface LayoutPanelProps {
   store: any;
 }
 
-export default function LayoutPanel({ store }: LayoutPanelProps) {
+export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
   const page = store.activePage;
 
   if (!page) {
@@ -14,6 +15,564 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
       </div>
     );
   }
+
+  const clearPageElements = (targetPage: any) => {
+    const children = targetPage?.children;
+    if (!Array.isArray(children)) return;
+    children.slice().forEach((el: any) => {
+      if (typeof el?.remove === "function") el.remove();
+    });
+  };
+
+  const promptForImage = (onPick: (src: string) => void) => {
+    if (typeof window === "undefined") return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const src = event.target?.result as string;
+        if (src) onPick(src);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
+  const setSlideSize = (newWidth: number, newHeight: number) => {
+    const oldWidth = store.width;
+    const oldHeight = store.height;
+    if (
+      typeof store.setSize !== "function" ||
+      typeof oldWidth !== "number" ||
+      typeof oldHeight !== "number" ||
+      oldWidth <= 0 ||
+      oldHeight <= 0
+    ) {
+      store.setSize?.(newWidth, newHeight);
+      return;
+    }
+
+    const scaleX = newWidth / oldWidth;
+    const scaleY = newHeight / oldHeight;
+    const textScale = Math.min(scaleX, scaleY);
+
+    (store.pages || []).forEach((p: any) => {
+      const children = Array.isArray(p?.children) ? p.children : [];
+      children.forEach((el: any) => {
+        if (!el?.set) return;
+        const next: any = {
+          x: Math.round((el.x || 0) * scaleX),
+          y: Math.round((el.y || 0) * scaleY),
+          width: Math.round((el.width || 0) * scaleX),
+          height: Math.round((el.height || 0) * scaleY),
+        };
+        if (el.type === "text") {
+          if (typeof el.fontSize === "number") {
+            next.fontSize = Math.max(8, Math.round(el.fontSize * textScale));
+          }
+          if (typeof el.strokeWidth === "number") {
+            next.strokeWidth = el.strokeWidth * textScale;
+          }
+        }
+        el.set(next);
+      });
+    });
+
+    store.setSize(newWidth, newHeight);
+  };
+
+  const isLandscape =
+    typeof store.width === "number" &&
+    typeof store.height === "number" &&
+    store.width >= store.height;
+
+  const applyLayout = (layoutKey: string) => {
+    const targetPage = store.activePage;
+    if (!targetPage) return;
+
+    const hasContent =
+      Array.isArray(targetPage.children) && targetPage.children.length > 0;
+    if (hasContent) {
+      const shouldReplace = window.confirm(
+        "Applying a layout will replace current slide contents. Continue?",
+      );
+      if (!shouldReplace) return;
+    }
+
+    clearPageElements(targetPage);
+    if (targetPage.set) targetPage.set({ layout: layoutKey });
+
+    const w = store.width || 1920;
+    const h = store.height || 1080;
+    const padX = Math.round(w * 0.1);
+
+    if (layoutKey === "blank") return;
+
+    if (layoutKey === "title") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.18),
+        width: Math.round(w * 0.8),
+        fontSize: 64,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+        align: "left",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "Subtitle",
+        x: padX,
+        y: Math.round(h * 0.32),
+        width: Math.round(w * 0.8),
+        fontSize: 28,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#4B5563",
+        align: "left",
+      });
+      return;
+    }
+
+    if (layoutKey === "title_tagline") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.18),
+        width: Math.round(w * 0.8),
+        fontSize: 60,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "Tagline",
+        x: padX,
+        y: Math.round(h * 0.32),
+        width: Math.round(w * 0.8),
+        fontSize: 24,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#6B7280",
+      });
+      return;
+    }
+
+    if (layoutKey === "title_content") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Bullet 1\n• Bullet 2\n• Bullet 3",
+        x: padX,
+        y: Math.round(h * 0.26),
+        width: Math.round(w * 0.55),
+        fontSize: 28,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+      return;
+    }
+
+    if (layoutKey === "title_image") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+      const image = targetPage.addElement({
+        type: "image",
+        src: "/assets/dummy/tool-card-2.png",
+        x: padX,
+        y: Math.round(h * 0.24),
+        width: Math.round(w * 0.8),
+        height: Math.round(h * 0.60),
+        name: "layout-image",
+      });
+      if (image?.set) {
+        store.selectElements?.([image]);
+        promptForImage((src) => image.set({ src }));
+      }
+      return;
+    }
+
+    if (layoutKey === "two_content") {
+      const gap = Math.round(w * 0.04);
+      const colW = Math.round((w - padX * 2 - gap) / 2);
+      const topY = Math.round(h * 0.22);
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Content 1",
+        x: padX,
+        y: topY,
+        width: colW,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Point 1\n• Point 2\n• Point 3",
+        x: padX,
+        y: topY + Math.round(h * 0.06),
+        width: colW,
+        fontSize: 24,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Content 2",
+        x: padX + colW + gap,
+        y: topY,
+        width: colW,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Point 1\n• Point 2\n• Point 3",
+        x: padX + colW + gap,
+        y: topY + Math.round(h * 0.06),
+        width: colW,
+        fontSize: 24,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+      return;
+    }
+
+    if (layoutKey === "comparison") {
+      const gap = Math.round(w * 0.04);
+      const colW = Math.round((w - padX * 2 - gap) / 2);
+      const topY = Math.round(h * 0.22);
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: padX,
+        y: topY,
+        width: colW,
+        height: Math.round(h * 0.62),
+        fill: "#F8FAFC",
+        stroke: "#E5E7EB",
+        strokeWidth: 2,
+      });
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: padX + colW + gap,
+        y: topY,
+        width: colW,
+        height: Math.round(h * 0.62),
+        fill: "#F8FAFC",
+        stroke: "#E5E7EB",
+        strokeWidth: 2,
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Option A",
+        x: padX + 18,
+        y: topY + 14,
+        width: colW - 36,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "700",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Pro 1\n• Pro 2\n• Pro 3",
+        x: padX + 18,
+        y: topY + 62,
+        width: colW - 36,
+        fontSize: 22,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Option B",
+        x: padX + colW + gap + 18,
+        y: topY + 14,
+        width: colW - 36,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "700",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Pro 1\n• Pro 2\n• Pro 3",
+        x: padX + colW + gap + 18,
+        y: topY + 62,
+        width: colW - 36,
+        fontSize: 22,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+      return;
+    }
+
+    if (layoutKey === "full_image") {
+      const image = targetPage.addElement({
+        type: "image",
+        src: "/assets/dummy/tool-card-1.jpg",
+        x: 0,
+        y: 0,
+        width: w,
+        height: h,
+        name: "layout-image",
+      });
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: 0,
+        y: 0,
+        width: w,
+        height: Math.round(h * 0.18),
+        fill: "rgba(17,24,39,0.55)",
+        strokeWidth: 0,
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.06),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "700",
+        fill: "#FFFFFF",
+      });
+      if (image?.set) {
+        store.selectElements?.([image]);
+        promptForImage((src) => image.set({ src }));
+      }
+      return;
+    }
+
+    if (layoutKey === "quote") {
+      targetPage.addElement({
+        type: "text",
+        text: "“Your quote goes here.”",
+        x: padX,
+        y: Math.round(h * 0.30),
+        width: Math.round(w * 0.8),
+        fontSize: 54,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        fill: "#111827",
+        align: "center",
+        lineHeight: 1.15,
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "— Name, Title",
+        x: padX,
+        y: Math.round(h * 0.62),
+        width: Math.round(w * 0.8),
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#4B5563",
+        align: "center",
+      });
+      return;
+    }
+
+    if (layoutKey === "timeline") {
+      targetPage.addElement({
+        type: "text",
+        text: "Timeline / Process",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      const steps = 4;
+      const lineY = Math.round(h * 0.48);
+      const startX = padX;
+      const endX = w - padX;
+      const span = endX - startX;
+
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: startX,
+        y: lineY,
+        width: span,
+        height: 4,
+        fill: "#D1D5DB",
+        strokeWidth: 0,
+      });
+
+      for (let i = 0; i < steps; i++) {
+        const cx = Math.round(startX + (i / (steps - 1)) * span);
+        targetPage.addElement({
+          type: "shape",
+          shapeType: "rect",
+          x: cx - 10,
+          y: lineY - 10,
+          width: 20,
+          height: 20,
+          fill: i === 0 ? "#2563EB" : "#FFFFFF",
+          stroke: "#2563EB",
+          strokeWidth: 2,
+        });
+        targetPage.addElement({
+          type: "text",
+          text: `Step ${i + 1}`,
+          x: cx - 90,
+          y: lineY - 60,
+          width: 180,
+          fontSize: 20,
+          fontFamily: "Inter",
+          fontWeight: "700",
+          fill: "#111827",
+          align: "center",
+        });
+        targetPage.addElement({
+          type: "text",
+          text: "Description",
+          x: cx - 110,
+          y: lineY + 24,
+          width: 220,
+          fontSize: 18,
+          fontFamily: "Inter",
+          fontWeight: "400",
+          fill: "#4B5563",
+          align: "center",
+          lineHeight: 1.2,
+        });
+      }
+      return;
+    }
+
+    if (layoutKey === "summary") {
+      targetPage.addElement({
+        type: "text",
+        text: "Summary / Recap",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      const gap = Math.round(w * 0.03);
+      const boxW = Math.round((w - padX * 2 - gap * 2) / 3);
+      const boxY = Math.round(h * 0.28);
+      const boxH = Math.round(h * 0.52);
+
+      for (let i = 0; i < 3; i++) {
+        const x = padX + i * (boxW + gap);
+        targetPage.addElement({
+          type: "shape",
+          shapeType: "rect",
+          x,
+          y: boxY,
+          width: boxW,
+          height: boxH,
+          fill: "#F8FAFC",
+          stroke: "#E5E7EB",
+          strokeWidth: 2,
+        });
+        targetPage.addElement({
+          type: "text",
+          text: `Point ${i + 1}`,
+          x: x + 18,
+          y: boxY + 18,
+          width: boxW - 36,
+          fontSize: 24,
+          fontFamily: "Inter",
+          fontWeight: "700",
+          fill: "#111827",
+        });
+        targetPage.addElement({
+          type: "text",
+          text: "Short explanation here.",
+          x: x + 18,
+          y: boxY + 60,
+          width: boxW - 36,
+          fontSize: 18,
+          fontFamily: "Inter",
+          fontWeight: "400",
+          fill: "#4B5563",
+          lineHeight: 1.25,
+        });
+      }
+      return;
+    }
+  };
 
   return (
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10 overflow-x-auto">
@@ -555,7 +1114,7 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
           ].map((layout) => (
             <button
               key={layout.key}
-              onClick={() => store.setLayout && store.setLayout(layout.key)}
+              onClick={() => applyLayout(layout.key)}
               className={`flex flex-col items-center justify-center rounded-md transition ${
                 store.activePage?.layout === layout.key
                   ? "bg-[#E9EBF0]"
@@ -597,108 +1156,185 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
    
         <div className="flex gap-2">
           {/* Orientation */}
-          <button
-            className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            aria-label="Orientation"
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[220px] p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-500 mb-2">Orientation</div>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    className={`px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left ${
+                      isLandscape ? "bg-[#F8FAFC]" : ""
+                    }`}
+                    onClick={() => {
+                      if (isLandscape) return;
+                      const should = window.confirm(
+                        "Change orientation and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(store.height, store.width);
+                    }}
+                  >
+                    Landscape
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left ${
+                      !isLandscape ? "bg-[#F8FAFC]" : ""
+                    }`}
+                    onClick={() => {
+                      if (!isLandscape) return;
+                      const should = window.confirm(
+                        "Change orientation and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(store.height, store.width);
+                    }}
+                  >
+                    Portrait
+                  </button>
+                </div>
+              </div>
+            }
           >
-            <span className="text-[22px] text-[#364153] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="31"
-                height="32"
-                viewBox="0 0 31 32"
-                fill="none"
-              >
-                <path
-                  d="M25.832 8H5.16536C3.73863 8 2.58203 9.19391 2.58203 10.6667V21.3333C2.58203 22.8061 3.73863 24 5.16536 24H25.832C27.2588 24 28.4154 22.8061 28.4154 21.3333V10.6667C28.4154 9.19391 27.2588 8 25.832 8Z"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span
-              style={{
-                color: "#4A5565",
-                fontFamily: "Inter",
-                fontSize: "9px",
-                fontStyle: "normal",
-                fontWeight: 400,
-                lineHeight: "11.25px",
-                letterSpacing: "0.167px",
-                marginTop: "0.25rem", // matches mt-1 in Tailwind
-              }}
+            <button
+              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              aria-label="Orientation"
+              type="button"
             >
-              Orientation
-            </span>
-          </button>
+              <span className="text-[22px] text-[#364153] leading-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="31"
+                  height="32"
+                  viewBox="0 0 31 32"
+                  fill="none"
+                >
+                  <path
+                    d="M25.832 8H5.16536C3.73863 8 2.58203 9.19391 2.58203 10.6667V21.3333C2.58203 22.8061 3.73863 24 5.16536 24H25.832C27.2588 24 28.4154 22.8061 28.4154 21.3333V10.6667C28.4154 9.19391 27.2588 8 25.832 8Z"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span
+                style={{
+                  color: "#4A5565",
+                  fontFamily: "Inter",
+                  fontSize: "9px",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                  lineHeight: "11.25px",
+                  letterSpacing: "0.167px",
+                  marginTop: "0.25rem",
+                }}
+              >
+                Orientation
+              </span>
+            </button>
+          </Popover>
 
           {/* Slide Size */}
-          <button
-            onClick={() => {
-              if (store.openLayoutPicker) store.openLayoutPicker();
-            }}
-            className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            aria-label="Slide Size"
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[240px] p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-500 mb-2">Slide Size</div>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                    onClick={() => {
+                      const should = window.confirm(
+                        "Change slide size and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(1920, 1080);
+                    }}
+                  >
+                    Widescreen (16:9)
+                  </button>
+                  <button
+                    type="button"
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                    onClick={() => {
+                      const should = window.confirm(
+                        "Change slide size and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(1024, 768);
+                    }}
+                  >
+                    Standard (4:3)
+                  </button>
+                </div>
+              </div>
+            }
           >
-            <span className="text-[22px] text-[#364153] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="26"
-                height="26"
-                viewBox="0 0 26 26"
-                fill="none"
-              >
-                <path
-                  d="M8.66667 3.25H5.41667C4.84203 3.25 4.29093 3.47827 3.8846 3.8846C3.47827 4.29093 3.25 4.84203 3.25 5.41667V8.66667"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M22.7487 8.66667V5.41667C22.7487 4.84203 22.5204 4.29093 22.1141 3.8846C21.7078 3.47827 21.1567 3.25 20.582 3.25H17.332"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M3.25 17.3359V20.5859C3.25 21.1606 3.47827 21.7117 3.8846 22.118C4.29093 22.5243 4.84203 22.7526 5.41667 22.7526H8.66667"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M17.332 22.7526H20.582C21.1567 22.7526 21.7078 22.5243 22.1141 22.118C22.5204 21.7117 22.7487 21.1606 22.7487 20.5859V17.3359"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span
-              style={{
-                color: "#4A5565",
-                fontFamily: "Inter",
-                fontSize: "9px",
-                fontStyle: "normal",
-                fontWeight: 400,
-                lineHeight: "11.25px",
-                letterSpacing: "0.167px",
-                marginTop: "0.25rem", // matches mt-1 in Tailwind
-              }}
+            <button
+              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              aria-label="Slide Size"
+              type="button"
             >
-              Slide Size
-            </span>
-          </button>
+              <span className="text-[22px] text-[#364153] leading-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                >
+                  <path
+                    d="M8.66667 3.25H5.41667C4.84203 3.25 4.29093 3.47827 3.8846 3.8846C3.47827 4.29093 3.25 4.84203 3.25 5.41667V8.66667"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M22.7487 8.66667V5.41667C22.7487 4.84203 22.5204 4.29093 22.1141 3.8846C21.7078 3.47827 21.1567 3.25 20.582 3.25H17.332"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M3.25 17.3359V20.5859C3.25 21.1606 3.47827 21.7117 3.8846 22.118C4.29093 22.5243 4.84203 22.7526 5.41667 22.7526H8.66667"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M17.332 22.7526H20.582C21.1567 22.7526 21.7078 22.5243 22.1141 22.118C22.5204 21.7117 22.7487 21.1606 22.7487 20.5859V17.3359"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span
+                style={{
+                  color: "#4A5565",
+                  fontFamily: "Inter",
+                  fontSize: "9px",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                  lineHeight: "11.25px",
+                  letterSpacing: "0.167px",
+                  marginTop: "0.25rem",
+                }}
+              >
+                Slide Size
+              </span>
+            </button>
+          </Popover>
         </div>
       </div>
     </div>
   );
-}
+});

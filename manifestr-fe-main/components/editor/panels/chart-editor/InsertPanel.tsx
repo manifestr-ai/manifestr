@@ -14,7 +14,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <p className="font-inter font-normal leading-4 text-[#6a7282] text-xs text-center">
           Tables
         </p>
-        <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
+        <button
+          onClick={() => store?.openTableModal?.()}
+          className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors"
+        >
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
             <Table2 className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
@@ -33,7 +36,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           Rows & Columns
         </p>
         <div className="flex gap-2 h-20">
-          <button className="border border-transparent h-20 w-[83px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => store?.insertRow?.()}
+            className="border border-transparent h-20 w-[83px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors"
+          >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
               <Plus className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -41,7 +47,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
               </p>
             </div>
           </button>
-          <button className="border border-transparent h-20 w-[93px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => store?.insertColumn?.()}
+            className="border border-transparent h-20 w-[93px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors"
+          >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
               <Plus className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
@@ -60,7 +69,13 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <p className="font-inter font-normal leading-4 text-[#6a7282] text-xs text-center">
           Charts
         </p>
-        <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
+        <button
+          onClick={() => {
+            store?.setActiveTool?.("charts");
+            store?.showToast?.("Chart tools opened");
+          }}
+          className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors"
+        >
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
             <BarChart3 className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
@@ -79,7 +94,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           Illustrations
         </p>
         <div className="flex gap-2">
-          <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => store?.openInsertPicker?.('shapes')}
+            className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors"
+          >
             <div className="flex flex-col gap-1.5 items-center justify-center h-full">
               <Shapes className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
@@ -87,7 +105,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
               </p>
             </div>
           </button>
-          <button className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => store?.openInsertPicker?.('icons')}
+            className="border border-transparent h-16 w-[75px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors"
+          >
             <div className="flex flex-col gap-1.5 items-center justify-center h-full">
               <Smile className="size-5" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
@@ -106,7 +127,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <p className="font-inter font-normal leading-4 text-[#6a7282] text-xs text-center">
           Links
         </p>
-        <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
+        <button
+          onClick={() => store?.openInsertPicker?.('link')}
+          className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors"
+        >
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
             <Link2 className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">
@@ -124,7 +148,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <p className="font-inter font-normal leading-4 text-[#6a7282] text-xs text-center">
           Symbols
         </p>
-        <button className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors">
+        <button
+          onClick={() => store?.openInsertPicker?.('symbols')}
+          className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors"
+        >
           <div className="flex flex-col gap-1.5 items-center justify-center h-full">
             <Hash className="size-5" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-4 text-[#364153] text-xs">

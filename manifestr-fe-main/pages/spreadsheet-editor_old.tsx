@@ -5,7 +5,7 @@ import { saveAs } from 'file-saver';
 import TopHeader from '../components/spreadsheet/TopHeader';
 // import FormulaBar from '../components/spreadsheet/FormulaBar';
 import UniverSheet from '../components/spreadsheet/UniverSheet';
-import RightSidebar from '../components/spreadsheet/RightSidebar';
+import { RightSidebar } from '../components/spreadsheet/RightSidebar';
 import BottomToolbar from '../components/spreadsheet/BottomToolbar';
 import { FloatingSheetTab, FloatingFAB } from '../components/spreadsheet/FloatingElements';
 import dynamic from 'next/dynamic';

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import TopHeader from '../components/spreadsheet/TopHeader';
-import RightSidebar from '../components/spreadsheet/RightSidebar';
+import { RightSidebar } from '../components/spreadsheet/RightSidebar';
 import BottomToolbar from '../components/spreadsheet/BottomToolbar';
 import dynamic from 'next/dynamic';
 import { FloatingSheetTab, FloatingFAB } from '../components/spreadsheet/FloatingElements';
