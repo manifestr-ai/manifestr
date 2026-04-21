@@ -3,11 +3,16 @@ import AdminHeader from '../../components/admin/AdminHeader'
 import AdminSidebar from '../../components/admin/AdminSidebar'
 import AiPerformanceHeader from '../../components/admin/ai-performance/AiPerformanceHeader'
 import AiPerformanceFilters from '../../components/admin/ai-performance/AiPerformanceFilters'
+import OutputMetricsCards from '../../components/admin/ai-performance/OutputMetricsCards'
 import PromptSuccessChart from '../../components/admin/ai-performance/PromptSuccessChart'
 import LatencyTrendChart from '../../components/admin/ai-performance/LatencyTrendChart'
 import RegenerationsList from '../../components/admin/ai-performance/RegenerationsList'
 import AiFeedbackBarChart from '../../components/admin/ai-performance/AiFeedbackBarChart'
+import CompletionRateChart from '../../components/admin/ai-performance/CompletionRateChart'
+import AILogsSection from '../../components/admin/ai-performance/AILogsSection'
+import AIAlertsSection from '../../components/admin/ai-performance/AIAlertsSection'
 import DriftAlertsGrid from '../../components/admin/ai-performance/DriftAlertsGrid'
+import PredictiveSignalsSection from '../../components/admin/ai-performance/PredictiveSignalsSection'
 import { getAdminAiPerformanceData } from '../../services/admin/ai-performance'
 
 export default function AdminAiPerformance({ aiPerformanceData }) {
@@ -34,15 +39,33 @@ export default function AdminAiPerformance({ aiPerformanceData }) {
                 options={aiPerformanceData?.filters?.options}
               />
 
+              {/* Metrics: acceptance rate, edit/accept ratio, regen per output, time to generate */}
+              <OutputMetricsCards data={aiPerformanceData?.outputMetrics} />
+
+              {/* Prompt Performance: success rate + latency trend */}
               <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <PromptSuccessChart data={aiPerformanceData?.promptSuccess} />
                 <LatencyTrendChart data={aiPerformanceData?.latencyTrend} />
               </div>
 
+              {/* Prompt Performance: regenerations + output quality signals */}
               <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <RegenerationsList data={aiPerformanceData?.regenerations} />
                 <AiFeedbackBarChart data={aiPerformanceData?.aiFeedback} />
               </div>
+
+              {/* Prompt Performance: completion rate */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <CompletionRateChart data={aiPerformanceData?.completionRate} />
+              </div>
+
+              {/* Logs: AI errors + timeouts */}
+              <AILogsSection data={aiPerformanceData?.aiLogs} />
+
+              {/* Alerts: failure spikes + latency issues */}
+              <AIAlertsSection data={aiPerformanceData?.aiAlerts} />
+
+              <PredictiveSignalsSection data={aiPerformanceData?.predictiveSignals} />
 
               <DriftAlertsGrid data={aiPerformanceData?.driftAlerts} />
             </div>

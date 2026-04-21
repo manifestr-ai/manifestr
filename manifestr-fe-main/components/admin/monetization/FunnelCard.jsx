@@ -1,5 +1,3 @@
-import { Info } from 'lucide-react'
-
 const DEFAULT_ROWS = [
   { label: 'Free Users', sublabel: '10,000 users', percent: 100, display: '100%' },
   { label: 'Trial Started', sublabel: '10,000 users', percent: 35, display: '35.0%' },
@@ -16,7 +14,6 @@ export default function FunnelCard({ data }) {
     <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-full">
       <div className="flex items-center gap-2">
         <p className="flex-1 text-[18px] leading-7 font-semibold text-[#18181b]">{title}</p>
-        <Info className="w-4 h-4 text-[#71717a] shrink-0" strokeWidth={1.75} />
       </div>
 
       <div className="flex flex-col gap-3">

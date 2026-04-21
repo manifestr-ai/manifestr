@@ -45,6 +45,7 @@ const UNPROTECTED_ROUTES = [
     '/admin/product-usage',
     '/admin/monetization',
     '/admin/ai-performance',
+    '/admin/platform-health',
     '/admin/retention',
     '/admin/lifecycle',
     '/admin/feature-adaptation',

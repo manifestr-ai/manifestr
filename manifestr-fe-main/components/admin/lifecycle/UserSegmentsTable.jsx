@@ -1,42 +1,68 @@
-import { ArrowUpRight, RotateCcw } from 'lucide-react'
+import { ArrowUpRight, Mail, PlayCircle, RotateCcw } from 'lucide-react'
 
-const HEALTH_STYLES = {
-  positive: 'border-[#18181b] text-[#09090b]',
-  warn: 'border-[#f59e0b] text-[#b45309] bg-[#fffbeb]',
-  negative: 'border-[#ef4444] text-[#b91c1c] bg-[#fef2f2]',
+// ─── Stage badge ──────────────────────────────────────────────────────────────
+const STAGE_STYLES = {
+  new:         { bg: '#f8fafc', border: '#cbd5e1', text: '#475569' },
+  activated:   { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' },
+  engaged:     { bg: '#f0fdf4', border: '#86efac', text: '#166534' },
+  power_user:  { bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46' },
+  at_risk:     { bg: '#fffbeb', border: '#fcd34d', text: '#92400e' },
+  dormant:     { bg: '#fff7ed', border: '#fdba74', text: '#9a3412' },
+  churned:     { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b' },
+  reactivated: { bg: '#f5f3ff', border: '#c4b5fd', text: '#5b21b6' },
 }
 
-function HealthPill({ label, tone = 'positive' }) {
-  const classes = HEALTH_STYLES[tone] || HEALTH_STYLES.positive
+function StageBadge({ stage, label }) {
+  const s = STAGE_STYLES[stage] || STAGE_STYLES.new
   return (
     <span
-      className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full border text-[12px] leading-[18px] font-medium ${classes}`}
+      className="inline-flex items-center px-2 py-0.5 rounded-full border text-[11px] leading-4 font-semibold whitespace-nowrap"
+      style={{ backgroundColor: s.bg, borderColor: s.border, color: s.text }}
     >
       {label}
     </span>
   )
 }
 
-function ActionButton({ action }) {
-  if (!action) return null
-  const isUpgrade = action.intent === 'upgrade'
-  const Icon = isUpgrade ? ArrowUpRight : RotateCcw
-  const base =
-    'inline-flex items-center gap-2 h-9 px-3 rounded-[6px] text-[14px] leading-5 font-medium transition-colors'
-  const classes = isUpgrade
-    ? `${base} bg-[#18181b] text-white hover:opacity-90`
-    : `${base} border border-[#e4e4e7] bg-white text-[#18181b] hover:bg-[#f4f4f5]`
+// ─── Action buttons ───────────────────────────────────────────────────────────
+const ACTION_CONFIG = {
+  upgrade: {
+    Icon: ArrowUpRight,
+    classes: 'bg-[#18181b] text-white hover:opacity-90',
+  },
+  'retention-email': {
+    Icon: Mail,
+    classes: 'border border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8] hover:bg-[#dbeafe]',
+  },
+  onboarding: {
+    Icon: PlayCircle,
+    classes: 'border border-[#86efac] bg-[#f0fdf4] text-[#166534] hover:bg-[#dcfce7]',
+  },
+  'win-back': {
+    Icon: RotateCcw,
+    classes: 'border border-[#fcd34d] bg-[#fffbeb] text-[#92400e] hover:bg-[#fef3c7]',
+  },
+}
 
+function ActionButton({ action }) {
+  const cfg = ACTION_CONFIG[action?.intent] || ACTION_CONFIG.upgrade
+  const { Icon } = cfg
   return (
-    <button type="button" className={classes}>
-      <Icon className="w-4 h-4" strokeWidth={1.75} />
+    <button
+      type="button"
+      className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-[6px] text-[12px] leading-4 font-medium transition-colors whitespace-nowrap ${cfg.classes}`}
+    >
+      <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
       {action.label}
     </button>
   )
 }
 
+// ─── Table ────────────────────────────────────────────────────────────────────
+const GRID = '2fr 0.7fr 0.7fr 0.9fr 0.8fr 1fr 1.8fr'
+
 export default function UserSegmentsTable({ data }) {
-  const title = data?.title || 'User Segments'
+  const title = data?.title || 'Lifecycle Segments'
   const subtitle = data?.subtitle || ''
   const rows = data?.rows || []
 
@@ -49,42 +75,64 @@ export default function UserSegmentsTable({ data }) {
         )}
       </div>
 
-      <div className="w-full">
+      <div className="w-full overflow-x-auto">
+        {/* Header */}
         <div
-          className="hidden md:grid items-center gap-x-4 pb-2 border-b border-[#e4e4e7]"
-          style={{ gridTemplateColumns: '1.6fr 2fr 0.9fr 0.9fr 1.2fr' }}
+          className="hidden lg:grid items-center gap-x-4 pb-2 border-b border-[#e4e4e7] min-w-[900px]"
+          style={{ gridTemplateColumns: GRID }}
         >
-          <p className="text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wide">
-            Segment
-          </p>
-          <p className="text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wide">
-            Description
-          </p>
-          <p className="text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wide">
-            Users
-          </p>
-          <p className="text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wide">
-            Health
-          </p>
-          <p className="text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wide text-right">
-            Action
-          </p>
+          {['Segment', 'Users', 'Avg Outputs', 'Revenue', 'Last Active', 'Stage', 'Actions'].map((col) => (
+            <p
+              key={col}
+              className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider"
+            >
+              {col}
+            </p>
+          ))}
         </div>
 
-        <div className="flex flex-col">
+        {/* Rows */}
+        <div className="flex flex-col min-w-[900px]">
           {rows.map((row) => (
             <div
               key={row.id}
-              className="grid items-center gap-x-4 gap-y-2 py-3 border-b border-[#e4e4e7] last:border-b-0 grid-cols-1 md:grid-cols-[1.6fr_2fr_0.9fr_0.9fr_1.2fr]"
+              className="grid items-center gap-x-4 gap-y-2 py-3.5 border-b border-[#e4e4e7] last:border-b-0"
+              style={{ gridTemplateColumns: GRID }}
             >
-              <p className="text-[14px] leading-5 font-medium text-[#18181b] truncate">{row.name}</p>
-              <p className="text-[14px] leading-5 font-normal text-[#52525b]">{row.description}</p>
-              <p className="text-[14px] leading-5 font-medium text-[#18181b]">{row.users}</p>
-              <div>
-                <HealthPill label={row.health} tone={row.tone} />
+              {/* Segment */}
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="text-[14px] leading-5 font-semibold text-[#18181b] truncate">
+                  {row.name}
+                </p>
+                {row.description && (
+                  <p className="text-[12px] leading-[18px] text-[#71717a] truncate">
+                    {row.description}
+                  </p>
+                )}
               </div>
-              <div className="flex md:justify-end">
-                <ActionButton action={row.action} />
+
+              {/* Users */}
+              <p className="text-[14px] leading-5 font-semibold text-[#18181b]">{row.users}</p>
+
+              {/* Avg Outputs */}
+              <p className="text-[14px] leading-5 text-[#52525b]">{row.avgOutputs}</p>
+
+              {/* Revenue */}
+              <p className="text-[14px] leading-5 font-medium text-[#18181b]">{row.revenueValue}</p>
+
+              {/* Last Active */}
+              <p className="text-[13px] leading-5 text-[#71717a]">{row.lastActivity}</p>
+
+              {/* Stage */}
+              <div>
+                <StageBadge stage={row.stage} label={row.stageLabel} />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {(row.actions || []).map((action) => (
+                  <ActionButton key={action.intent} action={action} />
+                ))}
               </div>
             </div>
           ))}

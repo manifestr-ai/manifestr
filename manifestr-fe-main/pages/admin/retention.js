@@ -6,6 +6,8 @@ import AiPerformanceFilters from '../../components/admin/ai-performance/AiPerfor
 import StatCard from '../../components/admin/overview/StatCard'
 import CohortRetentionTable from '../../components/admin/retention/CohortRetentionTable'
 import TrendLineChart from '../../components/admin/retention/TrendLineChart'
+import RevenueRetentionStats from '../../components/admin/retention/RevenueRetentionStats'
+import ChurnAnalysisBreakdown from '../../components/admin/retention/ChurnAnalysisBreakdown'
 import ChurnBreakdownChart from '../../components/admin/retention/ChurnBreakdownChart'
 import { getAdminRetentionData } from '../../services/admin/retention'
 
@@ -15,7 +17,7 @@ export default function AdminRetention({ retentionData }) {
   return (
     <>
       <Head>
-        <title>Retention & Churn - Admin</title>
+        <title>Retention &amp; Churn - Admin</title>
       </Head>
 
       <div className="min-h-screen bg-[#f4f4f5]">
@@ -30,11 +32,13 @@ export default function AdminRetention({ retentionData }) {
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+              {/* Filters */}
               <AiPerformanceFilters
                 searchPlaceholder={retentionData?.filters?.searchPlaceholder}
                 options={retentionData?.filters?.options}
               />
 
+              {/* KPI Row: Churn Rate · Reactivation Rate · Avg Retention · Churned This Month */}
               <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
                 {stats.map((s) => (
                   <StatCard
@@ -48,14 +52,26 @@ export default function AdminRetention({ retentionData }) {
                 ))}
               </div>
 
+              {/* Cohort Retention Heatmap (1D / 7D / 30D) */}
               <CohortRetentionTable data={retentionData?.cohortRetention} />
 
+              {/* Retention Curve + Churn Trend */}
               <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <TrendLineChart key="churn-rate-trend" data={retentionData?.churnRateTrend} />
-                <ChurnBreakdownChart data={retentionData?.churnBreakdown} />
+                <TrendLineChart key="retention-curve" data={retentionData?.retentionCurve} />
+                <TrendLineChart key="churn-trend" data={retentionData?.churnRateTrend} />
               </div>
 
+              {/* Revenue Retention: NRR · GRR · Expansion · Contraction */}
+              <RevenueRetentionStats data={retentionData?.revenueRetention} />
+
+              {/* NRR / GRR Trend */}
               <TrendLineChart key="nrr-grr-trend" data={retentionData?.nrrGrrTrend} />
+
+              {/* Churn Analysis: By Plan · By Segment · By Source */}
+              <ChurnAnalysisBreakdown data={retentionData?.churnAnalysis} />
+
+              {/* Churn Reasons (optional — if collected) */}
+              <ChurnBreakdownChart data={retentionData?.churnReasons} />
             </div>
           </div>
         </div>

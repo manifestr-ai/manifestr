@@ -4,12 +4,12 @@ import AdminSidebar from '../../components/admin/AdminSidebar'
 import GrowthHeader from '../../components/admin/growth/GrowthHeader'
 import OverviewFilters from '../../components/admin/overview/OverviewFilters'
 import StatCard from '../../components/admin/overview/StatCard'
-import MrrArrTrend from '../../components/admin/overview/MrrArrTrend'
-import UpgradesCancelsChart from '../../components/admin/growth/UpgradesCancelsChart'
-import RetentionHeatmap from '../../components/admin/growth/RetentionHeatmap'
+import DauMauTrend from '../../components/admin/overview/DauMauTrend'
+import ReturningVsNewChart from '../../components/admin/growth/ReturningVsNewChart'
 import ChannelBarChart from '../../components/admin/growth/ChannelBarChart'
-import CpsCppTrend from '../../components/admin/growth/CpsCppTrend'
 import PaidVsOrganic from '../../components/admin/growth/PaidVsOrganic'
+import UserHealthScoreCard from '../../components/admin/growth/UserHealthScoreCard'
+import PowerUsersTable from '../../components/admin/growth/PowerUsersTable'
 import { getAdminGrowthData } from '../../services/admin/growth'
 
 export default function AdminGrowth({ growthData }) {
@@ -18,7 +18,7 @@ export default function AdminGrowth({ growthData }) {
   return (
     <>
       <Head>
-        <title>Growth &amp; Acquisition - Admin</title>
+        <title>Growth &amp; User Health - Admin</title>
       </Head>
 
       <div className="min-h-screen bg-[#f4f4f5]">
@@ -33,33 +33,37 @@ export default function AdminGrowth({ growthData }) {
             />
 
             <div className="flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+              {/* Filters */}
               <OverviewFilters
                 filters={growthData?.filters?.options}
                 searchPlaceholder={growthData?.filters?.searchPlaceholder}
               />
 
-              <div className="flex gap-[18px]">
+              {/* KPI Row: New Signups · Activation Rate · DAU/MAU · Returning Users */}
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
                 {stats.map((s) => (
                   <StatCard key={s.title} {...s} />
                 ))}
               </div>
 
-              <MrrArrTrend data={growthData?.mrrArrTrend} />
-
-              <div className="flex gap-[18px]">
-                <UpgradesCancelsChart data={growthData?.upgradesCancels} />
-                <RetentionHeatmap data={growthData?.retentionTable} />
+              {/* Metrics: Signups Over Time + Returning vs New */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <DauMauTrend data={growthData?.signupsOverTime} />
+                <ReturningVsNewChart data={growthData?.returningVsNew} />
               </div>
 
-              <div className="flex gap-[18px]">
-                <ChannelBarChart data={growthData?.cacByChannel} />
-                <CpsCppTrend data={growthData?.cpsCppTrend} />
+              {/* Breakdown: By Region · By Source · By User Type */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <ChannelBarChart data={growthData?.breakdownByRegion} />
+                <ChannelBarChart data={growthData?.breakdownBySource} />
+                <PaidVsOrganic data={growthData?.breakdownByUserType} />
               </div>
 
-              <div className="flex gap-[18px]">
-                <PaidVsOrganic data={growthData?.paidVsOrganic} />
-                <ChannelBarChart data={growthData?.arpuByChannel} />
-              </div>
+              {/* User Health Score */}
+              <UserHealthScoreCard data={growthData?.userHealthScore} />
+
+              {/* Power Users Table */}
+              <PowerUsersTable data={growthData?.powerUsers} />
             </div>
           </div>
         </div>

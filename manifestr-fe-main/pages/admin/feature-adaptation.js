@@ -5,8 +5,9 @@ import FeatureAdoptionHeader from '../../components/admin/feature-adoption/Featu
 import AiPerformanceFilters from '../../components/admin/ai-performance/AiPerformanceFilters'
 import StatCard from '../../components/admin/overview/StatCard'
 import AdoptionFunnelChart from '../../components/admin/feature-adoption/AdoptionFunnelChart'
-import PlanBreakdownChart from '../../components/admin/feature-adoption/PlanBreakdownChart'
+import FeatureAdoptionGrid from '../../components/admin/feature-adoption/FeatureAdoptionGrid'
 import TopFeaturesTable from '../../components/admin/feature-adoption/TopFeaturesTable'
+import PlanBreakdownChart from '../../components/admin/feature-adoption/PlanBreakdownChart'
 import WorkspacesCreated from '../../components/admin/feature-adoption/WorkspacesCreated'
 import MembersAdded from '../../components/admin/feature-adoption/MembersAdded'
 import CommentsPerDocument from '../../components/admin/feature-adoption/CommentsPerDocument'
@@ -14,6 +15,16 @@ import SharedVsSoloUsage from '../../components/admin/feature-adoption/SharedVsS
 import TopCollaborativeProjects from '../../components/admin/feature-adoption/TopCollaborativeProjects'
 import TeamTable from '../../components/admin/feature-adoption/TeamTable'
 import { getAdminFeatureAdoptionData } from '../../services/admin/feature-adoption'
+
+function SectionLabel({ children }) {
+  return (
+    <div className="pt-2">
+      <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
+        {children}
+      </p>
+    </div>
+  )
+}
 
 export default function AdminFeatureAdoption({ featureAdoptionData }) {
   const stats = featureAdoptionData?.stats || []
@@ -41,6 +52,7 @@ export default function AdminFeatureAdoption({ featureAdoptionData }) {
                 options={featureAdoptionData?.filters?.options}
               />
 
+              {/* KPI: Adoption Stages */}
               <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
                 {stats.map((s) => (
                   <StatCard
@@ -54,17 +66,32 @@ export default function AdminFeatureAdoption({ featureAdoptionData }) {
                 ))}
               </div>
 
+              {/* Overall Funnel */}
+              <SectionLabel>Overall Adoption Funnel</SectionLabel>
               <AdoptionFunnelChart data={featureAdoptionData?.adoptionFunnel} />
 
-              <PlanBreakdownChart data={featureAdoptionData?.planBreakdown} />
+              {/* Per-Feature Funnels + Adoption Score */}
+              <SectionLabel>Per-Feature Funnels</SectionLabel>
+              <FeatureAdoptionGrid data={featureAdoptionData?.featureAdoptionGrid} />
 
+              {/* Feature Adoption Score Matrix */}
+              <SectionLabel>Adoption Score Matrix</SectionLabel>
               <TopFeaturesTable data={featureAdoptionData?.topFeatures} />
 
-              <div className="pt-2">
-                <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
-                  Collaboration Hub
-                </p>
+              {/* Breakdowns */}
+              <SectionLabel>Breakdowns</SectionLabel>
+              <PlanBreakdownChart data={featureAdoptionData?.planBreakdown} />
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+                <div className="flex-1 min-w-0">
+                  <PlanBreakdownChart data={featureAdoptionData?.roleBreakdown} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <PlanBreakdownChart data={featureAdoptionData?.regionBreakdown} />
+                </div>
               </div>
+
+              {/* Collaboration Hub */}
+              <SectionLabel>Collaboration Hub</SectionLabel>
 
               <div className="flex gap-[18px] items-stretch">
                 <WorkspacesCreated data={featureAdoptionData?.workspacesCreated} />

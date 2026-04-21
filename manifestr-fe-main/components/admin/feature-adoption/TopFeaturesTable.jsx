@@ -12,8 +12,8 @@ export default function TopFeaturesTable({ data }) {
   const title = data?.title || 'Top Features by Adoption'
   const subtitle = data?.subtitle || ''
   const rows = data?.rows || []
-  const periods = ['First Use', 'Repeat', 'Habitual']
-  const keys = ['firstUse', 'repeat', 'habitual']
+  const periods = data?.periods || ['Discovered', 'First Use', 'Repeat', 'Habitual']
+  const keys = data?.keys || ['discovered', 'firstUse', 'repeat', 'habitual']
 
   return (
     <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">

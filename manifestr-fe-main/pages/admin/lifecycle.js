@@ -14,7 +14,7 @@ export default function AdminLifecycle({ lifecycleData }) {
   return (
     <>
       <Head>
-        <title>User Lifecycle - Admin</title>
+        <title>User Lifecycle &amp; Segmentation - Admin</title>
       </Head>
 
       <div className="min-h-screen bg-[#f4f4f5]">

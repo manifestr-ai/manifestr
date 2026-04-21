@@ -4,12 +4,11 @@ import AdminSidebar from '../../components/admin/AdminSidebar'
 import OverviewHeader from '../../components/admin/overview/OverviewHeader'
 import OverviewFilters from '../../components/admin/overview/OverviewFilters'
 import StatCard from '../../components/admin/overview/StatCard'
-import MrrArrTrend from '../../components/admin/overview/MrrArrTrend'
-import ClosedWonChart from '../../components/admin/overview/ClosedWonChart'
 import DauMauTrend from '../../components/admin/overview/DauMauTrend'
-import AiTrustScore from '../../components/admin/overview/AiTrustScore'
-import TopCustomersTable from '../../components/admin/overview/TopCustomersTable'
-import PlatformHealth from '../../components/admin/overview/PlatformHealth'
+import MrrArrTrend from '../../components/admin/overview/MrrArrTrend'
+import ConversionFunnel from '../../components/admin/overview/ConversionFunnel'
+import RecentActivityFeed from '../../components/admin/overview/RecentActivityFeed'
+import AlertsFeed from '../../components/admin/overview/AlertsFeed'
 import { getAdminOverviewData } from '../../services/admin/overview'
 
 export default function AdminOverview({ overviewData }) {
@@ -27,15 +26,12 @@ export default function AdminOverview({ overviewData }) {
         <div className="flex min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          {/* Page content */}
           <div className="flex-1 min-w-0 flex flex-col">
-            {/* Page header — white bg */}
             <OverviewHeader
               title={overviewData?.header?.title}
               subtitle={overviewData?.header?.subtitle}
             />
 
-            {/* Main body — muted bg */}
             <div className="flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
               {/* Filters */}
               <OverviewFilters
@@ -43,37 +39,34 @@ export default function AdminOverview({ overviewData }) {
                 searchPlaceholder={overviewData?.filters?.searchPlaceholder}
               />
 
-              {/* KPI Row 1 */}
-              <div className="flex gap-[18px]">
+              {/* KPI Row 1: Total Users · New Signups (7d) · DAU/MAU */}
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
                 {row1.map((s) => (
                   <StatCard key={s.title} {...s} />
                 ))}
               </div>
 
-              {/* KPI Row 2 */}
-              <div className="flex gap-[18px]">
+              {/* KPI Row 2: Activation Rate · MRR · Revenue This Month */}
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
                 {row2.map((s) => (
                   <StatCard key={s.title} {...s} />
                 ))}
               </div>
 
-              {/* Charts Row: MRR Trend + Closed-Won */}
-              <div className="flex gap-[18px]">
-                <MrrArrTrend data={overviewData?.mrrArrTrend} />
-                <ClosedWonChart data={overviewData?.closedWon} />
+              {/* Charts Row: User Growth (line) + Conversion Funnel (mini) */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <DauMauTrend data={overviewData?.userGrowth} />
+                <ConversionFunnel data={overviewData?.conversionFunnel} />
               </div>
 
-              {/* Charts Row: DAU/MAU + AI Trust */}
-              <div className="flex gap-[18px]">
-                <DauMauTrend data={overviewData?.dauMauTrend} />
-                <AiTrustScore data={overviewData?.aiTrustScore} />
+              {/* Charts + Feed Row: Revenue Trend (line) + Recent Activity */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <MrrArrTrend data={overviewData?.revenueTrend} />
+                <RecentActivityFeed data={overviewData?.recentActivity} />
               </div>
 
-              {/* Bottom Row: Customers Table + Platform Health */}
-              <div className="flex gap-[18px]">
-                <TopCustomersTable data={overviewData?.topCustomers} />
-                <PlatformHealth data={overviewData?.platformHealth} />
-              </div>
+              {/* Alerts: System Issues · Revenue Drops · Churn Spikes */}
+              <AlertsFeed data={overviewData?.alerts} />
             </div>
           </div>
         </div>

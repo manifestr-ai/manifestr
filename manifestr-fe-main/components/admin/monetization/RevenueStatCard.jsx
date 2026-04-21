@@ -1,4 +1,4 @@
-import { Circle, Info } from 'lucide-react'
+import { Circle } from 'lucide-react'
 
 export default function RevenueStatCard({ data }) {
   const title = data?.title || 'Total Revenue'
@@ -15,7 +15,6 @@ export default function RevenueStatCard({ data }) {
         <p className="flex-1 text-[18px] leading-7 font-medium text-[#18181b] whitespace-nowrap">
           {title}
         </p>
-        <Info className="w-4 h-4 text-[#71717a] shrink-0" strokeWidth={1.75} />
       </div>
 
       <div className="flex flex-col gap-4">

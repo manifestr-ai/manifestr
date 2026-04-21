@@ -22,8 +22,19 @@ import MultiToolUsage from '../../components/admin/product-usage/MultiToolUsage'
 import ToolPairingMatrix from '../../components/admin/product-usage/ToolPairingMatrix'
 import { getAdminProductUsageData } from '../../services/admin/product-usage'
 
+function SectionLabel({ children }) {
+  return (
+    <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a] pt-2">
+      {children}
+    </p>
+  )
+}
+
 export default function AdminProductUsage({ productUsageData }) {
   const stats = productUsageData?.stats || []
+  const behaviourStats = productUsageData?.behaviourStats || []
+  const statsRow1 = stats.slice(0, 3)
+  const statsRow2 = stats.slice(3, 6)
 
   return (
     <>
@@ -48,58 +59,83 @@ export default function AdminProductUsage({ productUsageData }) {
                 searchPlaceholder={productUsageData?.filters?.searchPlaceholder}
               />
 
-              <div className="flex gap-[18px]">
-                {stats.map((s) => (
+              {/* ── Core Metrics ── */}
+              <SectionLabel>Core Metrics</SectionLabel>
+
+              {/* KPI Row 1: Outputs per User · Time to First Output · Session Frequency */}
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+                {statsRow1.map((s) => (
                   <StatCard key={s.title} {...s} neutralBadge />
                 ))}
               </div>
 
-              <div className="flex gap-[18px]">
+              {/* KPI Row 2: Avg Session Duration · Completion Rate · Abandonment Rate */}
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+                {statsRow2.map((s) => (
+                  <StatCard key={s.title} {...s} neutralBadge />
+                ))}
+              </div>
+
+              {/* Usage trend charts */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <DecksPerUserChart data={productUsageData?.decksPerUser} />
                 <TimeToFirstOutput data={productUsageData?.timeToFirstOutput} />
               </div>
 
-              <div className="flex gap-[18px] items-stretch">
-                <CategoryPieChart data={productUsageData?.slideTypes} />
-                <RewritesVsAccepts data={productUsageData?.rewritesVsAccepts} />
+              {/* Session Frequency + Session Duration */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <DecksPerUserChart data={productUsageData?.sessionFrequency} />
+                <DecksPerUserChart data={productUsageData?.sessionDuration} />
               </div>
 
-              <div className="flex gap-[18px] items-stretch">
+              {/* ── Behaviour Tracking ── */}
+              <SectionLabel>Behaviour Tracking</SectionLabel>
+
+              {/* Rewrites per Output · Accept Rate · Edit Rate */}
+              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+                {behaviourStats.map((s) => (
+                  <StatCard key={s.title} {...s} neutralBadge />
+                ))}
+              </div>
+
+              {/* Accept vs Edit (Rewrites vs Accepts) + Most Used Document Types (Slide Types) */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+                <RewritesVsAccepts data={productUsageData?.rewritesVsAccepts} />
+                <CategoryPieChart data={productUsageData?.slideTypes} />
+              </div>
+
+              {/* Export Types + AI Style Settings */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <CategoryPieChart data={productUsageData?.exportTypes} />
                 <AiStyleSettingsUsage data={productUsageData?.aiStyleSettingsUsage} />
               </div>
 
-              <div className="pt-2">
-                <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
-                  Slide Engagement
-                </p>
-              </div>
-
               <SlideTimeHeatmap data={productUsageData?.slideTimeHeatmap} />
 
-              <div className="flex gap-[18px] items-stretch">
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <SlideDropoff data={productUsageData?.slideDropoff} />
                 <SlideRewritesVsAccepts data={productUsageData?.slideRewritesVsAccepts} />
               </div>
 
-              <div className="flex gap-[18px] items-stretch">
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <RewritesVsAcceptsFlows data={productUsageData?.rewritesVsAcceptsFlows} />
                 <BouncedDecks data={productUsageData?.bouncedDecks} />
               </div>
 
               <CompletionTime data={productUsageData?.completionTime} />
 
-              <div className="pt-2">
-                <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
-                  Cross-Tool Journeys
-                </p>
-              </div>
-
+              {/* Most Used Tools */}
+              <SectionLabel>Most Used Tools</SectionLabel>
               <ToolUsersGrid data={productUsageData?.toolUsers} />
 
+              {/* ── Cross-Tool Journeys ── */}
+              <SectionLabel>Cross-Tool Journeys</SectionLabel>
+
+              {/* Most common tool sequences */}
               <MostCommonJourneys data={productUsageData?.mostCommonJourneys} />
 
-              <div className="flex gap-[18px] items-stretch">
+              {/* Drop-off funnel + Multi-tool usage */}
+              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
                 <TransitionDropoffsFunnel data={productUsageData?.transitionDropoffsFunnel} />
                 <MultiToolUsage data={productUsageData?.multiToolUsage} />
               </div>
