@@ -1,10 +1,12 @@
-import React from "react";
+import { observer } from "mobx-react-lite";
+import { Popover, Position } from "@blueprintjs/core";
+import { useEffect, useMemo, useRef } from "react";
 
 interface LayoutPanelProps {
   store: any;
 }
 
-export default function LayoutPanel({ store }: LayoutPanelProps) {
+export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
   const page = store.activePage;
 
   if (!page) {
@@ -14,6 +16,648 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
       </div>
     );
   }
+
+  const clearPageElements = (targetPage: any) => {
+    const children = targetPage?.children;
+    if (!Array.isArray(children)) return;
+    children.slice().forEach((el: any) => {
+      if (typeof el?.remove === "function") el.remove();
+    });
+  };
+
+  const promptForImage = (onPick: (src: string) => void) => {
+    if (typeof window === "undefined") return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const src = event.target?.result as string;
+        if (src) onPick(src);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
+  const makeSvgDataUrl = (svg: string) => {
+    const cleaned = svg.replace(/\s+/g, " ").trim();
+    const base64 = (() => {
+      if (typeof Buffer !== "undefined") {
+        return Buffer.from(cleaned, "utf8").toString("base64");
+      }
+      const bytes = new TextEncoder().encode(cleaned);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary);
+    })();
+    return `data:image/svg+xml;base64,${base64}`;
+  };
+
+  const IMAGE_PLACEHOLDER_SRC = useMemo(
+    () =>
+      makeSvgDataUrl(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
+          <rect width="900" height="600" fill="#F3F4F6"/>
+          <rect x="40" y="40" width="820" height="520" rx="18" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="4"/>
+          <g transform="translate(0,10)">
+            <path d="M400 250h100c33 0 60 27 60 60v70c0 33-27 60-60 60H400c-33 0-60-27-60-60v-70c0-33 27-60 60-60z" fill="#EEF2F7" stroke="#9CA3AF" stroke-width="6"/>
+            <circle cx="420" cy="320" r="18" fill="#9CA3AF"/>
+            <path d="M365 418l68-68c8-8 20-8 28 0l52 52 22-22c8-8 20-8 28 0l52 52" fill="none" stroke="#9CA3AF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <text x="450" y="505" font-family="Inter, Arial, sans-serif" font-size="28" text-anchor="middle" fill="#6B7280">Click to add image</text>
+        </svg>`,
+      ),
+    [],
+  );
+
+  const VIDEO_PLACEHOLDER_SRC = useMemo(
+    () =>
+      makeSvgDataUrl(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600">
+          <rect width="900" height="600" fill="#111827"/>
+          <rect x="40" y="40" width="820" height="520" rx="18" fill="#0B1220" stroke="#374151" stroke-width="4"/>
+          <circle cx="450" cy="290" r="84" fill="#1F2937" stroke="#9CA3AF" stroke-width="6"/>
+          <path d="M425 245l78 45-78 45z" fill="#E5E7EB"/>
+          <text x="450" y="505" font-family="Inter, Arial, sans-serif" font-size="28" text-anchor="middle" fill="#D1D5DB">Click to add video</text>
+        </svg>`,
+      ),
+    [],
+  );
+
+  const isMediaPlaceholder = (el: any) =>
+    el?.type === "image" &&
+    typeof el?.name === "string" &&
+    el.name.startsWith("layout-media:");
+
+  const mediaKindFromName = (name: string | undefined) => {
+    if (!name) return null;
+    if (name.startsWith("layout-media:image")) return "image";
+    if (name.startsWith("layout-media:video")) return "video";
+    return null;
+  };
+
+  const isPlaceholderSrc = (kind: "image" | "video", src: any) => {
+    const expected = kind === "video" ? VIDEO_PLACEHOLDER_SRC : IMAGE_PLACEHOLDER_SRC;
+    return typeof src === "string" && src === expected;
+  };
+
+  const selectedElement = store.selectedElements?.[0];
+  const selectedMediaKind = isMediaPlaceholder(selectedElement)
+    ? (mediaKindFromName(selectedElement.name) as "image" | "video" | null)
+    : null;
+  const selectedIsPlaceholder =
+    selectedMediaKind && isPlaceholderSrc(selectedMediaKind, selectedElement?.src);
+
+  const lastSelectionRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!store?.on) return;
+    const unsubscribe = store.on("change", () => {
+      const sel = store.selectedElements?.[0];
+      if (!sel?.id) return;
+      if (sel.id === lastSelectionRef.current) return;
+      lastSelectionRef.current = sel.id;
+      if (!isMediaPlaceholder(sel)) return;
+
+      const kind = mediaKindFromName(sel.name);
+      if (!kind) return;
+      if (!isPlaceholderSrc(kind as any, sel.src)) return;
+
+      promptForImage((src) => {
+        if (sel?.set) {
+          sel.set({ src, name: `layout-media:${kind}:filled` });
+        }
+      });
+    });
+    return () => unsubscribe?.();
+  }, [store, IMAGE_PLACEHOLDER_SRC, VIDEO_PLACEHOLDER_SRC]);
+
+  const setSlideSize = (newWidth: number, newHeight: number) => {
+    const oldWidth = store.width;
+    const oldHeight = store.height;
+    if (
+      typeof store.setSize !== "function" ||
+      typeof oldWidth !== "number" ||
+      typeof oldHeight !== "number" ||
+      oldWidth <= 0 ||
+      oldHeight <= 0
+    ) {
+      store.setSize?.(newWidth, newHeight);
+      return;
+    }
+
+    const scaleX = newWidth / oldWidth;
+    const scaleY = newHeight / oldHeight;
+    const textScale = Math.min(scaleX, scaleY);
+
+    (store.pages || []).forEach((p: any) => {
+      const children = Array.isArray(p?.children) ? p.children : [];
+      children.forEach((el: any) => {
+        if (!el?.set) return;
+        const next: any = {
+          x: Math.round((el.x || 0) * scaleX),
+          y: Math.round((el.y || 0) * scaleY),
+          width: Math.round((el.width || 0) * scaleX),
+          height: Math.round((el.height || 0) * scaleY),
+        };
+        if (el.type === "text") {
+          if (typeof el.fontSize === "number") {
+            next.fontSize = Math.max(8, Math.round(el.fontSize * textScale));
+          }
+          if (typeof el.strokeWidth === "number") {
+            next.strokeWidth = el.strokeWidth * textScale;
+          }
+        }
+        el.set(next);
+      });
+    });
+
+    store.setSize(newWidth, newHeight);
+  };
+
+  const isLandscape =
+    typeof store.width === "number" &&
+    typeof store.height === "number" &&
+    store.width >= store.height;
+
+  const applyLayout = (layoutKey: string) => {
+    const targetPage = store.activePage;
+    if (!targetPage) return;
+
+    const hasContent =
+      Array.isArray(targetPage.children) && targetPage.children.length > 0;
+    if (hasContent) {
+      const shouldReplace = window.confirm(
+        "Applying a layout will replace current slide contents. Continue?",
+      );
+      if (!shouldReplace) return;
+    }
+
+    clearPageElements(targetPage);
+    if (targetPage.set) targetPage.set({ layout: layoutKey });
+
+    const w = store.width || 1920;
+    const h = store.height || 1080;
+    const padX = Math.round(w * 0.1);
+
+    if (layoutKey === "blank") return;
+
+    if (layoutKey === "title") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.18),
+        width: Math.round(w * 0.8),
+        fontSize: 64,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+        align: "left",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "Subtitle",
+        x: padX,
+        y: Math.round(h * 0.32),
+        width: Math.round(w * 0.8),
+        fontSize: 28,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#4B5563",
+        align: "left",
+      });
+      return;
+    }
+
+    if (layoutKey === "title_tagline") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.18),
+        width: Math.round(w * 0.8),
+        fontSize: 60,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "Tagline",
+        x: padX,
+        y: Math.round(h * 0.32),
+        width: Math.round(w * 0.8),
+        fontSize: 24,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#6B7280",
+      });
+      return;
+    }
+
+    if (layoutKey === "title_content") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Bullet 1\n• Bullet 2\n• Bullet 3",
+        x: padX,
+        y: Math.round(h * 0.26),
+        width: Math.round(w * 0.55),
+        fontSize: 28,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+      return;
+    }
+
+    if (layoutKey === "title_image") {
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "image",
+        src: IMAGE_PLACEHOLDER_SRC,
+        x: padX,
+        y: Math.round(h * 0.24),
+        width: Math.round(w * 0.8),
+        height: Math.round(h * 0.60),
+        name: "layout-media:image:placeholder",
+      });
+      return;
+    }
+
+    if (layoutKey === "two_content") {
+      const gap = Math.round(w * 0.04);
+      const colW = Math.round((w - padX * 2 - gap) / 2);
+      const topY = Math.round(h * 0.22);
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Content 1",
+        x: padX,
+        y: topY,
+        width: colW,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Point 1\n• Point 2\n• Point 3",
+        x: padX,
+        y: topY + Math.round(h * 0.06),
+        width: colW,
+        fontSize: 24,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Content 2",
+        x: padX + colW + gap,
+        y: topY,
+        width: colW,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Point 1\n• Point 2\n• Point 3",
+        x: padX + colW + gap,
+        y: topY + Math.round(h * 0.06),
+        width: colW,
+        fontSize: 24,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+      return;
+    }
+
+    if (layoutKey === "comparison") {
+      const gap = Math.round(w * 0.04);
+      const colW = Math.round((w - padX * 2 - gap) / 2);
+      const topY = Math.round(h * 0.22);
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: padX,
+        y: topY,
+        width: colW,
+        height: Math.round(h * 0.62),
+        fill: "#F8FAFC",
+        stroke: "#E5E7EB",
+        strokeWidth: 2,
+      });
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: padX + colW + gap,
+        y: topY,
+        width: colW,
+        height: Math.round(h * 0.62),
+        fill: "#F8FAFC",
+        stroke: "#E5E7EB",
+        strokeWidth: 2,
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Option A",
+        x: padX + 18,
+        y: topY + 14,
+        width: colW - 36,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "700",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Pro 1\n• Pro 2\n• Pro 3",
+        x: padX + 18,
+        y: topY + 62,
+        width: colW - 36,
+        fontSize: 22,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+
+      targetPage.addElement({
+        type: "text",
+        text: "Option B",
+        x: padX + colW + gap + 18,
+        y: topY + 14,
+        width: colW - 36,
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "700",
+        fill: "#111827",
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "• Pro 1\n• Pro 2\n• Pro 3",
+        x: padX + colW + gap + 18,
+        y: topY + 62,
+        width: colW - 36,
+        fontSize: 22,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#111827",
+        lineHeight: 1.3,
+      });
+      return;
+    }
+
+    if (layoutKey === "full_image") {
+      targetPage.addElement({
+        type: "image",
+        src: VIDEO_PLACEHOLDER_SRC,
+        x: 0,
+        y: 0,
+        width: w,
+        height: h,
+        name: "layout-media:video:placeholder",
+      });
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: 0,
+        y: 0,
+        width: w,
+        height: Math.round(h * 0.18),
+        fill: "rgba(17,24,39,0.55)",
+        strokeWidth: 0,
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "Title",
+        x: padX,
+        y: Math.round(h * 0.06),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "700",
+        fill: "#FFFFFF",
+      });
+      return;
+    }
+
+    if (layoutKey === "quote") {
+      targetPage.addElement({
+        type: "text",
+        text: "“Your quote goes here.”",
+        x: padX,
+        y: Math.round(h * 0.30),
+        width: Math.round(w * 0.8),
+        fontSize: 54,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        fill: "#111827",
+        align: "center",
+        lineHeight: 1.15,
+      });
+      targetPage.addElement({
+        type: "text",
+        text: "— Name, Title",
+        x: padX,
+        y: Math.round(h * 0.62),
+        width: Math.round(w * 0.8),
+        fontSize: 26,
+        fontFamily: "Inter",
+        fontWeight: "400",
+        fill: "#4B5563",
+        align: "center",
+      });
+      return;
+    }
+
+    if (layoutKey === "timeline") {
+      targetPage.addElement({
+        type: "text",
+        text: "Timeline / Process",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      const steps = 4;
+      const lineY = Math.round(h * 0.48);
+      const startX = padX;
+      const endX = w - padX;
+      const span = endX - startX;
+
+      targetPage.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: startX,
+        y: lineY,
+        width: span,
+        height: 4,
+        fill: "#D1D5DB",
+        strokeWidth: 0,
+      });
+
+      for (let i = 0; i < steps; i++) {
+        const cx = Math.round(startX + (i / (steps - 1)) * span);
+        targetPage.addElement({
+          type: "shape",
+          shapeType: "rect",
+          x: cx - 10,
+          y: lineY - 10,
+          width: 20,
+          height: 20,
+          fill: i === 0 ? "#2563EB" : "#FFFFFF",
+          stroke: "#2563EB",
+          strokeWidth: 2,
+        });
+        targetPage.addElement({
+          type: "text",
+          text: `Step ${i + 1}`,
+          x: cx - 90,
+          y: lineY - 60,
+          width: 180,
+          fontSize: 20,
+          fontFamily: "Inter",
+          fontWeight: "700",
+          fill: "#111827",
+          align: "center",
+        });
+        targetPage.addElement({
+          type: "text",
+          text: "Description",
+          x: cx - 110,
+          y: lineY + 24,
+          width: 220,
+          fontSize: 18,
+          fontFamily: "Inter",
+          fontWeight: "400",
+          fill: "#4B5563",
+          align: "center",
+          lineHeight: 1.2,
+        });
+      }
+      return;
+    }
+
+    if (layoutKey === "summary") {
+      targetPage.addElement({
+        type: "text",
+        text: "Summary / Recap",
+        x: padX,
+        y: Math.round(h * 0.10),
+        width: Math.round(w * 0.8),
+        fontSize: 52,
+        fontFamily: "Inter",
+        fontWeight: "bold",
+        fill: "#111827",
+      });
+
+      const gap = Math.round(w * 0.03);
+      const boxW = Math.round((w - padX * 2 - gap * 2) / 3);
+      const boxY = Math.round(h * 0.28);
+      const boxH = Math.round(h * 0.52);
+
+      for (let i = 0; i < 3; i++) {
+        const x = padX + i * (boxW + gap);
+        targetPage.addElement({
+          type: "shape",
+          shapeType: "rect",
+          x,
+          y: boxY,
+          width: boxW,
+          height: boxH,
+          fill: "#F8FAFC",
+          stroke: "#E5E7EB",
+          strokeWidth: 2,
+        });
+        targetPage.addElement({
+          type: "text",
+          text: `Point ${i + 1}`,
+          x: x + 18,
+          y: boxY + 18,
+          width: boxW - 36,
+          fontSize: 24,
+          fontFamily: "Inter",
+          fontWeight: "700",
+          fill: "#111827",
+        });
+        targetPage.addElement({
+          type: "text",
+          text: "Short explanation here.",
+          x: x + 18,
+          y: boxY + 60,
+          width: boxW - 36,
+          fontSize: 18,
+          fontFamily: "Inter",
+          fontWeight: "400",
+          fill: "#4B5563",
+          lineHeight: 1.25,
+        });
+      }
+      return;
+    }
+  };
 
   return (
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10 overflow-x-auto">
@@ -555,7 +1199,7 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
           ].map((layout) => (
             <button
               key={layout.key}
-              onClick={() => store.setLayout && store.setLayout(layout.key)}
+              onClick={() => applyLayout(layout.key)}
               className={`flex flex-col items-center justify-center rounded-md transition ${
                 store.activePage?.layout === layout.key
                   ? "bg-[#E9EBF0]"
@@ -597,108 +1241,309 @@ export default function LayoutPanel({ store }: LayoutPanelProps) {
    
         <div className="flex gap-2">
           {/* Orientation */}
-          <button
-            className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            aria-label="Orientation"
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[220px] p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-500 mb-2">Orientation</div>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    className={`px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left ${
+                      isLandscape ? "bg-[#F8FAFC]" : ""
+                    }`}
+                    onClick={() => {
+                      if (isLandscape) return;
+                      const should = window.confirm(
+                        "Change orientation and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(store.height, store.width);
+                    }}
+                  >
+                    Landscape
+                  </button>
+                  <button
+                    type="button"
+                    className={`px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left ${
+                      !isLandscape ? "bg-[#F8FAFC]" : ""
+                    }`}
+                    onClick={() => {
+                      if (!isLandscape) return;
+                      const should = window.confirm(
+                        "Change orientation and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(store.height, store.width);
+                    }}
+                  >
+                    Portrait
+                  </button>
+                </div>
+              </div>
+            }
           >
-            <span className="text-[22px] text-[#364153] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="31"
-                height="32"
-                viewBox="0 0 31 32"
-                fill="none"
-              >
-                <path
-                  d="M25.832 8H5.16536C3.73863 8 2.58203 9.19391 2.58203 10.6667V21.3333C2.58203 22.8061 3.73863 24 5.16536 24H25.832C27.2588 24 28.4154 22.8061 28.4154 21.3333V10.6667C28.4154 9.19391 27.2588 8 25.832 8Z"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span
-              style={{
-                color: "#4A5565",
-                fontFamily: "Inter",
-                fontSize: "9px",
-                fontStyle: "normal",
-                fontWeight: 400,
-                lineHeight: "11.25px",
-                letterSpacing: "0.167px",
-                marginTop: "0.25rem", // matches mt-1 in Tailwind
-              }}
+            <button
+              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              aria-label="Orientation"
+              type="button"
             >
-              Orientation
-            </span>
-          </button>
+              <span className="text-[22px] text-[#364153] leading-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="31"
+                  height="32"
+                  viewBox="0 0 31 32"
+                  fill="none"
+                >
+                  <path
+                    d="M25.832 8H5.16536C3.73863 8 2.58203 9.19391 2.58203 10.6667V21.3333C2.58203 22.8061 3.73863 24 5.16536 24H25.832C27.2588 24 28.4154 22.8061 28.4154 21.3333V10.6667C28.4154 9.19391 27.2588 8 25.832 8Z"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span
+                style={{
+                  color: "#4A5565",
+                  fontFamily: "Inter",
+                  fontSize: "9px",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                  lineHeight: "11.25px",
+                  letterSpacing: "0.167px",
+                  marginTop: "0.25rem",
+                }}
+              >
+                Orientation
+              </span>
+            </button>
+          </Popover>
 
           {/* Slide Size */}
-          <button
-            onClick={() => {
-              if (store.openLayoutPicker) store.openLayoutPicker();
-            }}
-            className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            aria-label="Slide Size"
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[240px] p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-500 mb-2">Slide Size</div>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                    onClick={() => {
+                      const should = window.confirm(
+                        "Change slide size and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(1920, 1080);
+                    }}
+                  >
+                    Widescreen (16:9)
+                  </button>
+                  <button
+                    type="button"
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                    onClick={() => {
+                      const should = window.confirm(
+                        "Change slide size and scale all slides?",
+                      );
+                      if (!should) return;
+                      setSlideSize(1024, 768);
+                    }}
+                  >
+                    Standard (4:3)
+                  </button>
+                </div>
+              </div>
+            }
           >
-            <span className="text-[22px] text-[#364153] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="26"
-                height="26"
-                viewBox="0 0 26 26"
-                fill="none"
-              >
-                <path
-                  d="M8.66667 3.25H5.41667C4.84203 3.25 4.29093 3.47827 3.8846 3.8846C3.47827 4.29093 3.25 4.84203 3.25 5.41667V8.66667"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M22.7487 8.66667V5.41667C22.7487 4.84203 22.5204 4.29093 22.1141 3.8846C21.7078 3.47827 21.1567 3.25 20.582 3.25H17.332"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M3.25 17.3359V20.5859C3.25 21.1606 3.47827 21.7117 3.8846 22.118C4.29093 22.5243 4.84203 22.7526 5.41667 22.7526H8.66667"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M17.332 22.7526H20.582C21.1567 22.7526 21.7078 22.5243 22.1141 22.118C22.5204 21.7117 22.7487 21.1606 22.7487 20.5859V17.3359"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span
-              style={{
-                color: "#4A5565",
-                fontFamily: "Inter",
-                fontSize: "9px",
-                fontStyle: "normal",
-                fontWeight: 400,
-                lineHeight: "11.25px",
-                letterSpacing: "0.167px",
-                marginTop: "0.25rem", // matches mt-1 in Tailwind
-              }}
+            <button
+              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              aria-label="Slide Size"
+              type="button"
             >
-              Slide Size
-            </span>
-          </button>
+              <span className="text-[22px] text-[#364153] leading-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                >
+                  <path
+                    d="M8.66667 3.25H5.41667C4.84203 3.25 4.29093 3.47827 3.8846 3.8846C3.47827 4.29093 3.25 4.84203 3.25 5.41667V8.66667"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M22.7487 8.66667V5.41667C22.7487 4.84203 22.5204 4.29093 22.1141 3.8846C21.7078 3.47827 21.1567 3.25 20.582 3.25H17.332"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M3.25 17.3359V20.5859C3.25 21.1606 3.47827 21.7117 3.8846 22.118C4.29093 22.5243 4.84203 22.7526 5.41667 22.7526H8.66667"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M17.332 22.7526H20.582C21.1567 22.7526 21.7078 22.5243 22.1141 22.118C22.5204 21.7117 22.7487 21.1606 22.7487 20.5859V17.3359"
+                    stroke="#364153"
+                    stroke-width="1.33333"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span
+                style={{
+                  color: "#4A5565",
+                  fontFamily: "Inter",
+                  fontSize: "9px",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                  lineHeight: "11.25px",
+                  letterSpacing: "0.167px",
+                  marginTop: "0.25rem",
+                }}
+              >
+                Slide Size
+              </span>
+            </button>
+          </Popover>
         </div>
       </div>
+
+      {selectedMediaKind && (
+        <>
+          <div className=" w-px h-[50px] bg-[#E3E4EA]" />
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-500 mb-1">Media</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+                onClick={() => {
+                  if (!selectedElement?.set) return;
+                  promptForImage((src) =>
+                    selectedElement.set({
+                      src,
+                      name: `layout-media:${selectedMediaKind}:filled`,
+                    }),
+                  );
+                }}
+                aria-label="Choose Media"
+              >
+                <span className="text-[22px] text-[#364153] leading-none">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <path
+                      d="M8 1.33398V14.6673"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M1.33398 8H14.6673"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
+                  Choose
+                </span>
+              </button>
+
+              <button
+                type="button"
+                disabled={!!selectedIsPlaceholder}
+                className={`flex flex-col items-center justify-center w-[68px] rounded-md transition py-2 ${
+                  selectedIsPlaceholder
+                    ? "opacity-40 cursor-not-allowed"
+                    : "bg-transparent hover:bg-[#E9EBF0]"
+                }`}
+                onClick={() => {
+                  if (!selectedElement?.set) return;
+                  const nextSrc =
+                    selectedMediaKind === "video"
+                      ? VIDEO_PLACEHOLDER_SRC
+                      : IMAGE_PLACEHOLDER_SRC;
+                  selectedElement.set({
+                    src: nextSrc,
+                    name: `layout-media:${selectedMediaKind}:placeholder`,
+                  });
+                }}
+                aria-label="Remove Media"
+              >
+                <span className="text-[22px] text-[#364153] leading-none">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <path
+                      d="M6.66797 7.33398V11.334"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M9.33203 7.33398V11.334"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M2 4H14"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68695 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4"
+                      stroke="#364153"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
+                  Remove
+                </span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
-}
+});

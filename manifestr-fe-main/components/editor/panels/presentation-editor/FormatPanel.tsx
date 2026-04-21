@@ -1,4 +1,15 @@
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Popover, Position } from "@blueprintjs/core";
+import { observer } from "mobx-react-lite";
+import {
+  buildChartSvg,
+  createDefaultChartSpec,
+  makeSvgDataUrl,
+  parseChartSpecFromName,
+  serializeChartSpecToName,
+  type PresentationChartSpec,
+  type PresentationChartType,
+} from "./chartSvg";
 
 // For demonstration, these can be static.
 // In real usage, swap with your store's fonts list.
@@ -17,9 +28,151 @@ interface FormatPanelProps {
   store: any;
 }
 
-export default function FormatPanel({ store }: FormatPanelProps) {
+export default observer(function FormatPanel({ store }: FormatPanelProps) {
   const selected = store.selectedElements?.[0];
-  const isText = selected?.type === "text";
+  const chartSpec = useMemo(
+    () => parseChartSpecFromName(selected?.name),
+    [selected?.name],
+  );
+  const isChart = selected?.type === "image" && !!chartSpec;
+
+  const [draftChartSpec, setDraftChartSpec] = useState<PresentationChartSpec | null>(
+    null,
+  );
+
+  const [formatPainter, setFormatPainter] = useState<{
+    sourceId: string;
+    payload: Record<string, any>;
+  } | null>(null);
+  const lastAppliedPainterTargetRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isChart && chartSpec) {
+      setDraftChartSpec(chartSpec);
+      return;
+    }
+    setDraftChartSpec(null);
+  }, [isChart, chartSpec]);
+
+  useEffect(() => {
+    if (!formatPainter) return;
+    if (!selected || selected.type !== "text" || typeof selected.set !== "function")
+      return;
+    if (selected.id === formatPainter.sourceId) return;
+    if (lastAppliedPainterTargetRef.current === selected.id) return;
+    lastAppliedPainterTargetRef.current = selected.id;
+    selected.set(formatPainter.payload);
+    setFormatPainter(null);
+  }, [formatPainter, selected]);
+
+  const applyChartSpec = (spec: PresentationChartSpec) => {
+    if (!selected?.set) return;
+    const svg = buildChartSvg(spec);
+    selected.set({
+      name: serializeChartSpecToName(spec),
+      src: makeSvgDataUrl(svg),
+    });
+  };
+
+  const coerceChartType = (type: PresentationChartType) => {
+    if (!draftChartSpec) return;
+
+    if (type === "scatter") {
+      const next = createDefaultChartSpec("scatter");
+      setDraftChartSpec(next);
+      applyChartSpec(next);
+      return;
+    }
+
+    if (draftChartSpec.kind === "scatter") {
+      const next = createDefaultChartSpec(type);
+      setDraftChartSpec(next);
+      applyChartSpec(next);
+      return;
+    }
+
+    const next: PresentationChartSpec = {
+      ...draftChartSpec,
+      type,
+      title:
+        type === "stacked-column"
+          ? "Stacked Column Chart"
+          : type === "column"
+            ? "Column Chart"
+            : type === "bar"
+              ? "Bar Chart"
+              : type === "line"
+                ? "Line Chart"
+                : type === "area"
+                  ? "Area Chart"
+                  : type === "pie"
+                    ? "Pie Chart"
+                    : type === "donut"
+                      ? "Donut Chart"
+                      : "Chart",
+    };
+
+    if (type === "stacked-column" && next.series.length < 2) {
+      next.series = [
+        next.series[0] || { name: "Series 1", values: next.labels.map(() => 0) },
+        { name: "Series 2", values: next.labels.map(() => 0) },
+      ];
+    }
+
+    setDraftChartSpec(next);
+    applyChartSpec(next);
+  };
+
+  const addNewSlide = () => {
+    if (typeof store.addPage === "function") {
+      const created = store.addPage();
+      if (created?.select) {
+        created.select();
+        return;
+      }
+      const last = store.pages?.[store.pages.length - 1];
+      if (last?.select) last.select();
+    }
+  };
+
+  const deleteActiveSlide = () => {
+    const active = store.activePage;
+    if (!active?.id) return;
+    if (typeof store.deletePages !== "function") return;
+    if (store.pages?.length <= 1) return;
+    const shouldDelete = window.confirm("Delete this slide?");
+    if (!shouldDelete) return;
+    store.deletePages([active.id]);
+  };
+
+  const duplicateActiveSlide = () => {
+    if (!store?.activePage) return;
+    const activeId = store.activePage.id;
+    const snapshot = typeof store.toJSON === "function" ? store.toJSON() : null;
+    const activeSnap =
+      snapshot?.pages?.find?.((p: any) => p?.id === activeId) || null;
+    if (!activeSnap) return;
+
+    if (typeof store.addPage !== "function") return;
+    const created = store.addPage();
+    const newPage =
+      created || (store.pages ? store.pages[store.pages.length - 1] : null);
+    if (!newPage) return;
+
+    try {
+      const children = Array.isArray(activeSnap.children) ? activeSnap.children : [];
+      children.forEach((child: any) => {
+        const { id, ...rest } = child || {};
+        if (!rest?.type) return;
+        newPage.addElement(rest);
+      });
+      if (newPage.set && activeSnap.layout) {
+        newPage.set({ layout: activeSnap.layout });
+      }
+    } catch {}
+
+    if (newPage.select) newPage.select();
+  };
 
   // Make sure all needed properties are available, or use fallbacks
   const fontFamily = selected?.fontFamily || "Inter";
@@ -32,16 +185,289 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   const align = selected?.align || "left";
   const fill = selected?.fill || "#000000";
 
-  // if (!isText) {
-  //   return (
-  //     <div className="h-[102px] flex items-center justify-center text-gray-400 text-sm">
-  //       Select a text element to format
-  //     </div>
-  //   );
-  // }
+  if (isChart && draftChartSpec) {
+    const chartTypeValue = draftChartSpec.type;
 
-  // Helper to disable button if not functional
-  const disable = (available = true) => !available;
+    const chartTypeOptions: { value: PresentationChartType; label: string }[] = [
+      { value: "column", label: "Column" },
+      { value: "stacked-column", label: "Stacked Column" },
+      { value: "bar", label: "Bar" },
+      { value: "line", label: "Line" },
+      { value: "area", label: "Area" },
+      { value: "scatter", label: "Scatter" },
+      { value: "pie", label: "Pie" },
+      { value: "donut", label: "Donut" },
+    ];
+
+    const renderDataEditor = () => {
+      if (draftChartSpec.kind === "scatter") {
+        return (
+          <div className="w-[520px]">
+            <div className="text-xs text-gray-500 mb-2">Points</div>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="text-gray-500">#</div>
+              <div className="text-gray-500">X</div>
+              <div className="text-gray-500">Y</div>
+              {draftChartSpec.points.map((p, i) => (
+                <React.Fragment key={i}>
+                  <div className="text-gray-700">{i + 1}</div>
+                  <input
+                    className="border rounded px-2 py-1"
+                    value={String(p.x)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      const next = {
+                        ...draftChartSpec,
+                        points: draftChartSpec.points.map((pt, idx) =>
+                          idx === i ? { ...pt, x: val } : pt,
+                        ),
+                      };
+                      setDraftChartSpec(next);
+                      applyChartSpec(next);
+                    }}
+                  />
+                  <input
+                    className="border rounded px-2 py-1"
+                    value={String(p.y)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      const next = {
+                        ...draftChartSpec,
+                        points: draftChartSpec.points.map((pt, idx) =>
+                          idx === i ? { ...pt, y: val } : pt,
+                        ),
+                      };
+                      setDraftChartSpec(next);
+                      applyChartSpec(next);
+                    }}
+                  />
+                </React.Fragment>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded border text-xs hover:bg-gray-50"
+                onClick={() => {
+                  const next = {
+                    ...draftChartSpec,
+                    points: [...draftChartSpec.points, { x: 0, y: 0 }],
+                  };
+                  setDraftChartSpec(next);
+                  applyChartSpec(next);
+                }}
+              >
+                Add Point
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded border text-xs hover:bg-gray-50"
+                onClick={() => {
+                  if (draftChartSpec.points.length <= 1) return;
+                  const next = {
+                    ...draftChartSpec,
+                    points: draftChartSpec.points.slice(0, -1),
+                  };
+                  setDraftChartSpec(next);
+                  applyChartSpec(next);
+                }}
+              >
+                Remove Point
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      const labels = draftChartSpec.labels;
+      const series = draftChartSpec.series;
+
+      return (
+        <div className="w-[620px]">
+          <div className="text-xs text-gray-500 mb-2">Data</div>
+          <div
+            className="grid gap-2 text-xs"
+            style={{
+              gridTemplateColumns: `160px repeat(${series.length}, 120px)`,
+            }}
+          >
+            <div className="text-gray-500">Category</div>
+            {series.map((s, i) => (
+              <input
+                key={i}
+                className="border rounded px-2 py-1 font-medium"
+                value={s.name}
+                onChange={(e) => {
+                  const next = {
+                    ...draftChartSpec,
+                    series: series.map((ser, idx) =>
+                      idx === i ? { ...ser, name: e.target.value } : ser,
+                    ),
+                  };
+                  setDraftChartSpec(next);
+                  applyChartSpec(next);
+                }}
+              />
+            ))}
+
+            {labels.map((label, rowIdx) => (
+              <React.Fragment key={rowIdx}>
+                <input
+                  className="border rounded px-2 py-1"
+                  value={label}
+                  onChange={(e) => {
+                    const next = {
+                      ...draftChartSpec,
+                      labels: labels.map((l, idx) =>
+                        idx === rowIdx ? e.target.value : l,
+                      ),
+                    };
+                    setDraftChartSpec(next);
+                    applyChartSpec(next);
+                  }}
+                />
+                {series.map((ser, colIdx) => (
+                  <input
+                    key={colIdx}
+                    className="border rounded px-2 py-1"
+                    value={String(ser.values[rowIdx] ?? 0)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      const nextSeries = series.map((s, sIdx) => {
+                        if (sIdx !== colIdx) return s;
+                        const nextValues = [...s.values];
+                        nextValues[rowIdx] = val;
+                        return { ...s, values: nextValues };
+                      });
+                      const next = { ...draftChartSpec, series: nextSeries };
+                      setDraftChartSpec(next);
+                      applyChartSpec(next);
+                    }}
+                  />
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+
+          <div className="flex gap-2 mt-3">
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded border text-xs hover:bg-gray-50"
+              onClick={() => {
+                const nextLabels = [...labels, `Q${labels.length + 1}`];
+                const nextSeries = series.map((s) => ({
+                  ...s,
+                  values: [...s.values, 0],
+                }));
+                const next = { ...draftChartSpec, labels: nextLabels, series: nextSeries };
+                setDraftChartSpec(next);
+                applyChartSpec(next);
+              }}
+            >
+              Add Category
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded border text-xs hover:bg-gray-50"
+              onClick={() => {
+                if (labels.length <= 1) return;
+                const nextLabels = labels.slice(0, -1);
+                const nextSeries = series.map((s) => ({
+                  ...s,
+                  values: s.values.slice(0, -1),
+                }));
+                const next = { ...draftChartSpec, labels: nextLabels, series: nextSeries };
+                setDraftChartSpec(next);
+                applyChartSpec(next);
+              }}
+            >
+              Remove Category
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded border text-xs hover:bg-gray-50"
+              onClick={() => {
+                const nextSeries = [
+                  ...series,
+                  {
+                    name: `Series ${series.length + 1}`,
+                    values: labels.map(() => 0),
+                  },
+                ];
+                const next = { ...draftChartSpec, series: nextSeries };
+                setDraftChartSpec(next);
+                applyChartSpec(next);
+              }}
+            >
+              Add Series
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded border text-xs hover:bg-gray-50"
+              onClick={() => {
+                if (series.length <= 1) return;
+                const nextSeries = series.slice(0, -1);
+                const next = { ...draftChartSpec, series: nextSeries };
+                setDraftChartSpec(next);
+                applyChartSpec(next);
+              }}
+            >
+              Remove Series
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4 overflow-x-auto">
+        <div className="flex flex-col items-center">
+          <span className="text-xs text-gray-500 mb-3">Chart</span>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <select
+                value={chartTypeValue}
+                onChange={(e) => coerceChartType(e.target.value as PresentationChartType)}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                {chartTypeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <Popover
+              position={Position.BOTTOM}
+              content={
+                <div className="p-4 bg-white border rounded shadow-lg max-h-[420px] overflow-auto">
+                  {renderDataEditor()}
+                </div>
+              }
+            >
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded border text-sm hover:bg-gray-50"
+              >
+                Edit Data
+              </button>
+            </Popover>
+            <button
+              type="button"
+              className="px-3 py-1.5 rounded border text-sm hover:bg-gray-50"
+              onClick={() => {
+                const next = createDefaultChartSpec(chartTypeValue);
+                setDraftChartSpec(next);
+                applyChartSpec(next);
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4 overflow-x-auto">
@@ -365,9 +791,26 @@ export default function FormatPanel({ store }: FormatPanelProps) {
           <div className="flex gap-2">
             {/* Format Painter */}
             <button
-              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-              // You can implement a handler later for the Format Painter
-              onClick={() => {}}
+              className={`flex flex-col items-center justify-center w-[68px] rounded-md transition ${
+                formatPainter ? "bg-[#E9EBF0]" : "bg-transparent"
+              } hover:bg-[#E9EBF0] py-2`}
+              onClick={() => {
+                if (!selected || selected.type !== "text" || !selected.set) return;
+                setFormatPainter({
+                  sourceId: selected.id,
+                  payload: {
+                    fontFamily: selected.fontFamily,
+                    fontSize: selected.fontSize,
+                    fontWeight: selected.fontWeight,
+                    fontStyle: selected.fontStyle,
+                    textDecoration: selected.textDecoration,
+                    fill: selected.fill,
+                    align: selected.align,
+                    lineHeight: selected.lineHeight,
+                  },
+                });
+                lastAppliedPainterTargetRef.current = null;
+              }}
               aria-label="Format Painter"
             >
               <span className="text-[18px] text-[#2B2F38] leading-none">
@@ -534,7 +977,10 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             ].map((option) => (
               <button
                 key={option.value}
-                onClick={() => selected.set({ align: option.value })}
+                onClick={() => {
+                  if (!selected || selected.type !== "text" || !selected.set) return;
+                  selected.set({ align: option.value });
+                }}
                 className={`flex flex-col items-center justify-center w-[44px] rounded-md transition ${align === option.value ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0]`}
                 aria-label={`Align ${option.label}`}
                 type="button"
@@ -571,7 +1017,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
           {/* New Slide */}
           <button
             onClick={() => {
-              if (store.addSlide) store.addSlide();
+              addNewSlide();
             }}
             className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             aria-label="New Slide"
@@ -617,66 +1063,10 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </span>
           </button>
 
-          {/* Layout */}
-          <button
-            onClick={() => {
-              if (store.openLayoutPicker) store.openLayoutPicker();
-            }}
-            className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            aria-label="Layout"
-            type="button"
-          >
-            <span className="text-[22px] text-[#364153] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-              >
-                <path
-                  d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M2 6H14"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M6 14V6"
-                  stroke="#364153"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span
-              style={{
-                color: "#4A5565",
-                fontFamily: "Inter",
-                fontSize: "9px",
-                fontStyle: "normal",
-                fontWeight: 400,
-                lineHeight: "11.25px",
-                letterSpacing: "0.167px",
-                marginTop: "0.25rem", // matches mt-1 in Tailwind
-              }}
-            >
-              Layout
-            </span>
-          </button>
-
           {/* Duplicate */}
           <button
             onClick={() => {
-              if (store.duplicateSlide) store.duplicateSlide();
+              duplicateActiveSlide();
             }}
             className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             aria-label="Duplicate"
@@ -732,7 +1122,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
           {/* Delete */}
           <button
             onClick={() => {
-              if (store.deleteSlide) store.deleteSlide();
+              deleteActiveSlide();
             }}
             className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             aria-label="Delete"
@@ -802,4 +1192,4 @@ export default function FormatPanel({ store }: FormatPanelProps) {
       </div>
     </div>
   );
-}
+});
