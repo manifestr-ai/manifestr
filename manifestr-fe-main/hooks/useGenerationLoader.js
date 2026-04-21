@@ -42,6 +42,11 @@ export default function useGenerationLoader() {
 
                     // Check both locations for editorState (new Supabase structure)
                     let rawContent = data.result?.editorState || data.current_step_data?.editorState;
+                    
+                    console.log('🔍 useGenerationLoader: Raw content type:', typeof rawContent);
+                    console.log('🔍 useGenerationLoader: Has result.editorState?', !!data.result?.editorState);
+                    console.log('🔍 useGenerationLoader: Has current_step_data.editorState?', !!data.current_step_data?.editorState);
+                    
                     let parsedContent = rawContent;
 
                     if (typeof rawContent === 'string') {
@@ -58,6 +63,19 @@ export default function useGenerationLoader() {
                         } catch (e) {
                             // Keep as string if parsing fails, though likely an issue
                         }
+                    }
+                    
+                    // LOG PARSED CONTENT
+                    if (parsedContent && parsedContent.sheets) {
+                        const sheetKeys = Object.keys(parsedContent.sheets);
+                        console.log('✅ useGenerationLoader: Parsed workbook with', sheetKeys.length, 'sheets');
+                        sheetKeys.forEach(key => {
+                            const sheet = parsedContent.sheets[key];
+                            const cellCount = sheet.cellData ? Object.keys(sheet.cellData).length : 0;
+                            console.log(`  - ${sheet.name}: ${cellCount} rows in cellData`);
+                        });
+                    } else {
+                        console.warn('⚠️ useGenerationLoader: No sheets in parsed content!', parsedContent);
                     }
 
                     setContent(parsedContent);

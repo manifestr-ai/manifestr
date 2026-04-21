@@ -1,11 +1,64 @@
 import React from "react";
 
 interface InsertPanelProps {
-  store: any;
+  store: any; // Univer FacadeAPI
 }
 
 export default function InsertPanel({ store }: InsertPanelProps) {
   if (!store) return null;
+
+  // Insert Row - Use Univer command
+  const handleInsertRow = () => {
+    try {
+      store.executeCommand('sheet.command.insert-row', {
+        direction: 'down',
+        count: 1
+      });
+      console.log('✅ Inserted row');
+    } catch (error) {
+      console.error('❌ Insert row failed:', error);
+      alert('Insert row functionality requires the Univer Sheets plugin. Right-click on a row to insert rows.');
+    }
+  };
+
+  // Insert Column - Use Univer command
+  const handleInsertColumn = () => {
+    try {
+      store.executeCommand('sheet.command.insert-column', {
+        direction: 'right',
+        count: 1
+      });
+      console.log('✅ Inserted column');
+    } catch (error) {
+      console.error('❌ Insert column failed:', error);
+      alert('Insert column functionality requires the Univer Sheets plugin. Right-click on a column to insert columns.');
+    }
+  };
+
+  // Placeholder handlers
+  const handleInsertTable = () => {
+    alert("Table insertion coming soon! For now, you can use the existing spreadsheet cells as a table.");
+  };
+
+  const handleInsertChart = () => {
+    alert("Chart insertion coming soon! This will allow you to create visual charts from your data.");
+  };
+
+  const handleInsertShape = () => {
+    alert("Shape insertion coming soon!");
+  };
+
+  const handleInsertIcon = () => {
+    alert("Icon insertion coming soon!");
+  };
+
+  const handleInsertLink = () => {
+    alert("Link insertion coming soon! This will allow you to add hyperlinks to cells.");
+  };
+
+  const handleInsertSymbol = () => {
+    alert("Symbol insertion coming soon! For now, you can type special characters directly into cells.");
+  };
 
   return (
     <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
@@ -17,6 +70,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Table */}
           <button
+            onClick={handleInsertTable}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -90,6 +144,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Insert Row */}
           <button
+            onClick={handleInsertRow}
             className="flex flex-col items-center justify-center w-[65px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -138,6 +193,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
 
           {/* Insert Column */}
           <button
+            onClick={handleInsertColumn}
             className="flex flex-col items-center justify-center w-[65px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -197,6 +253,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Chart */}
           <button
+            onClick={handleInsertChart}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -270,6 +327,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Shapes */}
           <button
+            onClick={handleInsertShape}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -311,6 +369,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
 
           {/* Icons */}
           <button
+            onClick={handleInsertIcon}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -391,6 +450,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Link */}
           <button
+            onClick={handleInsertLink}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -456,6 +516,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Symbol */}
           <button
+            onClick={handleInsertSymbol}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"

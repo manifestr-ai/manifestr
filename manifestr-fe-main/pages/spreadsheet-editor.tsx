@@ -451,7 +451,7 @@ export default function SpreadsheetEditor() {
 
         {/* TOP PANELS (except AI Prompter) */}
         {activeTool !== "ai_prompter" && (
-          <ToolPanel activeTool={activeTool} store={univerRef} />
+          <ToolPanel activeTool={activeTool} store={univerAPI} />
         )}
 
         <EditorBottomToolbar
@@ -462,7 +462,7 @@ export default function SpreadsheetEditor() {
 
         {/* AI PROMPTER BELOW TOOLBAR */}
         {activeTool === "ai_prompter" && (
-          <ToolPanel activeTool={activeTool} store={univerRef} />
+          <ToolPanel activeTool={activeTool} store={univerAPI} />
         )}
       </div>
     </GenerationLoaderUI>
