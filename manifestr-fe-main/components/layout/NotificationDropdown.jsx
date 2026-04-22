@@ -78,9 +78,9 @@ export default function NotificationDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.2 }}
         whileTap={{ scale: 0.95 }}
-        className="bg-white  rounded-md p-3  transition-colors cursor-pointer relative"
+        className="bg-white rounded-md p-3 transition-colors cursor-pointer relative"
       >
-        <Bell stroke='#71717A'  className="w-5 h-5" />
+        <Bell className="w-5 h-5 text-[#71717A]" />
         {/* {notifications.filter(n => n.unread).length > 0 && (
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#18181b] rounded-full" />
         )} */}

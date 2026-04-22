@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { Image as ImageIcon, Table2, Link2, Minus, Calendar, FileText, FileImage } from "lucide-react";
 
 interface InsertPanelProps {
   store?: any;
@@ -11,15 +12,6 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   
-  // Icon URLs from Figma - INSERT TAB
-  const imgImage = "https://www.figma.com/api/mcp/asset/68bc1e1f-7c1d-4b52-a00b-55f8444d10a3";
-  const imgTable = "https://www.figma.com/api/mcp/asset/6de9984a-c7cc-46d3-a0fc-c039f39db82e";
-  const imgLink = "https://www.figma.com/api/mcp/asset/b0117435-0469-40a9-8aa8-7524cab1df81";
-  const imgDivider = "https://www.figma.com/api/mcp/asset/0188dfe6-2984-44fb-ab75-da4e602140ef";
-  const imgDate = "https://www.figma.com/api/mcp/asset/1fe45ac6-b0b1-4b77-8e8c-ea5a1ee8fd85";
-  const imgPageBreak = "https://www.figma.com/api/mcp/asset/f7b2dc0e-e934-468c-b026-87d0575d0ead";
-  const imgHeader = "https://www.figma.com/api/mcp/asset/fc61b620-3d66-4401-886c-c9440f62a18e";
-  const imgPageNumber = "https://www.figma.com/api/mcp/asset/944d9319-13ec-440b-b573-bbe69ab7126c";
 
   // Image Upload Handler
   const handleImageUpload = () => {
@@ -186,7 +178,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgImage} />
+              <ImageIcon className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Image
               </p>
@@ -197,7 +189,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgTable} />
+              <Table2 className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Table
               </p>
@@ -220,7 +212,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgLink} />
+              <Link2 className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Link
               </p>
@@ -231,7 +223,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgDivider} />
+              <Minus className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Divider
               </p>
@@ -242,7 +234,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgDate} />
+              <Calendar className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Date
               </p>
@@ -265,7 +257,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[86px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgPageBreak} />
+              <FileText className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Page Break
               </p>
@@ -276,7 +268,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgHeader} />
+              <FileImage className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Header
               </p>
@@ -287,7 +279,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgHeader} />
+              <FileImage className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Footer
               </p>
@@ -295,7 +287,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
           </button>
           <button className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgPageNumber} />
+              <FileText className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Page #
               </p>

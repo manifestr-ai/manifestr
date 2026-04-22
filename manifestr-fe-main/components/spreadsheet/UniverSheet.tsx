@@ -51,17 +51,27 @@ const UniverSheet = forwardRef<any, UniverSheetProps>(({ onAPIReady, data }, ref
 
         univerAPIRef.current = univerAPI;
 
-        let workbookData = data || WORKBOOK_DATA;
+      let workbookData = data || WORKBOOK_DATA;
 
-        // Validation logic
-        const isValid = workbookData &&
-            (typeof workbookData === 'object') &&
-            (Object.keys(workbookData).length > 0) &&
-            (workbookData.sheets || workbookData.sheetOrder);
+      // LOG WHAT WE RECEIVED
+      console.log('📊 Received workbook data:', {
+        hasData: !!data,
+        dataType: typeof data,
+        dataKeys: data ? Object.keys(data) : [],
+        hasSheets: data?.sheets ? Object.keys(data.sheets).length : 0,
+        sheetOrder: data?.sheetOrder
+      });
 
-        if (!isValid) {
-            workbookData = WORKBOOK_DATA;
-        }
+      // Validation logic
+      const isValid = workbookData &&
+          (typeof workbookData === 'object') &&
+          (Object.keys(workbookData).length > 0) &&
+          (workbookData.sheets || workbookData.sheetOrder);
+
+      if (!isValid) {
+          console.warn('⚠️ Invalid workbook data, using fallback');
+          workbookData = WORKBOOK_DATA;
+      }
 
 
         // Sanitization: Ensure strict consistency between sheetOrder and sheets
@@ -90,10 +100,34 @@ const UniverSheet = forwardRef<any, UniverSheetProps>(({ onAPIReady, data }, ref
         }
 
 
+      try {
+        console.log('🚀 Creating Univer workbook...');
+        univerAPI.createWorkbook(workbookData);
+        console.log('✅ Workbook created successfully');
+        
+        // WAIT for Univer to fully initialize (API issue - save() not immediately available)
+        setTimeout(() => {
+          const workbook = univerAPI.getActiveWorkbook();
+          if (!workbook) {
+            console.error('❌ Workbook creation failed - getActiveWorkbook() returned null');
+          } else {
+            console.log('✅ Active workbook verified after delay:', {
+              id: workbook.getId?.(),
+              hasSheets: !!workbook.getSheets,
+              hasSaveMethod: typeof workbook.save === 'function'
+            });
+          }
+        }, 500);
+      } catch (e) {
+        console.error('❌ Failed to create workbook:', e);
+        // Try with fallback data
         try {
-            univerAPI.createWorkbook(workbookData);
-        } catch (e) {
+          console.log('⚠️ Attempting with fallback data...');
+          univerAPI.createWorkbook(WORKBOOK_DATA);
+        } catch (fallbackError) {
+          console.error('❌ Fallback also failed:', fallbackError);
         }
+      }
 
         // Notify parent that API is ready
         if (onAPIReady) {

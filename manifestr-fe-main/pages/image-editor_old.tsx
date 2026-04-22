@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import TopHeader from '../components/spreadsheet/TopHeader';
-import RightSidebar from '../components/spreadsheet/RightSidebar';
+import { RightSidebar } from '../components/spreadsheet/RightSidebar';
 import BottomToolbar from '../components/spreadsheet/BottomToolbar';
 import dynamic from 'next/dynamic';
 import { FloatingSheetTab, FloatingFAB } from '../components/spreadsheet/FloatingElements';
@@ -17,6 +17,13 @@ export default function ImageEditor() {
     const router = useRouter();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const imageIdParam = router.query.id;
+    const actualImageId =
+        typeof imageIdParam === 'string'
+            ? imageIdParam
+            : Array.isArray(imageIdParam)
+                ? imageIdParam[0]
+                : undefined;
     
     useEffect(() => {
         // CASE 1: Direct URL parameter (immediate generation)
@@ -81,7 +88,12 @@ export default function ImageEditor() {
 
             {/* Top Section */}
             <div className="flex-none z-30">
-                <TopHeader editorType="document" />
+                <TopHeader
+                    editorType="document"
+                    documentId={actualImageId}
+                    documentTitle="Image"
+                    enableCollaboration={!!actualImageId}
+                />
             </div>
 
             {/* Main Content Area */}
@@ -113,7 +125,7 @@ export default function ImageEditor() {
                 {/* Right Sidebar (Floating over grid on the right) */}
                 <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
                     <div className="pointer-events-auto">
-                        <RightSidebar />
+                        <RightSidebar documentId={actualImageId} documentTitle="Image" />
                     </div>
                 </div>
 

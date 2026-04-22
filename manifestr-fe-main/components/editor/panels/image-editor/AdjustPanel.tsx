@@ -1,61 +1,274 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 interface AdjustPanelProps {
   store: any;
 }
 
-export default function AdjustPanel({ store }: AdjustPanelProps) {
-  const selected = store.selectedElements?.[0];
+const DEFAULT_ADJUST_VALUES = {
+  exposure: 0,
+  brightness: 0,
+  contrast: 0,
+  highlights: 0,
+  shadows: 0,
+};
 
-  const [values, setValues] = useState({
-    exposure: 0,
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+const setFilterIntensity = (filters: any, key: string, intensity: number) => {
+  const next = { ...(filters || {}) };
+  const enabled = Math.abs(intensity) > 0.0001;
+  if (!enabled) {
+    if (key in next) delete next[key];
+    return next;
+  }
+  next[key] = { ...(next[key] || {}), intensity };
+  return next;
+};
+
+const getPresetBase = (preset: string) => {
+  const baseReset = {
+    brightnessEnabled: false,
     brightness: 0,
-    contrast: 0,
-    highlights: 0,
-    shadows: 0,
-  });
+    filters: {},
+  } as any;
 
-  // Apply simulated effects
+  if (!preset || preset === "None") return baseReset;
+  if (preset === "Vintage") {
+    return {
+      ...baseReset,
+      brightnessEnabled: true,
+      brightness: -0.05,
+      filters: {
+        contrast: { intensity: 0.15 },
+        saturation: { intensity: -0.2 },
+      },
+    };
+  }
+  if (preset === "B&W") {
+    return {
+      ...baseReset,
+      filters: {
+        contrast: { intensity: 0.2 },
+      },
+    };
+  }
+  if (preset === "Vibrant") {
+    return {
+      ...baseReset,
+      brightnessEnabled: true,
+      brightness: 0.05,
+      filters: {
+        saturation: { intensity: 0.45 },
+        contrast: { intensity: 0.15 },
+      },
+    };
+  }
+  if (preset === "Cool") {
+    return {
+      ...baseReset,
+      filters: {
+        hue: { intensity: -0.15 },
+        saturation: { intensity: 0.1 },
+      },
+    };
+  }
+  if (preset === "Warm") {
+    return {
+      ...baseReset,
+      filters: {
+        hue: { intensity: 0.12 },
+        saturation: { intensity: 0.12 },
+      },
+    };
+  }
+  if (preset === "High Contrast") {
+    return {
+      ...baseReset,
+      filters: {
+        contrast: { intensity: 0.45 },
+        saturation: { intensity: 0.1 },
+      },
+    };
+  }
+  if (preset === "Soft") {
+    return {
+      ...baseReset,
+      brightnessEnabled: true,
+      brightness: 0.02,
+      filters: {
+        contrast: { intensity: -0.15 },
+      },
+    };
+  }
+  if (preset === "Sharpen") {
+    return {
+      ...baseReset,
+      filters: {
+        sharpen: { intensity: 0.35 },
+        contrast: { intensity: 0.25 },
+      },
+    };
+  }
+  if (preset === "Noise") {
+    return {
+      ...baseReset,
+      filters: {
+        noise: { intensity: 0.25 },
+      },
+    };
+  }
+  if (preset === "Grain") {
+    return {
+      ...baseReset,
+      filters: {
+        noise: { intensity: 0.15 },
+        contrast: { intensity: 0.05 },
+      },
+    };
+  }
+  if (preset === "Blur") {
+    return baseReset;
+  }
+
+  return baseReset;
+};
+
+export default function AdjustPanel({ store }: AdjustPanelProps) {
+  const [values, setValues] = useState(DEFAULT_ADJUST_VALUES);
+
+  const page = store?.activePage;
+  const pageChildren = Array.isArray(page?.children) ? page.children : [];
+  const selectedElements = Array.isArray(store?.selectedElements) ? store.selectedElements : [];
+  const selectedImages = selectedElements.filter(
+    (el: any) => el?.type === "image" && typeof el?.set === "function",
+  );
+  const baseImage = pageChildren.find(
+    (c: any) => c?.type === "image" && c?.name === "base-image" && typeof c?.set === "function",
+  );
+  const targets = selectedImages.length > 0 ? selectedImages : baseImage ? [baseImage] : [];
+  const targetsKey = targets.map((t: any) => t?.id).filter(Boolean).join("|");
+  const memoTargets = useMemo(() => targets, [targetsKey]);
+  const hasTargets = memoTargets.length > 0;
+  const primaryTarget = memoTargets[0];
+
+  const getAdjustBase = (el: any) => {
+    const preset =
+      typeof el?.custom?.imageFilterPreset === "string" ? el.custom.imageFilterPreset : "None";
+    const existing = el?.custom?.imageAdjustBase;
+    if (existing && typeof existing === "object" && existing.preset === preset) return existing;
+
+    const baseFromPreset = getPresetBase(preset);
+    const nextBase = {
+      preset,
+      brightnessEnabled: !!baseFromPreset.brightnessEnabled,
+      brightness: Number(baseFromPreset.brightness) || 0,
+      filters: { ...(baseFromPreset.filters || {}) },
+    };
+    el.set({
+      custom: {
+        ...(el.custom || {}),
+        imageAdjustBase: nextBase,
+      },
+    });
+    return nextBase;
+  };
+
   useEffect(() => {
-    if (!selected) return;
+    const fromEl = primaryTarget?.custom?.imageAdjust;
+    if (fromEl && typeof fromEl === "object") {
+      setValues({
+        exposure: Number(fromEl.exposure) || 0,
+        brightness: Number(fromEl.brightness) || 0,
+        contrast: Number(fromEl.contrast) || 0,
+        highlights: Number(fromEl.highlights) || 0,
+        shadows: Number(fromEl.shadows) || 0,
+      });
+      return;
+    }
+    setValues(DEFAULT_ADJUST_VALUES);
+  }, [primaryTarget?.id]);
 
-    // Simulate brightness via opacity + slight tint
-    selected.set({
-      opacity: 1 - values.exposure * 0.01,
+  useEffect(() => {
+    if (!hasTargets) return;
+
+    const exposure = (Number(values.exposure) || 0) / 100;
+    const brightness = (Number(values.brightness) || 0) / 100;
+    const contrast = (Number(values.contrast) || 0) / 100;
+    const highlights = (Number(values.highlights) || 0) / 100;
+    const shadows = (Number(values.shadows) || 0) / 100;
+
+    const exposureIntensity = clamp(exposure * 0.5, -1, 1);
+    const brightnessIntensity = clamp(brightness * 0.35, -1, 1);
+    const contrastIntensity = clamp(contrast * 0.8, -1, 1);
+    const highlightsIntensity = clamp(highlights * 0.8, -1, 1);
+    const shadowsIntensity = clamp(shadows * 0.8, -1, 1);
+
+    memoTargets.forEach((el: any) => {
+      if (el?.type !== "image" || typeof el?.set !== "function") return;
+      const base = getAdjustBase(el);
+      const baseBrightness = Number(base?.brightness) || 0;
+      const baseFilters = base?.filters || {};
+
+      const nextBrightness = clamp(
+        baseBrightness +
+          brightnessIntensity +
+          exposureIntensity * 0.35 +
+          highlightsIntensity * 0.12 +
+          shadowsIntensity * 0.12,
+        -1,
+        1,
+      );
+      const nextBrightnessEnabled = Math.abs(nextBrightness) > 0.0001;
+
+      const baseContrast = Number(baseFilters?.contrast?.intensity) || 0;
+      const baseExposure = Number(baseFilters?.exposure?.intensity) || 0;
+      const baseHighlights = Number(baseFilters?.highlights?.intensity) || 0;
+      const baseShadows = Number(baseFilters?.shadows?.intensity) || 0;
+
+      let nextFilters = { ...(baseFilters || {}) };
+      nextFilters = setFilterIntensity(nextFilters, "contrast", baseContrast + contrastIntensity);
+      nextFilters = setFilterIntensity(nextFilters, "exposure", baseExposure + exposureIntensity);
+      nextFilters = setFilterIntensity(
+        nextFilters,
+        "highlights",
+        baseHighlights + highlightsIntensity,
+      );
+      nextFilters = setFilterIntensity(nextFilters, "shadows", baseShadows + shadowsIntensity);
+
+      el.set({
+        brightnessEnabled: nextBrightnessEnabled,
+        brightness: nextBrightnessEnabled ? nextBrightness : 0,
+        filters: nextFilters,
+        custom: {
+          ...(el.custom || {}),
+          imageAdjust: values,
+        },
+      });
     });
-
-    // Simulate contrast via scale trick (visual feel)
-    selected.set({
-      scaleX: 1 + values.contrast * 0.001,
-      scaleY: 1 + values.contrast * 0.001,
-    });
-  }, [values, selected]);
-
-  // if (!selected || selected.type !== "image") {
-  //   return (
-  //     <div className="h-[90px] flex items-center justify-center text-gray-400 text-sm">
-  //       Select an image to adjust
-  //     </div>
-  //   );
-  // }
+  }, [values, memoTargets, hasTargets]);
 
   const handleChange = (key: string, val: number) => {
     setValues((prev) => ({ ...prev, [key]: val }));
   };
 
   const resetAll = () => {
-    setValues({
-      exposure: 0,
-      brightness: 0,
-      contrast: 0,
-      highlights: 0,
-      shadows: 0,
-    });
-
-    selected.set({
-      opacity: 1,
-      scaleX: 1,
-      scaleY: 1,
+    setValues(DEFAULT_ADJUST_VALUES);
+    if (!hasTargets) return;
+    memoTargets.forEach((el: any) => {
+      if (el?.type !== "image" || typeof el?.set !== "function") return;
+      const preset =
+        typeof el?.custom?.imageFilterPreset === "string" ? el.custom.imageFilterPreset : "None";
+      const base = getPresetBase(preset);
+      const nextCustom = { ...(el.custom || {}) } as any;
+      delete nextCustom.imageAdjust;
+      delete nextCustom.imageAdjustBase;
+      el.set({
+        brightnessEnabled:
+          !!base.brightnessEnabled && Math.abs(Number(base.brightness) || 0) > 0.0001,
+        brightness: Number(base.brightness) || 0,
+        filters: { ...(base.filters || {}) },
+        custom: nextCustom,
+      });
     });
   };
 
@@ -73,6 +286,7 @@ export default function AdjustPanel({ store }: AdjustPanelProps) {
             min="-100"
             max="100"
             value={values[keyName]}
+            disabled={!hasTargets}
             onChange={(e) => handleChange(keyName, Number(e.target.value))}
             className="outline-none appearance-none"
             style={{
@@ -124,7 +338,7 @@ export default function AdjustPanel({ store }: AdjustPanelProps) {
 </svg>`;
 
   return (
-    <div className="h-[102px] bg-white border-b px-6 flex items-center gap-2">
+    <div className="h-[102px] bg-white border-b px-6 flex items-center gap-2 overflow-x-auto">
       <div className="flex flex-col items-center min-w-[300px]">
         <div className="flex flex-row items-center gap-[2px]">
           <Slider label="Exposure" keyName="exposure" icon={svgBright} />
@@ -142,6 +356,7 @@ export default function AdjustPanel({ store }: AdjustPanelProps) {
           {/* Reset */}
           <button
             onClick={resetAll}
+            disabled={!hasTargets}
             className="inline-flex justify-center items-start gap-[8px] rounded-[14px] bg-[#F3F4F6] text-sm"
             style={{
               padding: "8.5px 15.453px 7.5px 16px",

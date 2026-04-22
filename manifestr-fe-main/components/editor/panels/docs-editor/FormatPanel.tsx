@@ -1,4 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { 
+  Scissors, Copy, Clipboard, Eraser, ChevronDown, Bold, Italic, Underline,
+  Palette, Highlighter, AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  List, ListOrdered, IndentDecrease, IndentIncrease, Space, Strikethrough,
+  Subscript, Superscript
+} from "lucide-react";
 
 interface FormatPanelProps {
   store?: any;
@@ -6,29 +12,6 @@ interface FormatPanelProps {
 }
 
 export default function FormatPanel({ store, editor }: FormatPanelProps) {
-  // Icon URLs from Figma - FORMAT TAB
-  const imgCut = "https://www.figma.com/api/mcp/asset/0f6e6651-677e-400c-84fb-932a3756b0f9";
-  const imgCopy = "https://www.figma.com/api/mcp/asset/6941d466-a05e-4067-adae-46c4609b675c";
-  const imgPaste = "https://www.figma.com/api/mcp/asset/a6675df6-c205-4fff-982e-ccfd2bf6a395";
-  const imgClear = "https://www.figma.com/api/mcp/asset/1f1a8028-abd9-4067-85d2-8437b366c277";
-  const imgDropdown = "https://www.figma.com/api/mcp/asset/586235f5-9d68-4efa-93c9-45d860cbfd4b";
-  const imgBold = "https://www.figma.com/api/mcp/asset/7e3b074f-2d0c-45ac-b754-ae54daedfba3";
-  const imgItalic = "https://www.figma.com/api/mcp/asset/15aafe29-9195-4f8b-ba9b-495f211a5673";
-  const imgUnderline = "https://www.figma.com/api/mcp/asset/27c8c6a9-8609-4391-997a-9a55414ad8d9";
-  const imgTextColor = "https://www.figma.com/api/mcp/asset/d94d780c-4b01-4da2-b8de-ae878bfed96a";
-  const imgHighlight = "https://www.figma.com/api/mcp/asset/bb913643-312f-4235-b7fd-0c671a4b4812";
-  const imgAlignLeft = "https://www.figma.com/api/mcp/asset/92afd248-4994-4759-8cc6-36c00c666ae2";
-  const imgAlignCenter = "https://www.figma.com/api/mcp/asset/d9ea7836-1ec7-47c2-b325-726270fc00a7";
-  const imgAlignRight = "https://www.figma.com/api/mcp/asset/96ed8982-6cf8-48c1-8747-5761c948f95b";
-  const imgAlignJustify = "https://www.figma.com/api/mcp/asset/e7a0eeb1-5ff0-4f00-8c81-36809944fa81";
-  const imgBullets = "https://www.figma.com/api/mcp/asset/012cc8fd-4287-4cbc-ad04-12e6b62b55d7";
-  const imgNumbers = "https://www.figma.com/api/mcp/asset/96d25f30-2541-4328-b535-5bc47fbf7961";
-  const imgOutdent = "https://www.figma.com/api/mcp/asset/af0eef3c-6920-422a-817e-77557465eb42";
-  const imgIndent = "https://www.figma.com/api/mcp/asset/8a8c9f53-19a3-4f49-8e5c-5b8323b7c37b";
-  const imgSpacing = "https://www.figma.com/api/mcp/asset/d94bd09f-acc6-4e88-ab9e-e26c7d0964b4";
-  const imgStrike = "https://www.figma.com/api/mcp/asset/b1959782-a5fb-4039-8715-3299cf09601f";
-  const imgSubscript = "https://www.figma.com/api/mcp/asset/6c2c5c21-2e41-4a21-adc3-eca45d5421d8";
-  const imgSuperscript = "https://www.figma.com/api/mcp/asset/d5e4bf77-6a3c-4ac3-9c77-16e0233f887b";
 
   const [style, setStyle] = useState("Normal");
   const [font, setFont] = useState("Inter");
@@ -123,19 +106,19 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
         </p>
         <div className="flex gap-2">
           <button onClick={handleCut} className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <img alt="" className="block size-4" src={imgCut} />
+            <Scissors className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Cut</p>
           </button>
           <button onClick={handleCopy} className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <img alt="" className="block size-4" src={imgCopy} />
+            <Copy className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Copy</p>
           </button>
           <button onClick={handlePaste} className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <img alt="" className="block size-4" src={imgPaste} />
+            <Clipboard className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Paste</p>
           </button>
           <button onClick={handleClear} className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <img alt="" className="block size-4" src={imgClear} />
+            <Eraser className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Clear</p>
           </button>
         </div>
@@ -158,7 +141,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             <option>Heading 2</option>
             <option>Heading 3</option>
           </select>
-          <img alt="" className="absolute right-3 top-[11px] size-3 pointer-events-none" src={imgDropdown} />
+          <ChevronDown className="absolute right-3 top-[11px] size-3 pointer-events-none" stroke="#364153" strokeWidth={1.5} />
         </div>
       </div>
 
@@ -180,7 +163,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               <option>Times New Roman</option>
               <option>Courier New</option>
             </select>
-            <img alt="" className="absolute right-3 top-[11px] size-3 pointer-events-none" src={imgDropdown} />
+            <ChevronDown className="absolute right-3 top-[11px] size-3 pointer-events-none" stroke="#364153" strokeWidth={1.5} />
           </div>
           <div className="relative">
             <select
@@ -196,7 +179,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               <option>18pt</option>
               <option>24pt</option>
             </select>
-            <img alt="" className="absolute right-3 top-[11px] size-3 pointer-events-none" src={imgDropdown} />
+            <ChevronDown className="absolute right-3 top-[11px] size-3 pointer-events-none" stroke="#364153" strokeWidth={1.5} />
           </div>
           <button 
             onClick={() => editor?.chain().focus().toggleBold().run()}
@@ -204,7 +187,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('bold') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-[18px]" src={imgBold} />
+            <Bold className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
           </button>
           <button 
             onClick={() => editor?.chain().focus().toggleItalic().run()}
@@ -212,7 +195,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('italic') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-[18px]" src={imgItalic} />
+            <Italic className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
           </button>
           <button 
             onClick={() => editor?.chain().focus().toggleUnderline().run()}
@@ -220,7 +203,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('underline') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-[18px]" src={imgUnderline} />
+            <Underline className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
           </button>
         </div>
       </div>
@@ -231,7 +214,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
       {/* Text & Highlight Colors */}
       <div className="h-[81px] flex gap-5 shrink-0 pt-2">
         <button className="border border-transparent h-[65px] w-[39px] rounded-[14px] hover:bg-gray-50 transition-colors flex flex-col items-center justify-start pt-2 gap-1">
-          <img alt="" className="block size-[18px]" src={imgTextColor} />
+          <Palette className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
           <div className="bg-black h-1.5 w-8 rounded"></div>
           <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">Text</p>
         </button>
@@ -241,7 +224,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             editor?.isActive('highlight') ? 'bg-gray-100' : ''
           }`}
         >
-          <img alt="" className="block size-[18px]" src={imgHighlight} />
+          <Highlighter className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
           <div className="bg-yellow-400 h-1.5 w-8 rounded"></div>
           <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">Highlight</p>
         </button>
@@ -260,7 +243,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive({ textAlign: 'left' }) ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgAlignLeft} />
+            <AlignLeft className="size-4" stroke="#364153" strokeWidth={1.5} />
           </button>
           <button 
             onClick={() => editor?.chain().focus().setTextAlign('center').run()}
@@ -268,7 +251,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive({ textAlign: 'center' }) ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgAlignCenter} />
+            <AlignCenter className="size-4" stroke="#364153" strokeWidth={1.5} />
           </button>
           <button 
             onClick={() => editor?.chain().focus().setTextAlign('right').run()}
@@ -276,7 +259,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive({ textAlign: 'right' }) ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgAlignRight} />
+            <AlignRight className="size-4" stroke="#364153" strokeWidth={1.5} />
           </button>
           <button 
             onClick={() => editor?.chain().focus().setTextAlign('justify').run()}
@@ -284,7 +267,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive({ textAlign: 'justify' }) ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgAlignJustify} />
+            <AlignJustify className="size-4" stroke="#364153" strokeWidth={1.5} />
           </button>
         </div>
       </div>
@@ -302,7 +285,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('bulletList') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgBullets} />
+            <List className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Bullets</p>
           </button>
           <button 
@@ -311,7 +294,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('orderedList') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgNumbers} />
+            <ListOrdered className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Numbers</p>
           </button>
           <button 
@@ -319,7 +302,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             disabled={!editor?.can().liftListItem('listItem')}
             className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-100 transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <img alt="" className="block size-4" src={imgOutdent} />
+            <IndentDecrease className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Outdent</p>
           </button>
           <button 
@@ -327,11 +310,11 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             disabled={!editor?.can().sinkListItem('listItem')}
             className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-100 transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <img alt="" className="block size-4" src={imgIndent} />
+            <IndentIncrease className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Indent</p>
           </button>
           <button className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-100 transition-colors flex items-center gap-2">
-            <img alt="" className="block size-4" src={imgSpacing} />
+            <Space className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Spacing</p>
           </button>
         </div>
@@ -350,7 +333,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('strike') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgStrike} />
+            <Strikethrough className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Strike</p>
           </button>
           <button 
@@ -359,7 +342,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('subscript') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgSubscript} />
+            <Subscript className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Subscript</p>
           </button>
           <button 
@@ -368,7 +351,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               editor?.isActive('superscript') ? 'bg-gray-100' : ''
             }`}
           >
-            <img alt="" className="block size-4" src={imgSuperscript} />
+            <Superscript className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Super</p>
           </button>
         </div>

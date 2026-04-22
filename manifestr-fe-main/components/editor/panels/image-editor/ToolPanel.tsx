@@ -8,21 +8,45 @@ import FiltersPanel from "./FiltersPanel";
 import TextPanel from "./TextPanel";
 import ColorPanel from "./ColorPanel";
 import EffectPanel from "./EffectPanel";
+import AiPrompterPanel from "../comman-panel/AiPrompterPanel";
 
 interface ToolPanelProps {
   activeTool: string;
   store: any;
+  setActiveTool?: (tool: any) => void;
+  drawing?: any;
+  setDrawing?: (next: any) => void;
+  effect?: any;
+  setEffect?: (next: any) => void;
 }
 
-export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
+export default function ToolPanel({
+  activeTool,
+  store,
+  setActiveTool,
+  drawing,
+  setDrawing,
+  effect,
+  setEffect,
+}: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
+    case "ai_prompter":
+      return <AiPrompterPanel store={store} />;
     case "insert":
-      return <InsertPanel store={store} />;
+      return <InsertPanel store={store} setActiveTool={setActiveTool} />;
 
     case "format":
-      return <FormatPanel store={store} />;
+      return (
+        <FormatPanel
+          store={store}
+          drawing={drawing}
+          setDrawing={setDrawing}
+          effect={effect}
+          setEffect={setEffect}
+        />
+      );
 
     case "adjust":
       return <AdjustPanel store={store} />;

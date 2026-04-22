@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { List, RefreshCw, FileDown, FileUp, ChevronDown, Quote, BookMarked, Book, FileText, Link, ListOrdered } from "lucide-react";
 
 interface ReferencesPanelProps {
   store?: any;
@@ -6,18 +7,6 @@ interface ReferencesPanelProps {
 }
 
 export default function ReferencesPanel({ store, editor }: ReferencesPanelProps) {
-  // Icon URLs from Figma - REFERENCES TAB
-  const imgInsertTOC = "https://www.figma.com/api/mcp/asset/6f236302-505f-4ab4-9ed5-c6e21f5bea26";
-  const imgUpdate = "https://www.figma.com/api/mcp/asset/0da7cf3c-bc29-41a2-a5bc-7eb69996a654";
-  const imgFootnote = "https://www.figma.com/api/mcp/asset/5cd8a72e-640c-4fe6-a57c-4e71c0133908";
-  const imgEndnote = "https://www.figma.com/api/mcp/asset/ab24e227-6686-4518-8f1b-be3c640e04de";
-  const imgDropdown = "https://www.figma.com/api/mcp/asset/949f329a-96e4-4653-a325-b5ca4afa5715";
-  const imgCitation = "https://www.figma.com/api/mcp/asset/4b54869a-43b3-48de-bb98-fb1e50c436e6";
-  const imgSources = "https://www.figma.com/api/mcp/asset/e0277955-2dae-4f03-ad7b-a4dfb5e0cb16";
-  const imgBibliography = "https://www.figma.com/api/mcp/asset/b24a71d0-fbf3-4cb7-a353-84f44a80a543";
-  const imgCaption = "https://www.figma.com/api/mcp/asset/b06be560-5f83-458a-ba23-b1073d107833";
-  const imgCrossRef = "https://www.figma.com/api/mcp/asset/e76f39cc-108b-4ae8-bbe1-ac4114824f2d";
-  const imgInsertIndex = "https://www.figma.com/api/mcp/asset/f40efa34-3d62-422a-a2f4-8ca53c429f4c";
 
   const [citationStyle, setCitationStyle] = useState("APA");
   const [toast, setToast] = useState<string | null>(null);
@@ -332,7 +321,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[78px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgInsertTOC} />
+              <List className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Insert TOC
               </p>
@@ -343,7 +332,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgUpdate} />
+              <RefreshCw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Update
               </p>
@@ -366,7 +355,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[75px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgFootnote} />
+              <FileDown className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Footnote
               </p>
@@ -377,7 +366,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgEndnote} />
+              <FileUp className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Endnote
               </p>
@@ -409,14 +398,14 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
               <option>Chicago</option>
               <option>Harvard</option>
             </select>
-            <img alt="" className="absolute right-3 top-[11px] size-3 pointer-events-none" src={imgDropdown} />
+            <ChevronDown className="absolute right-3 top-[11px] size-3 pointer-events-none" stroke="#364153" strokeWidth={1.5} />
           </div>
           <button 
             onClick={handleInsertCitation}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgCitation} />
+              <Quote className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Citation
               </p>
@@ -427,7 +416,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgSources} />
+              <BookMarked className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Sources
               </p>
@@ -438,7 +427,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[86px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgBibliography} />
+              <Book className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Bibliography
               </p>
@@ -461,7 +450,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgCaption} />
+              <FileText className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Caption
               </p>
@@ -472,7 +461,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[78px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgCrossRef} />
+              <Link className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Cross-ref
               </p>
@@ -495,7 +484,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[82px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgInsertIndex} />
+              <ListOrdered className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Insert Index
               </p>
@@ -506,7 +495,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgUpdate} />
+              <RefreshCw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Update
               </p>

@@ -16,7 +16,7 @@ interface ToolItem {
 
 const tools: ToolItem[] = [
   {
-    key: "ai",
+    key: "ai_prompter",
     label: "AI Prompter",
     icon: (
       <svg
@@ -959,6 +959,7 @@ const tools: ToolItem[] = [
       </svg>
     ),
     editor_for: ["chart"],
+    disabled: true,
   },
   {
     key: "home",
@@ -1018,42 +1019,42 @@ const tools: ToolItem[] = [
     ),
     editor_for: ["chart"],
   },
-  {
-    key: "format",
-    label: "Format",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M8 2.66406V13.3307"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M2.66797 4.66406V3.33073C2.66797 3.15392 2.73821 2.98435 2.86323 2.85932C2.98826 2.7343 3.15782 2.66406 3.33464 2.66406H12.668C12.8448 2.66406 13.0143 2.7343 13.1394 2.85932C13.2644 2.98435 13.3346 3.15392 13.3346 3.33073V4.66406"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M6 13.3359H10"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["chart"],
-  },
+  // {
+  //   key: "format",
+  //   label: "Format",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M8 2.66406V13.3307"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M2.66797 4.66406V3.33073C2.66797 3.15392 2.73821 2.98435 2.86323 2.85932C2.98826 2.7343 3.15782 2.66406 3.33464 2.66406H12.668C12.8448 2.66406 13.0143 2.7343 13.1394 2.85932C13.2644 2.98435 13.3346 3.15392 13.3346 3.33073V4.66406"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M6 13.3359H10"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["chart"],
+  // },
   {
     key: "charts",
     label: "Charts",
@@ -1097,92 +1098,92 @@ const tools: ToolItem[] = [
     ),
     editor_for: ["chart"],
   },
-  {
-    key: "data",
-    label: "Data",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2 6H14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M2 10H14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M6 2V14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M10 2V14"
-          stroke="currentColor"
-          strokeWidth="1.33333"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["chart"],
-  },
-  {
-    key: "page-layout",
-    label: "Page Layout",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path
-          d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M2 6H14"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M6 14V6"
-          stroke="currentColor"
-          stroke-width="1.33333"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    ),
-    editor_for: ["chart"],
-  },
+  // {
+  //   key: "data",
+  //   label: "Data",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M2 6H14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M2 10H14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M6 2V14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //       <path
+  //         d="M10 2V14"
+  //         stroke="currentColor"
+  //         strokeWidth="1.33333"
+  //         strokeLinecap="round"
+  //         strokeLinejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["chart"],
+  // },
+  // {
+  //   key: "page-layout",
+  //   label: "Page Layout",
+  //   icon: (
+  //     <svg
+  //       xmlns="http://www.w3.org/2000/svg"
+  //       width="16"
+  //       height="16"
+  //       viewBox="0 0 16 16"
+  //       fill="none"
+  //     >
+  //       <path
+  //         d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M2 6H14"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //       <path
+  //         d="M6 14V6"
+  //         stroke="currentColor"
+  //         stroke-width="1.33333"
+  //         stroke-linecap="round"
+  //         stroke-linejoin="round"
+  //       />
+  //     </svg>
+  //   ),
+  //   editor_for: ["chart"],
+  // },
   {
     key: "style",
     label: "Style",
@@ -1245,7 +1246,13 @@ export default function EditorBottomToolbar({
   editorType,
 }: EditorBottomToolbarProps) {
   return (
-    <div className="h-[60px] bg-[#2F2F2F] text-white flex items-center px-6 gap-5 text-[13px]">
+    <div
+      className="h-[60px] bg-[#2F2F2F] text-white flex items-center px-6 gap-5 text-[13px]
+        overflow-x-auto scrollbar-thin scrollbar-thumb-[#666] scrollbar-track-transparent
+        sm:h-[50px] sm:px-3 sm:gap-2 sm:text-[12px]
+        xs:h-auto xs:flex-nowrap xs:justify-start xs:px-2 xs:gap-1 xs:text-[11px]"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       {tools
         .filter(
           (tool) =>
@@ -1266,7 +1273,8 @@ export default function EditorBottomToolbar({
               }}
               className={`
                 px-3 py-1.5 rounded-[15px] transition flex items-center gap-2
-           
+                sm:px-2 sm:py-1 sm:rounded-[12px] sm:gap-1
+                xs:px-1 xs:py-1 xs:rounded-lg xs:gap-0.5
                 ${
                   isDisabled
                     ? "opacity-40 cursor-not-allowed"
@@ -1275,9 +1283,10 @@ export default function EditorBottomToolbar({
                       : "text-gray-300 hover:bg-[#3a3a3a] hover:text-white"
                 }
               `}
+              style={{ flex: "0 0 auto" }}
             >
               <span className="w-4 h-4 flex items-center">{tool.icon}</span>
-              {tool.label}
+              <span className="hidden xs:inline sm:inline">{tool.label}</span>
             </button>
           );
         })}

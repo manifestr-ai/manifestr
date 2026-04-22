@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Search, Replace, MousePointerClick, CheckCircle, BookOpen, Hash, MessageSquarePlus, Eye, FileEdit } from "lucide-react";
 
 interface ReviewPanelProps {
   store?: any;
@@ -6,16 +7,6 @@ interface ReviewPanelProps {
 }
 
 export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
-  // Icon URLs from Figma - REVIEW TAB
-  const imgFind = "https://www.figma.com/api/mcp/asset/593e4508-39e2-40e9-9ef0-0f769a0f51d1";
-  const imgReplace = "https://www.figma.com/api/mcp/asset/2af02242-f31a-40a4-8ba4-f95c3eda2546";
-  const imgSelectAll = "https://www.figma.com/api/mcp/asset/e63c397b-e718-4a12-acb7-b257e4d50858";
-  const imgSpellCheck = "https://www.figma.com/api/mcp/asset/533ed37c-880b-4f02-bfd4-718d8287d9d5";
-  const imgThesaurus = "https://www.figma.com/api/mcp/asset/3baba350-b98c-448e-b154-3b85ce717fc8";
-  const imgWordCount = "https://www.figma.com/api/mcp/asset/d466074f-b741-427c-8131-1c916263231d";
-  const imgNewComment = "https://www.figma.com/api/mcp/asset/00f42780-9039-4a71-9c88-232e0ff51e09";
-  const imgShowComments = "https://www.figma.com/api/mcp/asset/b23f40b2-ea60-42f2-a755-cef1d9293d99";
-  const imgTrackChanges = "https://www.figma.com/api/mcp/asset/c2ca3f1c-bf47-456a-8875-5eaf23b792e9";
 
   // State
   const [toast, setToast] = useState<string | null>(null);
@@ -422,7 +413,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgFind} />
+              <Search className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Find
               </p>
@@ -433,7 +424,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgReplace} />
+              <Replace className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Replace
               </p>
@@ -444,7 +435,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[79px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgSelectAll} />
+              <MousePointerClick className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Select All
               </p>
@@ -467,7 +458,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[83px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgSpellCheck} />
+              <CheckCircle className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Spell Check
               </p>
@@ -478,7 +469,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[76px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgThesaurus} />
+              <BookOpen className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Thesaurus
               </p>
@@ -489,7 +480,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[89px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgWordCount} />
+              <Hash className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Word Count
               </p>
@@ -512,7 +503,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             className="border border-transparent h-[55px] w-[97px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgNewComment} />
+              <MessageSquarePlus className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 New Comment
               </p>
@@ -525,7 +516,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             }`}
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgShowComments} />
+              <Eye className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Show Comments
               </p>
@@ -538,7 +529,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
             }`}
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgTrackChanges} />
+              <FileEdit className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Track Changes
               </p>

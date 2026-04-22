@@ -58,28 +58,10 @@ export default function WinsDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="bg-transparent flex items-center gap-2 px-1 py-1 rounded-md hover:bg-[#f4f4f5] transition-colors cursor-pointer"
+        className="bg-transparent flex items-center gap-2 px-1 py-1 rounded-md transition-colors cursor-pointer"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="14"
-          viewBox="0 0 15 14"
-          fill="none"
-          className="w-4 h-4"
-        >
-          <path
-            d="M13.9983 4.66406L11.3316 0.664062H3.33164L0.664978 4.66406M13.9983 4.66406L7.33164 13.3307M13.9983 4.66406H0.664978M7.33164 13.3307L0.664978 4.66406M7.33164 13.3307L4.66498 4.66406L6.66498 0.664062M7.33164 13.3307L9.99831 4.66406L7.99831 0.664062"
-            stroke="#52525B"
-            strokeWidth="1.33"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-
-        <span className="text-[14px] font-medium leading-[20px] text-[#18181b]">
-          {currentBalance}
-        </span>
+          <GemIcon className="w-4 h-4 text-[#52525B]" />
+        <span className="text-[14px] font-medium leading-[20px] text-[#18181b]">{currentBalance}</span>
       </motion.button>
 
       {/* Wins Dropdown */}

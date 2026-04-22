@@ -5,7 +5,7 @@ export const claude = new Anthropic({
     apiKey: process.env.CLAUDE_API_KEY,
 });
 
-export async function generateJSON<T>(schema: any, systemPrompt: string, userPrompt: string, maxRetries: number = 10): Promise<T> {
+export async function generateJSON<T>(schema: any, systemPrompt: string, userPrompt: string, maxRetries: number = 10, maxTokens: number = 16000): Promise<T> {
     let attempt = 0;
 
     // Initialize conversation history
@@ -22,7 +22,7 @@ export async function generateJSON<T>(schema: any, systemPrompt: string, userPro
         try {
             const completion = await claude.messages.create({
                 model: "claude-sonnet-4-20250514",
-                max_tokens: 8000,
+                max_tokens: maxTokens,
                 system: fullSystemPrompt,
                 messages: messages,
             });

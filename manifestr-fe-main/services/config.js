@@ -13,6 +13,17 @@ export const API_BASE_URL = baseUrl;
 
 // Endpoints with full paths (some have /api, some don't)
 export const ENDPOINTS = {
+    ADMIN: {
+        OVERVIEW: '/api/admin/overview',
+        GROWTH: '/api/admin/growth',
+        PRODUCT_USAGE: '/api/admin/product-usage',
+        MONETIZATION: '/api/admin/monetization',
+        AI_PERFORMANCE: '/api/admin/ai-performance',
+        RETENTION: '/api/admin/retention',
+        LIFECYCLE: '/api/admin/lifecycle',
+        FEATURE_ADOPTION: '/api/admin/feature-adoption',
+        PLATFORM_HEALTH: '/api/admin/platform-health',
+    },
     UPLOADS: {
         PRESIGN: '/api/uploads/presign',
     },

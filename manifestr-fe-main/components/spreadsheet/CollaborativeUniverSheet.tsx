@@ -122,6 +122,40 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
 
       let workbookData = data || WORKBOOK_DATA;
 
+      // LOG WHAT WE RECEIVED
+      console.log('📊 [Collab] Received workbook data:', {
+        hasData: !!data,
+        dataType: typeof data,
+        dataKeys: data ? Object.keys(data) : [],
+        hasSheets: data?.sheets ? Object.keys(data.sheets).length : 0,
+        sheetOrder: data?.sheetOrder,
+        generationId
+      });
+      
+      // LOG SHEET DETAILS
+      if (data?.sheets) {
+        console.log('📋 [Collab] Sheet Details:');
+        Object.keys(data.sheets).forEach(sheetKey => {
+          const sheet = data.sheets[sheetKey];
+          const cellCount = sheet.cellData ? Object.keys(sheet.cellData).reduce((total, rowKey) => {
+            const row = sheet.cellData[rowKey];
+            return total + (row ? Object.keys(row).length : 0);
+          }, 0) : 0;
+          console.log(`  - ${sheet.name}: ${cellCount} cells`, sheet.cellData ? 'HAS cellData' : 'NO cellData');
+          
+          // LOG SAMPLE CELL DATA STRUCTURE
+          if (sheet.cellData && Object.keys(sheet.cellData).length > 0) {
+            const firstRowKey = Object.keys(sheet.cellData)[0];
+            const firstRow = sheet.cellData[firstRowKey];
+            if (firstRow) {
+              const firstCellKey = Object.keys(firstRow)[0];
+              const firstCell = firstRow[firstCellKey];
+              console.log(`    Sample cell [${firstRowKey}][${firstCellKey}]:`, firstCell);
+            }
+          }
+        });
+      }
+
       // Validation
       const isValid =
         workbookData &&
@@ -130,6 +164,7 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
         (workbookData.sheets || workbookData.sheetOrder);
 
       if (!isValid) {
+        console.warn('⚠️ [Collab] Invalid workbook data, using fallback');
         workbookData = WORKBOOK_DATA;
       }
 
@@ -160,9 +195,46 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
       }
 
       try {
-        univerAPI.createWorkbook(workbookData);
+        console.log('🚀 [Collab] Creating Univer workbook...');
+        
+        // CRITICAL FIX: Wait for Univer to fully initialize BEFORE creating workbook
+        // Univer's internal event system (onPointerDown$) needs time to set up
+        setTimeout(() => {
+          try {
+            univerAPI.createWorkbook(workbookData);
+            console.log('✅ [Collab] Workbook created successfully');
+            
+            // Double-verify after another delay
+            setTimeout(() => {
+              const workbook = univerAPI.getActiveWorkbook();
+              if (!workbook) {
+                console.error('❌ [Collab] Workbook creation failed - getActiveWorkbook() returned null');
+              } else {
+                console.log('✅ [Collab] Active workbook verified:', {
+                  id: workbook.getId?.(),
+                  hasSheets: !!workbook.getSheets,
+                  hasSaveMethod: typeof workbook.save === 'function'
+                });
+                
+                if (typeof workbook.save !== 'function') {
+                  console.warn('⚠️ [Collab] save() method still not available');
+                }
+              }
+            }, 300);
+          } catch (e) {
+            console.error("❌ [Collab] Failed to create workbook:", e);
+            // Try with fallback data
+            try {
+              console.log('⚠️ [Collab] Attempting with fallback data...');
+              univerAPI.createWorkbook(WORKBOOK_DATA);
+            } catch (fallbackError) {
+              console.error('❌ [Collab] Fallback also failed:', fallbackError);
+            }
+          }
+        }, 100); // Initial delay for Univer's event system to initialize
+        
       } catch (e) {
-        console.error("Failed to create workbook:", e);
+        console.error("❌ [Collab] Initialization error:", e);
       }
 
       if (onAPIReady) {
@@ -232,33 +304,94 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
       return () => clearInterval(interval);
     }, [generationId]);
 
-    // Y.js <-> Univer Sync
+    // Y.js <-> Univer Sync - FIXED to prevent workbook recreation on own changes
     useEffect(() => {
       if (!provider || !univerAPIRef.current) return;
 
       const ymap = ydoc.getMap("univer-state");
       let isSyncing = false;
+      let lastLocalVersion = 0;
+      let initTimeout: any;
 
-      // Y.js → Univer (remote changes)
+      // Wait for workbook to be ready before setting up sync
+      const waitForWorkbook = () => {
+        const workbook = univerAPIRef.current?.getActiveWorkbook();
+        if (!workbook) {
+          console.log('⏳ [Collab] Waiting for workbook to be ready for Y.js sync...');
+          return false;
+        }
+        return true;
+      };
+
+      // Delay sync initialization to ensure workbook is ready
+      initTimeout = setTimeout(() => {
+        if (!waitForWorkbook()) {
+          console.warn('⚠️ [Collab] Workbook not ready after timeout, skipping Y.js sync init');
+          return;
+        }
+        
+        console.log('✅ [Collab] Workbook ready, initializing Y.js sync');
+
+        // Initialize Y.js with current state if empty
+        if (!ymap.has("json") && univerAPIRef.current) {
+          const workbook = univerAPIRef.current.getActiveWorkbook();
+          if (workbook && typeof workbook.save === 'function') {
+            lastLocalVersion = 1;
+            ymap.set("version", lastLocalVersion);
+            ymap.set("json", JSON.stringify(workbook.save()));
+            console.log('🔧 [Collab] Initialized Y.js state (v1)');
+          }
+        } else {
+          // Load existing version
+          lastLocalVersion = ymap.get("version") as number || 0;
+          console.log('🔧 [Collab] Connected to existing Y.js state (v' + lastLocalVersion + ')');
+        }
+      }, 500); // Wait for workbook creation
+
+      // Y.js → Univer (remote changes from OTHER users)
       const onYChange = () => {
         if (isSyncing || !univerAPIRef.current) return;
+        
+        // SAFETY: Check if workbook exists
+        const workbook = univerAPIRef.current.getActiveWorkbook();
+        if (!workbook) {
+          console.warn('⚠️ [Collab] Workbook not available during Y.js change, skipping');
+          return;
+        }
+        
+        const remoteVersion = ymap.get("version") as number | undefined;
+        
+        // CRITICAL FIX: Skip if this change originated from us!
+        if (remoteVersion && remoteVersion === lastLocalVersion) {
+          console.log('⏭️ [Collab] Skipping sync - this was our own change (v' + remoteVersion + ')');
+          return;
+        }
+        
         isSyncing = true;
 
         try {
           const remoteJSON = ymap.get("json");
           if (remoteJSON) {
-            const workbook = univerAPIRef.current.getActiveWorkbook();
-            if (workbook) {
+            if (workbook && typeof workbook.save === 'function') {
               const currentJSON = JSON.stringify(workbook.save());
               const remoteJSONStr = remoteJSON as string;
               if (currentJSON !== remoteJSONStr) {
-                // Load remote changes
+                console.log('🔄 [Collab] Applying remote changes from another user (v' + remoteVersion + ')');
                 const remoteData = JSON.parse(remoteJSONStr);
                 // Dispose and recreate workbook with new data
                 const workbookId = workbook.getId() as string;
                 univerAPIRef.current.disposeUnit(workbookId);
-                univerAPIRef.current.createWorkbook(remoteData);
+                
+                // Add small delay before recreating to avoid race conditions
+                setTimeout(() => {
+                  if (univerAPIRef.current) {
+                    univerAPIRef.current.createWorkbook(remoteData);
+                    lastLocalVersion = remoteVersion || 0;
+                  }
+                }, 50);
               }
+            } else {
+              console.warn('⚠️ [Collab] Workbook or save() method not available');
             }
           }
         } catch (error) {
@@ -270,19 +403,29 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
 
       ymap.observe(onYChange);
 
-      // Univer → Y.js (local changes)
+      // Univer → Y.js (local changes TO other users)
       const syncToYjs = () => {
         if (isSyncing || !univerAPIRef.current) return;
+        
+        // SAFETY: Check if workbook exists
+        const workbook = univerAPIRef.current.getActiveWorkbook();
+        if (!workbook) return;
+        
         isSyncing = true;
 
         try {
-          const workbook = univerAPIRef.current.getActiveWorkbook();
-          if (workbook) {
+          if (workbook && typeof workbook.save === 'function') {
             const json = JSON.stringify(workbook.save());
             const currentRemote = ymap.get("json") as string | undefined;
             if (json !== currentRemote) {
+              // Increment version to mark this as OUR change
+              lastLocalVersion = (ymap.get("version") as number || 0) + 1;
+              ymap.set("version", lastLocalVersion);
               ymap.set("json", json);
+              console.log('📤 [Collab] Synced local edit to Y.js (v' + lastLocalVersion + ')');
             }
+          } else {
+            console.warn('⚠️ [Collab] Workbook or save() method not available for sync');
           }
         } catch (error) {
           console.error("Failed to sync to Y.js:", error);
@@ -291,25 +434,30 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
         }
       };
 
-      // Listen to Univer commands
-      const disposable = univerAPIRef.current.onCommandExecuted(
-        (command: any) => {
-          setIsEditing(true);
-          syncToYjs();
-        },
-      );
-
-      // Initialize Y.js with current state if empty
-      if (!ymap.has("json") && univerAPIRef.current) {
-        const workbook = univerAPIRef.current.getActiveWorkbook();
-        if (workbook) {
-          ymap.set("json", JSON.stringify(workbook.save()));
+      // Listen to Univer commands (debounced to avoid excessive syncs)
+      let syncTimeout: any;
+      let commandDisposable: any;
+      
+      // Delay attaching command listener until workbook is ready
+      const attachCommandListener = setTimeout(() => {
+        if (univerAPIRef.current) {
+          commandDisposable = univerAPIRef.current.onCommandExecuted(
+            (command: any) => {
+              setIsEditing(true);
+              // Debounce to avoid syncing every keystroke
+              if (syncTimeout) clearTimeout(syncTimeout);
+              syncTimeout = setTimeout(() => syncToYjs(), 200);
+            },
+          );
         }
-      }
+      }, 500);
 
       return () => {
+        if (initTimeout) clearTimeout(initTimeout);
+        if (syncTimeout) clearTimeout(syncTimeout);
+        if (attachCommandListener) clearTimeout(attachCommandListener);
         ymap.unobserve(onYChange);
-        disposable?.dispose();
+        commandDisposable?.dispose();
       };
     }, [provider, ydoc]);
 
@@ -317,7 +465,7 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
     useEffect(() => {
       if (univerAPIRef.current && !lastSavedContent) {
         const workbook = univerAPIRef.current.getActiveWorkbook();
-        if (workbook) {
+        if (workbook && typeof workbook.save === 'function') {
           setLastSavedContent(JSON.stringify(workbook.save()));
         }
       }
@@ -328,11 +476,16 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
       if (!univerAPIRef.current || !generationId) return;
 
       let timeout: any;
+      let initTimeout: any;
+      let disposable: any;
 
       const saveToDatabase = async () => {
         try {
           const workbook = univerAPIRef.current?.getActiveWorkbook();
-          if (!workbook) return;
+          if (!workbook || typeof workbook.save !== 'function') {
+            console.warn('⚠️ [Collab] Workbook or save() not available for database save');
+            return;
+          }
 
           const currentContent = JSON.stringify(workbook.save());
 
@@ -358,21 +511,33 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
         }
       };
 
-      // Listen to changes
-      const disposable = univerAPIRef.current.onCommandExecuted(
-        (command: any) => {
-          setIsEditing(true);
-          if (timeout) clearTimeout(timeout);
-          setSaveStatus("saving");
-          timeout = setTimeout(() => {
-            saveToDatabase();
-            // Mark as not editing 3 seconds after last change
-            setTimeout(() => setIsEditing(false), 3000);
-          }, 2000);
-        },
-      );
+      // SAFETY: Wait for workbook to be ready before attaching auto-save listener
+      initTimeout = setTimeout(() => {
+        const workbook = univerAPIRef.current?.getActiveWorkbook();
+        if (!workbook) {
+          console.warn('⚠️ [Collab] Workbook not ready for auto-save, skipping listener attachment');
+          return;
+        }
+
+        console.log('✅ [Collab] Attaching auto-save listener');
+        
+        // Listen to changes
+        disposable = univerAPIRef.current?.onCommandExecuted(
+          (command: any) => {
+            setIsEditing(true);
+            if (timeout) clearTimeout(timeout);
+            setSaveStatus("saving");
+            timeout = setTimeout(() => {
+              saveToDatabase();
+              // Mark as not editing 3 seconds after last change
+              setTimeout(() => setIsEditing(false), 3000);
+            }, 2000);
+          },
+        );
+      }, 600); // Wait for workbook initialization
 
       return () => {
+        if (initTimeout) clearTimeout(initTimeout);
         disposable?.dispose();
         if (timeout) clearTimeout(timeout);
         saveToDatabase(); // Final save on unmount
@@ -395,7 +560,10 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
 
             if (latestContent && univerAPIRef.current) {
               const workbook = univerAPIRef.current.getActiveWorkbook();
-              if (!workbook) return;
+              if (!workbook || typeof workbook.save !== 'function') {
+                console.warn('⚠️ [Collab] Workbook or save() not available for refresh');
+                return;
+              }
 
               const currentContent = workbook.save();
               const latestJSON =
@@ -408,10 +576,22 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
                 JSON.stringify(currentContent) !== JSON.stringify(latestJSON)
               ) {
                 try {
+                  // SAFETY: Check if univerAPIRef is still available
+                  if (!univerAPIRef.current) {
+                    console.warn('⚠️ [Collab] Univer API not available during refresh');
+                    return;
+                  }
+                  
                   // Dispose current workbook and load new data
                   const workbookId = workbook.getId() as string;
                   univerAPIRef.current.disposeUnit(workbookId);
-                  univerAPIRef.current.createWorkbook(latestJSON);
+                  
+                  // Add delay before recreating
+                  setTimeout(() => {
+                    if (univerAPIRef.current) {
+                      univerAPIRef.current.createWorkbook(latestJSON);
+                    }
+                  }, 50);
                 } catch (e) {
                   console.error("Failed to load latest content:", e);
                 }

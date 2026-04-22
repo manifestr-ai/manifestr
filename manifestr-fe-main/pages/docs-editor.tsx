@@ -5,7 +5,7 @@ import Head from "next/head";
 import TopHeader from "../components/spreadsheet/TopHeader";
 import TiptapEditor from "../components/docs/TiptapEditor";
 import DocumentOutline from "../components/docs/DocumentOutline";
-import RightSidebar from "../components/spreadsheet/RightSidebar";
+import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import DocsEditorBottomToolbar from "../components/editor/DocsEditorBottomToolbar";
 import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 
@@ -39,6 +39,7 @@ export default function DocsEditor() {
   const [headings, setHeadings] = useState([]);
   const [editorHTML, setEditorHTML] = useState("");
   const [editorInstance, setEditorInstance] = useState(null);
+  const [zoom, setZoom] = useState(1);
   const { loading, error, status, content, id } = useGenerationLoader();
 
   const extractHeadings = (html) => {
@@ -57,6 +58,18 @@ export default function DocsEditor() {
 
     setHeadings(extractedHeadings);
   };
+
+  const clampZoom = (value: number) => Math.min(2, Math.max(0.5, value));
+
+  const handleZoomIn = () => {
+    setZoom((prev) => clampZoom(Number((prev + 0.1).toFixed(2))));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => clampZoom(Number((prev - 0.1).toFixed(2))));
+  };
+
+  const handleZoomReset = () => setZoom(1);
 
   const handleDownload = async () => {
     try {
@@ -250,7 +263,7 @@ export default function DocsEditor() {
           </div>
 
           {/* Editor Container */}
-          <div className="flex-grow relative">
+          <div className="flex-grow relative" style={{ zoom } as any}>
             {useCollaboration && actualDocumentId ? (
               <CollaborativeTiptapEditor
                 documentId={actualDocumentId}
@@ -270,7 +283,13 @@ export default function DocsEditor() {
           {/* Right Sidebar (Floating over editor on the right) */}
           <div className="hidden md:flex absolute right-[-12px] top-0 bottom-0 items-center z-20 pointer-events-none">
             <div className="pointer-events-auto">
-              <RightSidebar />
+              <RightSidebar
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                documentId={actualDocumentId}
+                documentTitle={content?.title || "Untitled document"}
+              />
             </div>
           </div>
 

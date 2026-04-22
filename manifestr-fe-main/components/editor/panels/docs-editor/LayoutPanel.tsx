@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Layout, RotateCw, Maximize2, Columns as ColumnsIcon, Split } from "lucide-react";
 
 interface LayoutPanelProps {
   store?: any;
@@ -6,12 +7,6 @@ interface LayoutPanelProps {
 }
 
 export default function LayoutPanel({ store, editor }: LayoutPanelProps) {
-  // Icon URLs from Figma
-  const imgMargins = "https://www.figma.com/api/mcp/asset/13c86d99-13e2-43aa-9f95-0598919ab075";
-  const imgOrientation = "https://www.figma.com/api/mcp/asset/915dfe16-3c60-42ba-85e5-93070355a52e";
-  const imgSize = "https://www.figma.com/api/mcp/asset/e124d1cd-0fd3-4fdd-a351-bb589d865291";
-  const imgColumns = "https://www.figma.com/api/mcp/asset/e5efdd2e-ce83-4d67-8347-f7d0d6755e64";
-  const imgBreaks = "https://www.figma.com/api/mcp/asset/1e06051c-982d-4057-9fe8-4f837c6a5547";
 
   const [indentLeft, setIndentLeft] = useState(0);
   const [indentRight, setIndentRight] = useState(0);
@@ -204,7 +199,7 @@ export default function LayoutPanel({ store, editor }: LayoutPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgMargins} />
+              <Layout className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Margins
               </p>
@@ -217,7 +212,7 @@ export default function LayoutPanel({ store, editor }: LayoutPanelProps) {
             }`}
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgOrientation} />
+              <RotateCw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Orientation
               </p>
@@ -228,7 +223,7 @@ export default function LayoutPanel({ store, editor }: LayoutPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgSize} />
+              <Maximize2 className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Size
               </p>
@@ -253,7 +248,7 @@ export default function LayoutPanel({ store, editor }: LayoutPanelProps) {
             }`}
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgColumns} />
+              <ColumnsIcon className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Columns
               </p>
@@ -264,7 +259,7 @@ export default function LayoutPanel({ store, editor }: LayoutPanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgBreaks} />
+              <Split className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Breaks
               </p>

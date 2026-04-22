@@ -1,6 +1,12 @@
-import React from "react";
 import ShapesPanel from "../comman-panel/ShapesPanel";
 import { Popover, Position } from "@blueprintjs/core";
+import {
+  buildChartSvg,
+  createDefaultChartSpec,
+  makeSvgDataUrl,
+  serializeChartSpecToName,
+  type PresentationChartType,
+} from "./chartSvg";
 
 interface InsertPanelProps {
   store: any;
@@ -9,8 +15,157 @@ interface InsertPanelProps {
 export default function InsertPanel({ store }: InsertPanelProps) {
   if (!store) return null;
 
+  const insertTable = (
+    rows: number,
+    cols: number,
+    variant: "plain" | "header" | "striped" = "plain",
+  ) => {
+    const page = store.activePage;
+    if (!page) return;
+
+    const maxTableWidth = Math.min(store.width * 0.75, 640);
+    const maxTableHeight = Math.min(store.height * 0.6, 380);
+    const cellWidth = Math.max(70, Math.floor(maxTableWidth / cols));
+    const cellHeight = Math.max(36, Math.floor(maxTableHeight / rows));
+    const tableWidth = cols * cellWidth;
+    const tableHeight = rows * cellHeight;
+    const startX = Math.round((store.width - tableWidth) / 2);
+    const startY = Math.round((store.height - tableHeight) / 2);
+
+    const createdElements: any[] = [];
+    const strokeColor = "#C4CAD6";
+    const headerFill = "#E7EEF9";
+    const stripedFill = "#F8FAFC";
+
+    const background = page.addElement({
+      type: "shape",
+      shapeType: "rect",
+      x: startX,
+      y: startY,
+      width: tableWidth,
+      height: tableHeight,
+      stroke: "#8A94A6",
+      strokeWidth: 1.5,
+      fill: "#FFFFFF",
+    });
+
+    createdElements.push(background);
+
+    if (variant === "header") {
+      const headerBg = page.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: startX,
+        y: startY,
+        width: tableWidth,
+        height: cellHeight,
+        fill: headerFill,
+        strokeWidth: 0,
+      });
+      createdElements.push(headerBg);
+    }
+
+    if (variant === "striped") {
+      for (let r = 0; r < rows; r++) {
+        if (r % 2 === 1) {
+          const rowBg = page.addElement({
+            type: "shape",
+            shapeType: "rect",
+            x: startX,
+            y: startY + r * cellHeight,
+            width: tableWidth,
+            height: cellHeight,
+            fill: stripedFill,
+            strokeWidth: 0,
+          });
+          createdElements.push(rowBg);
+        }
+      }
+    }
+
+    for (let r = 1; r < rows; r++) {
+      const y = startY + r * cellHeight;
+      const line = page.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x: startX,
+        y,
+        width: tableWidth,
+        height: 1.5,
+        fill: strokeColor,
+        strokeWidth: 0,
+      });
+      createdElements.push(line);
+    }
+
+    for (let c = 1; c < cols; c++) {
+      const x = startX + c * cellWidth;
+      const line = page.addElement({
+        type: "shape",
+        shapeType: "rect",
+        x,
+        y: startY,
+        width: 1.5,
+        height: tableHeight,
+        fill: strokeColor,
+        strokeWidth: 0,
+      });
+      createdElements.push(line);
+    }
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const isHeader = variant === "header" && r === 0;
+        const x = startX + c * cellWidth;
+        const y = startY + r * cellHeight;
+
+        const text = page.addElement({
+          type: "text",
+          text: isHeader ? `Header ${c + 1}` : `R${r + 1}C${c + 1}`,
+          x: x + 8,
+          y: y + Math.max(8, Math.floor(cellHeight / 3) - 4),
+          width: cellWidth - 16,
+          fontSize: isHeader ? 13 : 12,
+          fontFamily: "Inter",
+          fontWeight: isHeader ? "600" : "400",
+          fill: "#111827",
+        });
+
+        createdElements.push(text);
+      }
+    }
+
+    store.selectElements(createdElements);
+    try {
+      if (typeof store.groupElements === "function") {
+        store.groupElements.length > 0
+          ? store.groupElements(createdElements)
+          : store.groupElements();
+      }
+    } catch {}
+  };
+
+  const insertChart = (chartType: PresentationChartType) => {
+    const spec = createDefaultChartSpec(chartType);
+    const svg = buildChartSvg(spec);
+    const width = Math.round(Math.min(760, Math.max(520, store.width * 0.44)));
+    const height = Math.round(width * 0.62);
+    const el = store.activePage?.addElement?.({
+      type: "image",
+      name: serializeChartSpecToName(spec),
+      src: makeSvgDataUrl(svg),
+      x: Math.round((store.width - width) / 2),
+      y: Math.round((store.height - height) / 2),
+      width,
+      height,
+    });
+    if (el) {
+      store.selectElements([el]);
+    }
+  };
+
   return (
-    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0">
+    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
       {/* Content */}
       <div className="flex flex-col items-center min-w-[210px]">
         <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
@@ -212,109 +367,101 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             </span>
           </button>
           {/* Table */}
-          <button
-            onClick={() => {
-              const page = store.activePage;
-              if (!page) return;
-
-              const rows = 3;
-              const cols = 3;
-              const cellWidth = 120;
-              const cellHeight = 60;
-
-              const startX = store.width / 2 - (cols * cellWidth) / 2;
-              const startY = store.height / 2 - (rows * cellHeight) / 2;
-
-              const createdElements: any[] = [];
-
-              for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                  const x = startX + c * cellWidth;
-                  const y = startY + r * cellHeight;
-
-                  const rect = page.addElement({
-                    type: "shape",
-                    shapeType: "rect",
-                    x,
-                    y,
-                    width: cellWidth - 1,
-                    height: cellHeight - 1,
-                    stroke: "#000",
-                    strokeWidth: 1,
-                    fill: "#fff",
-                  });
-
-                  const text = page.addElement({
-                    type: "text",
-                    text: `R${r + 1}C${c + 1}`,
-                    x: x + 10,
-                    y: y + 15,
-                    fontSize: 14,
-                  });
-
-                  createdElements.push(rect, text);
-                }
-              }
-
-              const border = page.addElement({
-                type: "shape",
-                shapeType: "rect",
-                x: startX,
-                y: startY,
-                width: cols * cellWidth,
-                height: rows * cellHeight,
-                stroke: "#000",
-                strokeWidth: 2,
-                fill: "transparent",
-              });
-
-              createdElements.push(border);
-
-              // ✅ Select all (simulate group)
-              store.selectElements(createdElements);
-            }}
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            tabIndex={0}
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[260px] p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-400 mb-2">Insert Table</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => insertTable(2, 2, "plain")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    2x2 Basic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertTable(3, 3, "plain")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    3x3 Basic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertTable(4, 4, "plain")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    4x4 Basic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertTable(3, 4, "header")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    3x4 Header
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertTable(5, 3, "striped")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    5x3 Striped
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertTable(6, 6, "plain")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    6x6 Matrix
+                  </button>
+                </div>
+              </div>
+            }
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
+            <button
+              className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              tabIndex={0}
+              type="button"
             >
-              <path
-                d="M8 2V14"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 6H14"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 10H14"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span
-              className="
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M8 2V14"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 6H14"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 10H14"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span
+                className="
                   text-[9px]
                   font-normal
                   leading-[11.25px]
@@ -326,117 +473,126 @@ export default function InsertPanel({ store }: InsertPanelProps) {
                   group-hover:text-[#18181b]
                   transition-colors
                 "
-              style={{
-                fontFamily: "Inter",
-                fontStyle: "normal",
-                fontWeight: 400,
-              }}
-            >
-              Table
-            </span>
-          </button>
+                style={{
+                  fontFamily: "Inter",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                }}
+              >
+                Table
+              </span>
+            </button>
+          </Popover>
           {/* Chart */}
-          <button
-            onClick={() => {
-              const page = store.activePage;
-              if (!page) return;
-
-              const data = [
-                { label: "A", value: 30 },
-                { label: "B", value: 50 },
-                { label: "C", value: 20 },
-              ];
-
-              const barWidth = 40;
-              const gap = 30;
-              const maxHeight = 120;
-
-              const startX =
-                store.width / 2 -
-                (data.length * barWidth + (data.length - 1) * gap) / 2;
-
-              const baseY = store.height / 2 + maxHeight / 2;
-
-              const maxValue = Math.max(...data.map((d) => d.value));
-
-              data.forEach((item, i) => {
-                const barHeight = (item.value / maxValue) * maxHeight;
-
-                const x = startX + i * (barWidth + gap);
-                const y = baseY - barHeight;
-
-                // Bar
-                page.addElement({
-                  type: "shape",
-                  shapeType: "rect",
-                  x,
-                  y,
-                  width: barWidth,
-                  height: barHeight,
-                  fill: "#3B82F6",
-                });
-
-                // Label
-                page.addElement({
-                  type: "text",
-                  text: item.label,
-                  x: x + 10,
-                  y: baseY + 5,
-                  fontSize: 14,
-                });
-
-                // Value
-                page.addElement({
-                  type: "text",
-                  text: String(item.value),
-                  x: x + 5,
-                  y: y - 20,
-                  fontSize: 12,
-                });
-              });
-            }}
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            tabIndex={0}
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[280px] p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-400 mb-2">Insert Chart</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => insertChart("column")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Column
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("stacked-column")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Stacked Column
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("bar")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Bar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("line")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Line
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("area")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Area
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("scatter")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Scatter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("pie")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Pie
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertChart("donut")}
+                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
+                  >
+                    Donut
+                  </button>
+                </div>
+              </div>
+            }
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
+            <button
+              className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              tabIndex={0}
+              type="button"
             >
-              <path
-                d="M2 2V12.6667C2 13.0203 2.14048 13.3594 2.39052 13.6095C2.64057 13.8595 2.97971 14 3.33333 14H14"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M12 11.3333V6"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8.66797 11.3359V3.33594"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5.33203 11.3359V9.33594"
-                stroke="#364153"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span
-              className="
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M2 2V12.6667C2 13.0203 2.14048 13.3594 2.39052 13.6095C2.64057 13.8595 2.97971 14 3.33333 14H14"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 11.3333V6"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M8.66797 11.3359V3.33594"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M5.33203 11.3359V9.33594"
+                  stroke="#364153"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span
+                className="
                   text-[9px]
                   text-[#4A5565]
                   font-inter
@@ -446,10 +602,11 @@ export default function InsertPanel({ store }: InsertPanelProps) {
                   tracking-[0.167px]
                   mt-0.5
                 "
-            >
-              Chart
-            </span>
-          </button>
+              >
+                Chart
+              </span>
+            </button>
+          </Popover>
         </div>
       </div>
     </div>

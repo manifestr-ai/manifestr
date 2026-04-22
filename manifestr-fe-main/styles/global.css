@@ -216,6 +216,16 @@
  * These can be used alongside Tailwind classes
  */
 @layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
 
   /* Typography Utilities */
   .text-body-base {
@@ -642,6 +652,16 @@
 footer > .univer-box-border{
   background: #F9FAFB !important;
 }
+
+/* Hide dropdown (range selector arrow) */
+.univerjs-icon-dropdown-icon {
+  display: none !important;
+}
+.univerjs-icon-close-icon{
+  display: none !important;
+}
+
+
 
 /* Tiptap Table Styles */
 .ProseMirror table {

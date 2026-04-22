@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FileText, Palette, Droplet, Grid3x3, Layers, Square, Sparkles, Droplets } from "lucide-react";
 
 interface StylePanelProps {
   store?: any;
@@ -6,15 +7,6 @@ interface StylePanelProps {
 }
 
 export default function StylePanel({ store, editor }: StylePanelProps) {
-  // Icon URLs from Figma - STYLE TAB
-  const imgInsertStyle = "https://www.figma.com/api/mcp/asset/b7240381-dbcb-40ff-8aa8-25f33db4b7f1";
-  const imgTheme = "https://www.figma.com/api/mcp/asset/5f923d21-23ef-4ca7-a6d3-6576cac1d71a";
-  const imgColor = "https://www.figma.com/api/mcp/asset/c065955f-f732-4779-9358-d74eb5b253a9";
-  const imgPattern = "https://www.figma.com/api/mcp/asset/48e879c5-54aa-40c5-a752-bc00f3dfba85";
-  const imgShadow = "https://www.figma.com/api/mcp/asset/095c1b48-e1b1-47a6-a6af-1deac6a4424b";
-  const imgOutline = "https://www.figma.com/api/mcp/asset/2315b5da-2e3c-423b-a462-5b4d8346af6c";
-  const imgGlow = "https://www.figma.com/api/mcp/asset/055aadf6-064a-49af-bd89-be67aa980dc2";
-  const imgGradient = "https://www.figma.com/api/mcp/asset/af8802ca-da5e-4114-9859-872c5c35d119";
 
   // State
   const [toast, setToast] = useState<string | null>(null);
@@ -473,7 +465,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
           className="flex-1 border border-transparent rounded-[14px] hover:bg-gray-100 transition-colors"
         >
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgInsertStyle} />
+            <FileText className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
               Insert Style
             </p>
@@ -496,7 +488,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
           }`}
         >
           <div className="flex flex-col gap-1 items-center justify-center h-full">
-            <img alt="" className="block size-[18px]" src={imgTheme} />
+            <Palette className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
               Select Theme
             </p>
@@ -518,7 +510,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             className="border border-transparent h-[65px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgColor} />
+              <Droplet className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Color
               </p>
@@ -529,7 +521,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors mt-[10px]"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgPattern} />
+              <Grid3x3 className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Pattern
               </p>
@@ -552,7 +544,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgShadow} />
+              <Layers className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Shadow
               </p>
@@ -563,7 +555,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgOutline} />
+              <Square className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Outline
               </p>
@@ -574,7 +566,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgGlow} />
+              <Sparkles className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Glow
               </p>
@@ -585,7 +577,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             className="border border-transparent h-[55px] w-[73px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <img alt="" className="block size-[18px]" src={imgGradient} />
+              <Droplets className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Gradient
               </p>

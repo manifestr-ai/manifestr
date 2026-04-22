@@ -38,6 +38,6 @@ export const DocumentFooter = Node.create({
           content: [{ type: 'text', text: 'Footer text here...' }]
         });
       },
-    };
+    } as any;
   },
 });

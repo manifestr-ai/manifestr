@@ -4,13 +4,269 @@ import { Popover, Position } from "@blueprintjs/core";
 
 interface InsertPanelProps {
   store: any;
+  setActiveTool?: (tool: any) => void;
 }
 
-export default function InsertPanel({ store }: InsertPanelProps) {
+export default function InsertPanel({ store, setActiveTool }: InsertPanelProps) {
   if (!store) return null;
 
+  const page = store.activePage;
+  const selected: any[] = Array.isArray(store.selectedElements)
+    ? store.selectedElements
+    : [];
+  const hasSelection = selected.length > 0;
+
+  const switchTool = (tool: string) => {
+    if (typeof setActiveTool === "function") setActiveTool(tool);
+  };
+
+  const addImageFromSrc = (src: string) => {
+    if (!page?.addElement) return;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+    img.onload = () => {
+      const pageW = typeof store?.width === "number" ? store.width : img.width;
+      const pageH = typeof store?.height === "number" ? store.height : img.height;
+      const maxW = pageW * 0.6;
+      const maxH = pageH * 0.6;
+      const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+      const width = Math.max(10, Math.round(img.width * scale));
+      const height = Math.max(10, Math.round(img.height * scale));
+      const x = Math.round((pageW - width) / 2);
+      const y = Math.round((pageH - height) / 2);
+
+      const el = page.addElement({
+        type: "image",
+        src,
+        x,
+        y,
+        width,
+        height,
+      });
+      if (el?.id && typeof store.selectElements === "function") {
+        store.selectElements([el.id]);
+      }
+    };
+    img.onerror = () => {
+      const pageW = typeof store?.width === "number" ? store.width : 800;
+      const pageH = typeof store?.height === "number" ? store.height : 600;
+      const width = Math.max(10, Math.round(pageW * 0.6));
+      const height = Math.max(10, Math.round(pageH * 0.6));
+      const x = Math.round((pageW - width) / 2);
+      const y = Math.round((pageH - height) / 2);
+
+      const el = page.addElement({
+        type: "image",
+        src,
+        x,
+        y,
+        width,
+        height,
+      });
+      if (el?.id && typeof store.selectElements === "function") {
+        store.selectElements([el.id]);
+      }
+    };
+  };
+
+  const pickFiles = (accept: string, multiple: boolean, onFiles: (files: File[]) => void) => {
+    if (typeof window === "undefined") return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = accept;
+    input.multiple = multiple;
+    input.onchange = (e: any) => {
+      const files: File[] = Array.from(e.target.files || []);
+      if (files.length) onFiles(files);
+    };
+    input.click();
+  };
+
+  const insertImagesFromFiles = (files: File[]) => {
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const src = event.target?.result as string;
+        if (src) addImageFromSrc(src);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const duplicateSelection = () => {
+    if (!page?.addElement) return;
+    if (!hasSelection) return;
+
+    const createdIds: string[] = [];
+    selected.forEach((el: any) => {
+      const snap = typeof el?.toJSON === "function" ? el.toJSON() : null;
+      const base = snap && typeof snap === "object" ? { ...snap } : null;
+      if (!base || !base.type) return;
+
+      delete (base as any).id;
+      delete (base as any)._id;
+
+      const x = typeof base.x === "number" ? base.x : typeof el?.x === "number" ? el.x : 0;
+      const y = typeof base.y === "number" ? base.y : typeof el?.y === "number" ? el.y : 0;
+      (base as any).x = x + 20;
+      (base as any).y = y + 20;
+      (base as any).name =
+        typeof base.name === "string" && base.name.length
+          ? `${base.name}-copy`
+          : "copy";
+
+      try {
+        const created = page.addElement(base);
+        if (created?.id) createdIds.push(created.id);
+      } catch {}
+    });
+
+    if (createdIds.length && typeof store.selectElements === "function") {
+      store.selectElements(createdIds);
+    }
+  };
+
+  const groupSelection = () => {
+    if (!hasSelection) return;
+    if (typeof store.groupElements !== "function") return;
+    try {
+      const ids = selected.map((e: any) => e?.id).filter(Boolean);
+      if (!ids.length) return;
+      if (typeof store.selectElements === "function") store.selectElements(ids);
+      store.groupElements(ids);
+    } catch {}
+  };
+
+  const toggleQuickEffect = () => {
+    if (!hasSelection) return;
+    selected.forEach((el: any) => {
+      if (!el?.set) return;
+      const enabled = !!el.shadowEnabled;
+      el.set(
+        enabled
+          ? { shadowEnabled: false }
+          : {
+              shadowEnabled: true,
+              shadowBlur: 12,
+              shadowOffsetX: 0,
+              shadowOffsetY: 6,
+              shadowColor: "rgba(0,0,0,0.25)",
+            },
+      );
+    });
+  };
+
+  const insertText = (text: string) => {
+    if (!page?.addElement) return null;
+    const pageW = typeof store?.width === "number" ? store.width : 800;
+    const pageH = typeof store?.height === "number" ? store.height : 600;
+    const width = Math.round(Math.max(120, pageW * 0.4));
+    const height = 60;
+    const x = Math.round((pageW - width) / 2);
+    const y = Math.round((pageH - height) / 2);
+    const el = page.addElement({
+      type: "text",
+      text,
+      x,
+      y,
+      width,
+      height,
+      fontFamily: "Inter",
+      fontSize: 32,
+      fill: "#111827",
+    });
+    if (el?.id && typeof store.selectElements === "function") {
+      store.selectElements([el.id]);
+    }
+    return el;
+  };
+
+  const textOnPath = () => {
+    if (!page?.addElement) return;
+
+    const current = selected.find((el: any) => el?.type === "text");
+    const rawText =
+      typeof current?.text === "string" && current.text.length
+        ? current.text
+        : typeof window !== "undefined"
+          ? window.prompt("Text on path:", "Curved Text") || ""
+          : "";
+
+    const text = rawText.trim();
+    if (!text) return;
+
+    const pageW = typeof store?.width === "number" ? store.width : 800;
+    const pageH = typeof store?.height === "number" ? store.height : 600;
+
+    const fontFamily = typeof current?.fontFamily === "string" ? current.fontFamily : "Inter";
+    const fontSize = typeof current?.fontSize === "number" ? current.fontSize : 32;
+    const fill = typeof current?.fill === "string" ? current.fill : "#111827";
+
+    const radius = Math.max(80, Math.round(Math.min(pageW, pageH) * 0.25));
+    const centerX = Math.round(pageW / 2);
+    const centerY = Math.round(pageH / 2);
+    const step = Math.min(Math.PI / 10, Math.max(Math.PI / 40, Math.PI / (text.length + 4)));
+    const start = -Math.PI / 2 - (text.length - 1) * (step / 2);
+
+    const ids: string[] = [];
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const angle = start + i * step;
+      const x = Math.round(centerX + radius * Math.cos(angle));
+      const y = Math.round(centerY + radius * Math.sin(angle));
+      const rotation = Math.round((angle * 180) / Math.PI + 90);
+      const el = page.addElement({
+        type: "text",
+        text: ch,
+        x,
+        y,
+        width: fontSize * 2,
+        height: fontSize * 2,
+        fontFamily,
+        fontSize,
+        fill,
+        rotation,
+        align: "center",
+      });
+      if (el?.id) ids.push(el.id);
+    }
+
+    if (ids.length && typeof store.selectElements === "function") {
+      store.selectElements(ids);
+    }
+    if (ids.length && typeof store.groupElements === "function") {
+      try {
+        const groupId = `text-path-${Date.now()}`;
+        try {
+          store.groupElements(ids, { id: groupId, name: "Text on Path" });
+          if (typeof store.selectElements === "function") {
+            const group =
+              typeof store.getElementById === "function" ? store.getElementById(groupId) : null;
+            if (group?.id) {
+              store.selectElements([groupId]);
+            } else {
+              const grouped = (store.selectedElements || []).find((el: any) => el?.type === "group");
+              if (grouped?.id) store.selectElements([grouped.id]);
+            }
+          }
+          return;
+        } catch {}
+
+        store.groupElements(ids);
+        const grouped = (store.selectedElements || []).find((el: any) => el?.type === "group");
+        if (grouped?.id && typeof store.selectElements === "function") {
+          store.selectElements([grouped.id]);
+        }
+      } catch {}
+    }
+  };
+
+  const layers = Array.isArray(page?.children) ? [...page.children].slice().reverse() : [];
+
   return (
-    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0">
+    <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
       {/* Insert Media */}
       <div className="flex flex-col items-center min-w-[300px]">
         <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
@@ -21,26 +277,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           {/* Image */}
           <button
             onClick={() => {
-              if (typeof window !== "undefined") {
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = "image/*";
-                input.onchange = (e: any) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                      const src = event.target?.result as string;
-                      store.activePage?.addElement?.({
-                        type: "image",
-                        src,
-                      });
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                };
-                input.click();
-              }
+              pickFiles("image/*", false, insertImagesFromFiles);
             }}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
@@ -82,6 +319,9 @@ export default function InsertPanel({ store }: InsertPanelProps) {
 
           {/* Upload */}
           <button
+            onClick={() => {
+              pickFiles("image/*", true, insertImagesFromFiles);
+            }}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -130,6 +370,11 @@ export default function InsertPanel({ store }: InsertPanelProps) {
 
           {/* Stock */}
           <button
+            onClick={() => {
+              if (typeof window === "undefined") return;
+              const url = window.prompt("Paste an image URL:");
+              if (url) addImageFromSrc(url.trim());
+            }}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -273,6 +518,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Duplicate */}
           <button
+            onClick={duplicateSelection}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -323,6 +569,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           </button>
           {/* Filter */}
           <button
+            onClick={() => switchTool("filter")}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -371,6 +618,12 @@ export default function InsertPanel({ store }: InsertPanelProps) {
         <div className="flex flex-row items-center gap-[34px]">
           {/* Font */}
           <button
+            onClick={() => {
+              if (!selected.some((el: any) => el?.type === "text")) {
+                insertText("Double click to edit");
+              }
+              switchTool("text");
+            }}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -428,6 +681,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           </button>
           {/* Effects */}
           <button
+            onClick={() => {
+              toggleQuickEffect();
+              switchTool("effects");
+            }}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -485,6 +742,10 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           </button>
           {/* On Path */}
           <button
+            onClick={() => {
+              textOnPath();
+              switchTool("text");
+            }}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
@@ -552,43 +813,107 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           Layers
         </span>
         <div className="flex flex-row items-center gap-[34px]">
-          {/* Layers */}
-          <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            tabIndex={0}
-            type="button"
+          <Popover
+            position={Position.BOTTOM_LEFT}
+            content={
+              <div className="w-[260px] max-h-[320px] overflow-auto p-3 bg-white border rounded-md shadow-lg">
+                <div className="text-xs text-gray-500 mb-2">Layers</div>
+                <div className="flex flex-col gap-1">
+                  {layers.length ? (
+                    layers.map((el: any) => {
+                      const id = el?.id;
+                      const label =
+                        typeof el?.name === "string" && el.name.length
+                          ? el.name
+                          : typeof el?.type === "string"
+                            ? el.type
+                            : "element";
+                      const isActive = selected.some((s: any) => s?.id === id);
+                      return (
+                        <div
+                          key={id || label}
+                          className={`flex items-center gap-2 px-2 py-1 rounded border ${
+                            isActive ? "border-blue-500 bg-[#F9FAFB]" : "border-[#E5E7EB]"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            className="flex-1 text-left text-xs text-[#111827] truncate"
+                            onClick={() => {
+                              if (id && typeof store.selectElements === "function") {
+                                store.selectElements([id]);
+                              }
+                            }}
+                          >
+                            {label}
+                          </button>
+                          <button
+                            type="button"
+                            className="text-xs px-2 py-1 rounded border border-[#E5E7EB] hover:bg-[#F8FAFC]"
+                            onClick={() => {
+                              if (!id) return;
+                              if (typeof page?.moveElementsUp === "function") page.moveElementsUp([id]);
+                            }}
+                          >
+                            Up
+                          </button>
+                          <button
+                            type="button"
+                            className="text-xs px-2 py-1 rounded border border-[#E5E7EB] hover:bg-[#F8FAFC]"
+                            onClick={() => {
+                              if (!id) return;
+                              if (typeof page?.moveElementsDown === "function")
+                                page.moveElementsDown([id]);
+                            }}
+                          >
+                            Down
+                          </button>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-xs text-gray-400">No layers</div>
+                  )}
+                </div>
+              </div>
+            }
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
+            <button
+              className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              tabIndex={0}
+              type="button"
             >
-              <path
-                d="M10.6901 1.81827C10.473 1.71922 10.2371 1.66797 9.99842 1.66797C9.75977 1.66797 9.52389 1.71922 9.30676 1.81827L2.16509 5.06827C2.01721 5.13347 1.89149 5.24027 1.80323 5.37565C1.71496 5.51103 1.66797 5.66915 1.66797 5.83077C1.66797 5.99238 1.71496 6.1505 1.80323 6.28589C1.89149 6.42127 2.01721 6.52806 2.16509 6.59327L9.31509 9.8516C9.53223 9.95064 9.7681 10.0019 10.0068 10.0019C10.2454 10.0019 10.4813 9.95064 10.6984 9.8516L17.8484 6.6016C17.9963 6.5364 18.122 6.4296 18.2103 6.29422C18.2986 6.15884 18.3455 6.00071 18.3455 5.8391C18.3455 5.67749 18.2986 5.51936 18.2103 5.38398C18.122 5.2486 17.9963 5.1418 17.8484 5.0766L10.6901 1.81827Z"
-                stroke="#364153"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M1.66797 10C1.66758 10.1594 1.7129 10.3155 1.79857 10.45C1.88424 10.5844 2.00665 10.6914 2.1513 10.7583L9.31797 14.0167C9.53397 14.1145 9.76836 14.1651 10.0055 14.1651C10.2426 14.1651 10.477 14.1145 10.693 14.0167L17.843 10.7667C17.9905 10.7004 18.1155 10.5926 18.2028 10.4564C18.2901 10.3203 18.3359 10.1617 18.3346 10"
-                stroke="#364153"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M1.66797 14.168C1.66758 14.3274 1.7129 14.4835 1.79857 14.6179C1.88424 14.7523 2.00665 14.8594 2.1513 14.9263L9.31797 18.1846C9.53397 18.2824 9.76836 18.333 10.0055 18.333C10.2426 18.333 10.477 18.2824 10.693 18.1846L17.843 14.9346C17.9905 14.8683 18.1155 14.7605 18.2028 14.6244C18.2901 14.4883 18.3359 14.3297 18.3346 14.168"
-                stroke="#364153"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              className="
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+              >
+                <path
+                  d="M10.6901 1.81827C10.473 1.71922 10.2371 1.66797 9.99842 1.66797C9.75977 1.66797 9.52389 1.71922 9.30676 1.81827L2.16509 5.06827C2.01721 5.13347 1.89149 5.24027 1.80323 5.37565C1.71496 5.51103 1.66797 5.66915 1.66797 5.83077C1.66797 5.99238 1.71496 6.1505 1.80323 6.28589C1.89149 6.42127 2.01721 6.52806 2.16509 6.59327L9.31509 9.8516C9.53223 9.95064 9.7681 10.0019 10.0068 10.0019C10.2454 10.0019 10.4813 9.95064 10.6984 9.8516L17.8484 6.6016C17.9963 6.5364 18.122 6.4296 18.2103 6.29422C18.2986 6.15884 18.3455 6.00071 18.3455 5.8391C18.3455 5.67749 18.2986 5.51936 18.2103 5.38398C18.122 5.2486 17.9963 5.1418 17.8484 5.0766L10.6901 1.81827Z"
+                  stroke="#364153"
+                  stroke-width="1.66667"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M1.66797 10C1.66758 10.1594 1.7129 10.3155 1.79857 10.45C1.88424 10.5844 2.00665 10.6914 2.1513 10.7583L9.31797 14.0167C9.53397 14.1145 9.76836 14.1651 10.0055 14.1651C10.2426 14.1651 10.477 14.1145 10.693 14.0167L17.843 10.7667C17.9905 10.7004 18.1155 10.5926 18.2028 10.4564C18.2901 10.3203 18.3359 10.1617 18.3346 10"
+                  stroke="#364153"
+                  stroke-width="1.66667"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M1.66797 14.168C1.66758 14.3274 1.7129 14.4835 1.79857 14.6179C1.88424 14.7523 2.00665 14.8594 2.1513 14.9263L9.31797 18.1846C9.53397 18.2824 9.76836 18.333 10.0055 18.333C10.2426 18.333 10.477 18.2824 10.693 18.1846L17.843 14.9346C17.9905 14.8683 18.1155 14.7605 18.2028 14.6244C18.2901 14.4883 18.3359 14.3297 18.3346 14.168"
+                  stroke="#364153"
+                  stroke-width="1.66667"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span
+                className="
             text-[9px]
             font-normal
             leading-[11.25px]
@@ -600,17 +925,19 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             group-hover:text-[#18181b]
             transition-colors
           "
-              style={{
-                fontFamily: "Inter",
-                fontStyle: "normal",
-                fontWeight: 400,
-              }}
-            >
-              Layers
-            </span>
-          </button>
+                style={{
+                  fontFamily: "Inter",
+                  fontStyle: "normal",
+                  fontWeight: 400,
+                }}
+              >
+                Layers
+              </span>
+            </button>
+          </Popover>
           {/* Group */}
           <button
+            onClick={groupSelection}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"

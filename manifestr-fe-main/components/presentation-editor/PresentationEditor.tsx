@@ -130,7 +130,15 @@ const EditorUI = observer(({ store }: { store: any }) => {
   );
 });
 
-export default function PresentationEditor({ data, generationId }: { data?: any; generationId?: string }) {
+export default function PresentationEditor({
+  data,
+  generationId,
+  onStoreReady,
+}: {
+  data?: any;
+  generationId?: string;
+  onStoreReady?: (store: any) => void;
+}) {
   const [store] = useState(() => {
     const s = createStore({
       key: "ftRB7anj9zd88zwAlJKy",
@@ -152,6 +160,10 @@ export default function PresentationEditor({ data, generationId }: { data?: any;
 
     return s;
   });
+
+  useEffect(() => {
+    onStoreReady?.(store);
+  }, [store, onStoreReady]);
 
   // Auto-save Logic
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">("saved");

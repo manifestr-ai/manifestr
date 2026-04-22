@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import TopHeader from "../components/spreadsheet/TopHeader";
-import RightSidebar from "../components/spreadsheet/RightSidebar";
+import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
 import dynamic from "next/dynamic";
 import {
@@ -27,6 +27,13 @@ export default function ImageEditor() {
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const imageIdParam = router.query.id;
+  const actualImageId =
+    typeof imageIdParam === "string"
+      ? imageIdParam
+      : Array.isArray(imageIdParam)
+        ? imageIdParam[0]
+        : undefined;
 
   useEffect(() => {
     // CASE 1: Direct URL parameter (immediate generation)
@@ -86,6 +93,26 @@ export default function ImageEditor() {
   }, [router.query]);
 
   const [store, setStore] = useState<any>(null);
+
+  const clampZoom = (value: number) => Math.min(3, Math.max(0.2, value));
+
+  const getStoreScale = () => {
+    const scale =
+      store && typeof store.scale === "number" && Number.isFinite(store.scale)
+        ? store.scale
+        : 1;
+    return scale;
+  };
+
+  const setStoreScale = (value: number) => {
+    if (!store || typeof store.setScale !== "function") return;
+    store.setScale(clampZoom(value));
+  };
+
+  const handleZoomIn = () => setStoreScale(getStoreScale() + 0.1);
+  const handleZoomOut = () => setStoreScale(getStoreScale() - 0.1);
+  const handleZoomReset = () => setStoreScale(1);
+
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
       <Head>
@@ -97,6 +124,9 @@ export default function ImageEditor() {
         <TopHeader
           store={store}
           editorType="image"
+          documentId={actualImageId}
+          documentTitle="Image"
+          enableCollaboration={!!actualImageId}
         />
       </div>
 
@@ -133,7 +163,13 @@ export default function ImageEditor() {
         {/* Right Sidebar (Floating over grid on the right) */}
         <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
           <div className="pointer-events-auto">
-            <RightSidebar />
+            <RightSidebar
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onZoomReset={handleZoomReset}
+              documentId={actualImageId}
+              documentTitle="Image"
+            />
           </div>
         </div>
 
