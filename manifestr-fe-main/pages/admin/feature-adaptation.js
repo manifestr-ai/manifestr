@@ -18,8 +18,8 @@ import { getAdminFeatureAdoptionData } from '../../services/admin/feature-adopti
 
 function SectionLabel({ children }) {
   return (
-    <div className="pt-2">
-      <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
+    <div className="pt-1 sm:pt-2">
+      <p className="text-[11px] leading-[16px] font-semibold tracking-[0.08em] uppercase text-[#71717a] sm:text-[12px] sm:leading-[18px]">
         {children}
       </p>
     </div>
@@ -32,31 +32,31 @@ export default function AdminFeatureAdoption({ featureAdoptionData }) {
   return (
     <>
       <Head>
-        <title>Feature Adoption - Admin</title>
+        <title>Feature Adaptation - Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-[#f4f4f5]">
+      <div className="admin-card-theme min-h-screen bg-white">
         <AdminHeader />
-        <div className="flex h-[calc(100vh-72px)]">
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          <div className="no-scrollbar flex-1 min-w-0 h-[calc(100vh-72px)] overflow-y-auto flex flex-col">
+          <div className="no-scrollbar flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto">
             <FeatureAdoptionHeader
               title={featureAdoptionData?.header?.title}
               subtitle={featureAdoptionData?.header?.subtitle}
             />
 
-            <div className="relative z-0 flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+            <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
               <AiPerformanceFilters
                 searchPlaceholder={featureAdoptionData?.filters?.searchPlaceholder}
                 options={featureAdoptionData?.filters?.options}
               />
 
               {/* KPI: Adoption Stages */}
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">
                 {stats.map((s) => (
                   <StatCard
-                    key={s.id}
+                    key={s.id || s.title}
                     title={s.title}
                     value={s.value}
                     change={s.change}
@@ -81,11 +81,11 @@ export default function AdminFeatureAdoption({ featureAdoptionData }) {
               {/* Breakdowns */}
               <SectionLabel>Breakdowns</SectionLabel>
               <PlanBreakdownChart data={featureAdoptionData?.planBreakdown} />
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
-                <div className="flex-1 min-w-0">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
                   <PlanBreakdownChart data={featureAdoptionData?.roleBreakdown} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="w-full min-w-0 lg:flex-1">
                   <PlanBreakdownChart data={featureAdoptionData?.regionBreakdown} />
                 </div>
               </div>
@@ -93,16 +93,24 @@ export default function AdminFeatureAdoption({ featureAdoptionData }) {
               {/* Collaboration Hub */}
               <SectionLabel>Collaboration Hub</SectionLabel>
 
-              <div className="flex gap-[18px] items-stretch">
-                <WorkspacesCreated data={featureAdoptionData?.workspacesCreated} />
-                <MembersAdded data={featureAdoptionData?.membersAdded} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <WorkspacesCreated data={featureAdoptionData?.workspacesCreated} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <MembersAdded data={featureAdoptionData?.membersAdded} />
+                </div>
               </div>
 
               <CommentsPerDocument data={featureAdoptionData?.commentsPerDocument} />
 
-              <div className="flex gap-[18px] items-stretch">
-                <SharedVsSoloUsage data={featureAdoptionData?.sharedVsSolo} />
-                <TopCollaborativeProjects data={featureAdoptionData?.topCollaborativeProjects} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <SharedVsSoloUsage data={featureAdoptionData?.sharedVsSolo} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-[1.4]">
+                  <TopCollaborativeProjects data={featureAdoptionData?.topCollaborativeProjects} />
+                </div>
               </div>
 
               <TeamTable data={featureAdoptionData?.team} />

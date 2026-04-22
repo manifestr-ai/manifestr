@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown } from 'lucide-react'
+
+const FIGMA_ICON_CHEVRON_DOWN = 'https://www.figma.com/api/mcp/asset/361e5595-ca2f-4a2b-b14e-00f49d7d2ae9'
 
 const CUSTOMERS = [
-  { account: 'Acme Corp',     plan: 'Enterprise', mrr: '$42,500', growth: '+18%' },
-  { account: 'BrightLabs',    plan: 'Pro',        mrr: '$17,200', growth: '+6%'  },
-  { account: 'Nova Health',   plan: 'Enterprise', mrr: '$35,000', growth: '+12%' },
-  { account: 'Horizon Media', plan: 'Starter',    mrr: '$14,600', growth: '–3%'  },
-  { account: 'Orion Tech',    plan: 'Starter',    mrr: '$28,900', growth: '+22%' },
+  { account: 'Acme Corp', plan: 'Enterprise', mrr: '$42,500', growth: '+18%' },
+  { account: 'BrightLabs', plan: 'Pro', mrr: '$17,200', growth: '+6%' },
+  { account: 'Nova Health', plan: 'Enterprise', mrr: '$35,000', growth: '+12%' },
+  { account: 'Horizon Media', plan: 'Starter', mrr: '$14,600', growth: '-3%' },
+  { account: 'Orion Tech', plan: 'Starter', mrr: '$28,900', growth: '+22%' },
 ]
 
 export default function TopCustomersTable({ data }) {
@@ -29,10 +30,10 @@ export default function TopCustomersTable({ data }) {
   }, [isDropdownOpen])
 
   return (
-    <div className="flex-[2] min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="w-full lg:flex-2 min-w-0 bg-[#f4f4f4] border border-[#e9eaea] rounded-[20px] shadow-[0_2px_5px_rgba(0,0,0,0.05)] p-4 lg:p-5 flex flex-col gap-5">
 
       {/* Card header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-[18px] leading-7 font-medium text-[#18181b]">
           {title}
         </p>
@@ -40,13 +41,17 @@ export default function TopCustomersTable({ data }) {
           <button
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
-            className="h-9 px-3 py-2 rounded-lg border border-[#e4e4e7] bg-white flex items-center gap-2 text-[14px] leading-5 font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
+            className="h-9 px-3 py-2 rounded-[8px] border border-[#e4e4e7] bg-white flex items-center gap-2 text-[14px] leading-5 font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
           >
             {selectedRange}
-            <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} strokeWidth={1.75} />
+            <img
+              src={FIGMA_ICON_CHEVRON_DOWN}
+              alt=""
+              className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+            />
           </button>
           {isDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1 z-20 min-w-[140px] bg-white border border-[#e4e4e7] rounded-[6px] shadow-sm py-1">
+            <div className="absolute right-0 top-full mt-1 z-20 min-w-[140px] bg-white border border-[#e4e4e7] rounded-[8px] shadow-sm py-1">
               {filterOptions.map((opt) => (
                 <button
                   key={opt}
@@ -67,60 +72,31 @@ export default function TopCustomersTable({ data }) {
         </div>
       </div>
 
-      {/* Table — column-based layout matching Figma */}
       <div className="w-full overflow-x-auto">
-        <div className="flex w-full">
-
-          {/* Account column */}
-          <div className="flex-1 min-w-[85px] flex flex-col overflow-hidden">
-            <div className="h-12 flex items-center px-4 border-b border-[#e4e4e7]">
-              <span className="text-[14px] leading-5 font-medium text-[#71717a]">Account</span>
-            </div>
-            {customers.map((c) => (
-              <div key={c.account} className="h-[52px] flex items-center px-4 border-b border-[#e4e4e7]">
-                <span className="text-[14px] leading-5 font-medium text-[#18181b] truncate">{c.account}</span>
-              </div>
-            ))}
+        <div className="min-w-[700px]">
+          <div className="grid grid-cols-[1.3fr_1.3fr_1.3fr_1.3fr] h-12 items-center border-b border-[#e4e4e7] px-4">
+            <span className="text-[16px] leading-[22px] font-medium text-[#71717a]">Account</span>
+            <span className="text-[16px] leading-[22px] font-medium text-[#71717a]">Plan</span>
+            <span className="text-[16px] leading-[22px] font-medium text-[#71717a]">MRR</span>
+            <span className="text-[16px] leading-[22px] font-medium text-[#71717a]">90d Growth %</span>
           </div>
 
-          {/* Plan column */}
-          <div className="flex-1 min-w-[85px] flex flex-col overflow-hidden">
-            <div className="h-12 flex items-center px-4 border-b border-[#e4e4e7]">
-              <span className="text-[14px] leading-5 font-medium text-[#71717a]">Plan</span>
+          {customers.map((c) => (
+            <div key={c.account} className="grid grid-cols-[1.3fr_1.3fr_1.3fr_1.3fr] h-[52px] items-center border-b border-[#e4e4e7] px-4">
+              <span className="text-[16px] leading-6 font-medium text-[#18181b] truncate">{c.account}</span>
+              <span className="text-[16px] leading-6 font-medium text-[#18181b] truncate">{c.plan}</span>
+              <span className="text-[16px] leading-6 font-medium text-[#18181b] truncate">{c.mrr}</span>
+              <span
+                className={`inline-flex w-fit items-center px-3 py-1 rounded-2xl border text-[12px] leading-[18px] font-medium ${
+                  c.growth.startsWith('-')
+                    ? 'bg-[#fef2f2] border-[#fecaca] text-[#b91c1c]'
+                    : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#15803d]'
+                }`}
+              >
+                {c.growth}
+              </span>
             </div>
-            {customers.map((c) => (
-              <div key={c.account} className="h-[52px] flex items-center px-4 border-b border-[#e4e4e7]">
-                <span className="text-[14px] leading-5 font-normal text-[#18181b] truncate">{c.plan}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* MRR column */}
-          <div className="flex-1 min-w-[85px] flex flex-col overflow-hidden">
-            <div className="h-12 flex items-center px-4 border-b border-[#e4e4e7]">
-              <span className="text-[14px] leading-5 font-medium text-[#71717a]">MRR</span>
-            </div>
-            {customers.map((c) => (
-              <div key={c.account} className="h-[52px] flex items-center px-4 border-b border-[#e4e4e7]">
-                <span className="text-[14px] leading-5 font-normal text-[#18181b] truncate">{c.mrr}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* 90d Growth % column */}
-          <div className="flex-1 min-w-[85px] flex flex-col overflow-hidden">
-            <div className="h-12 flex items-center px-4 border-b border-[#e4e4e7]">
-              <span className="text-[14px] leading-5 font-medium text-[#71717a]">90d Growth %</span>
-            </div>
-            {customers.map((c) => (
-              <div key={c.account} className="h-[52px] flex items-center px-4 border-b border-[#e4e4e7]">
-                <span className="inline-flex items-center px-3 py-1.5 rounded-2xl border border-[#e4e4e7] bg-[#f4f4f5]/80 text-[12px] leading-[18px] font-medium text-[#71717a]">
-                  {c.growth}
-                </span>
-              </div>
-            ))}
-          </div>
-
+          ))}
         </div>
       </div>
     </div>

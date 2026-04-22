@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 export default function ExportUsageByPlan({ data }) {
   if (!data) return null
 
@@ -7,17 +9,34 @@ export default function ExportUsageByPlan({ data }) {
   const legend = data.legend || []
   const max = data.max ?? 2000
   const yLabels = data.yLabels || []
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const mediaQuery = window.matchMedia('(max-width: 640px)')
+    const onChange = (event) => setIsSmallScreen(event.matches)
+    setIsSmallScreen(mediaQuery.matches)
+    mediaQuery.addEventListener('change', onChange)
+
+    return () => mediaQuery.removeEventListener('change', onChange)
+  }, [])
+
+  const planLimit = isSmallScreen ? 6 : plans.length
+  const visiblePlans = plans.slice(-planLimit)
 
   const W = 560
-  const H = 240
-  const padL = 48
+  const H = isSmallScreen ? 310 : 260
+  const padL = isSmallScreen ? 68 : 56
   const padR = 16
-  const padT = 12
-  const padB = 30
+  const padT = isSmallScreen ? 18 : 14
+  const padB = isSmallScreen ? 46 : 36
   const plotW = W - padL - padR
   const plotH = H - padT - padB
+  const axisFontSize = isSmallScreen ? 15 : 13
+  const xAxisFontSize = isSmallScreen ? 14 : 13
 
-  const nPlans = Math.max(1, plans.length)
+  const nPlans = Math.max(1, visiblePlans.length)
   const nTypes = Math.max(1, legend.length)
   const groupW = plotW / nPlans
   const groupMargin = 10
@@ -27,7 +46,7 @@ export default function ExportUsageByPlan({ data }) {
   barW = Math.max(6, Math.min(22, barW))
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="flex min-w-0 flex-1 flex-col gap-5 rounded-xl border border-[#e4e4e7] bg-white p-4 sm:gap-6 sm:p-[18px]">
       <div className="flex items-start gap-3">
         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -52,14 +71,14 @@ export default function ExportUsageByPlan({ data }) {
             return (
               <g key={`${label}-${i}`}>
                 <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="#e4e4e7" strokeDasharray="4 4" strokeWidth="1" />
-                <text x={padL - 8} y={y} textAnchor="end" dominantBaseline="middle" fontSize="11" fontWeight="500" fill="#71717a">
+                <text x={padL - 12} y={y} textAnchor="end" dominantBaseline="middle" fontSize={axisFontSize} fontWeight="600" fill="#71717a">
                   {label}
                 </text>
               </g>
             )
           })}
 
-          {plans.map((plan, planIdx) => {
+          {visiblePlans.map((plan, planIdx) => {
             const clusterW = nTypes * barW + (nTypes - 1) * gap
             const groupStart = padL + planIdx * groupW + (groupW - clusterW) / 2
 
@@ -78,10 +97,10 @@ export default function ExportUsageByPlan({ data }) {
                 })}
                 <text
                   x={padL + groupW * (planIdx + 0.5)}
-                  y={H - 10}
+                  y={H - 12}
                   textAnchor="middle"
-                  fontSize="12"
-                  fontWeight="500"
+                  fontSize={xAxisFontSize}
+                  fontWeight="600"
                   fill="#52525b"
                 >
                   {plan.label}

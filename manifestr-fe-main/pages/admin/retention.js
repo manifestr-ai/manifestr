@@ -2,7 +2,7 @@ import Head from 'next/head'
 import AdminHeader from '../../components/admin/AdminHeader'
 import AdminSidebar from '../../components/admin/AdminSidebar'
 import RetentionHeader from '../../components/admin/retention/RetentionHeader'
-import AiPerformanceFilters from '../../components/admin/ai-performance/AiPerformanceFilters'
+import OverviewFilters from '../../components/admin/overview/OverviewFilters'
 import StatCard from '../../components/admin/overview/StatCard'
 import CohortRetentionTable from '../../components/admin/retention/CohortRetentionTable'
 import TrendLineChart from '../../components/admin/retention/TrendLineChart'
@@ -20,26 +20,26 @@ export default function AdminRetention({ retentionData }) {
         <title>Retention &amp; Churn - Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-[#f4f4f5]">
+      <div className="admin-card-theme min-h-screen bg-white">
         <AdminHeader />
-        <div className="flex h-[calc(100vh-72px)]">
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          <div className="no-scrollbar flex-1 min-w-0 h-[calc(100vh-72px)] overflow-y-auto flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col">
             <RetentionHeader
               title={retentionData?.header?.title}
               subtitle={retentionData?.header?.subtitle}
             />
 
-            <div className="relative z-0 flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+            <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
               {/* Filters */}
-              <AiPerformanceFilters
+              <OverviewFilters
+                filters={retentionData?.filters?.options}
                 searchPlaceholder={retentionData?.filters?.searchPlaceholder}
-                options={retentionData?.filters?.options}
               />
 
-              {/* KPI Row: Churn Rate · Reactivation Rate · Avg Retention · Churned This Month */}
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+              {/* KPI — 2×2 mobile, one row on lg */}
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">
                 {stats.map((s) => (
                   <StatCard
                     key={s.id}
@@ -56,22 +56,30 @@ export default function AdminRetention({ retentionData }) {
               <CohortRetentionTable data={retentionData?.cohortRetention} />
 
               {/* Retention Curve + Churn Trend */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <TrendLineChart key="retention-curve" data={retentionData?.retentionCurve} />
-                <TrendLineChart key="churn-trend" data={retentionData?.churnRateTrend} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <TrendLineChart key="retention-curve" data={retentionData?.retentionCurve} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <TrendLineChart key="churn-trend" data={retentionData?.churnRateTrend} />
+                </div>
               </div>
 
               {/* Revenue Retention: NRR · GRR · Expansion · Contraction */}
               <RevenueRetentionStats data={retentionData?.revenueRetention} />
 
-              {/* NRR / GRR Trend */}
-              <TrendLineChart key="nrr-grr-trend" data={retentionData?.nrrGrrTrend} />
+              {/* NRR / GRR Trend + Churn Reasons */}
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <TrendLineChart key="nrr-grr-trend" data={retentionData?.nrrGrrTrend} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <ChurnBreakdownChart data={retentionData?.churnReasons} />
+                </div>
+              </div>
 
               {/* Churn Analysis: By Plan · By Segment · By Source */}
               <ChurnAnalysisBreakdown data={retentionData?.churnAnalysis} />
-
-              {/* Churn Reasons (optional — if collected) */}
-              <ChurnBreakdownChart data={retentionData?.churnReasons} />
             </div>
           </div>
         </div>

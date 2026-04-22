@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-export default function MonetizationFilterButton({ label, options = [], defaultValue }) {
+export default function MonetizationFilterButton({ label, options = [], defaultValue, stretch = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [selected, setSelected] = useState(defaultValue || label)
   const ref = useRef(null)
@@ -15,13 +15,19 @@ export default function MonetizationFilterButton({ label, options = [], defaultV
   }, [isOpen])
 
   return (
-    <div className="relative z-40" ref={ref}>
+    <div className={`relative z-300 min-w-0 ${stretch ? 'w-full lg:w-auto' : ''}`} ref={ref}>
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="h-10 px-4 py-2 rounded-lg border border-[#e4e4e7] bg-white flex items-center gap-2 text-[14px] leading-5 font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
+        className={`flex h-10 items-center gap-2 rounded-lg border border-[#e4e4e7] bg-white px-4 py-2 text-[14px] font-medium leading-5 text-[#18181b] transition-colors hover:bg-[#f4f4f5] ${
+          stretch ? 'w-full min-w-0 justify-between lg:w-auto' : ''
+        }`}
       >
-        {selected}
+        {stretch ? (
+          <span className="min-w-0 flex-1 truncate text-left">{selected}</span>
+        ) : (
+          selected
+        )}
         <ChevronDown
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           strokeWidth={1.75}
@@ -29,7 +35,7 @@ export default function MonetizationFilterButton({ label, options = [], defaultV
       </button>
 
       {isOpen && options.length > 0 && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-white border border-[#e4e4e7] rounded-[6px] shadow-lg py-1">
+        <div className="absolute right-0 top-full mt-1 z-400 min-w-[180px] bg-white border border-[#e4e4e7] rounded-[6px] shadow-lg py-1">
           {options.map((opt) => (
             <button
               key={opt}

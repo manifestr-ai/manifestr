@@ -216,6 +216,11 @@
  * These can be used alongside Tailwind classes
  */
 @layer utilities {
+  .admin-card-theme [class*="rounded-xl"][class*="bg-white"][class*="border"],
+  .admin-card-theme [class*="rounded-[20px]"][class*="bg-white"][class*="border"] {
+    background-color: #f4f4f4 !important;
+  }
+
   .no-scrollbar {
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;

@@ -36,10 +36,10 @@ export default function ReturningVsNewChart({ data }) {
   }, [isDropdownOpen])
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
-        <div className="relative" ref={dropdownRef}>
+    <div className="w-full flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] lg:p-[18px] flex flex-col gap-4 lg:gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] sm:text-[18px] sm:leading-7 min-w-0 pr-2">{title}</p>
+        <div className="relative shrink-0" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
@@ -93,9 +93,16 @@ export default function ReturningVsNewChart({ data }) {
           </div>
         </div>
 
-        <div className="flex justify-between pl-10 mt-1">
+        <div className="flex justify-between pl-8 sm:pl-10 mt-1">
           {months.map((m, i) => (
-            <span key={m} className={`text-[12px] leading-[18px] font-medium tracking-[0.06px] ${hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#40444e]'}`}>{m}</span>
+            <span
+              key={m}
+              className={`text-[11px] sm:text-[12px] leading-[18px] font-medium tracking-[0.06px] ${
+                hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#40444e]'
+              } ${i % 2 !== 0 ? 'hidden sm:inline' : ''}`}
+            >
+              {m}
+            </span>
           ))}
         </div>
       </div>

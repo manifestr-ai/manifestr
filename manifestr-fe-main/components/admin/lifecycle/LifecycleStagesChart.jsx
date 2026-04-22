@@ -7,12 +7,14 @@ export default function LifecycleStagesChart({ data }) {
   const total = data?.total || stages.reduce((sum, s) => sum + (s.value || 0), 0) || 1
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
-            <Info className="w-4 h-4 text-[#71717a]" strokeWidth={1.75} />
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 lg:p-[18px] lg:gap-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex flex-col gap-1 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7 wrap-break-word">
+              {title}
+            </p>
+            <Info className="w-4 h-4 text-[#71717a] shrink-0" strokeWidth={1.75} />
           </div>
           {subtitle && (
             <p className="text-[14px] leading-5 font-normal text-[#71717a]">{subtitle}</p>
@@ -36,7 +38,7 @@ export default function LifecycleStagesChart({ data }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 min-w-0 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
         {stages.map((s) => (
           <div
             key={s.key || s.label}

@@ -49,7 +49,7 @@ export default function OutputMetricsCards({ data }) {
   if (!cards.length) return null
 
   return (
-    <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+    <div className="grid grid-cols-2 gap-3 lg:flex lg:gap-[18px] lg:items-stretch lg:flex-nowrap">
       {cards.map((card) => (
         <MetricCard key={card.id} {...card} />
       ))}

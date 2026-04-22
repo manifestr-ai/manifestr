@@ -8,19 +8,27 @@ export default function AiPerformanceFilters({
   const filterNames = ['Timeframe', 'Cohort', 'Persona', 'Device']
 
   return (
-    <div className="relative z-30 flex items-center justify-between gap-4 flex-wrap">
-      <div className="flex items-center gap-2 bg-white border border-[#e4e4e7] rounded-[6px] px-3 py-2 w-[400px] max-w-full h-10">
-        <Search className="w-5 h-5 text-[#71717a]" strokeWidth={1.75} />
-        <input
-          type="text"
-          placeholder={searchPlaceholder}
-          className="flex-1 bg-transparent outline-none text-[16px] leading-6 font-normal text-[#18181b] placeholder:text-[#71717a]"
-        />
+    <div className="relative z-30 flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      <div className="w-full shrink-0 lg:w-[400px] lg:max-w-[400px]">
+        <div className="flex h-10 items-center gap-2 rounded-[6px] border border-[#e4e4e7] bg-white px-3">
+          <Search className="h-5 w-5 shrink-0 text-[#71717a]" strokeWidth={1.75} />
+          <input
+            type="text"
+            placeholder={searchPlaceholder}
+            className="min-w-0 flex-1 bg-transparent text-[16px] font-normal leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
+          />
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="grid w-full min-w-0 grid-cols-2 gap-2 lg:flex lg:w-auto lg:flex-nowrap lg:items-center lg:gap-2">
         {filterNames.map((name) => (
-          <MonetizationFilterButton key={name} label={name} options={options[name] || []} />
+          <div key={name} className="min-w-0 w-full lg:w-auto">
+            <MonetizationFilterButton
+              label={name}
+              options={options[name] || []}
+              stretch
+            />
+          </div>
         ))}
       </div>
     </div>

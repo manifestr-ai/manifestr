@@ -42,7 +42,7 @@ function MetricCard({ metric }) {
   }
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-5">
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] lg:p-[18px] flex flex-col gap-4 lg:gap-5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5">
           <p className="text-[16px] leading-6 font-semibold text-[#18181b]">{metric?.title}</p>
@@ -53,7 +53,7 @@ function MetricCard({ metric }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-[30px] leading-[38px] font-bold text-[#18181b]">{metric?.value}</p>
+        <p className="text-[24px] leading-[32px] font-bold text-[#18181b] lg:text-[30px] lg:leading-[38px]">{metric?.value}</p>
         <div className="flex items-center gap-2 flex-wrap">
           <span
             className="inline-flex items-center px-1.5 text-[12px] leading-[18px] font-medium rounded-full border"
@@ -73,9 +73,9 @@ export default function RevenueRetentionStats({ data }) {
   const metrics = data?.metrics || []
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-[18px] leading-7 font-semibold text-[#18181b]">{title}</p>
-      <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+    <div className="flex flex-col gap-3 lg:gap-4">
+      <p className="text-[16px] leading-6 font-semibold text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">
         {metrics.map((m) => (
           <MetricCard key={m.id} metric={m} />
         ))}

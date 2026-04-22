@@ -6,23 +6,25 @@ export default function AdoptionFunnelChart({ data }) {
   const rows = data?.rows || []
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-full">
-      <div className="flex items-center gap-2">
-        <p className="flex-1 text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 h-full lg:p-[18px] lg:gap-6">
+      <div className="flex items-center gap-2 min-w-0">
+        <p className="flex-1 min-w-0 text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7 wrap-break-word">
+          {title}
+        </p>
         <Info className="w-4 h-4 text-[#71717a] shrink-0" strokeWidth={1.75} />
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 min-w-0">
         <p className="text-[14px] leading-5 font-medium text-[#18181b]">{subheading}</p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 w-full min-w-0">
           {rows.map((row, idx) => {
             const pct = Math.max(0, Math.min(100, row.percent ?? 0))
             return (
               <div
                 key={`${row.label}-${idx}`}
-                className="bg-[#f4f4f5] rounded-[6px] h-[52px] flex items-center justify-between px-4"
-                style={{ width: `${pct}%`, minWidth: 260 }}
+                className="bg-white border border-[#e4e4e7] rounded-[6px] h-[52px] flex items-center justify-between px-3 min-w-0 max-w-full sm:px-4"
+                style={{ width: `${pct}%` }}
               >
                 <div className="flex flex-col min-w-0">
                   <span className="text-[14px] leading-5 font-medium text-[#18181b] truncate">

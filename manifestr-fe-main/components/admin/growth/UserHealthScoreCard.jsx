@@ -65,20 +65,20 @@ export default function UserHealthScoreCard({ data }) {
   const c = scoreColor(avgScore)
 
   return (
-    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[14px] lg:p-[18px] flex flex-col gap-4 lg:gap-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
         <span
-          className="px-2.5 py-1 rounded-full border text-[12px] leading-[18px] font-semibold"
+          className="self-start sm:self-auto px-2.5 py-1 rounded-full border text-[12px] leading-[18px] font-semibold shrink-0"
           style={{ backgroundColor: c.bg, borderColor: c.border, color: c.text }}
         >
           {c.label}
         </span>
       </div>
 
-      <div className="flex gap-8 flex-wrap">
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8 lg:flex-wrap">
         {/* Left: score + distribution */}
-        <div className="flex flex-col gap-4 flex-1 min-w-[220px]">
+        <div className="flex flex-col gap-4 flex-1 min-w-0 sm:min-w-[220px]">
           <div className="flex items-end gap-3">
             <span className="text-[48px] leading-none font-bold text-[#18181b]">{avgScore}</span>
             <div className="flex flex-col pb-1">
@@ -113,7 +113,7 @@ export default function UserHealthScoreCard({ data }) {
         </div>
 
         {/* Right: formula weights */}
-        <div className="flex flex-col gap-4 flex-1 min-w-[220px]">
+        <div className="flex flex-col gap-4 flex-1 min-w-0 sm:min-w-[220px]">
           <div className="flex flex-col gap-1">
             <p className="text-[14px] leading-5 font-semibold text-[#18181b]">Score Formula (v1)</p>
             <p className="text-[12px] leading-[18px] text-[#71717a]">

@@ -20,28 +20,35 @@ function FilterDropdown({ label, options, value, onChange }) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
+  const displayLabel = value || label
+
   return (
-    <div className="relative" ref={ref}>
+    <div
+      className={`relative min-w-0 w-full lg:w-auto ${open ? 'z-[200]' : 'z-40'}`}
+      ref={ref}
+    >
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="h-10 px-4 py-2 rounded-lg border border-[#e4e4e7] bg-white flex items-center gap-2 text-[14px] leading-5 font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
+        className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#e4e4e7] bg-white px-4 py-2 text-left text-[14px] font-medium leading-5 text-[#18181b] transition-colors hover:bg-[#f4f4f5] lg:inline-flex lg:w-auto"
       >
-        {value || label}
+        <span className="min-w-0 flex-1 truncate">{displayLabel}</span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 shrink-0 text-[#18181b] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           strokeWidth={1.75}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-white border border-[#e4e4e7] rounded-[6px] shadow-lg py-1">
+        <div
+          className="absolute left-0 right-0 top-full z-[300] mt-1 max-h-[min(280px,50vh)] overflow-y-auto rounded-[6px] border border-[#e4e4e7] bg-white py-1 shadow-lg lg:left-auto lg:right-0 lg:min-w-[180px] lg:w-max lg:max-w-[min(320px,90vw)]"
+        >
           {options.map((opt) => (
             <button
               key={opt}
               type="button"
               onClick={() => { onChange(opt); setOpen(false) }}
-              className={`w-full text-left px-4 py-2 text-[14px] leading-5 transition-colors ${
+              className={`w-full text-left px-4 py-2 text-[14px] leading-5 transition-colors whitespace-nowrap ${
                 value === opt
                   ? 'bg-[#f4f4f5] text-[#18181b] font-medium'
                   : 'text-[#52525b] hover:bg-[#f4f4f5]'
@@ -74,27 +81,31 @@ export default function OverviewFilters({
     onFiltersChange?.({ search: searchValue, filters: next })
   }
 
+  const filterEntries = Object.entries(normalizedFilters)
+
   return (
-    <div className="flex items-center justify-between w-full">
-      <div className="w-[400px]">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-[6px] border border-[#e4e4e7] bg-white">
-          <Search className="w-5 h-5 shrink-0 text-[#71717a]" strokeWidth={1.5} />
+    <div className="relative flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+      {/* Search — matches Feature Adoption / AiPerformanceFilters: 400px, h-10, rounded-[6px] */}
+      <div className="w-full shrink-0 lg:w-[400px] lg:max-w-[400px]">
+        <div className="flex h-10 items-center gap-2 rounded-[6px] border border-[#e4e4e7] bg-white px-3">
+          <Search className="h-5 w-5 shrink-0 text-[#71717a]" strokeWidth={1.75} />
           <input
             type="text"
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => {
-              const value = e.target.value
-              setSearchValue(value)
-              onFiltersChange?.({ search: value, filters: selectedFilters })
+              const v = e.target.value
+              setSearchValue(v)
+              onFiltersChange?.({ search: v, filters: selectedFilters })
             }}
-            className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-6 font-normal text-[#18181b] placeholder:text-[#71717a]"
+            className="min-w-0 flex-1 bg-transparent text-[16px] font-normal leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        {Object.entries(normalizedFilters).map(([label, options]) => (
+      {/* Dropdowns — mobile: 2×2 grid; desktop: row, auto width (Feature Adoption / AiPerformanceFilters) */}
+      <div className="grid w-full min-w-0 grid-cols-2 gap-2 lg:flex lg:w-auto lg:flex-nowrap lg:items-center lg:gap-2">
+        {filterEntries.map(([label, options]) => (
           <FilterDropdown
             key={label}
             label={label}

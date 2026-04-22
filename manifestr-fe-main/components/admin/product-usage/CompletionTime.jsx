@@ -58,10 +58,10 @@ export default function CompletionTime({ data }) {
   const step = W / (months.length - 1)
 
   return (
-    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 w-full h-[320px]">
-      <div className="flex items-center justify-between">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
-        <div className="relative" ref={dropdownRef}>
+    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 w-full min-h-[280px] h-[300px] min-w-0 lg:p-[18px] lg:gap-6 lg:h-[320px]">
+      <div className="flex flex-col gap-2 min-w-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
+        <div className="relative shrink-0 self-start sm:self-auto" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
@@ -170,11 +170,14 @@ export default function CompletionTime({ data }) {
               )}
             </div>
 
-            <div className="flex justify-between mt-2">
+            <div
+              className="mt-2 grid gap-0.5"
+              style={{ gridTemplateColumns: `repeat(${months.length}, minmax(0, 1fr))` }}
+            >
               {months.map((m, i) => (
                 <span
                   key={m}
-                  className={`text-[12px] leading-[18px] font-normal tracking-[0.06px] ${
+                  className={`text-center text-[10px] leading-3 font-normal tracking-[0.06px] sm:text-[12px] sm:leading-[18px] truncate ${
                     hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#475467]'
                   }`}
                 >

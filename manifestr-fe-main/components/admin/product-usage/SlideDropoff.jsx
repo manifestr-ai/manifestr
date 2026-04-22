@@ -13,8 +13,8 @@ export default function SlideDropoff({ data }) {
   const BAR_H = 220
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-[320px]">
-      <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 min-h-[260px] h-[300px] lg:p-[18px] lg:gap-6 lg:h-[320px]">
+      <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
 
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex flex-1 min-h-0">

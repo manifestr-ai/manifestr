@@ -38,17 +38,17 @@ export default function TopRevenueUsersTable({ data }) {
   const rows = data.rows || []
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-5">
+    <div className="flex min-w-0 flex-1 flex-col gap-4 rounded-xl border border-[#e4e4e7] bg-white p-4 sm:gap-5 sm:p-[18px]">
       <div className="flex flex-col gap-0.5">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+        <p className="text-[16px] font-medium leading-6 text-[#18181b] sm:text-[18px] sm:leading-7">{title}</p>
         {subtitle && (
-          <p className="text-[14px] leading-5 font-normal text-[#71717a]">{subtitle}</p>
+          <p className="text-[14px] font-normal leading-5 text-[#71717a]">{subtitle}</p>
         )}
       </div>
 
-      <div className="w-full">
+      <div className="w-full overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
         <div
-          className="grid items-center gap-x-4 gap-y-0"
+          className="grid min-w-[640px] items-center gap-x-4 gap-y-0"
           style={{ gridTemplateColumns: GRID }}
         >
           <HeaderCell>Account</HeaderCell>

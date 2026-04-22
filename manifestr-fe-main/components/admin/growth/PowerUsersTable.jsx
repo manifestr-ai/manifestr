@@ -39,7 +39,7 @@ export default function PowerUsersTable({ data }) {
   const gridTemplate = COLS.map((c) => c.flex).join(' ')
 
   return (
-    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[14px] lg:p-[18px] flex flex-col gap-4 lg:gap-6">
       <div className="flex flex-col gap-1">
         <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
         {subtitle && (
