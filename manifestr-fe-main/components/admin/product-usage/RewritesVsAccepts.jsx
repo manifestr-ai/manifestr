@@ -39,10 +39,10 @@ export default function RewritesVsAccepts({ data }) {
   const showEdited = selectedFilter === 'Both' || selectedFilter === 'Edited'
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-full">
-      <div className="flex items-center justify-between">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
-        <div className="relative" ref={dropdownRef}>
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 h-full lg:p-[18px] lg:gap-6">
+      <div className="flex flex-col gap-2 min-w-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
+        <div className="relative shrink-0 self-start sm:self-auto" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
@@ -134,11 +134,14 @@ export default function RewritesVsAccepts({ data }) {
               })}
             </div>
 
-            <div className="flex justify-between mt-2">
+            <div
+              className="mt-2 grid gap-0.5"
+              style={{ gridTemplateColumns: `repeat(${months.length}, minmax(0, 1fr))` }}
+            >
               {months.map((m, i) => (
                 <span
                   key={m}
-                  className={`text-[12px] leading-[18px] font-medium tracking-[0.06px] ${
+                  className={`text-center text-[10px] leading-3 font-medium tracking-[0.06px] sm:text-[12px] sm:leading-[18px] truncate ${
                     hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#40444e]'
                   }`}
                 >
@@ -150,7 +153,7 @@ export default function RewritesVsAccepts({ data }) {
         </div>
       </div>
 
-      <div className="flex items-start gap-4">
+      <div className="flex flex-wrap items-start gap-3 sm:gap-4">
         {legend.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />

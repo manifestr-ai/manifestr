@@ -22,32 +22,32 @@ export default function DataTableWithSearch({
   }, [rows, columns, query])
 
   return (
-    <div className={`${flexBasis} min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6`}>
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
-        <div className="w-[260px] shrink-0">
-          <div className="flex items-center gap-2 h-9 px-3 py-2 rounded-[6px] border border-[#e4e4e7] bg-white">
-            <Search className="w-4 h-4 shrink-0 text-[#71717a]" strokeWidth={1.5} />
+    <div className={`${flexBasis} min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 lg:p-[18px] lg:gap-6`}>
+      <div className="flex flex-col gap-3 min-w-0 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
+        <div className="w-full shrink-0 lg:w-[260px]">
+          <div className="flex h-9 items-center gap-2 rounded-[6px] border border-[#e4e4e7] bg-white px-3 py-2">
+            <Search className="h-4 w-4 shrink-0 text-[#71717a]" strokeWidth={1.5} />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={searchPlaceholder}
-              className="flex-1 min-w-0 bg-transparent outline-none text-[14px] leading-5 font-normal text-[#18181b] placeholder:text-[#71717a]"
+              className="min-w-0 flex-1 bg-transparent text-[14px] font-normal leading-5 text-[#18181b] outline-none placeholder:text-[#71717a]"
             />
           </div>
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <div className="min-w-full">
-          <div className="flex items-center h-[44px] border-b border-[#e4e4e7]">
+      <div className="w-full overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div className="min-w-[600px]">
+          <div className="flex h-[44px] items-center border-b border-[#e4e4e7]">
             {columns.map((col) => (
               <div
                 key={col.key}
-                className={`px-4 flex items-center ${col.flex ? 'flex-1 min-w-0' : `${col.width || 'w-[140px]'} shrink-0`} ${col.align === 'right' ? 'justify-end' : ''}`}
+                className={`flex items-center px-3 sm:px-4 ${col.flex ? 'min-w-0 flex-1' : `${col.width || 'w-[140px]'} shrink-0`} ${col.align === 'right' ? 'justify-end' : ''}`}
               >
-                <span className="text-[12px] leading-[18px] font-medium text-[#71717a] uppercase tracking-wide">
+                <span className="text-[11px] font-medium uppercase tracking-wide text-[#71717a] sm:text-[12px] sm:leading-[18px]">
                   {col.label}
                 </span>
               </div>
@@ -55,21 +55,21 @@ export default function DataTableWithSearch({
           </div>
 
           {filteredRows.length === 0 ? (
-            <div className="h-[56px] flex items-center justify-center text-[14px] leading-5 text-[#71717a]">
+            <div className="flex h-[56px] items-center justify-center text-[14px] leading-5 text-[#71717a]">
               No results found.
             </div>
           ) : (
             filteredRows.map((row, idx) => (
               <div
                 key={row.id || idx}
-                className={`flex items-center h-[56px] ${
+                className={`flex h-[56px] items-center ${
                   idx !== filteredRows.length - 1 ? 'border-b border-[#e4e4e7]' : ''
                 }`}
               >
                 {columns.map((col) => (
                   <div
                     key={col.key}
-                    className={`px-4 flex items-center ${col.flex ? 'flex-1 min-w-0' : `${col.width || 'w-[140px]'} shrink-0`} ${col.align === 'right' ? 'justify-end' : ''}`}
+                    className={`flex items-center px-3 sm:px-4 ${col.flex ? 'min-w-0 flex-1' : `${col.width || 'w-[140px]'} shrink-0`} ${col.align === 'right' ? 'justify-end' : ''}`}
                   >
                     <span
                       className={`text-[14px] leading-5 ${

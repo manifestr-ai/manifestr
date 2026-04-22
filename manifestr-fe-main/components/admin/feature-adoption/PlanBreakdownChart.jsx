@@ -29,11 +29,13 @@ export default function PlanBreakdownChart({ data }) {
   const clusterW = nStages * barW + totalGaps
 
   return (
-    <div className="flex-1 min-w-0 w-full bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
+    <div className="flex-1 min-w-0 w-full bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 lg:p-[18px] lg:gap-6">
+      <div className="flex items-start justify-between gap-4 min-w-0">
         <div className="flex flex-col gap-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-[16px] leading-6 font-medium text-[#18181b] wrap-break-word lg:text-[18px] lg:leading-7">
+              {title}
+            </p>
             <Info className="w-4 h-4 text-[#71717a] shrink-0" strokeWidth={1.75} />
           </div>
           {subtitle && (
@@ -43,7 +45,7 @@ export default function PlanBreakdownChart({ data }) {
       </div>
 
       <div
-        className="relative w-full overflow-hidden"
+        className="relative w-full min-w-0 overflow-hidden"
         style={{ aspectRatio: `${width} / ${height}` }}
       >
         <svg

@@ -7,7 +7,7 @@ const DEFAULT_OVERVIEW_DATA = {
     subtitle: 'High-level snapshot of platform health.',
   },
   filters: {
-    searchPlaceholder: 'Search users, events, and metrics...',
+    searchPlaceholder: 'Search files, content, and tags...',
     options: {
       Timeframe: ['Last 7d', 'Last 30d', 'Last 90d', 'This year', 'All time'],
       Cohort: ['All cohorts', 'New users', 'Returning', 'Power users'],

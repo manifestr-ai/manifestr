@@ -45,8 +45,8 @@ export default function FailuresAlertsList({ data }) {
   const alerts = data?.alerts || []
 
   return (
-    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
+    <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 sm:p-[18px] flex flex-col gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
@@ -58,7 +58,7 @@ export default function FailuresAlertsList({ data }) {
         </div>
         <button
           type="button"
-          className="h-9 px-3 py-2 rounded-[6px] border border-[#e4e4e7] bg-white text-[14px] leading-5 font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors shrink-0"
+          className="w-full sm:w-auto h-9 px-3 py-2 rounded-[6px] border border-[#e4e4e7] bg-white text-[14px] leading-5 font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors shrink-0"
         >
           View all
         </button>

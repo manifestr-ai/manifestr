@@ -51,16 +51,16 @@ export default function TransitionDropoffsFunnel({ data }) {
   const step = W / (series.length - 1)
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-[370px]">
-      <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 min-h-[300px] h-[340px] lg:p-[18px] lg:gap-6 lg:h-[370px]">
+      <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
 
       <div className="relative flex-1 min-h-0">
-        <div className="flex h-full">
-          <div className="flex flex-col justify-between pr-2 shrink-0 pb-[26px]" style={{ width: 120 }}>
+        <div className="flex h-full min-w-0">
+          <div className="flex flex-col justify-between pr-1 shrink-0 pb-[26px] w-[72px] sm:w-[96px] lg:w-[120px] lg:pr-2">
             {stages.map((stage) => (
               <span
                 key={stage}
-                className="text-[12px] leading-[14px] font-medium text-[#40444e] tracking-[0.06px] whitespace-pre-line"
+                className="text-[10px] leading-3 font-medium text-[#40444e] tracking-[0.06px] whitespace-pre-line sm:text-[12px] sm:leading-[14px]"
               >
                 {stage}
               </span>
@@ -116,11 +116,14 @@ export default function TransitionDropoffsFunnel({ data }) {
               </svg>
             </div>
 
-            <div className="flex justify-between mt-2">
+            <div
+              className="mt-2 grid gap-0.5"
+              style={{ gridTemplateColumns: `repeat(${xLabels.length}, minmax(0, 1fr))` }}
+            >
               {xLabels.map((l, i) => (
                 <span
                   key={`${l}-${i}`}
-                  className={`text-[12px] leading-[18px] font-medium tracking-[0.06px] ${
+                  className={`text-center text-[10px] leading-3 font-medium tracking-[0.06px] sm:text-[12px] sm:leading-[18px] truncate ${
                     hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#40444e]'
                   }`}
                 >

@@ -39,10 +39,10 @@ export default function MostCommonJourneys({ data }) {
   const rightRows = rows.filter((_, i) => i % 2 === 1)
 
   return (
-    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 w-full">
-      <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+    <div className="bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 w-full min-w-0 lg:p-[18px] lg:gap-6">
+      <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
 
-      <div className="flex gap-4 items-stretch">
+      <div className="flex flex-col gap-4 items-stretch lg:flex-row lg:gap-4">
         <JourneyTable rows={leftRows} />
         <JourneyTable rows={rightRows} />
       </div>

@@ -54,14 +54,14 @@ export default function RewritesVsAcceptsFlows({ data }) {
   const rightRows = rows.filter((_, i) => i % 2 === 1)
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-full">
-      <div className="flex items-center justify-between">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
-        <div className="relative" ref={dropdownRef}>
+    <div className="w-full min-w-0 bg-[#f4f4f4] border border-[#e4e4e7] rounded-[12px] p-[14px] flex flex-col gap-4 h-full lg:p-[18px] lg:gap-6">
+      <div className="flex flex-col gap-2 min-w-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
+        <div className="relative shrink-0 self-start sm:self-auto" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen((prev) => !prev)}
-            className="h-9 px-3 py-2 rounded-lg border border-[#e4e4e7] bg-white flex items-center gap-2 text-[14px] leading-5 font-medium text-[#18181b]"
+            className="h-9 px-3 py-2 rounded-[8px] border border-[#e4e4e7] bg-white flex items-center gap-2 text-[14px] leading-5 font-medium text-[#18181b]"
           >
             {selectedFilter}
             <ChevronDown
@@ -93,7 +93,7 @@ export default function RewritesVsAcceptsFlows({ data }) {
         </div>
       </div>
 
-      <div className="flex gap-4 items-stretch">
+      <div className="flex flex-col gap-4 items-stretch lg:flex-row lg:gap-4">
         <FlowTable rows={leftRows} />
         <FlowTable rows={rightRows} />
       </div>

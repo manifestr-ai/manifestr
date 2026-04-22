@@ -39,13 +39,14 @@ function EventRow({ event }) {
 export default function RecentActivityFeed({ data }) {
   const title = data?.title || 'Recent Activity'
   const events = data?.events || []
+  const visibleEvents = events.slice(0, 4)
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-4">
+    <div className="w-full lg:flex-1 min-w-0 bg-[#f4f4f4] border border-[#e9eaea] rounded-[20px] shadow-[0_2px_5px_rgba(0,0,0,0.05)] p-4 lg:p-[18px] flex flex-col gap-4">
       <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
 
       <div className="flex flex-col">
-        {events.map((event) => (
+        {visibleEvents.map((event) => (
           <EventRow key={event.id} event={event} />
         ))}
       </div>

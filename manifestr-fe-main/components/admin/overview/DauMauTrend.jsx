@@ -49,7 +49,7 @@ export default function DauMauTrend({ data }) {
   const step = W / (months.length - 1)
 
   return (
-    <div className="flex-[2] min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="w-full lg:flex-2 min-w-0 bg-[#f4f4f4] border border-[#e9eaea] rounded-[20px] shadow-[0_2px_5px_rgba(0,0,0,0.05)] p-4 lg:p-[18px] flex flex-col gap-4 lg:gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
@@ -154,14 +154,14 @@ export default function DauMauTrend({ data }) {
           </div>
         )}
 
-        {/* X-axis */}
+        {/* X-axis — show every label on desktop, every 2nd on mobile */}
         <div className="flex justify-between mt-1">
           {months.map((m, i) => (
             <span
               key={m}
-              className={`text-[12px] leading-[18px] font-medium tracking-[0.06px] ${
+              className={`text-[11px] lg:text-[12px] leading-[18px] font-medium tracking-[0.06px] ${
                 hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#40444e]'
-              }`}
+              } ${i % 2 !== 0 ? 'hidden sm:inline' : ''}`}
             >
               {m}
             </span>

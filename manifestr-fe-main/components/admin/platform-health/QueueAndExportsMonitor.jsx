@@ -10,7 +10,7 @@ function MonitorCard({ icon: Icon, title, value, unit, status, statusLabel, subR
   const s = STATUS_STYLES[status] || STATUS_STYLES.healthy
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-5">
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-4 sm:p-[18px] flex flex-col gap-5">
       <div className="flex items-center gap-2">
         <div className="w-10 h-10 rounded-[6px] bg-[#f4f4f5] border border-[#e4e4e7] flex items-center justify-center shrink-0">
           <Icon className="w-4 h-4 text-[#18181b]" strokeWidth={1.75} />
@@ -72,7 +72,7 @@ export default function QueueAndExportsMonitor({ data }) {
   if (!queue && !exports) return null
 
   return (
-    <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+    <div className="flex flex-col gap-4 lg:flex-row lg:gap-[18px] lg:flex-nowrap">
       {queue && (
         <MonitorCard
           icon={ListOrdered}

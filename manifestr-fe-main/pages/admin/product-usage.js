@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import { useState } from 'react'
 import AdminHeader from '../../components/admin/AdminHeader'
 import AdminSidebar from '../../components/admin/AdminSidebar'
 import ProductUsageHeader from '../../components/admin/product-usage/ProductUsageHeader'
@@ -24,7 +25,7 @@ import { getAdminProductUsageData } from '../../services/admin/product-usage'
 
 function SectionLabel({ children }) {
   return (
-    <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a] pt-2">
+    <p className="text-[11px] leading-[16px] font-semibold tracking-[0.08em] uppercase text-[#71717a] pt-1 sm:text-[12px] sm:leading-[18px] sm:pt-2">
       {children}
     </p>
   )
@@ -33,8 +34,16 @@ function SectionLabel({ children }) {
 export default function AdminProductUsage({ productUsageData }) {
   const stats = productUsageData?.stats || []
   const behaviourStats = productUsageData?.behaviourStats || []
-  const statsRow1 = stats.slice(0, 3)
-  const statsRow2 = stats.slice(3, 6)
+  const journeyModes = productUsageData?.journeyModes || {}
+  const journeyModeOptions = journeyModes?.options || [
+    { id: 'editors', label: 'Editors' },
+    { id: 'tools', label: 'Tools' },
+  ]
+  const [selectedJourneyMode, setSelectedJourneyMode] = useState(journeyModes?.defaultMode || 'tools')
+  const selectedJourneyData = journeyModes?.[selectedJourneyMode] || {}
+  const isEditorsMode = selectedJourneyMode === 'editors'
+  const usageSectionLabel = isEditorsMode ? 'Most Used Editors' : 'Most Used Tools'
+  const journeySectionLabel = isEditorsMode ? 'Cross-Editor Journeys' : 'Cross-Tool Journeys'
 
   return (
     <>
@@ -42,18 +51,18 @@ export default function AdminProductUsage({ productUsageData }) {
         <title>Product Usage &amp; Engagement - Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-[#f4f4f5]">
+      <div className="admin-card-theme min-h-screen bg-white">
         <AdminHeader />
-        <div className="flex h-[calc(100vh-72px)]">
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          <div className="no-scrollbar flex-1 min-w-0 h-[calc(100vh-72px)] overflow-y-auto flex flex-col">
+          <div className="no-scrollbar flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto">
             <ProductUsageHeader
               title={productUsageData?.header?.title}
               subtitle={productUsageData?.header?.subtitle}
             />
 
-            <div className="flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+            <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
               <OverviewFilters
                 filters={productUsageData?.filters?.options}
                 searchPlaceholder={productUsageData?.filters?.searchPlaceholder}
@@ -62,85 +71,124 @@ export default function AdminProductUsage({ productUsageData }) {
               {/* ── Core Metrics ── */}
               <SectionLabel>Core Metrics</SectionLabel>
 
-              {/* KPI Row 1: Outputs per User · Time to First Output · Session Frequency */}
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
-                {statsRow1.map((s) => (
-                  <StatCard key={s.title} {...s} neutralBadge />
-                ))}
-              </div>
-
-              {/* KPI Row 2: Avg Session Duration · Completion Rate · Abandonment Rate */}
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
-                {statsRow2.map((s) => (
-                  <StatCard key={s.title} {...s} neutralBadge />
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-[18px]">
+                {stats.map((s) => (
+                  <StatCard key={s.id || s.title} {...s} neutralBadge />
                 ))}
               </div>
 
               {/* Usage trend charts */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <DecksPerUserChart data={productUsageData?.decksPerUser} />
-                <TimeToFirstOutput data={productUsageData?.timeToFirstOutput} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <DecksPerUserChart data={productUsageData?.decksPerUser} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <TimeToFirstOutput data={productUsageData?.timeToFirstOutput} />
+                </div>
               </div>
 
               {/* Session Frequency + Session Duration */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <DecksPerUserChart data={productUsageData?.sessionFrequency} />
-                <DecksPerUserChart data={productUsageData?.sessionDuration} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <DecksPerUserChart data={productUsageData?.sessionFrequency} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <DecksPerUserChart data={productUsageData?.sessionDuration} />
+                </div>
               </div>
 
               {/* ── Behaviour Tracking ── */}
               <SectionLabel>Behaviour Tracking</SectionLabel>
 
-              {/* Rewrites per Output · Accept Rate · Edit Rate */}
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-[18px]">
                 {behaviourStats.map((s) => (
-                  <StatCard key={s.title} {...s} neutralBadge />
+                  <StatCard key={s.id || s.title} {...s} neutralBadge />
                 ))}
               </div>
 
               {/* Accept vs Edit (Rewrites vs Accepts) + Most Used Document Types (Slide Types) */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <RewritesVsAccepts data={productUsageData?.rewritesVsAccepts} />
-                <CategoryPieChart data={productUsageData?.slideTypes} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <RewritesVsAccepts data={productUsageData?.rewritesVsAccepts} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <CategoryPieChart data={productUsageData?.slideTypes} />
+                </div>
               </div>
 
               {/* Export Types + AI Style Settings */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <CategoryPieChart data={productUsageData?.exportTypes} />
-                <AiStyleSettingsUsage data={productUsageData?.aiStyleSettingsUsage} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <CategoryPieChart data={productUsageData?.exportTypes} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <AiStyleSettingsUsage data={productUsageData?.aiStyleSettingsUsage} />
+                </div>
               </div>
 
               <SlideTimeHeatmap data={productUsageData?.slideTimeHeatmap} />
 
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <SlideDropoff data={productUsageData?.slideDropoff} />
-                <SlideRewritesVsAccepts data={productUsageData?.slideRewritesVsAccepts} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <SlideDropoff data={productUsageData?.slideDropoff} />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <SlideRewritesVsAccepts data={productUsageData?.slideRewritesVsAccepts} />
+                </div>
               </div>
 
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <RewritesVsAcceptsFlows data={productUsageData?.rewritesVsAcceptsFlows} />
-                <BouncedDecks data={productUsageData?.bouncedDecks} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-[1.75]">
+                  <RewritesVsAcceptsFlows data={productUsageData?.rewritesVsAcceptsFlows} />
+                </div>
+                <div className="w-full min-w-0 lg:w-[355px] lg:shrink-0">
+                  <BouncedDecks data={productUsageData?.bouncedDecks} />
+                </div>
               </div>
 
               <CompletionTime data={productUsageData?.completionTime} />
 
-              {/* Most Used Tools */}
-              <SectionLabel>Most Used Tools</SectionLabel>
-              <ToolUsersGrid data={productUsageData?.toolUsers} />
-
-              {/* ── Cross-Tool Journeys ── */}
-              <SectionLabel>Cross-Tool Journeys</SectionLabel>
-
-              {/* Most common tool sequences */}
-              <MostCommonJourneys data={productUsageData?.mostCommonJourneys} />
-
-              {/* Drop-off funnel + Multi-tool usage */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
-                <TransitionDropoffsFunnel data={productUsageData?.transitionDropoffsFunnel} />
-                <MultiToolUsage data={productUsageData?.multiToolUsage} />
+              <div className="w-full">
+                <div className="inline-flex items-center rounded-[10px] border border-[#e4e4e7] bg-white p-1">
+                  {journeyModeOptions.map((option) => {
+                    const isActive = selectedJourneyMode === option.id
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setSelectedJourneyMode(option.id)}
+                        className={`h-8 rounded-[8px] px-4 text-[14px] leading-5 transition-colors ${
+                          isActive
+                            ? 'bg-[#18181b] font-medium text-white'
+                            : 'font-normal text-[#52525b] hover:bg-[#f4f4f5]'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
-              <ToolPairingMatrix data={productUsageData?.toolPairingMatrix} />
+              <SectionLabel>{usageSectionLabel}</SectionLabel>
+              <ToolUsersGrid data={selectedJourneyData?.toolUsers || productUsageData?.toolUsers} />
+
+              <SectionLabel>{journeySectionLabel}</SectionLabel>
+
+              <MostCommonJourneys data={selectedJourneyData?.mostCommonJourneys || productUsageData?.mostCommonJourneys} />
+
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <TransitionDropoffsFunnel
+                    data={selectedJourneyData?.transitionDropoffsFunnel || productUsageData?.transitionDropoffsFunnel}
+                  />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <MultiToolUsage data={selectedJourneyData?.multiToolUsage || productUsageData?.multiToolUsage} />
+                </div>
+              </div>
+
+              <ToolPairingMatrix data={selectedJourneyData?.toolPairingMatrix || productUsageData?.toolPairingMatrix} />
             </div>
           </div>
         </div>

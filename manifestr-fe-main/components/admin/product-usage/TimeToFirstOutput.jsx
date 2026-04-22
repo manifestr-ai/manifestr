@@ -43,8 +43,8 @@ export default function TimeToFirstOutput({ data }) {
   const step = W / (xLabels.length - 1)
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-[370px]">
-      <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 min-h-[300px] h-[340px] lg:p-[18px] lg:gap-6 lg:h-[370px]">
+      <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
 
       <div className="relative flex-1 min-h-0">
         <div className="flex h-full">
@@ -127,11 +127,14 @@ export default function TimeToFirstOutput({ data }) {
               )}
             </div>
 
-            <div className="flex justify-between mt-2">
+            <div
+              className="mt-2 grid gap-0.5"
+              style={{ gridTemplateColumns: `repeat(${xLabels.length}, minmax(0, 1fr))` }}
+            >
               {xLabels.map((l, i) => (
                 <span
                   key={l}
-                  className={`text-[12px] leading-[18px] font-normal tracking-[0.06px] text-center w-[56px] ${
+                  className={`text-center text-[10px] leading-3 font-normal tracking-[0.06px] sm:text-[12px] sm:leading-[18px] truncate ${
                     hoverIdx === i ? 'text-[#18181b] font-semibold' : 'text-[#475467]'
                   }`}
                 >

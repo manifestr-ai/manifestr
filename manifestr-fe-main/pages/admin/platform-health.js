@@ -18,20 +18,20 @@ export default function AdminPlatformHealth({ platformHealthData }) {
         <title>Platform Health - Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-[#f4f4f5]">
+      <div className="admin-card-theme min-h-screen bg-white">
         <AdminHeader />
-        <div className="flex h-[calc(100vh-72px)]">
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          <div className="no-scrollbar flex-1 min-w-0 h-[calc(100vh-72px)] overflow-y-auto flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col">
             <PlatformHealthHeader
               title={platformHealthData?.header?.title}
               subtitle={platformHealthData?.header?.subtitle}
             />
 
-            <div className="relative z-0 flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+            <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
               {/* Metrics: p50/p95/p99 + error rate + timeout rate + uptime */}
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+              <div className="flex flex-col gap-4 lg:flex-row lg:gap-[18px] lg:flex-nowrap">
                 <APIPercentilesCard data={platformHealthData?.apiPercentiles} />
                 <HealthStatCard data={platformHealthData?.errorRate} />
                 <HealthStatCard data={platformHealthData?.timeoutRate} />

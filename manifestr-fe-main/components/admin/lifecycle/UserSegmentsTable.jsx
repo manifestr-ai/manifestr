@@ -67,18 +67,79 @@ export default function UserSegmentsTable({ data }) {
   const rows = data?.rows || []
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] flex flex-col gap-4 lg:p-[18px] lg:gap-6">
       <div className="flex flex-col gap-1">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
         {subtitle && (
           <p className="text-[14px] leading-5 font-normal text-[#71717a]">{subtitle}</p>
         )}
       </div>
 
-      <div className="w-full overflow-x-auto">
-        {/* Header */}
+      {/* Mobile / tablet: segment cards */}
+      <div className="flex flex-col gap-3 lg:hidden">
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            className="rounded-lg border border-[#e4e4e7] bg-[#fafafa] p-4 flex flex-col gap-3 min-w-0"
+          >
+            <div className="flex flex-col gap-1 min-w-0">
+              <p className="text-[14px] leading-5 font-semibold text-[#18181b]">{row.name}</p>
+              {row.description && (
+                <p className="text-[12px] leading-[18px] text-[#71717a]">{row.description}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+              <div>
+                <p className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider">
+                  Users
+                </p>
+                <p className="text-[14px] leading-5 font-semibold text-[#18181b] mt-0.5">{row.users}</p>
+              </div>
+              <div>
+                <p className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider">
+                  Avg outputs
+                </p>
+                <p className="text-[14px] leading-5 text-[#52525b] mt-0.5">{row.avgOutputs}</p>
+              </div>
+              <div>
+                <p className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider">
+                  Revenue
+                </p>
+                <p className="text-[14px] leading-5 font-medium text-[#18181b] mt-0.5">{row.revenueValue}</p>
+              </div>
+              <div>
+                <p className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider">
+                  Last active
+                </p>
+                <p className="text-[13px] leading-5 text-[#71717a] mt-0.5">{row.lastActivity}</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 pt-1 border-t border-[#e4e4e7]">
+              <div>
+                <p className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider mb-1.5">
+                  Stage
+                </p>
+                <StageBadge stage={row.stage} label={row.stageLabel} />
+              </div>
+              <div>
+                <p className="text-[11px] leading-[18px] font-semibold text-[#71717a] uppercase tracking-wider mb-1.5">
+                  Actions
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(row.actions || []).map((action) => (
+                    <ActionButton key={action.intent} action={action} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: wide table */}
+      <div className="hidden lg:block w-full overflow-x-auto">
         <div
-          className="hidden lg:grid items-center gap-x-4 pb-2 border-b border-[#e4e4e7] min-w-[900px]"
+          className="grid items-center gap-x-4 pb-2 border-b border-[#e4e4e7] min-w-[900px]"
           style={{ gridTemplateColumns: GRID }}
         >
           {['Segment', 'Users', 'Avg Outputs', 'Revenue', 'Last Active', 'Stage', 'Actions'].map((col) => (
@@ -91,7 +152,6 @@ export default function UserSegmentsTable({ data }) {
           ))}
         </div>
 
-        {/* Rows */}
         <div className="flex flex-col min-w-[900px]">
           {rows.map((row) => (
             <div
@@ -99,7 +159,6 @@ export default function UserSegmentsTable({ data }) {
               className="grid items-center gap-x-4 gap-y-2 py-3.5 border-b border-[#e4e4e7] last:border-b-0"
               style={{ gridTemplateColumns: GRID }}
             >
-              {/* Segment */}
               <div className="flex flex-col gap-0.5 min-w-0">
                 <p className="text-[14px] leading-5 font-semibold text-[#18181b] truncate">
                   {row.name}
@@ -111,24 +170,18 @@ export default function UserSegmentsTable({ data }) {
                 )}
               </div>
 
-              {/* Users */}
               <p className="text-[14px] leading-5 font-semibold text-[#18181b]">{row.users}</p>
 
-              {/* Avg Outputs */}
               <p className="text-[14px] leading-5 text-[#52525b]">{row.avgOutputs}</p>
 
-              {/* Revenue */}
               <p className="text-[14px] leading-5 font-medium text-[#18181b]">{row.revenueValue}</p>
 
-              {/* Last Active */}
               <p className="text-[13px] leading-5 text-[#71717a]">{row.lastActivity}</p>
 
-              {/* Stage */}
               <div>
                 <StageBadge stage={row.stage} label={row.stageLabel} />
               </div>
 
-              {/* Actions */}
               <div className="flex items-center gap-2 flex-wrap">
                 {(row.actions || []).map((action) => (
                   <ActionButton key={action.intent} action={action} />

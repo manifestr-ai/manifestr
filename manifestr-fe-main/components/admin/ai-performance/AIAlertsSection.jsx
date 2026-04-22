@@ -68,21 +68,21 @@ export default function AIAlertsSection({ data }) {
       <div className="flex flex-col lg:flex-row gap-[18px]">
         <AlertPanel
           icon={TrendingUp}
-          iconColor="text-[#ef4444]"
-          headerBg="bg-[#fef2f2]"
-          headerBorder="border-[#fecaca]"
-          headerText="text-[#991b1b]"
-          badgeBg="bg-[#fef2f2] border-[#ef4444] text-[#ef4444]"
+          iconColor="text-[#71717a]"
+          headerBg="bg-[#f4f4f5]"
+          headerBorder="border-[#e4e4e7]"
+          headerText="text-[#18181b]"
+          badgeBg="bg-white border-[#e4e4e7] text-[#52525b]"
           title="Failure Spikes"
           alerts={failureAlerts}
         />
         <AlertPanel
           icon={Gauge}
-          iconColor="text-[#f59e0b]"
-          headerBg="bg-[#fffbeb]"
-          headerBorder="border-[#fed7aa]"
-          headerText="text-[#92400e]"
-          badgeBg="bg-[#fffbeb] border-[#f59e0b] text-[#92400e]"
+          iconColor="text-[#71717a]"
+          headerBg="bg-[#f4f4f5]"
+          headerBorder="border-[#e4e4e7]"
+          headerText="text-[#18181b]"
+          badgeBg="bg-white border-[#e4e4e7] text-[#52525b]"
           title="Latency Issues"
           alerts={latencyAlerts}
         />

@@ -22,18 +22,18 @@ export default function AdminAiPerformance({ aiPerformanceData }) {
         <title>AI Performance - Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-[#f4f4f5]">
+      <div className="admin-card-theme min-h-screen bg-white">
         <AdminHeader />
-        <div className="flex h-[calc(100vh-72px)]">
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          <div className="no-scrollbar flex-1 min-w-0 h-[calc(100vh-72px)] overflow-y-auto flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col">
             <AiPerformanceHeader
               title={aiPerformanceData?.header?.title}
               subtitle={aiPerformanceData?.header?.subtitle}
             />
 
-            <div className="relative z-0 flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+            <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
               <AiPerformanceFilters
                 searchPlaceholder={aiPerformanceData?.filters?.searchPlaceholder}
                 options={aiPerformanceData?.filters?.options}
@@ -43,19 +43,19 @@ export default function AdminAiPerformance({ aiPerformanceData }) {
               <OutputMetricsCards data={aiPerformanceData?.outputMetrics} />
 
               {/* Prompt Performance: success rate + latency trend */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
                 <PromptSuccessChart data={aiPerformanceData?.promptSuccess} />
                 <LatencyTrendChart data={aiPerformanceData?.latencyTrend} />
               </div>
 
               {/* Prompt Performance: regenerations + output quality signals */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
                 <RegenerationsList data={aiPerformanceData?.regenerations} />
                 <AiFeedbackBarChart data={aiPerformanceData?.aiFeedback} />
               </div>
 
               {/* Prompt Performance: completion rate */}
-              <div className="flex gap-[18px] items-stretch flex-wrap lg:flex-nowrap">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
                 <CompletionRateChart data={aiPerformanceData?.completionRate} />
               </div>
 

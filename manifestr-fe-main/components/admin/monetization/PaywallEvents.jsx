@@ -27,7 +27,7 @@ export default function PaywallEvents({ data }) {
   const events = data.events || []
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="flex min-w-0 flex-1 flex-col gap-5 rounded-xl border border-[#e4e4e7] bg-white p-4 sm:gap-6 sm:p-[18px]">
       <div className="flex items-start gap-3">
         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -43,30 +43,26 @@ export default function PaywallEvents({ data }) {
         {events.map((ev, idx) => (
           <div
             key={ev.id}
-            className={`flex items-center justify-between gap-4 py-3 ${idx === 0 ? 'pt-0' : ''}`}
+            className={`flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 ${
+              idx === 0 ? 'pt-0' : ''
+            }`}
           >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex min-w-0 items-center gap-3">
               <div
-                className="w-2 h-2 rounded-full shrink-0"
+                className="h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: ev.color }}
               />
-              <div className="flex flex-col min-w-0">
-                <span className="text-[14px] leading-5 font-medium text-[#18181b] truncate">
-                  {ev.label}
-                </span>
-                <span className="text-[12px] leading-[18px] font-normal text-[#71717a] truncate">
-                  {ev.description}
-                </span>
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-[14px] font-medium leading-5 text-[#18181b]">{ev.label}</span>
+                <span className="truncate text-[12px] font-normal leading-[18px] text-[#71717a]">{ev.description}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3 sm:justify-end">
               {ev.rate && (
-                <span className="text-[13px] leading-5 font-normal text-[#71717a] tabular-nums">
-                  {ev.rate}
-                </span>
+                <span className="tabular-nums text-[13px] font-normal leading-5 text-[#71717a]">{ev.rate}</span>
               )}
-              <span className="text-[15px] leading-5 font-bold text-[#18181b] tabular-nums w-[52px] text-right">
+              <span className="w-[52px] text-right text-[15px] font-bold leading-5 tabular-nums text-[#18181b]">
                 {ev.count}
               </span>
               <TrendBadge trend={ev.trend} />
