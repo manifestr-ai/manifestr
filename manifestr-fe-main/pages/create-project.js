@@ -27,7 +27,7 @@ const tools = [
     id: 'strategist',
     title: 'THE strategist',
     subtitle: 'Strategic Planning • Corporate Vision',
-    imageSrc: '/assets/dummy/tool-card-1.jpg',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425439/the-strategist-1_bt4bgq.jpg',
     outputType: 'presentation',
     description: {
       title: 'Strategic Planning Studio',
@@ -40,26 +40,10 @@ Outputs: Comprehensive strategy presentations`,
     },
   },
   {
-    id: 'briefcase',
-    title: 'THE briefcase',
-    subtitle: 'Business Reports • Executive Briefs',
-    imageSrc: '/assets/dummy/tool-card-2.png',
-    outputType: 'document',
-    description: {
-      title: 'Executive Documentation Center',
-      content: `Purpose: Professionalize your business documentation.
-
-Best For: Annual Reports • White Papers • Executive Summaries
-
-Outputs: Structured, professional documents`,
-      quickTip: 'Outline your key points - BRIEFCASE drafts the full report.',
-    },
-  },
-  {
     id: 'analyser',
     title: 'THE analyser',
     subtitle: 'Data Analysis • Insights',
-    imageSrc: '/assets/dummy/tool-card-3.jpg',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425608/the-analyser-2_ffvrkb.png',
     outputType: 'chart',
     description: {
       title: 'Data Insight Engine',
@@ -72,10 +56,26 @@ Outputs: Interactive charts and data visualizations`,
     },
   },
   {
+    id: 'briefcase',
+    title: 'THE briefcase',
+    subtitle: 'Business Reports • Executive Briefs',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425438/breifcase-3_zr4b1e.jpg',
+    outputType: 'document',
+    description: {
+      title: 'Executive Documentation Center',
+      content: `Purpose: Professionalize your business documentation.
+
+Best For: Annual Reports • White Papers • Executive Summaries
+
+Outputs: Structured, professional documents`,
+      quickTip: 'Outline your key points - BRIEFCASE drafts the full report.',
+    },
+  },
+  {
     id: 'design-studio',
     title: 'DESIGN studio',
     subtitle: 'AI Image Generation • Visual Creation',
-    imageSrc: '/assets/dummy/tool-card-4.jpg',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425442/design-studio-4_jp5ilu.jpg',
     outputType: 'image',
     description: {
       title: 'AI-Powered Image Studio',
@@ -92,7 +92,7 @@ Outputs: High-quality AI-generated images ready for editing`,
     id: 'wordsmith',
     title: 'WORDSMITH',
     subtitle: 'Copywriting • Editorial Content',
-    imageSrc: '/assets/dummy/tool-card-5.png',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425439/wordsmith-5_oxgigx.png',
     outputType: 'document',
     description: {
       title: 'Editorial Content Creator',
@@ -108,7 +108,7 @@ Outputs: Engaging, well-written articles and posts`,
     id: 'deck',
     title: 'THE deck',
     subtitle: 'Pitch Decks • Sales Presentations',
-    imageSrc: '/assets/dummy/tool-card-6.jpg',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425444/the-deck-6_zsrwdb.jpg',
     outputType: 'presentation',
     description: {
       title: 'Pitch Perfector',
@@ -124,7 +124,7 @@ Outputs: Persuasive, high-impact decks`,
     id: 'huddle',
     title: 'THE huddle',
     subtitle: 'Meeting Notes • Team Agendas',
-    imageSrc: '/assets/dummy/tool-card-7.png',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425448/the-huddle-7_nnenqf.jpg',
     outputType: 'document',
     description: {
       title: 'Team Collaboration Hub',
@@ -140,7 +140,7 @@ Outputs: Clear, organized team documents`,
     id: 'cost-ctrl',
     title: 'COST CTRL',
     subtitle: 'Budgets • Financial Planning',
-    imageSrc: '/assets/dummy/tool-card-8.png',
+    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425437/cost-control-8_jf9ivs.png',
     outputType: 'spreadsheet',
     description: {
       title: 'Financial Control Center',

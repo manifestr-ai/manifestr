@@ -17,11 +17,11 @@ export default function CollabsFolderSidebar() {
   }
 
   return (
-    <div className="relative w-[218.5px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
+    <div className="relative w-[240px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
       <button
         type="button"
         onClick={() => toggleSidebar('collabsFolder')}
-        className="absolute left-0 top-3 w-6 h-6 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition-colors"
+        className="absolute -left-3 top-[26px] w-6 h-6 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition-colors z-50"
       >
         <ChevronLeft className="w-4 h-4 text-[#18181b]" />
       </button>
@@ -46,8 +46,8 @@ export default function CollabsFolderSidebar() {
                       folderIsActive ? 'bg-[#f4f4f5]' : ''
                     }`}
                   >
-                    <Folder className="w-4 h-4 text-[#18181b]" />
-                    <span className={`text-[14px] leading-[21px] ${
+                    <Folder className="w-4 h-4 text-[#18181b] flex-shrink-0" />
+                    <span className={`text-[14px] leading-[21px] whitespace-nowrap overflow-hidden text-ellipsis ${
                       folderIsActive ? 'font-medium text-[#18181b]' : 'text-[#18181b]'
                     }`}>
                       {folder.name}

@@ -2,7 +2,7 @@ import Head from 'next/head'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, ChevronDown, CheckCircle2, ChevronUp, Sun, Moon, Monitor, Search, UserPlus, MoreVertical, Trash2, Gift, Clock3, Crown, UserCog, Pencil, Eye, HelpCircle, X, Palette, Zap, Stars, Database, Presentation, Briefcase, Loader, CreditCard, Download, RefreshCw, Link, Cloud, Settings as SettingsIcon, CloudCog, Sparkles, Mic, BarChart3, Brain, FileText, Archive, RotateCw, FileImage, Check, Shield, Lock, Key, Smartphone, AlertTriangle, LogOut, Globe, Github, Twitter, Layers, Clock, Building2, Users } from 'lucide-react'
+import { ChevronRight, ChevronDown, CheckCircle2, ChevronUp, Sun, Moon, Monitor, Search, UserPlus, MoreVertical, Trash2, Gift, Clock3, Crown, UserCog, Pencil, Eye, HelpCircle, X, Palette, Zap, Stars, Database, Presentation, Briefcase, Loader, CreditCard, Download, RefreshCw, Link, Cloud, Settings as SettingsIcon, CloudCog, Sparkles, Mic, BarChart3, Brain, FileText, Archive, RotateCw, FileImage, Check, Shield, Lock, Key, Smartphone, AlertTriangle, AlertCircle, LogOut, Globe, Github, Twitter, Layers, Clock, Building2, Users } from 'lucide-react'
 import Image from 'next/image'
 import AppHeader from '../components/layout/AppHeader'
 import ToggleSwitch from '../components/forms/ToggleSwitch'
@@ -771,7 +771,7 @@ function GeneralTabContent({
                   }}
                 />
                 <div
-                  className="absolute top-full mt-2 text-[14px] leading-[20px] text-[#71717a] pointer-events-none"
+                  className="absolute top-full mt-2 text-[14px] leading-[20px] text-[#18181b] pointer-events-none"
                   style={{
                     left: `${fontAdjust}%`,
                     transform: 'translateX(-50%)',
@@ -1367,39 +1367,41 @@ function TeamTabContent() {
           </div>
 
           {/* Selected Row Actions */}
-          {selectedUsers.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="mt-4 flex justify-center"
-            >
-              <div className="bg-[#18181b] rounded-xl px-2 py-1 flex items-center gap-2 shadow-lg">
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[#ef4444] text-[13px] leading-[18px]"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Remove</span>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-3 py-1.5 rounded-lg bg-[#FFFFFF38] text-white text-[13px] leading-[18px]"
-                >
-                  Role Assignment
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-3 py-1.5 rounded-lg bg-[#FFFFFF38] text-white text-[13px] leading-[18px]"
-                >
-                  Collab Reassignment
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
+          <AnimatePresence>
+            {selectedUsers.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: 20, x: '-50%' }}
+                className="fixed bottom-12 left-1/2 z-[100]"
+              >
+                <div className="bg-white border border-[#e4e4e7] rounded-xl px-2 py-1.5 flex items-center gap-2 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)]">
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-2 px-4 py-1.5 rounded-full text-[#ef4444] text-[13px] font-medium leading-[18px] hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Remove</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="px-4 py-1.5 rounded-lg border border-[#18181b] bg-white text-[#18181b] text-[13px] font-medium leading-[18px] hover:bg-gray-50 transition-colors"
+                  >
+                    Role Assignment
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="px-4 py-1.5 rounded-lg border border-[#18181b] bg-white text-[#18181b] text-[13px] font-medium leading-[18px] hover:bg-gray-50 transition-colors"
+                  >
+                    Collab Reassignment
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 
@@ -1632,7 +1634,7 @@ function TeamTabContent() {
                   <h4 className="text-[16px] font-medium leading-[24px] text-[#18181b]">
                     Assign Collab's
                   </h4>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {collabs.map((collab, index) => {
                       const isSelected = selectedCollabs.includes(collab.id)
                       return (
@@ -1644,7 +1646,7 @@ function TeamTabContent() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => toggleCollab(collab.id)}
-                          className={`border rounded-md p-3 cursor-pointer transition-colors w-[280px] ${isSelected
+                          className={`border rounded-md p-3 cursor-pointer transition-colors w-full ${isSelected
                             ? 'bg-[#f4f4f5] border-[#18181b]'
                             : 'bg-white border-[#e4e4e7] hover:border-[#18181b]'
                             }`}
@@ -1698,8 +1700,13 @@ function TeamTabContent() {
                 </div>
 
                 {/* Alert/Info Section */}
-                <div className="bg-[#fafafa] rounded-lg h-11 flex items-center px-4">
-                  {/* Alert content can be added here if needed */}
+                <div className="bg-[#fafafa] rounded-lg h-11 flex items-center px-4 gap-3">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                    <path d="M12.5 11.6641C12.6667 10.8307 13.0833 10.2474 13.75 9.58073C14.5833 8.83073 15 7.7474 15 6.66406C15 5.33798 14.4732 4.06621 13.5355 3.12853C12.5979 2.19085 11.3261 1.66406 10 1.66406C8.67392 1.66406 7.40215 2.19085 6.46447 3.12853C5.52678 4.06621 5 5.33798 5 6.66406C5 7.4974 5.16667 8.4974 6.25 9.58073C6.83333 10.1641 7.33333 10.8307 7.5 11.6641M7.5 14.9974H12.5M8.33333 18.3307H11.6667" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-[14px] leading-[20px] text-[#52525b] font-medium">
+                    “7 of 10 seats in use. 3 remaining.
+                  </span>
                 </div>
               </div>
 
@@ -1778,9 +1785,9 @@ function PlansTabContent() {
                 <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
                   You're on Pro
                 </h3>
-                <div className="bg-[#18181b] border border-[#18181b] rounded-2xl px-2 py-0.5 flex items-center gap-1">
-                  <Crown className="w-3 h-3 text-white" />
-                  <span className="text-[12px] font-medium leading-[18px] text-white">
+                <div className="bg-white border border-[#71717A] rounded-2xl px-2 py-0.5 flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-[#71717A]" />
+                  <span className="text-[12px] font-medium leading-[18px] text-[#71717A]">
                     Founding member
                   </span>
                 </div>
@@ -1790,20 +1797,18 @@ function PlansTabContent() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex flex-col gap-1.5 items-end">
-                <p className="text-[14px] font-medium leading-[20px] text-[#18181b]">
-                  Monthly
-                </p>
-              </div>
+              <p className="text-[14px] font-medium leading-[20px] text-[#18181b]">
+                Monthly
+              </p>
               <ToggleSwitch
                 checked={isAnnual}
                 onChange={(checked) => setIsAnnual(checked)}
               />
-              <div className="flex flex-col gap-1.5 items-start">
+              <div className="relative flex flex-col">
                 <p className="text-[14px] font-medium leading-[20px] text-[#18181b]">
                   Annual
                 </p>
-                <p className="text-[14px] leading-[20px] text-[#71717a]">
+                <p className="text-[14px] leading-[20px] text-[#71717a] absolute top-[20px] whitespace-nowrap">
                   Save 20%
                 </p>
               </div>
@@ -2191,7 +2196,7 @@ function BillingsTabContent() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="w-full pb-24"
+      className="w-full pb-24 space-y-6"
     >
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* Left Column */}
@@ -2213,37 +2218,40 @@ function BillingsTabContent() {
                 </p>
               </div>
             </div>
-            <div className="p-6 pt-0 space-y-6">
-              {/* Current Plan */}
-              <div className="space-y-2">
-                <p className="text-[14px] leading-[20px] text-[#52525b]">Current Plan</p>
+            <div className="p-6 pt-0 space-y-4">
+              {/* Current Plan Card */}
+              <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
+                <p className="text-[14px] leading-[20px] text-[#71717a]">Current Plan</p>
                 <div className="flex items-center gap-2">
                   <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
                     Pro - Annual
                   </p>
-                  <div className="bg-[#18181b] border border-[#18181b] rounded-2xl pl-1.5 pr-2 py-0.5 flex items-center gap-1">
-                    <Crown className="w-3 h-3 text-white" />
-                    <span className="text-[12px] font-medium leading-[18px] text-white">
+                  <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-2xl pl-1.5 pr-2 py-0.5 flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-[#E68A00]" />
+                    <span className="text-[12px] font-medium leading-[18px] text-[#E68A00]">
                       Founding member
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Next Billing */}
-              <div className="space-y-2">
-                <p className="text-[14px] leading-[20px] text-[#52525b]">Next Billing</p>
-                <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                  August 1, 2026
-                </p>
-              </div>
+              {/* Grid for Billing info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Next Billing Card */}
+                <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
+                  <p className="text-[14px] leading-[20px] text-[#71717a]">Next Billing</p>
+                  <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
+                    August 1, 2026
+                  </p>
+                </div>
 
-              {/* Estimated Next Charge */}
-              <div className="space-y-2">
-                <p className="text-[14px] leading-[20px] text-[#52525b]">Estimated Next Charge</p>
-                <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                  $58.00
-                </p>
+                {/* Estimated Next Charge Card */}
+                <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
+                  <p className="text-[14px] leading-[20px] text-[#71717a]">Estimated Next Charge</p>
+                  <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
+                    $58.00
+                  </p>
+                </div>
               </div>
 
               {/* Founding Member Discount Alert */}
@@ -2268,9 +2276,9 @@ function BillingsTabContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl overflow-hidden"
+            className="bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl overflow-hidden flex flex-col min-h-[280px]"
           >
-            <div className="p-6 pb-0">
+            <div className="p-6 flex-1">
               <div className="flex flex-col gap-1 mb-6">
                 <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
                   Payment Method
@@ -2279,8 +2287,7 @@ function BillingsTabContent() {
                   Your default payment method
                 </p>
               </div>
-            </div>
-            <div className="p-6 pt-0 space-y-4">
+
               {/* Credit Card Info */}
               <div className="bg-white border border-[#e2e4e9] rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
@@ -2305,72 +2312,20 @@ function BillingsTabContent() {
                   Edit
                 </motion.button>
               </div>
+            </div>
 
-              {/* Add New Button */}
+            {/* Footer with Add New Button */}
+            <div className="px-6 py-4 border-t border-[#e8e8e9] flex justify-end">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+                className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
               >
                 Add new
               </motion.button>
             </div>
           </motion.div>
 
-          {/* Billing Contact Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl overflow-hidden"
-          >
-            <div className="p-6 pb-0">
-              <div className="flex flex-col gap-1 mb-6">
-                <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
-                  Billing Contact
-                </h3>
-                <p className="text-[14px] leading-[20px] text-[#71717a]">
-                  Who should receive billing communications
-                </p>
-              </div>
-            </div>
-            <div className="p-6 pt-0 space-y-4">
-              {/* Billing Email */}
-              <div className="space-y-1.5">
-                <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  Billing Email
-                </label>
-                <input
-                  type="email"
-                  value={billingEmail}
-                  onChange={(e) => setBillingEmail(e.target.value)}
-                  className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors"
-                />
-              </div>
-
-              {/* Company Name */}
-              <div className="space-y-1.5">
-                <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  Company Name (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors"
-                />
-              </div>
-
-              {/* Update Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
-              >
-                Update Billing Info
-              </motion.button>
-            </div>
-          </motion.div>
         </div>
 
         {/* Right Column */}
@@ -2395,9 +2350,9 @@ function BillingsTabContent() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+                  className="bg-white border border-[#e4e4e7] text-[#18181b] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#fafafa] transition-colors"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 text-[#18181b]" />
                   Export all
                 </motion.button>
               </div>
@@ -2453,19 +2408,19 @@ function BillingsTabContent() {
                       <div className="flex items-center gap-2 justify-end">
                         {invoice.status === 'Failed' && (
                           <motion.button
-                            whileHover={{ scale: 1.1 }}
+                            whileHover={{ scale: 1.1, borderColor: '#18181b' }}
                             whileTap={{ scale: 0.9 }}
-                            className="w-10 h-10 flex items-center justify-center hover:bg-[#f4f4f5] rounded transition-colors"
+                            className="w-10 h-10 flex items-center justify-center bg-white border border-[#e4e4e7] rounded-lg transition-colors shadow-sm"
                           >
-                            <RefreshCw className="w-4 h-4 text-[#71717a]" />
+                            <RefreshCw className="w-4 h-4 text-[#18181b]" />
                           </motion.button>
                         )}
                         <motion.button
-                          whileHover={{ scale: 1.1 }}
+                          whileHover={{ scale: 1.1, borderColor: '#18181b' }}
                           whileTap={{ scale: 0.9 }}
-                          className="w-10 h-10 flex items-center justify-center hover:bg-[#f4f4f5] rounded transition-colors"
+                          className="w-10 h-10 flex items-center justify-center bg-white border border-[#e4e4e7] rounded-lg transition-colors shadow-sm"
                         >
-                          <Download className="w-4 h-4 text-[#71717a]" />
+                          <Download className="w-4 h-4 text-[#18181b]" />
                         </motion.button>
                       </div>
                     </motion.div>
@@ -2480,9 +2435,9 @@ function BillingsTabContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl overflow-hidden"
+            className="bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl overflow-hidden flex flex-col min-h-[280px]"
           >
-            <div className="p-6 pb-0">
+            <div className="p-6 flex-1">
               <div className="flex flex-col gap-1 mb-6">
                 <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
                   Promo Code
@@ -2491,28 +2446,92 @@ function BillingsTabContent() {
                   Apply a discount code to your account
                 </p>
               </div>
-            </div>
-            <div className="p-6 pt-0">
-              <div className="flex gap-3">
+
+              <div className="space-y-2">
+                <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
+                  Code
+                </label>
                 <input
                   type="text"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
                   placeholder="Enter promo code"
-                  className="flex-1 bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors placeholder:text-[#71717a]"
+                  className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors placeholder:text-[#71717a]"
                 />
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity whitespace-nowrap"
-                >
-                  Apply
-                </motion.button>
               </div>
+            </div>
+
+            {/* Footer with Apply Button */}
+            <div className="px-6 py-4 border-t border-[#e8e8e9] flex justify-end">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-[#18181b] text-white rounded-md px-8 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity whitespace-nowrap"
+              >
+                Apply
+              </motion.button>
             </div>
           </motion.div>
         </div>
       </div>
+
+      {/* Billing Contact Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="bg-[#f4f4f4] border border-[#e8e8e9] rounded-xl overflow-hidden flex flex-col"
+      >
+        <div className="p-6">
+          <div className="flex flex-col gap-1 mb-6">
+            <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
+              Billing Contact
+            </h3>
+            <p className="text-[14px] leading-[20px] text-[#71717a]">
+              Who should receive billing communications
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Billing Email */}
+            <div className="space-y-1.5">
+              <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
+                Billing Email
+              </label>
+              <input
+                type="email"
+                value={billingEmail}
+                onChange={(e) => setBillingEmail(e.target.value)}
+                className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors"
+              />
+            </div>
+
+            {/* Company Name */}
+            <div className="space-y-1.5">
+              <label className="text-[14px] font-medium leading-[20px] text-[#52525b]">
+                Company Name (Optional)
+              </label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer with Update Button */}
+        <div className="px-6 py-4 border-t border-[#e8e8e9] flex justify-end">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+          >
+            Update Billing Info
+          </motion.button>
+        </div>
+      </motion.div>
     </motion.div>
   )
 }
@@ -5110,7 +5129,7 @@ function LogoutButton() {
         <LogOut className="w-4 h-4" />
         {isLoggingOut ? 'Logging out...' : 'Log Out'}
       </motion.button>
-      
+
       <LogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
@@ -5139,12 +5158,12 @@ function SecurityTabContent() {
   const [activeSessions, setActiveSessions] = useState([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
-  
+
   // Load sessions on mount
   useEffect(() => {
     loadSessions()
   }, [])
-  
+
   const loadSessions = async () => {
     try {
       setIsLoadingSessions(true)
@@ -5156,23 +5175,23 @@ function SecurityTabContent() {
       setIsLoadingSessions(false)
     }
   }
-  
+
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       showError('Please fill in all password fields')
       return
     }
-    
+
     if (newPassword !== confirmPassword) {
       showError('New passwords do not match')
       return
     }
-    
+
     if (newPassword.length < 8) {
       showError('New password must be at least 8 characters long')
       return
     }
-    
+
     try {
       setIsChangingPassword(true)
       await changePassword(currentPassword, newPassword)
@@ -5187,7 +5206,7 @@ function SecurityTabContent() {
       setIsChangingPassword(false)
     }
   }
-  
+
   const handleRevokeSession = async (sessionId) => {
     try {
       await revokeSession(sessionId)
@@ -5198,7 +5217,7 @@ function SecurityTabContent() {
       showError('Failed to revoke session. Please try again.')
     }
   }
-  
+
   const handleSaveSecurityAlerts = async () => {
     try {
       await updateSecurityAlerts(securityAlerts)
@@ -5208,7 +5227,7 @@ function SecurityTabContent() {
       showError('Failed to save security alerts. Please try again.')
     }
   }
-  
+
   const handleDeleteAccount = async () => {
     try {
       await deleteAccount()
@@ -5222,12 +5241,12 @@ function SecurityTabContent() {
     }
   }
 
-  const passwordRequirements = [
-    { id: 'length', text: 'At least 8 characters', met: true },
-    { id: 'uppercase', text: 'One uppercase letter', met: true },
-    { id: 'lowercase', text: 'One lowercase letter', met: false },
-    { id: 'number', text: 'One number', met: true },
-    { id: 'special', text: 'One special character', met: true },
+  const requirements = [
+    { id: 'length', text: 'At least 8 characters', met: newPassword.length >= 8 },
+    { id: 'uppercase', text: 'One uppercase letter', met: /[A-Z]/.test(newPassword) },
+    { id: 'lowercase', text: 'One lowercase letter', met: /[a-z]/.test(newPassword) },
+    { id: 'number', text: 'One number', met: /[0-9]/.test(newPassword) },
+    { id: 'special', text: 'One special character', met: /[^A-Za-z0-9]/.test(newPassword) },
   ]
 
   const socialConnections = [
@@ -5278,13 +5297,28 @@ function SecurityTabContent() {
               <label className="text-[14px] font-medium leading-[20px] text-[#464649]">
                 New password
               </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="h-[40px] px-3 border border-[#e4e4e7] rounded-md bg-white text-[14px] leading-[20px] text-[#18181b] focus:outline-none focus:border-[#18181b]"
-                placeholder="Enter new password"
-              />
+              <div className="relative">
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={`w-full h-[40px] px-3 border rounded-md bg-white text-[14px] leading-[20px] text-[#18181b] focus:outline-none transition-colors ${newPassword.length > 0 && !requirements.every(r => r.met)
+                    ? 'border-[#ef4444] focus:border-[#ef4444]'
+                    : 'border-[#e4e4e7] focus:border-[#18181b]'
+                    }`}
+                  placeholder="Enter new password"
+                />
+                {newPassword.length > 0 && !requirements.every(r => r.met) && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#ef4444]">
+                    <AlertCircle className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+              {newPassword.length > 0 && !requirements.every(r => r.met) && (
+                <p className="text-[12px] text-[#ef4444] leading-[16px]">
+                  You cannot reuse your last 3 passwords.
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-[14px] font-medium leading-[20px] text-[#464649]">
@@ -5306,28 +5340,36 @@ function SecurityTabContent() {
               Password requirements
             </label>
             <div className="flex flex-col gap-2">
-              {passwordRequirements.map((req, index) => (
-                <motion.div
-                  key={req.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                  className="flex items-center gap-2"
-                >
-                  {req.met ? (
-                    <CheckCircle2 className="w-4 h-4 text-[#18181b]" />
-                  ) : (
-                    <X className="w-4 h-4 text-[#71717a]" />
-                  )}
-                  <p className={`text-[14px] leading-[20px] ${req.met ? 'text-[#18181b]' : 'text-[#71717a]'
-                    }`}>
-                    {req.text}
-                  </p>
-                </motion.div>
-              ))}
+              {requirements.map((req, index) => {
+                const isBlank = newPassword.length === 0;
+                const colorClass = isBlank
+                  ? 'text-[#71717a]'
+                  : req.met ? 'text-[#10b981]' : 'text-[#ef4444]';
+
+                return (
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                    className="flex items-center gap-2"
+                  >
+                    {isBlank ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#71717a]" />
+                    ) : req.met ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
+                    ) : (
+                      <X className="w-4 h-4 text-[#ef4444]" />
+                    )}
+                    <p className={`text-[14px] leading-[20px] ${colorClass}`}>
+                      {req.text}
+                    </p>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
-          
+
           {/* Save Button */}
           <div className="flex justify-end">
             <motion.button
@@ -5337,7 +5379,7 @@ function SecurityTabContent() {
               disabled={isChangingPassword}
               className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isChangingPassword ? 'Updating...' : 'Update Password'}
+              {isChangingPassword ? 'Updating...' : 'Save'}
             </motion.button>
           </div>
         </div>
@@ -5571,9 +5613,9 @@ function SecurityTabContent() {
                     >
                       <LogOut className="w-4 h-4 text-[#18181b]" />
                     </motion.button>
-                </div>
-              </motion.div>
-            ))
+                  </div>
+                </motion.div>
+              ))
             )}
           </div>
         </div>
@@ -5620,7 +5662,7 @@ function SecurityTabContent() {
               />
             </motion.div>
           ))}
-          
+
           {/* Save Button */}
           <div className="flex justify-end">
             <motion.button
@@ -5744,7 +5786,7 @@ function SecurityTabContent() {
           </motion.button>
         </div>
       </div>
-      
+
       {/* Delete Account Confirmation Modal */}
       <DeleteAccountModal
         isOpen={showDeleteAccountModal}

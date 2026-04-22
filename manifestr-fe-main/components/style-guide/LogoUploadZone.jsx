@@ -165,36 +165,35 @@ export default function LogoUploadZone({ onFilesChange }) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex items-center justify-between py-4 border-b border-[#e4e4e7]"
+              className="flex items-center justify-between py-4"
             >
               {/* File Info */}
-              <div className="flex flex-col">
+               <div className="flex items-center gap-3">
                 <span className="text-[14px] leading-[20px] font-medium text-[#18181b]">
                   {file.name}
                 </span>
-                <span className="text-[12px] leading-[16px] text-[#71717a] mt-1">
+                <span className="text-[12px] leading-[16px] text-[#71717a]">
                   {file.size}
                 </span>
               </div>
 
               {/* Separator Line */}
-              <div className="flex-1 h-px bg-[#18181b] mx-6" />
+              <div className="flex-1 h-[8px] bg-[#030213] rounded-full mx-4" />
 
               {/* Category Dropdown */}
               <div className="relative dropdown-container">
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                   onClick={() => toggleDropdown(file.id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#f4f4f5] border border-[#e4e4e7] rounded-lg hover:bg-[#e4e4e7] transition-colors cursor-pointer min-w-[200px] justify-between"
+                  className="flex items-center gap-3 px-6 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl hover:bg-[#f1f5f9] transition-colors cursor-pointer min-w-[280px] justify-between shadow-sm"
                 >
-                  <span className="text-[14px] leading-[20px] text-[#18181b]">
+                  <span className="text-[14px] font-medium leading-[20px] text-[#1e293b]">
                     {file.category}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#71717a] transition-transform ${
-                      openDropdowns[file.id] ? 'rotate-180' : ''
-                    }`}
+                    className={`w-4 h-4 text-[#94a3b8] transition-transform duration-300 ${openDropdowns[file.id] ? 'rotate-180' : ''
+                      }`}
                   />
                 </motion.button>
 
@@ -212,11 +211,10 @@ export default function LogoUploadZone({ onFilesChange }) {
                         <button
                           key={category}
                           onClick={() => handleCategoryChange(file.id, category)}
-                          className={`w-full text-left px-4 py-2 text-[14px] leading-[20px] hover:bg-[#f4f4f5] transition-colors cursor-pointer ${
-                            file.category === category
-                              ? 'bg-[#f4f4f5] font-medium text-[#18181b]'
-                              : 'text-[#18181b]'
-                          }`}
+                          className={`w-full text-left px-4 py-2 text-[14px] leading-[20px] hover:bg-[#f4f4f5] transition-colors cursor-pointer ${file.category === category
+                            ? 'bg-[#f4f4f5] font-medium text-[#18181b]'
+                            : 'text-[#18181b]'
+                            }`}
                         >
                           {category}
                         </button>

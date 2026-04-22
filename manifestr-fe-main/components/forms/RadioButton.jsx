@@ -18,9 +18,9 @@ export default function RadioButton({
     <button
       type="button"
       onClick={handleClick}
-      className={`bg-transparent border rounded-md flex gap-2 h-10 items-center justify-left px-3 py-2.5 transition-all cursor-pointer ${
+      className={`bg-base-background border rounded-md flex gap-2 h-10 items-center justify-left px-3 py-2.5 transition-all cursor-pointer ${
         checked
-          ? 'border-[#18181b] bg-[#F4F4F5]'
+          ? 'border-[#18181b]'
           : 'border-[#e4e4e7] hover:border-base-foreground'
       } ${className}`}
     >

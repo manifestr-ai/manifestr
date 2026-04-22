@@ -2,19 +2,19 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Mic, ChevronDown, Grid, List, Clock, Plus, Users, Check } from 'lucide-react'
 
-export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => {}, query, onQueryChange }) {
+export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => { }, query, onQueryChange }) {
   const [localQuery, setLocalQuery] = useState('')
   const searchQuery = typeof query === 'string' ? query : localQuery
   const setSearchQuery = onQueryChange || setLocalQuery
   const [showAllToolsDropdown, setShowAllToolsDropdown] = useState(false)
   const [showLastEditedDropdown, setShowLastEditedDropdown] = useState(false)
   const [showMoreFiltersDropdown, setShowMoreFiltersDropdown] = useState(false)
-  const [selectedTool, setSelectedTool] = useState('All tools')
+  const [selectedTool, setSelectedTool] = useState('All Tools')
   const [selectedCollab, setSelectedCollab] = useState('All Collabs')
-  const [selectedSort, setSelectedSort] = useState('Last edited')
+  const [selectedSort, setSelectedSort] = useState('Last Edited')
 
   const tools = [
-    'All tools',
+    'All Tools',
     'The Deck',
     'The Briefcase',
     'The Strategist',
@@ -25,7 +25,7 @@ export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => 
     'Cost CTRL',
   ]
   const collabOptions = ['All Collabs', 'Collab Name 1', 'Collab Name 2', 'Collab Name 3', 'Collab Name 4', 'Collab Name 5']
-  const sortOptions = ['Last edited', 'Most used', 'Recently saved', 'Tool origin']
+  const sortOptions = ['Last Edited', 'Most Used', 'Recently Saved', 'Tool Origin']
 
   return (
     <div className="px-4 md:px-[30px] py-6 space-y-4">
@@ -63,6 +63,13 @@ export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => 
               whileTap={{ scale: 0.98 }}
               className="bg-white border border-[#e4e4e7] rounded-md h-[36px] px-3 flex items-center gap-2 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
             >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.9974 1.33594H3.9974C3.64377 1.33594 3.30464 1.47641 3.05459 1.72646C2.80454 1.97651 2.66406 2.31565 2.66406 2.66927V13.3359C2.66406 13.6896 2.80454 14.0287 3.05459 14.2787C3.30464 14.5288 3.64377 14.6693 3.9974 14.6693H11.9974C12.351 14.6693 12.6902 14.5288 12.9402 14.2787C13.1903 14.0287 13.3307 13.6896 13.3307 13.3359V4.66927L9.9974 1.33594Z" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9.33594 1.33594V4.0026C9.33594 4.35623 9.47641 4.69536 9.72646 4.94541C9.97651 5.19546 10.3156 5.33594 10.6693 5.33594H13.3359" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6.66927 6H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10.6693 8.66406H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10.6693 11.3359H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               <span>{selectedTool}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showAllToolsDropdown ? 'rotate-180' : ''}`} />
             </motion.button>
@@ -84,7 +91,18 @@ export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => 
                       whileHover={{ backgroundColor: '#f4f4f5' }}
                       className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b] flex items-center justify-between gap-3"
                     >
-                      <span>{tool}</span>
+                      <div className="flex items-center gap-3">
+                        {tool === 'All tools' && (
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.9974 1.33594H3.9974C3.64377 1.33594 3.30464 1.47641 3.05459 1.72646C2.80454 1.97651 2.66406 2.31565 2.66406 2.66927V13.3359C2.66406 13.6896 2.80454 14.0287 3.05459 14.2787C3.30464 14.5288 3.64377 14.6693 3.9974 14.6693H11.9974C12.351 14.6693 12.6902 14.5288 12.9402 14.2787C13.1903 14.0287 13.3307 13.6896 13.3307 13.3359V4.66927L9.9974 1.33594Z" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M9.33594 1.33594V4.0026C9.33594 4.35623 9.47641 4.69536 9.72646 4.94541C9.97651 5.19546 10.3156 5.33594 10.6693 5.33594H13.3359" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M6.66927 6H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M10.6693 8.66406H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M10.6693 11.3359H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                        <span className={tool !== 'All tools' ? 'ml-[28px]' : ''}>{tool}</span>
+                      </div>
                       {selectedTool === tool && <Check className="w-4 h-4 text-[#18181b]" />}
                     </motion.button>
                   ))}
@@ -200,9 +218,8 @@ export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => 
               onClick={() => setViewMode('grid')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
-                viewMode === 'grid' ? 'bg-[#18181b]' : 'bg-transparent'
-              }`}
+              className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${viewMode === 'grid' ? 'bg-[#18181b]' : 'bg-transparent'
+                }`}
             >
               <Grid className={`w-4 h-4 ${viewMode === 'grid' ? 'text-white' : 'text-[#18181b]'}`} />
             </motion.button>
@@ -210,9 +227,8 @@ export default function VaultSearchBar({ viewMode = 'grid', setViewMode = () => 
               onClick={() => setViewMode('list')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
-                viewMode === 'list' ? 'bg-[#18181b]' : 'bg-transparent'
-              }`}
+              className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${viewMode === 'list' ? 'bg-[#18181b]' : 'bg-transparent'
+                }`}
             >
               <List className={`w-4 h-4 ${viewMode === 'list' ? 'text-white' : 'text-[#18181b]'}`} />
             </motion.button>

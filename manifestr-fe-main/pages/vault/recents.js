@@ -166,6 +166,17 @@ export default function VaultRecents() {
     return haystack.includes(normalizedQuery)
   })
 
+  // Handle document updates (like delete)
+  const handleUpdate = (data, action) => {
+    if (action === 'delete') {
+      // data is the document ID
+      setDocumentCards(prevCards => prevCards.filter(card => card.id !== data))
+    } else if (data && data.id) {
+      // data is the updated document object
+      setDocumentCards(prevCards => prevCards.map(card => card.id === data.id ? { ...card, ...data } : card))
+    }
+  }
+
   return (
     <>
       <Head>
@@ -209,6 +220,7 @@ export default function VaultRecents() {
             showTitle={false}
             viewMode={viewMode}
             onCardClick={handleProjectClick}
+            onUpdate={handleUpdate}
           />
         )}
       </div>

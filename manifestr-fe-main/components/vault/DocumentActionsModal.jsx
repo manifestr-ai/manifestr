@@ -401,7 +401,7 @@ export default function DocumentActionsModal({
       console.error("Failed to archive/unarchive:", err);
       showToast(
         err.response?.data?.message ||
-          `Failed to ${isCurrentlyArchived ? "unarchive" : "archive"} document`,
+        `Failed to ${isCurrentlyArchived ? "unarchive" : "archive"} document`,
         "error",
       );
     } finally {
@@ -478,7 +478,7 @@ export default function DocumentActionsModal({
               </motion.button>
 
               <div className="flex flex-col gap-3 items-center text-center mb-5">
-                <h2 className="font-['HK_Grotesk'] font-semibold text-[30px] leading-[1.2] text-zinc-900 tracking-[-0.6px]">
+                <h2 style={{ color: '#18181B', fontFamily: '"HK Grotesk", sans-serif', fontSize: '30px', fontWeight: 600, lineHeight: '120%', letterSpacing: '-0.6px', textAlign: 'center' }}>
                   Document Actions
                 </h2>
                 <p className="font-['Inter'] font-normal text-[16px] leading-[1.5] text-zinc-500 tracking-[-0.16px]">
@@ -492,11 +492,10 @@ export default function DocumentActionsModal({
                   onClick={() => setPrimaryTab("Share")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === "Share"
-                      ? "bg-white text-zinc-900"
-                      : "bg-transparent text-zinc-900"
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === "Share"
+                    ? "bg-white text-zinc-900"
+                    : "bg-transparent text-zinc-900"
+                    }`}
                 >
                   <Share2 className="w-4 h-4" />
                   Share
@@ -505,11 +504,10 @@ export default function DocumentActionsModal({
                   onClick={() => setPrimaryTab("Export")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === "Export"
-                      ? "bg-white text-zinc-900"
-                      : "bg-transparent text-zinc-900"
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === "Export"
+                    ? "bg-white text-zinc-900"
+                    : "bg-transparent text-zinc-900"
+                    }`}
                 >
                   <Download className="w-4 h-4" />
                   Export
@@ -518,24 +516,24 @@ export default function DocumentActionsModal({
                   onClick={() => setPrimaryTab("Save & Organize")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === "Save & Organize"
-                      ? "bg-white text-zinc-900"
-                      : "bg-transparent text-zinc-900"
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === "Save & Organize"
+                    ? "bg-white text-zinc-900"
+                    : "bg-transparent text-zinc-900"
+                    }`}
                 >
-                  <Folder className="w-4 h-4" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4.00065 9.3334L5.00065 7.40006C5.10937 7.18416 5.27473 7.00187 5.47906 6.8727C5.68338 6.74352 5.91898 6.67233 6.16065 6.66673H13.334M13.334 6.66673C13.5377 6.66637 13.7387 6.71269 13.9217 6.80212C14.1047 6.89155 14.2648 7.02172 14.3897 7.18264C14.5146 7.34356 14.6009 7.53095 14.6421 7.73043C14.6833 7.92991 14.6782 8.13618 14.6273 8.3334L13.6007 12.3334C13.5264 12.6211 13.3581 12.8758 13.1226 13.0569C12.8871 13.2381 12.5978 13.3354 12.3007 13.3334H2.66732C2.3137 13.3334 1.97456 13.1929 1.72451 12.9429C1.47446 12.6928 1.33398 12.3537 1.33398 12.0001V3.3334C1.33398 2.97978 1.47446 2.64064 1.72451 2.39059C1.97456 2.14054 2.3137 2.00006 2.66732 2.00006H5.26732C5.49031 1.99788 5.71029 2.05166 5.90712 2.15648C6.10395 2.2613 6.27134 2.41381 6.39398 2.60006L6.93398 3.40006C7.05539 3.58442 7.22067 3.73574 7.41499 3.84047C7.6093 3.94519 7.82658 4.00003 8.04732 4.00006H12.0007C12.3543 4.00006 12.6934 4.14054 12.9435 4.39059C13.1935 4.64064 13.334 4.97978 13.334 5.3334V6.66673Z" stroke="#0A0E1A" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
                   Save
                 </motion.button>
                 <motion.button
                   onClick={() => setPrimaryTab("Manage")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                    primaryTab === "Manage"
-                      ? "bg-white text-zinc-900"
-                      : "bg-transparent text-zinc-900"
-                  }`}
+                  className={`h-[29px] rounded-[18px] flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${primaryTab === "Manage"
+                    ? "bg-white text-zinc-900"
+                    : "bg-transparent text-zinc-900"
+                    }`}
                 >
                   <Shield className="w-4 h-4" />
                   Manage
@@ -549,11 +547,10 @@ export default function DocumentActionsModal({
                     onClick={() => setShareSubTab("Share Link")}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                      shareSubTab === "Share Link"
-                        ? "bg-white text-zinc-900"
-                        : "bg-transparent text-zinc-900"
-                    }`}
+                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${shareSubTab === "Share Link"
+                      ? "bg-white text-zinc-900"
+                      : "bg-transparent text-zinc-900"
+                      }`}
                   >
                     Share Link
                   </motion.button>
@@ -561,11 +558,10 @@ export default function DocumentActionsModal({
                     onClick={() => setShareSubTab("Invite & Review")}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                      shareSubTab === "Invite & Review"
-                        ? "bg-white text-zinc-900"
-                        : "bg-transparent text-zinc-900"
-                    }`}
+                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${shareSubTab === "Invite & Review"
+                      ? "bg-white text-zinc-900"
+                      : "bg-transparent text-zinc-900"
+                      }`}
                   >
                     Invite & Review
                   </motion.button>
@@ -573,11 +569,10 @@ export default function DocumentActionsModal({
                     onClick={() => setShareSubTab("Manage Access")}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${
-                      shareSubTab === "Manage Access"
-                        ? "bg-white text-zinc-900"
-                        : "bg-transparent text-zinc-900"
-                    }`}
+                    className={`h-[29px] rounded-[18px] flex items-center justify-center text-[14px] font-medium leading-[20px] tracking-[-0.1504px] transition-all ${shareSubTab === "Manage Access"
+                      ? "bg-white text-zinc-900"
+                      : "bg-transparent text-zinc-900"
+                      }`}
                   >
                     Manage Access
                   </motion.button>
@@ -973,7 +968,7 @@ export default function DocumentActionsModal({
                         }}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
-                        className="bg-white px-3 py-2 h-[36px] w-[216px] flex items-center justify-between"
+                        className="bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[36px] w-[216px] flex items-center justify-between"
                       >
                         <span className="text-[16px] font-normal leading-[24px] text-[#71717a]">
                           {selectedBulkAction || "Bulk Actions"}
@@ -996,11 +991,10 @@ export default function DocumentActionsModal({
                                   setShowBulkActionsDropdown(false);
                                 }}
                                 whileHover={{ backgroundColor: "#f4f4f5" }}
-                                className={`w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b] ${
-                                  selectedBulkAction === action
-                                    ? "bg-zinc-100 font-medium"
-                                    : ""
-                                }`}
+                                className={`w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b] ${selectedBulkAction === action
+                                  ? "bg-zinc-100 font-medium"
+                                  : ""
+                                  }`}
                               >
                                 {action}
                               </motion.button>
@@ -1152,11 +1146,10 @@ export default function DocumentActionsModal({
                           onClick={() => setSelectedFormat(format.id)}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`py-3 rounded-[12px] border-2 flex flex-col items-center gap-2 ${
-                            selectedFormat === format.id
-                              ? "bg-zinc-900 border-[#0f172b] text-white"
-                              : "bg-white border-gray-200 text-zinc-900"
-                          }`}
+                          className={`py-3 rounded-[12px] border-2 flex flex-col items-center gap-2 ${selectedFormat === format.id
+                            ? "bg-zinc-900 border-[#0f172b] text-white"
+                            : "bg-white border-gray-200 text-zinc-900"
+                            }`}
                         >
                           <span
                             className="text-2xl"
@@ -1169,32 +1162,29 @@ export default function DocumentActionsModal({
                             dangerouslySetInnerHTML={{
                               __html: format.icon.replace(
                                 /stroke="#0F172B"/g,
-                                `stroke="${
-                                  selectedFormat === format.id
-                                    ? "#FFFFFF"
-                                    : "#0F172B"
+                                `stroke="${selectedFormat === format.id
+                                  ? "#FFFFFF"
+                                  : "#0F172B"
                                 }"`
                               ),
                             }}
                           />
-                   
-                    
+
+
                           <div className="text-center">
                             <p
-                              className={`text-[12px] font-normal leading-[16px] ${
-                                selectedFormat === format.id
-                                  ? "text-white"
-                                  : "text-zinc-900"
-                              }`}
+                              className={`text-[12px] font-normal leading-[16px] ${selectedFormat === format.id
+                                ? "text-white"
+                                : "text-zinc-900"
+                                }`}
                             >
                               {format.name}
                             </p>
                             <p
-                              className={`text-[12px] font-normal leading-[16px] ${
-                                selectedFormat === format.id
-                                  ? "text-[#cad5e2]"
-                                  : "text-[#62748e]"
-                              }`}
+                              className={`text-[12px] font-normal leading-[16px] ${selectedFormat === format.id
+                                ? "text-[#cad5e2]"
+                                : "text-[#62748e]"
+                                }`}
                             >
                               {format.description}
                             </p>
@@ -1222,8 +1212,8 @@ export default function DocumentActionsModal({
                         label="Add watermark (Draft)"
                         labelPosition="right"
                       />
-               
-               
+
+
                     </div>
                   </div>
 
@@ -1515,16 +1505,14 @@ export default function DocumentActionsModal({
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                            document?.isPinned ? "bg-blue-100" : "bg-gray-100"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${document?.isPinned ? "bg-blue-100" : "bg-gray-100"
+                            }`}
                         >
                           <Pin
-                            className={`w-5 h-5 ${
-                              document?.isPinned
-                                ? "text-blue-600 fill-blue-600"
-                                : "text-gray-600"
-                            }`}
+                            className={`w-5 h-5 ${document?.isPinned
+                              ? "text-blue-600 fill-blue-600"
+                              : "text-gray-600"
+                              }`}
                           />
                         </div>
                         <div className="flex-1">
@@ -1552,27 +1540,24 @@ export default function DocumentActionsModal({
                     {/* Archive/Unarchive Document */}
                     <motion.div
                       whileHover={{ scale: 1.01 }}
-                      className={`bg-white border border-gray-200 rounded-[12px] p-4 cursor-pointer transition-all ${
-                        document?.isArchived
-                          ? "hover:border-green-400"
-                          : "hover:border-yellow-400"
-                      }`}
+                      className={`bg-white border border-gray-200 rounded-[12px] p-4 cursor-pointer transition-all ${document?.isArchived
+                        ? "hover:border-green-400"
+                        : "hover:border-yellow-400"
+                        }`}
                       onClick={handleArchive}
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                            document?.isArchived
-                              ? "bg-green-100"
-                              : "bg-yellow-100"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${document?.isArchived
+                            ? "bg-green-100"
+                            : "bg-yellow-100"
+                            }`}
                         >
                           <Archive
-                            className={`w-5 h-5 ${
-                              document?.isArchived
-                                ? "text-green-600"
-                                : "text-yellow-600"
-                            }`}
+                            className={`w-5 h-5 ${document?.isArchived
+                              ? "text-green-600"
+                              : "text-yellow-600"
+                              }`}
                           />
                         </div>
                         <div className="flex-1">
@@ -1600,45 +1585,40 @@ export default function DocumentActionsModal({
                     {/* Delete Document */}
                     <motion.div
                       whileHover={{ scale: 1.01 }}
-                      className={`bg-white border rounded-[12px] p-4 cursor-pointer transition-all ${
-                        showDeleteConfirm
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-200 hover:border-red-400"
-                      }`}
+                      className={`bg-white border rounded-[12px] p-4 cursor-pointer transition-all ${showDeleteConfirm
+                        ? "border-red-500 bg-red-50"
+                        : "border-gray-200 hover:border-red-400"
+                        }`}
                       onClick={handleDelete}
                     >
                       <div className="flex items-start gap-3">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                            showDeleteConfirm ? "bg-red-200" : "bg-red-100"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${showDeleteConfirm ? "bg-red-200" : "bg-red-100"
+                            }`}
                         >
                           <Trash2
-                            className={`w-5 h-5 ${
-                              showDeleteConfirm
-                                ? "text-red-700"
-                                : "text-red-600"
-                            }`}
+                            className={`w-5 h-5 ${showDeleteConfirm
+                              ? "text-red-700"
+                              : "text-red-600"
+                              }`}
                           />
                         </div>
                         <div className="flex-1">
                           <h4
-                            className={`text-[16px] font-semibold leading-[24px] mb-1 ${
-                              showDeleteConfirm
-                                ? "text-red-700"
-                                : "text-zinc-900"
-                            }`}
+                            className={`text-[16px] font-semibold leading-[24px] mb-1 ${showDeleteConfirm
+                              ? "text-red-700"
+                              : "text-zinc-900"
+                              }`}
                           >
                             {showDeleteConfirm
                               ? "Click Again to Confirm Delete"
                               : "Delete Document"}
                           </h4>
                           <p
-                            className={`text-[14px] leading-[20px] ${
-                              showDeleteConfirm
-                                ? "text-red-600 font-medium"
-                                : "text-zinc-600"
-                            }`}
+                            className={`text-[14px] leading-[20px] ${showDeleteConfirm
+                              ? "text-red-600 font-medium"
+                              : "text-zinc-600"
+                              }`}
                           >
                             {showDeleteConfirm
                               ? "This action cannot be undone! All data will be permanently deleted."
@@ -1700,7 +1680,11 @@ export default function DocumentActionsModal({
                   )}
                   {primaryTab === "Save & Organize" && (
                     <>
-                      <Folder className="w-4 h-4" />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M10.1333 2C10.485 2.00501 10.8205 2.14878 11.0667 2.4L13.6 4.93333C13.8512 5.17951 13.995 5.51497 14 5.86667V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H10.1333Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M11.3327 13.9974V9.33073C11.3327 9.15392 11.2624 8.98435 11.1374 8.85932C11.0124 8.7343 10.8428 8.66406 10.666 8.66406H5.33268C5.15587 8.66406 4.9863 8.7343 4.86128 8.85932C4.73625 8.98435 4.66602 9.15392 4.66602 9.33073V13.9974" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4.66602 2V4.66667C4.66602 4.84348 4.73625 5.01305 4.86128 5.13807C4.9863 5.2631 5.15587 5.33333 5.33268 5.33333H9.99935" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
                       Save & Organize
                     </>
                   )}
@@ -1721,13 +1705,12 @@ export default function DocumentActionsModal({
             className="fixed bottom-6 right-6 z-[10000] flex items-center gap-3 bg-white rounded-lg shadow-[0px_4px_12px_rgba(0,0,0,0.15)] border border-gray-200 px-4 py-3 min-w-[320px]"
           >
             <div
-              className={`w-2 h-2 rounded-full shrink-0 ${
-                toast.type === "success"
-                  ? "bg-green-500"
-                  : toast.type === "error"
-                    ? "bg-red-500"
-                    : "bg-blue-500"
-              }`}
+              className={`w-2 h-2 rounded-full shrink-0 ${toast.type === "success"
+                ? "bg-green-500"
+                : toast.type === "error"
+                  ? "bg-red-500"
+                  : "bg-blue-500"
+                }`}
             />
             <p className="text-[14px] font-medium text-gray-900 flex-1">
               {toast.message}

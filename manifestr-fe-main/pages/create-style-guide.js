@@ -526,72 +526,64 @@ export default function CreateStyleGuide() {
                 exit={{ opacity: 0 }}
                 className="relative z-10 w-full min-h-[calc(100vh-72px)] flex flex-col items-center justify-center px-8 py-20"
               >
-                {/* Title Section */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="text-center mb-8"
-                >
-                  <h1 className="text-[60px] font-bold leading-[72px] tracking-[-1.28px] text-[#18181b] mb-4">
-                    Style Guide
-                  </h1>
-                  <p className="text-[20px] leading-[28px] text-[#6A7282]">
-                    Upload your brand kit or create your style from scratch.
-                  </p>
-                </motion.div>
+                <div className="w-full max-w-[672px] flex flex-col items-center gap-8">
+                  {/* Title Section (match Figma) */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="w-full text-center"
+                  >
+                    <h1 className="text-[32px] font-semibold leading-[40px] tracking-[0.0703px] text-[#0a0a0a] mb-3">
+                      Style Guide
+                    </h1>
+                    <p className="text-[18px] leading-[26px] tracking-[-0.3125px] text-[#6A7282]">
+                      Upload your brand kit or create your style from scratch.
+                    </p>
+                  </motion.div>
 
-                {/* Modal Dialog */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="w-full max-w-[520px] mx-4 md:mx-0 bg-white rounded-2xl shadow-xl border border-[#e4e4e7] p-6 md:p-8"
-                >
-                  {/* Icon */}
-                  <div className="flex justify-center mb-6">
-                    <div className="w-16 h-16 bg-[#f4f4f5] rounded-full flex items-center justify-center">
-                      <Inbox className="w-8 h-8 text-[#71717a]" />
+                  {/* Modal Card (match Figma) */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.98, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="w-full bg-white rounded-[16px] px-8 py-12 shadow-[0px_44px_109.2px_0px_rgba(22,34,51,0.2)]"
+                  >
+                    <div className="flex flex-col items-center gap-6">
+                      {/* Icon wrap */}
+                      <div className="bg-[#efefef] p-8 rounded-[200px] flex items-center justify-center">
+                        <Inbox className="w-10 h-10 text-[#71717a]" />
+                      </div>
+
+                      <div className="w-full flex flex-col items-center">
+                        <h2 className="text-[16px] font-medium leading-[24px] tracking-[-0.3125px] text-[#0a0a0a] text-center">
+                          Let's build your brand foundation
+                        </h2>
+                        <p className="mt-4 text-[16px] leading-[24px] tracking-[-0.3125px] text-[#4A5565] text-center max-w-[475px]">
+                          Upload your logo or brand kit — MANIFESTR AI will extract colors, fonts, and visuals to create your style guide in seconds.
+                        </p>
+
+                        {/* Actions */}
+                        <div className="mt-10 flex items-center justify-center gap-3">
+                          <Button variant="secondary" size="md" onClick={handleCreateManually}>
+                            Create Manually
+                          </Button>
+                          <Button variant="primary" size="md" onClick={handleUploadBrandKit}>
+                            Upload Brand Kit
+                          </Button>
+                        </div>
+
+                        {/* Help Link */}
+                        <button
+                          type="button"
+                          className="mt-11 text-[16px] leading-[24px] tracking-[-0.3125px] text-[#99A1AF] hover:text-[#18181b] transition-colors"
+                        >
+                          How MANIFESTR AI works
+                        </button>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="text-[20px] font-semibold leading-[32px] text-[#18181b] text-center mb-3">
-                    Let's build your brand foundation
-                  </h2>
-
-                  {/* Description */}
-                  <p className="text-[14px] leading-[24px] text-[#71717a] text-center mb-8">
-                    Upload your logo or brand kit — MANIFESTR AI will extract colors, fonts, and visuals to create your style guide in seconds.
-                  </p>
-
-                  {/* Buttons */}
-                  <div className="flex flex-col md:flex-row gap-3 mb-6">
-                    <Button
-                      variant="secondary"
-                      size="md"
-                      onClick={handleCreateManually}
-                      className="w-full md:w-auto md:flex-1"
-                    >
-                      Create Manually
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="md"
-                      onClick={handleUploadBrandKit}
-                      className="w-full md:w-auto md:flex-1"
-                    >
-                      Upload Brand Kit
-                    </Button>
-                  </div>
-
-                  {/* Help Link */}
-                  <div className="text-center">
-                    <button className="text-[14px] leading-[20px] text-[#99A1AF] hover:text-[#18181b] transition-colors mx-auto">
-                      How MANIFESTR AI works
-                    </button>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
               </motion.div>
             ) : currentStep === 1 ? (
               <motion.div

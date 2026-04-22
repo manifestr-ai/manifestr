@@ -1,5 +1,13 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    documentFooter: {
+      setDocumentFooter: () => ReturnType;
+    };
+  }
+}
+
 export const DocumentFooter = Node.create({
   name: 'documentFooter',
 

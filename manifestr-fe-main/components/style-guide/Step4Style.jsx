@@ -8,7 +8,7 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
   const selectedToneDescriptors = data?.style?.toneDescriptors || ['Professional', 'Bold', 'Innovative']
   const selectedAudience = data?.style?.audience || ['Technical / Executive-level']
   const audienceNote = data?.style?.audienceNote || ''
-  const brandPersonality = data?.style?.personality || "We're an ambitious technology partner delivering calm, confident outcomes with impeccable craft."
+  const brandPersonality = data?.style?.personality || "We're an ambitious technology partner delivering web confidence business with impeccable craft."
 
   const examplePhrases = data?.style?.examplePhrases || [
     { id: 1, weSay: 'Transform your workflow', weDontSay: 'Disrupt the industry' },
@@ -25,7 +25,17 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
   ]
 
   const steps = [
-    { id: 1, label: 'Logo', icon: Folder, active: false },
+    {
+      id: 5,
+      label: 'Logo',
+      icon: (props) => (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <path d="M15.8333 2.5H4.16667C3.24619 2.5 2.5 3.24619 2.5 4.16667V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V4.16667C17.5 3.24619 16.7538 2.5 15.8333 2.5Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 10.8333C10.4602 10.8333 10.8333 10.4602 10.8333 10C10.8333 9.53976 10.4602 9.16667 10 9.16667C9.53976 9.16667 9.16667 9.53976 9.16667 10C9.16667 10.4602 9.53976 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      active: false
+    },
     { id: 2, label: 'Typography', icon: Type, active: false },
     { id: 3, label: 'Color', icon: Palette, active: false },
     { id: 4, label: 'Style', icon: Grid, active: true },
@@ -165,7 +175,7 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
-                  Continue <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
+                  Continue to Grid<ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
                 </Button>
               </div>
             </div>
@@ -233,13 +243,13 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                   return (
                     <motion.button
                       key={descriptor}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => toggleToneDescriptor(descriptor)}
                       disabled={!isSelected && selectedToneDescriptors.length >= 3}
-                      className={`px-4 py-2 text-[14px] leading-[20px] font-medium transition-colors ${isSelected
-                        ? 'bg-[#18181b] text-white rounded-full'
-                        : 'bg-[#f4f4f5] text-[#18181b] hover:bg-[#e4e4e7] rounded-full disabled:opacity-50 disabled:cursor-not-allowed'
+                      className={`px-6 py-2.5 text-[14px] leading-[20px] font-medium transition-all duration-200 ${isSelected
+                        ? 'bg-[#18181b] text-white rounded-full shadow-sm'
+                        : 'bg-[#f4f4f5] text-[#18181b] hover:bg-[#e4e4e7] rounded-full disabled:opacity-50 disabled:cursor-not-allowed border border-transparent'
                         }`}
                     >
                       {descriptor}
@@ -266,12 +276,12 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                   return (
                     <motion.button
                       key={audience}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => toggleAudience(audience)}
-                      className={`px-4 py-2 rounded-full text-[14px] leading-[20px] font-medium transition-colors ${isSelected
-                        ? 'bg-[#18181b] text-white'
-                        : 'bg-[#f4f4f5] text-[#18181b] hover:bg-[#e4e4e7]'
+                      className={`px-6 py-2.5 rounded-full text-[14px] leading-[20px] font-medium transition-all duration-200 ${isSelected
+                        ? 'bg-[#18181b] text-white shadow-sm'
+                        : 'bg-[#f4f4f5] text-[#18181b] hover:bg-[#e4e4e7] border border-transparent'
                         }`}
                     >
                       {audience}
@@ -299,13 +309,17 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
               <textarea
                 value={brandPersonality}
                 onChange={(e) => updateStyleInfo({ personality: e.target.value })}
-                rows={3}
-                className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[16px] leading-[24px] text-[#18181b] mb-4 resize-none"
+                rows={4}
+                className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[16px] leading-[24px] text-[#71717a] mb-4 resize-none overflow-y-auto"
                 placeholder="Enter your brand personality description..."
               />
               <div className="flex items-center gap-3">
-                <Button variant="primary" size="md">
-                  <Volume2 className="w-4 h-4 mr-2" />
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="bg-white border-[#e4e4e7] text-[#18181b] hover:bg-[#f4f4f5]"
+                >
+                  <Volume2 className="w-4 h-4 mr-2 text-[#18181b]" />
                   Generate voice sample
                 </Button>
                 <span className="text-[14px] leading-[20px] text-[#71717a]">
@@ -365,12 +379,21 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
               </div>
 
               <div className="flex flex-col md:flex-row items-center gap-4">
-                <Button variant="primary" size="md" onClick={addExamplePhrase} className="w-full md:w-auto justify-center">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={addExamplePhrase}
+                  className="w-full md:w-auto justify-center bg-white border-[#e4e4e7] text-[#18181b] hover:bg-[#f4f4f5]"
+                >
+                  <Plus className="w-4 h-4 mr-2 text-[#18181b]" />
                   Add another pair
                 </Button>
-                <Button variant="primary" size="md" className="w-full md:w-auto justify-center">
-                  <Volume2 className="w-4 h-4 mr-2" />
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="w-full md:w-auto justify-center bg-white border-[#e4e4e7] text-[#18181b] hover:bg-[#f4f4f5]"
+                >
+                  <Volume2 className="w-4 h-4 mr-2 text-[#18181b]" />
                   Generate voice sample
                 </Button>
                 <span className="text-[14px] leading-[20px] text-[#71717a] text-center md:text-left">

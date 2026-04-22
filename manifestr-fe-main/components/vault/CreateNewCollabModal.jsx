@@ -57,7 +57,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
         setTags(['campaign', 'social', 'manifestr'])
         setTagInput('')
         setInviteEmails(['umarzapta@gmail.com', 'umarzapta@gmail.com'])
-        setEmailInput('m')
+        setEmailInput('')
         setSelectedRole('Editor')
       }
     }
@@ -134,11 +134,11 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
       if (response.data.status === 'success') {
         console.log('✅ Collab created:', response.data.data)
         showToast('Collab created successfully!', 'success')
-        
+
         if (onCreate) {
           onCreate(response.data.data)
         }
-        
+
         setTimeout(() => {
           onClose()
         }, 500)
@@ -190,7 +190,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 >
                   {mode === 'edit' ? 'Edit Project' : 'Create New Collab'}
                 </h2>
-           
+
                 <motion.button
                   onClick={onClose}
                   whileHover={{ scale: 1.1 }}
@@ -223,8 +223,8 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                   >
                     BOSS VIBES
                   </p>
-             
-                  
+
+
                   {coverImage ? (
                     <div className="relative w-full h-full">
                       <img
@@ -298,7 +298,7 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                   {/* Resize handle indicator */}
                   <div className="absolute bottom-[6px] right-[6px] w-3 h-3 opacity-30 pointer-events-none">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M11 11L1 1M11 11H7M11 11V7M1 1H5M1 1V5" stroke="#71717a" strokeWidth="1.5" strokeLinecap="round"/>
+                      <path d="M11 11L1 1M11 11H7M11 11V7M1 1H5M1 1V5" stroke="#71717a" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                   </div>
                 </div>
@@ -475,11 +475,10 @@ export default function CreateNewCollabModal({ isOpen, onClose, onCreate, mode =
                 exit={{ opacity: 0, y: 50 }}
                 className="fixed bottom-4 right-4 z-[10000]"
               >
-                <div className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
-                  toast.type === 'error' ? 'bg-red-500' : 
-                  toast.type === 'success' ? 'bg-green-500' : 
-                  'bg-blue-500'
-                } text-white`}>
+                <div className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${toast.type === 'error' ? 'bg-red-500' :
+                    toast.type === 'success' ? 'bg-green-500' :
+                      'bg-blue-500'
+                  } text-white`}>
                   <span className="text-sm font-medium">{toast.message}</span>
                 </div>
               </motion.div>

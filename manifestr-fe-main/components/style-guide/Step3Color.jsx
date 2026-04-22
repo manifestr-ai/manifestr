@@ -43,7 +43,17 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
   const otherTitle = colorNames.other || 'Others'
 
   const steps = [
-    { id: 1, label: 'Logo', icon: Folder, active: false },
+    {
+      id: 5,
+      label: 'Logo',
+      icon: (props) => (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <path d="M15.8333 2.5H4.16667C3.24619 2.5 2.5 3.24619 2.5 4.16667V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V4.16667C17.5 3.24619 16.7538 2.5 15.8333 2.5Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 10.8333C10.4602 10.8333 10.8333 10.4602 10.8333 10C10.8333 9.53976 10.4602 9.16667 10 9.16667C9.53976 9.16667 9.16667 9.53976 9.16667 10C9.16667 10.4602 9.53976 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      active: false
+    },
     { id: 2, label: 'Typography', icon: Type, active: false },
     { id: 3, label: 'Color', icon: Palette, active: true },
     { id: 4, label: 'Style', icon: Grid, active: false },
@@ -106,7 +116,7 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
       <div className="flex flex-col items-center gap-2">
         <div className="relative group">
           <div
-            className="w-16 h-16 rounded-lg border-2 border-[#e4e4e7] cursor-pointer"
+            className="w-20 h-20 rounded-lg border-2 border-[#e4e4e7] cursor-pointer"
             style={{ backgroundColor: color.hex }}
             onClick={() => setIsEditing(true)}
           />
@@ -115,9 +125,9 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
               e.stopPropagation()
               onRemove()
             }}
-            className="absolute -top-1 -right-1 w-5 h-5 bg-[#18181b] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-[#e4e4e7] rounded-full flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition-colors z-10"
           >
-            <X className="w-3 h-3 text-white" />
+            <X className="w-3.5 h-3.5 text-[#18181b]" />
           </button>
         </div>
         {isEditing ? (
@@ -199,7 +209,7 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
           </Button>
         </div>
 
-        <div className="flex items-start gap-4 flex-wrap">
+        <div className="flex items-start gap-8 flex-wrap">
           {colors.map((color) => (
             <ColorSwatch
               key={color.id}
@@ -219,10 +229,10 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
               setIsAddingNew(true)
             }}
           >
-            <div className="w-16 h-16 rounded-lg bg-white border-2 border-dashed border-[#e4e4e7] flex items-center justify-center hover:border-[#18181b] transition-colors">
+            <div className="w-20 h-20 rounded-lg bg-white border-2 border-dashed border-[#e4e4e7] flex items-center justify-center hover:border-[#18181b] transition-colors">
               <Plus className="w-6 h-6 text-[#71717a]" />
             </div>
-            <span className="text-[12px] leading-[16px] text-[#71717a]">Add new</span>
+            <span className="text-[14px] font-medium leading-[20px] text-[#18181b]">Add new</span>
           </motion.div>
 
           {isAddingNew && (

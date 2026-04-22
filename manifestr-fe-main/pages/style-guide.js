@@ -18,7 +18,7 @@ export default function StyleGuide() {
 
   const [styleGuides, setStyleGuides] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // Modal states
   const [showRenameModal, setShowRenameModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -47,7 +47,7 @@ export default function StyleGuide() {
           const gradient = gradients[index % gradients.length]
 
           // Format dates
-          const updatedDate = guide.updated_at 
+          const updatedDate = guide.updated_at
             ? new Date(guide.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : ''
 
@@ -55,15 +55,15 @@ export default function StyleGuide() {
           const logoCount = (guide.logo?.logos || []).length
           const colorCount = (guide.colors?.selected || []).length + (guide.colors?.custom || []).length
           const hasTypography = guide.typography && (guide.typography.headings || guide.typography.body)
-          
+
           // Build subtitle with useful info
           let subtitleParts = []
           if (logoCount > 0) subtitleParts.push(`${logoCount} Logo${logoCount !== 1 ? 's' : ''}`)
           if (colorCount > 0) subtitleParts.push(`${colorCount} Color${colorCount !== 1 ? 's' : ''}`)
           if (hasTypography) subtitleParts.push('Typography')
-          
-          const subtitle = subtitleParts.length > 0 
-            ? subtitleParts.join(' • ') 
+
+          const subtitle = subtitleParts.length > 0
+            ? subtitleParts.join(' • ')
             : (guide.is_completed ? 'Completed' : 'In Progress')
 
           // Determine display values
@@ -108,16 +108,16 @@ export default function StyleGuide() {
     try {
       const { updateStyleGuide } = await import('../services/style-guide')
       await updateStyleGuide(selectedGuide.id, { brand_name: newName })
-      
+
       // Update local state
-      setStyleGuides(prevGuides => 
-        prevGuides.map(g => 
-          g.id === selectedGuide.id 
-            ? { ...g, title: newName } 
+      setStyleGuides(prevGuides =>
+        prevGuides.map(g =>
+          g.id === selectedGuide.id
+            ? { ...g, title: newName }
             : g
         )
       )
-      
+
       setShowRenameModal(false)
       setSelectedGuide(null)
       success('Style guide renamed successfully!')
@@ -140,7 +140,7 @@ export default function StyleGuide() {
       const jsonString = JSON.stringify(fullData, null, 2)
       const blob = new Blob([jsonString], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      
+
       // Create temporary link and trigger download
       const link = document.createElement('a')
       link.href = url
@@ -167,12 +167,12 @@ export default function StyleGuide() {
     try {
       const { deleteStyleGuide } = await import('../services/style-guide')
       await deleteStyleGuide(selectedGuide.id)
-      
+
       // Remove from local state
-      setStyleGuides(prevGuides => 
+      setStyleGuides(prevGuides =>
         prevGuides.filter(g => g.id !== selectedGuide.id)
       )
-      
+
       setShowDeleteModal(false)
       setSelectedGuide(null)
       success('Style guide deleted successfully!')
@@ -218,18 +218,23 @@ export default function StyleGuide() {
           {/* Content */}
           <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 py-8 h-full flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0">
             <div className="text-center md:text-left">
-              <h1 className="text-[40px] md:text-[64px] font-bold leading-[1.1] md:leading-[72px] tracking-[-1.28px] text-[#18181b] mb-3">
-                STYLE <span className="italic font-normal">guide</span>
+              <h1 className="flex items-center md:items-baseline gap-2 mb-4 justify-center md:justify-start">
+                <span className="text-[32px] md:text-[40px] font-hero font-bold tracking-[-0.04em] text-[#181818] leading-none">
+                  Style
+                </span>
+                <span className="text-[38px] md:text-[44px] font-ivy-presto italic font-semibold leading-[48px] tracking-[0.406px] text-[#181818]">
+                  Guide
+                </span>
               </h1>
-              <p className="text-[16px] md:text-[18px] leading-[28px] text-[#18181b]">
+              <p className="text-[16px] md:text-[18px] leading-[28px] text-[#52525b]">
                 Manage and organize your brand style guides and design systems.
               </p>
             </div>
             <button
               onClick={handleCreateNew}
-              className="flex items-center gap-2 px-6 py-3 bg-white rounded-xl text-[16px] font-medium text-[#18181b] hover:bg-[#f4f4f5] transition-colors focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:ring-offset-2"
+              className="flex items-center gap-2 px-6 py-3 bg-[#000000] rounded-xl text-[16px] font-semibold text-white hover:opacity-90 transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
-              <Plus className="w-5 h-5 text-[#18181b]" />
+              <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
               New Style Guide
             </button>
           </div>
@@ -247,7 +252,7 @@ export default function StyleGuide() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search style guides..."
-                  className="w-full pl-12 pr-12 py-3 bg-[#f4f4f5] border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[16px] leading-[24px] text-[#18181b]"
+                  className="w-full pl-12 pr-12 py-3 bg-[#ffffff] border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[16px] leading-[24px] text-[#18181b]"
                 />
                 <Mic className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#71717a] cursor-pointer hover:text-[#18181b] transition-colors" />
               </div>
