@@ -8,21 +8,25 @@ export default function MonetizationHeader({
   const filterEntries = filters ? Object.entries(filters) : []
 
   return (
-    <div className="relative z-30 flex flex-col gap-6 px-8 pt-8 pb-6 bg-[#f4f4f5] overflow-visible">
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex flex-col gap-2 min-w-0">
-          <h1 className="text-[30px] leading-[38px] font-bold text-[#18181b] font-sans">{title}</h1>
-          <p className="text-[16px] leading-6 font-normal text-[#71717a]">{subtitle}</p>
+    <div className="relative z-30 flex flex-col gap-4 overflow-visible  px-4 pb-4 pt-6 lg:gap-6 lg:px-8 lg:pb-6 lg:pt-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-1.5 lg:gap-2">
+          <h1 className="font-sans text-[26px] font-bold leading-[34px] text-[#18181b] lg:text-[30px] lg:leading-[38px]">
+            {title}
+          </h1>
+          <p className="text-[15px] font-normal leading-6 text-[#71717a] lg:text-[16px]">{subtitle}</p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+        <div className="grid w-full min-w-0 grid-cols-2 gap-2 lg:flex lg:w-auto lg:shrink-0 lg:flex-row lg:flex-wrap lg:justify-end">
           {filterEntries.map(([key, config]) => (
-            <MonetizationFilterButton
-              key={key}
-              label={config?.label || key}
-              defaultValue={config?.label}
-              options={config?.options || []}
-            />
+            <div key={key} className="min-w-0 w-full lg:w-auto">
+              <MonetizationFilterButton
+                label={config?.label || key}
+                defaultValue={config?.label}
+                options={config?.options || []}
+                stretch
+              />
+            </div>
           ))}
         </div>
       </div>

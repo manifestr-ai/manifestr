@@ -5,7 +5,7 @@ export default function ConversionFunnel({ data }) {
   const maxValue = steps.reduce((m, s) => Math.max(m, s.value), 1)
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="w-full lg:flex-1 min-w-0 bg-[#f4f4f4] border border-[#e9eaea] rounded-[20px] shadow-[0_2px_5px_rgba(0,0,0,0.05)] p-4 lg:p-[18px] flex flex-col gap-4 lg:gap-6">
       <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
 
       <div className="flex flex-col gap-2">

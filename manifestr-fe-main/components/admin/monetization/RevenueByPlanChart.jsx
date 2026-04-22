@@ -7,7 +7,7 @@ export default function RevenueByPlanChart({ data }) {
   const total = data.total || 1
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6">
+    <div className="flex min-w-0 flex-1 flex-col gap-5 rounded-xl border border-[#e4e4e7] bg-white p-4 sm:gap-6 sm:p-[18px]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5 min-w-0">
           <div className="flex items-center gap-2">

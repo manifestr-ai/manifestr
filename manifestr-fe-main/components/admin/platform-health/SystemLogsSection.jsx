@@ -159,15 +159,15 @@ export default function SystemLogsSection({ data }) {
 
   return (
     <div className="bg-white border border-[#e4e4e7] rounded-xl overflow-hidden flex flex-col">
-      <div className="px-[18px] pt-[18px] pb-0">
+      <div className="px-4 pt-4 pb-0 sm:px-[18px] sm:pt-[18px]">
         <p className="text-[18px] leading-7 font-medium text-[#18181b] mb-4">{title}</p>
-        <div className="flex items-center gap-1 border-b border-[#f4f4f5]">
+        <div className="flex items-center gap-1 border-b border-[#f4f4f5] overflow-x-auto">
           {TABS.map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-[13px] leading-5 font-medium border-b-2 transition-colors ${
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 text-[13px] leading-5 font-medium border-b-2 transition-colors ${
                 activeTab === id
                   ? 'border-[#18181b] text-[#18181b]'
                   : 'border-transparent text-[#71717a] hover:text-[#18181b]'

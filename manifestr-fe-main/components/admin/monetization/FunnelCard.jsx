@@ -11,22 +11,22 @@ export default function FunnelCard({ data }) {
   const rows = data?.rows || DEFAULT_ROWS
 
   return (
-    <div className="flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[18px] flex flex-col gap-6 h-full">
+    <div className="flex h-full min-w-0 flex-1 flex-col gap-5 rounded-xl border border-[#e4e4e7] bg-white p-4 sm:gap-6 sm:p-[18px]">
       <div className="flex items-center gap-2">
-        <p className="flex-1 text-[18px] leading-7 font-semibold text-[#18181b]">{title}</p>
+        <p className="flex-1 text-[16px] font-semibold leading-6 text-[#18181b] sm:text-[18px] sm:leading-7">{title}</p>
       </div>
 
       <div className="flex flex-col gap-3">
-        <p className="text-[14px] leading-5 font-medium text-[#18181b]">{subheading}</p>
+        <p className="text-[14px] font-medium leading-5 text-[#18181b]">{subheading}</p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex max-w-full flex-col gap-2 overflow-x-hidden">
           {rows.map((row, idx) => {
             const pct = Math.max(0, Math.min(100, row.percent ?? 0))
             return (
               <div
                 key={`${row.label}-${idx}`}
-                className="bg-[#f4f4f5] rounded-[6px] h-[52px] flex items-center justify-between px-4"
-                style={{ width: `${pct}%`, minWidth: 260 }}
+                className="flex h-[52px] max-w-full items-center justify-between rounded-[6px] border border-[#e4e4e7] bg-white px-3 sm:px-4"
+                style={{ width: `${pct}%`, minWidth: 'min(260px, 100%)' }}
               >
                 <div className="flex flex-col min-w-0">
                   <span className="text-[14px] leading-5 font-medium text-[#18181b] truncate">

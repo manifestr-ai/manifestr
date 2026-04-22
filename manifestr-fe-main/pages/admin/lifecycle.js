@@ -17,24 +17,24 @@ export default function AdminLifecycle({ lifecycleData }) {
         <title>User Lifecycle &amp; Segmentation - Admin</title>
       </Head>
 
-      <div className="min-h-screen bg-[#f4f4f5]">
+      <div className="admin-card-theme min-h-screen bg-white">
         <AdminHeader />
-        <div className="flex h-[calc(100vh-72px)]">
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
           <AdminSidebar />
 
-          <div className="no-scrollbar flex-1 min-w-0 h-[calc(100vh-72px)] overflow-y-auto flex flex-col">
+          <div className="no-scrollbar flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto">
             <LifecycleHeader
               title={lifecycleData?.header?.title}
               subtitle={lifecycleData?.header?.subtitle}
             />
 
-            <div className="relative z-0 flex-1 flex flex-col gap-6 px-8 py-6 bg-[#f4f4f5]">
+            <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
               <AiPerformanceFilters
                 searchPlaceholder={lifecycleData?.filters?.searchPlaceholder}
                 options={lifecycleData?.filters?.options}
               />
 
-              <div className="flex gap-[18px] flex-wrap lg:flex-nowrap">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">
                 {stats.map((s) => (
                   <StatCard
                     key={s.id}

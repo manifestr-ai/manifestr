@@ -30,7 +30,7 @@ function labelXY(midAngle, offset) {
   }
 }
 
-export default function SharedVsSoloUsage({ data, widthClass = 'w-[300px]' }) {
+export default function SharedVsSoloUsage({ data, widthClass = 'w-full min-w-0' }) {
   const title = data?.title || 'Shared vs Solo Usage'
   const slices = data?.slices || DEFAULT_SLICES
   const total = slices.reduce((sum, s) => sum + s.value, 0) || 1
@@ -71,7 +71,7 @@ export default function SharedVsSoloUsage({ data, widthClass = 'w-[300px]' }) {
         ))}
       </svg>
 
-      <div className="flex items-center justify-center gap-4 w-full">
+      <div className="flex flex-wrap items-center justify-center gap-3 w-full sm:gap-4">
         {slices.map((s) => (
           <div key={s.label} className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />

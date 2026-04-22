@@ -26,7 +26,7 @@ function FeatureCard({ feature }) {
   const { bg, text } = scoreColor(score)
 
   return (
-    <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 flex flex-col gap-4">
+    <div className="bg-white border border-[#e4e4e7] rounded-xl p-3 flex flex-col gap-3 sm:p-4 sm:gap-4">
       <div className="flex items-start justify-between gap-3 min-w-0">
         <p className="text-[15px] leading-5 font-semibold text-[#18181b] min-w-0 truncate">
           {feature.name}
@@ -71,9 +71,9 @@ export default function FeatureAdoptionGrid({ data }) {
   const features = data?.features || []
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3 min-w-0 sm:gap-4">
       <div className="flex flex-col gap-1">
-        <p className="text-[18px] leading-7 font-medium text-[#18181b]">{title}</p>
+        <p className="text-[16px] leading-6 font-medium text-[#18181b] lg:text-[18px] lg:leading-7">{title}</p>
         {subtitle && (
           <p className="text-[14px] leading-5 font-normal text-[#71717a]">{subtitle}</p>
         )}
