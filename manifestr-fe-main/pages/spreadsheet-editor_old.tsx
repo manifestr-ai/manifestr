@@ -254,7 +254,10 @@ export default function SpreadsheetEditor() {
                     {/* Right Sidebar (Floating over grid on the right) */}
                     <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
                         <div className="pointer-events-auto">
-                            <RightSidebar />
+                            <RightSidebar
+                                documentId={actualGenerationId}
+                                documentTitle={content?.title || "Untitled spreadsheet"}
+                            />
                         </div>
                     </div>
 

@@ -37,6 +37,31 @@ export default function SpreadsheetEditor() {
 
   const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
 
+  const handleZoomIn = () => {
+    if (!univerAPI || typeof (univerAPI as any).executeCommand !== "function")
+      return;
+    (univerAPI as any).executeCommand("sheet.command.change-zoom-ratio", {
+      delta: 0.1,
+    });
+  };
+
+  const handleZoomOut = () => {
+    if (!univerAPI || typeof (univerAPI as any).executeCommand !== "function")
+      return;
+    (univerAPI as any).executeCommand("sheet.command.change-zoom-ratio", {
+      delta: -0.1,
+    });
+  };
+
+  const handleZoomReset = () => {
+    if (!univerAPI || typeof (univerAPI as any).executeCommand !== "function")
+      return;
+    (univerAPI as any).executeCommand("sheet.command.change-zoom-ratio", {
+      delta: 0,
+      reset: true,
+    });
+  };
+
   const handleDownload = async () => {
     if (!univerAPI) {
       alert("Spreadsheet is not ready yet.");
@@ -440,7 +465,13 @@ export default function SpreadsheetEditor() {
           {/* Right Sidebar (Floating over grid on the right) */}
           <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
             <div className="pointer-events-auto">
-              <RightSidebar />
+              <RightSidebar
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                documentId={actualGenerationId}
+                documentTitle={content?.title || "Untitled spreadsheet"}
+              />
             </div>
           </div>
 

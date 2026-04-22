@@ -38,22 +38,22 @@ export default function TransformPanel({ store }: TransformPanelProps) {
 
   const flipHorizontal = () => {
     selected.set({
-      scaleX: (selected.scaleX || 1) * -1,
+      flipX: !selected.flipX,
     });
   };
 
   const flipVertical = () => {
     selected.set({
-      scaleY: (selected.scaleY || 1) * -1,
+      flipY: !selected.flipY,
     });
   };
 
   const crop = () => {
     selected.set({
-      clipX: selected.width * 0.1,
-      clipY: selected.height * 0.1,
-      clipWidth: selected.width * 0.8,
-      clipHeight: selected.height * 0.8,
+      cropX: 0.1,
+      cropY: 0.1,
+      cropWidth: 0.8,
+      cropHeight: 0.8,
     });
   };
 

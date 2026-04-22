@@ -5,72 +5,198 @@ interface FiltersPanelProps {
 }
 
 export default function FiltersPanel({ store }: FiltersPanelProps) {
-  const selected = store.selectedElements?.[0];
+  const selectedElements = Array.isArray(store.selectedElements) ? store.selectedElements : [];
+  const selectedImages = selectedElements.filter(
+    (el: any) => el?.type === "image" && typeof el?.set === "function",
+  );
+  const hasSelectedImages = selectedImages.length > 0;
+  const activePreset = (() => {
+    if (!hasSelectedImages) return "None";
+    const first =
+      typeof selectedImages[0]?.custom?.imageFilterPreset === "string"
+        ? selectedImages[0].custom.imageFilterPreset
+        : "None";
+    const allSame = selectedImages.every((el: any) => {
+      const p =
+        typeof el?.custom?.imageFilterPreset === "string"
+          ? el.custom.imageFilterPreset
+          : "None";
+      return p === first;
+    });
+    return allSame ? first : "";
+  })();
 
-  // if (!selected || selected.type !== "image") {
-  //   return (
-  //     <div className="h-[90px] flex items-center justify-center text-gray-400 text-sm">
-  //       Select an image to apply filters
-  //     </div>
-  //   );
-  // }
+  const applyPreset = (preset: string) => {
+    const currentSelected = Array.isArray(store.selectedElements) ? store.selectedElements : [];
+    const targets = currentSelected.filter(
+      (el: any) => el?.type === "image" && typeof el?.set === "function",
+    );
+    if (targets.length === 0) return;
 
-  const applyFilter = (type: string) => {
-    switch (type) {
-      case "grayscale":
-        selected.set({
-          opacity: 0.9,
-          fill: "#888888",
+    targets.forEach((target: any) => {
+      const baseReset = {
+        blurEnabled: false,
+        blurRadius: 0,
+        grayscaleEnabled: false,
+        sepiaEnabled: false,
+        brightnessEnabled: false,
+        brightness: 0,
+        filters: {},
+        custom: {
+          ...(target.custom || {}),
+          imageFilterPreset: preset,
+        },
+      };
+
+      if (preset === "None") {
+        target.set(baseReset);
+        return;
+      }
+
+      if (preset === "Vintage") {
+        target.set({
+          ...baseReset,
+          sepiaEnabled: true,
+          brightnessEnabled: true,
+          brightness: -0.05,
+          filters: {
+            contrast: { intensity: 0.15 },
+            saturation: { intensity: -0.2 },
+          },
         });
-        break;
+        return;
+      }
 
-      case "sepia":
-        selected.set({
-          opacity: 0.95,
-          fill: "#704214",
+      if (preset === "B&W") {
+        target.set({
+          ...baseReset,
+          grayscaleEnabled: true,
+          filters: {
+            contrast: { intensity: 0.2 },
+          },
         });
-        break;
+        return;
+      }
 
-      case "blur":
-        selected.set({
-          blurRadius: 5,
+      if (preset === "Vibrant") {
+        target.set({
+          ...baseReset,
+          brightnessEnabled: true,
+          brightness: 0.05,
+          filters: {
+            saturation: { intensity: 0.45 },
+            contrast: { intensity: 0.15 },
+          },
         });
-        break;
+        return;
+      }
 
-      case "brighten":
-        selected.set({
-          opacity: 1,
-          fill: "#ffffff",
+      if (preset === "Cool") {
+        target.set({
+          ...baseReset,
+          filters: {
+            hue: { intensity: -0.15 },
+            saturation: { intensity: 0.1 },
+          },
         });
-        break;
+        return;
+      }
 
-      case "darken":
-        selected.set({
-          opacity: 0.7,
+      if (preset === "Warm") {
+        target.set({
+          ...baseReset,
+          filters: {
+            hue: { intensity: 0.12 },
+            saturation: { intensity: 0.12 },
+          },
         });
-        break;
+        return;
+      }
 
-      case "reset":
-        selected.set({
-          opacity: 1,
-          fill: "",
-          blurRadius: 0,
+      if (preset === "High Contrast") {
+        target.set({
+          ...baseReset,
+          filters: {
+            contrast: { intensity: 0.45 },
+            saturation: { intensity: 0.1 },
+          },
         });
-        break;
+        return;
+      }
 
-      default:
-        break;
-    }
+      if (preset === "Soft") {
+        target.set({
+          ...baseReset,
+          brightnessEnabled: true,
+          brightness: 0.02,
+          filters: {
+            contrast: { intensity: -0.15 },
+          },
+        });
+        return;
+      }
+
+      if (preset === "Blur") {
+        target.set({
+          ...baseReset,
+          blurEnabled: true,
+          blurRadius: 6,
+        });
+        return;
+      }
+
+      if (preset === "Sharpen") {
+        target.set({
+          ...baseReset,
+          filters: {
+            sharpen: { intensity: 0.35 },
+            contrast: { intensity: 0.25 },
+          },
+        });
+        return;
+      }
+
+      if (preset === "Noise") {
+        target.set({
+          ...baseReset,
+          filters: {
+            noise: { intensity: 0.25 },
+          },
+        });
+        return;
+      }
+
+      if (preset === "Grain") {
+        target.set({
+          ...baseReset,
+          filters: {
+            noise: { intensity: 0.15 },
+            contrast: { intensity: 0.05 },
+          },
+        });
+      }
+    });
   };
 
-  const FilterButton = ({ label, active }: any) => (
+  const FilterButton = ({ label }: { label: string }) => (
     <button
+      type="button"
+      disabled={!hasSelectedImages}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        applyPreset(label);
+      }}
       className={`flex flex-col justify-center items-center gap-2 w-[98px] p-[9px] rounded-[14px] border border-[#E5E7EB]
         transition
         ${
-          active
+          activePreset === label
             ? "border-blue-500  bg-[#F9FAFB]  shadow-sm"
-            : "bg-white hover:bg-gray-100"
+            : hasSelectedImages
+              ? "bg-white hover:bg-gray-100"
+              : "bg-white opacity-60"
         }
       `}
     >

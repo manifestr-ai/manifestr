@@ -1,15 +1,515 @@
-import React, { useRef } from "react";
+import React from "react";
+import { observer } from "mobx-react-lite";
 
 interface FormatPanelProps {
   store: any;
+  drawing?: any;
+  setDrawing?: (next: any) => void;
+  effect?: any;
+  setEffect?: (next: any) => void;
 }
 
-export default function FormatPanel({ store }: FormatPanelProps) {
-  const selected = store.selectedElements;
+const FormatPanel = observer(
+  ({ store, drawing, setDrawing, effect, setEffect }: FormatPanelProps) => {
+  const selectedElements = Array.isArray(store?.selectedElements)
+    ? store.selectedElements
+    : [];
+  const selected = selectedElements[0];
   const page = store.activePage;
+  const hasSelection = selectedElements.length > 0;
+
+  const allElements = React.useMemo(
+    () => (Array.isArray(page?.children) ? page.children : []),
+    [page?.children],
+  );
+
+  const [lockAspect, setLockAspect] = React.useState(true);
+  const [alignMode, setAlignMode] = React.useState<"left" | "center" | "right">(
+    "center",
+  );
 
   const [pageIndex, setPageIndex] = React.useState(0);
-  const ITEMS_PER_PAGE = 10; // adjust based on your UI width
+  const widthValue = Math.max(1, Math.round(Number(selected?.width) || 1));
+  const heightValue = Math.max(1, Math.round(Number(selected?.height) || 1));
+  const borderValue = Math.max(
+    0,
+    Math.round(Number(selected?.borderSize ?? selected?.strokeWidth) || 0),
+  );
+  const cornersValue = Math.max(0, Math.round(Number(selected?.cornerRadius) || 0));
+  const shadowValue = Math.max(0, Math.round(Number(selected?.shadowBlur) || 0));
+  const opacityValue = Math.max(
+    0,
+    Math.min(100, Math.round((Number(selected?.opacity) || 1) * 100)),
+  );
+  const widthRef = React.useRef<HTMLInputElement | null>(null);
+  const heightRef = React.useRef<HTMLInputElement | null>(null);
+  const borderRef = React.useRef<HTMLInputElement | null>(null);
+  const cornersRef = React.useRef<HTMLInputElement | null>(null);
+  const shadowRef = React.useRef<HTMLInputElement | null>(null);
+  const [widthInput, setWidthInput] = React.useState<string>(String(widthValue));
+  const [heightInput, setHeightInput] = React.useState<string>(String(heightValue));
+  const [borderInput, setBorderInput] = React.useState<string>(String(borderValue));
+  const [cornersInput, setCornersInput] = React.useState<string>(String(cornersValue));
+  const [shadowInput, setShadowInput] = React.useState<string>(String(shadowValue));
+
+  React.useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === widthRef.current)
+      return;
+    setWidthInput(String(widthValue));
+  }, [widthValue, selected?.id]);
+
+  React.useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === heightRef.current)
+      return;
+    setHeightInput(String(heightValue));
+  }, [heightValue, selected?.id]);
+
+  React.useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === borderRef.current)
+      return;
+    setBorderInput(String(borderValue));
+  }, [borderValue, selected?.id]);
+
+  React.useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === cornersRef.current)
+      return;
+    setCornersInput(String(cornersValue));
+  }, [cornersValue, selected?.id]);
+
+  React.useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === shadowRef.current)
+      return;
+    setShadowInput(String(shadowValue));
+  }, [shadowValue, selected?.id]);
+
+  const applyToSelected = (cb: (el: any) => void) => {
+    selectedElements.forEach((el: any) => {
+      if (!el || typeof el?.set !== "function") return;
+      cb(el);
+    });
+  };
+
+  const setDrawingTool = (tool: "brush" | "pen" | null) => {
+    if (typeof setDrawing !== "function") return;
+    if (typeof setEffect === "function") setEffect(null);
+    if (!tool) {
+      setDrawing(null);
+      return;
+    }
+    if (drawing?.tool === tool) {
+      setDrawing(null);
+      return;
+    }
+    const defaults =
+      tool === "brush"
+        ? { tool, color: "#111827", size: 14, opacity: 0.85, preset: "Hard" }
+        : { tool, color: "#111827", size: 4, opacity: 1, preset: "Fine" };
+    setDrawing({ ...(drawing || {}), ...defaults });
+  };
+
+  const setEffectTool = (tool: "gradient" | "blur" | "erase" | null) => {
+    if (typeof setEffect !== "function") return;
+    if (typeof setDrawing === "function") setDrawing(null);
+    if (!tool) {
+      setEffect(null);
+      return;
+    }
+    if (effect?.tool === tool) {
+      setEffect(null);
+      return;
+    }
+    if (tool === "gradient") {
+      setEffect({
+        tool,
+        color1: "#2563EB",
+        color2: "#60A5FA",
+        angle: 135,
+        opacity: 0.6,
+        applyTo: hasSelection ? "selection" : "page",
+      });
+      return;
+    }
+    if (tool === "blur") {
+      setEffect({
+        tool,
+        radius: 6,
+        target: hasSelection ? "selection" : "base",
+      });
+      return;
+    }
+    setEffect({
+      tool,
+      size: 20,
+      preset: "Medium",
+    });
+  };
+
+  const normalizeSelection = () => {
+    if (typeof store?.selectElements !== "function") return;
+    if (!page) return;
+    if (hasSelection) {
+      const ids = selectedElements.map((el: any) => el?.id).filter(Boolean);
+      if (ids.length) store.selectElements(ids);
+      return;
+    }
+    if (allElements.length) store.selectElements(allElements);
+  };
+
+  const centerSelection = () => {
+    if (!hasSelection) return;
+    applyToSelected((el: any) => {
+      el.set({
+        x: Math.round((store?.width || 0) / 2 - (el?.width || 0) / 2),
+        y: Math.round((store?.height || 0) / 2 - (el?.height || 0) / 2),
+      });
+    });
+  };
+
+  const cropSelection = () => {
+    if (!hasSelection) return;
+    applyToSelected((el: any) => {
+      if (el?.type !== "image") return;
+      const cw = Number(el?.cropWidth);
+      const ch = Number(el?.cropHeight);
+      const isCropped =
+        Number.isFinite(cw) &&
+        Number.isFinite(ch) &&
+        cw > 0 &&
+        ch > 0 &&
+        (cw < 0.999 || ch < 0.999);
+      el.set(
+        isCropped
+          ? { cropX: 0, cropY: 0, cropWidth: 1, cropHeight: 1 }
+          : { cropX: 0.1, cropY: 0.1, cropWidth: 0.8, cropHeight: 0.8 },
+      );
+    });
+  };
+
+  const rotateSelection = () => {
+    if (!hasSelection) return;
+    applyToSelected((el: any) => {
+      el.set({ rotation: (Number(el?.rotation) || 0) + 90 });
+    });
+  };
+
+  const flipHorizontal = () => {
+    if (!hasSelection) return;
+    applyToSelected((el: any) => {
+      if (typeof el?.flipX === "boolean") {
+        el.set({ flipX: !el.flipX });
+        return;
+      }
+      const scaleX = Number(el?.scaleX) || 1;
+      const w = Number(el?.width) || 0;
+      const x = Number(el?.x) || 0;
+      const delta = w > 0 ? (scaleX > 0 ? w : -w) : 0;
+      el.set({ scaleX: scaleX * -1, x: x + delta });
+    });
+  };
+
+  const flipVertical = () => {
+    if (!hasSelection) return;
+    applyToSelected((el: any) => {
+      if (typeof el?.flipY === "boolean") {
+        el.set({ flipY: !el.flipY });
+        return;
+      }
+      const scaleY = Number(el?.scaleY) || 1;
+      const h = Number(el?.height) || 0;
+      const y = Number(el?.y) || 0;
+      const delta = h > 0 ? (scaleY > 0 ? h : -h) : 0;
+      el.set({ scaleY: scaleY * -1, y: y + delta });
+    });
+  };
+
+  const resizeWidth = (nextWidth: number) => {
+    if (!hasSelection || !Number.isFinite(nextWidth) || nextWidth <= 0) return;
+    applyToSelected((el: any) => {
+      const payload: any = { width: nextWidth };
+      const currentW = Number(el?.width) || 0;
+      const currentH = Number(el?.height) || 0;
+      if (lockAspect && currentW > 0 && currentH > 0) {
+        payload.height = Math.max(1, Math.round(currentH * (nextWidth / currentW)));
+      }
+      el.set(payload);
+    });
+  };
+
+  const resizeHeight = (nextHeight: number) => {
+    if (!hasSelection || !Number.isFinite(nextHeight) || nextHeight <= 0) return;
+    applyToSelected((el: any) => {
+      const payload: any = { height: nextHeight };
+      const currentW = Number(el?.width) || 0;
+      const currentH = Number(el?.height) || 0;
+      if (lockAspect && currentW > 0 && currentH > 0) {
+        payload.width = Math.max(1, Math.round(currentW * (nextHeight / currentH)));
+      }
+      el.set(payload);
+    });
+  };
+
+  const cloneSelection = () => {
+    if (!hasSelection || !page || typeof page?.addElement !== "function") return;
+    const snapshot = typeof store?.toJSON === "function" ? store.toJSON() : null;
+    const activePageId = page?.id;
+    const pageSnap = snapshot?.pages?.find?.((p: any) => p?.id === activePageId);
+    const children = Array.isArray(pageSnap?.children) ? pageSnap.children : [];
+    const selectedIds = new Set(selectedElements.map((el: any) => el?.id).filter(Boolean));
+    const clones: any[] = [];
+
+    children.forEach((child: any) => {
+      if (!selectedIds.has(child?.id)) return;
+      const { id, ...rest } = child || {};
+      if (!rest?.type) return;
+      const created = page.addElement({
+        ...rest,
+        x: (Number(rest?.x) || 0) + 20,
+        y: (Number(rest?.y) || 0) + 20,
+      });
+      if (created?.id) clones.push(created.id);
+    });
+
+    if (clones.length && typeof store?.selectElements === "function") {
+      store.selectElements(clones);
+    }
+  };
+
+  const makeSvgDataUrl = (svg: string) =>
+    `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+
+  const addStroke = (variant: "brush" | "pen") => {
+    if (!page || typeof page?.addElement !== "function") return;
+    const sw = variant === "brush" ? 12 : 5;
+    const w = Math.round(Math.min(360, Math.max(220, (store?.width || 0) * 0.28)));
+    const h = Math.round(w * 0.28);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="M 10 ${Math.round(
+      h * 0.7,
+    )} C ${Math.round(w * 0.3)} ${Math.round(h * 0.15)}, ${Math.round(
+      w * 0.7,
+    )} ${Math.round(h * 0.95)}, ${w - 10} ${Math.round(
+      h * 0.35,
+    )}" fill="none" stroke="#111827" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" opacity="${
+      variant === "brush" ? 0.9 : 1
+    }"/></svg>`;
+
+    const anchor = hasSelection ? selected : null;
+    const x = anchor
+      ? Math.round((Number(anchor?.x) || 0) + (Number(anchor?.width) || 0) / 2 - w / 2)
+      : Math.round(((store?.width || 0) - w) / 2);
+    const y = anchor
+      ? Math.round((Number(anchor?.y) || 0) + (Number(anchor?.height) || 0) / 2 - h / 2)
+      : Math.round(((store?.height || 0) - h) / 2);
+
+    const created = page.addElement({
+      type: "image",
+      src: makeSvgDataUrl(svg),
+      x,
+      y,
+      width: w,
+      height: h,
+      selectable: true,
+      draggable: true,
+      alwaysOnTop: true,
+      name: variant === "brush" ? "brush-stroke" : "pen-stroke",
+      custom: { tool: variant },
+    });
+    if (created && typeof store?.selectElements === "function") {
+      store.selectElements([created]);
+    }
+  };
+
+  const applyGradient = () => {
+    if (!page || typeof page?.addElement !== "function") return;
+
+    if (!hasSelection) {
+      const w = Number(store?.width) || 0;
+      const h = Number(store?.height) || 0;
+      if (w <= 0 || h <= 0) return;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563EB" stop-opacity="0.55"/><stop offset="1" stop-color="#60A5FA" stop-opacity="0.15"/></linearGradient></defs><rect x="0" y="0" width="${w}" height="${h}" fill="url(#g)"/></svg>`;
+      const overlay = page.addElement({
+        type: "image",
+        src: makeSvgDataUrl(svg),
+        x: 0,
+        y: 0,
+        width: w,
+        height: h,
+        selectable: true,
+        draggable: true,
+        alwaysOnTop: true,
+        name: "gradient-overlay",
+        opacity: 0.6,
+        custom: { tool: "gradient" },
+      });
+      if (overlay && typeof store?.selectElements === "function") store.selectElements([overlay]);
+      return;
+    }
+
+    const created: any[] = [];
+    applyToSelected((el: any) => {
+      if (el?.type === "text" || el?.type === "shape") {
+        el.set({ fill: "linear-gradient(135deg, #2563EB 0%, #60A5FA 100%)" });
+        return;
+      }
+      if (el?.type !== "image") return;
+      const w = Number(el?.width) || 0;
+      const h = Number(el?.height) || 0;
+      if (w <= 0 || h <= 0) return;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563EB" stop-opacity="0.65"/><stop offset="1" stop-color="#60A5FA" stop-opacity="0.15"/></linearGradient></defs><rect x="0" y="0" width="${w}" height="${h}" fill="url(#g)"/></svg>`;
+      const overlay = page.addElement({
+        type: "image",
+        src: makeSvgDataUrl(svg),
+        x: Number(el?.x) || 0,
+        y: Number(el?.y) || 0,
+        width: w,
+        height: h,
+        selectable: true,
+        draggable: true,
+        alwaysOnTop: true,
+        name: "gradient-overlay",
+        opacity: 0.55,
+        custom: { tool: "gradient", targetId: el?.id },
+      });
+      if (overlay) created.push(overlay);
+    });
+
+    if (created.length && typeof store?.selectElements === "function") {
+      store.selectElements(created);
+    }
+  };
+
+  const toggleBlurSharp = () => {
+    if (!hasSelection) {
+      if (!page || typeof page?.addElement !== "function") return;
+      const w = Number(store?.width) || 0;
+      const h = Number(store?.height) || 0;
+      if (w <= 0 || h <= 0) return;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><filter id="blur"><feGaussianBlur stdDeviation="6"/></filter></defs><rect width="${w}" height="${h}" fill="#ffffff" opacity="0.001"/><rect width="${w}" height="${h}" fill="#000000" opacity="0.15" filter="url(#blur)"/></svg>`;
+      const overlay = page.addElement({
+        type: "image",
+        src: makeSvgDataUrl(svg),
+        x: 0,
+        y: 0,
+        width: w,
+        height: h,
+        selectable: true,
+        draggable: true,
+        alwaysOnTop: true,
+        name: "blur-overlay",
+        opacity: 0.65,
+        custom: { tool: "blur" },
+      });
+      if (overlay && typeof store?.selectElements === "function") {
+        store.selectElements([overlay]);
+      }
+      return;
+    }
+    applyToSelected((el: any) => {
+      if (el?.type !== "image") return;
+      const isBlurred = !!el?.blurEnabled && (Number(el?.blurRadius) || 0) > 0;
+      el.set(
+        isBlurred
+          ? { blurEnabled: false, blurRadius: 0, custom: { ...(el.custom || {}), sharp: true } }
+          : { blurEnabled: true, blurRadius: 6, custom: { ...(el.custom || {}), sharp: false } },
+      );
+    });
+  };
+
+  const eraseSelection = () => {
+    const targets = hasSelection ? selectedElements.slice() : allElements.slice();
+    if (!targets.length) return;
+    targets.forEach((el: any) => {
+      if (typeof el?.remove === "function") el.remove();
+    });
+  };
+
+  const removeBgPreset = () => {
+    if (!hasSelection) return;
+    applyToSelected((el: any) => {
+      if (el?.type !== "image") return;
+      el.set({
+        brightnessEnabled: true,
+        brightness: 0.08,
+        filters: {
+          contrast: { intensity: 0.55 },
+          saturation: { intensity: -0.15 },
+        },
+        shadowEnabled: true,
+        shadowBlur: 8,
+        shadowOffsetX: 0,
+        shadowOffsetY: 2,
+        shadowOpacity: 0.25,
+        shadowColor: "#000000",
+        custom: { ...(el.custom || {}), removeBg: true },
+      });
+    });
+  };
+
+  const alignSelection = () => {
+    if (!hasSelection) return;
+    const nextMode = alignMode === "left" ? "center" : alignMode === "center" ? "right" : "left";
+    setAlignMode(nextMode);
+    applyToSelected((el: any) => {
+      const w = Number(el?.width) || 0;
+      if (nextMode === "left") {
+        el.set({ x: 0 });
+        return;
+      }
+      if (nextMode === "center") {
+        el.set({ x: Math.round((store?.width || 0) / 2 - w / 2) });
+        return;
+      }
+      el.set({ x: Math.round((store?.width || 0) - w) });
+    });
+  };
+
+  const setBorder = (value: number) => {
+    if (!hasSelection || !Number.isFinite(value)) return;
+    const next = Math.max(0, value);
+    applyToSelected((el: any) => {
+      if (el?.type === "image") {
+        el.set({
+          borderSize: next,
+          borderColor: el?.borderColor || "#111827",
+        });
+      } else {
+        el.set({
+          strokeWidth: next,
+          stroke: el?.stroke || "#111827",
+        });
+      }
+    });
+  };
+
+  const setCorners = (value: number) => {
+    if (!hasSelection || !Number.isFinite(value)) return;
+    const next = Math.max(0, value);
+    applyToSelected((el: any) => {
+      el.set({ cornerRadius: next });
+    });
+  };
+
+  const setShadow = (value: number) => {
+    if (!hasSelection || !Number.isFinite(value)) return;
+    const blur = Math.max(0, value);
+    applyToSelected((el: any) => {
+      el.set({
+        shadowEnabled: blur > 0,
+        shadowBlur: blur,
+        shadowOffsetX: blur > 0 ? 4 : 0,
+        shadowOffsetY: blur > 0 ? 4 : 0,
+        shadowOpacity: blur > 0 ? 0.28 : 0,
+        shadowColor: "#000000",
+      });
+    });
+  };
+
+  const setOpacity = (value: number) => {
+    if (!hasSelection || !Number.isFinite(value)) return;
+    const opacity = Math.max(0, Math.min(100, value)) / 100;
+    applyToSelected((el: any) => {
+      el.set({ opacity });
+    });
+  };
 
   return (
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10 relative overflow-hidden">
@@ -53,7 +553,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
           {/* Toolbar Buttons */}
           <div className="flex items-center gap-6">
             {/* Move */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={centerSelection}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -115,7 +623,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Crop */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={cropSelection}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -149,7 +665,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Rotate */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={rotateSelection}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -176,7 +700,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Flip H */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={flipHorizontal}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -231,7 +763,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Flip V */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={flipVertical}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -344,14 +884,43 @@ export default function FormatPanel({ store }: FormatPanelProps) {
               <div className="flex flex-col">
                 <span className="text-[12px] text-[#6B7280] mb-1">Width</span>
                 <input
-                  type="text"
-                  value="800"
+                  ref={widthRef}
+                  type="number"
+                  value={widthInput}
+                  disabled={!hasSelection}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter") {
+                      const parsed = Number(widthInput);
+                      if (Number.isFinite(parsed) && parsed > 0) resizeWidth(parsed);
+                      widthRef.current?.blur();
+                    }
+                    if (e.key === "Escape") {
+                      setWidthInput(String(widthValue));
+                      widthRef.current?.blur();
+                    }
+                  }}
+                  onChange={(e) => setWidthInput(e.target.value)}
+                  onBlur={() => {
+                    const parsed = Number(widthInput);
+                    if (Number.isFinite(parsed) && parsed > 0) resizeWidth(parsed);
+                    setWidthInput(String(widthValue));
+                  }}
                   className="flex flex-1 items-center w-16 px-2 py-0.5 rounded border border-[#D1D5DC] bg-white text-[14px] text-[#111827] outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Lock */}
-              <div className="flex items-center justify-center mt-4">
+              <button
+                type="button"
+                onClick={() => setLockAspect((v) => !v)}
+                onMouseDown={(e) => e.stopPropagation()}
+                className={`flex items-center justify-center mt-4 rounded ${
+                  lockAspect ? "bg-[#EEF2FF]" : ""
+                }`}
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M7 10V7C7 5.3 8.3 4 10 4H14C15.7 4 17 5.3 17 7V10M6 10H18V20H6V10Z"
@@ -361,15 +930,37 @@ export default function FormatPanel({ store }: FormatPanelProps) {
                     strokeLinejoin="round"
                   />
                 </svg>
-              </div>
+              </button>
 
               {/* Height */}
               <div className="flex flex-col">
                 <span className="text-[12px] text-[#6B7280] mb-1">Height</span>
                 <input
-                  type="text"
-                  value="600"
-                  className="flex items-center w-16 px-2 py-0 rounded border border-[#D1D5DC] bg-white text-[14px] text-[#111827] outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-0 h-9 rounded-[4px]"
+                  ref={heightRef}
+                  type="number"
+                  value={heightInput}
+                  disabled={!hasSelection}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter") {
+                      const parsed = Number(heightInput);
+                      if (Number.isFinite(parsed) && parsed > 0) resizeHeight(parsed);
+                      heightRef.current?.blur();
+                    }
+                    if (e.key === "Escape") {
+                      setHeightInput(String(heightValue));
+                      heightRef.current?.blur();
+                    }
+                  }}
+                  onChange={(e) => setHeightInput(e.target.value)}
+                  onBlur={() => {
+                    const parsed = Number(heightInput);
+                    if (Number.isFinite(parsed) && parsed > 0) resizeHeight(parsed);
+                    setHeightInput(String(heightValue));
+                  }}
+                  className="flex items-center w-16 px-2 py-0 border border-[#D1D5DC] bg-white text-[14px] text-[#111827] outline-none focus:ring-2 focus:ring-blue-500 flex-1 min-w-0 h-9 rounded-[4px]"
                   style={{
                     flex: "1 0 0",
                     borderRadius: "4px",
@@ -398,7 +989,20 @@ export default function FormatPanel({ store }: FormatPanelProps) {
 
           <div className="flex items-center gap-6">
             {/* Select */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={() => {
+                setDrawingTool(null);
+                normalizeSelection();
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!page || !allElements.length}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                page && allElements.length
+                  ? "hover:bg-[#F3F4F6]"
+                  : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -418,7 +1022,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Brush */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={() => setDrawingTool("brush")}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!page}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                page ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -452,7 +1064,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Pen */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={() => setDrawingTool("pen")}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!page}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                page ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -493,7 +1113,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Clone */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={cloneSelection}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -527,7 +1155,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Gradient */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={() => setEffectTool("gradient")}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!page}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                page ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -561,7 +1197,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Blur/Sharp */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={() => setEffectTool("blur")}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!page}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                page ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -583,7 +1227,17 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Erase */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={() => setEffectTool("erase")}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!page || (!hasSelection && !allElements.length)}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                page && (hasSelection || allElements.length)
+                  ? "hover:bg-[#F3F4F6]"
+                  : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -610,7 +1264,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </button>
 
             {/* Remove BG */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            {/* <button
+              type="button"
+              onClick={removeBgPreset}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -655,7 +1317,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
                 />
               </svg>
               <span className="text-[11px] mt-2 text-[#6B7280]">Remove BG</span>
-            </button>
+            </button> */}
           </div>
 
           {/* Divider */}
@@ -665,7 +1327,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
 
           <div className="flex items-center gap-6">
             {/* Align */}
-            <button className="flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md hover:bg-[#F3F4F6] transition">
+            <button
+              type="button"
+              onClick={alignSelection}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={!hasSelection}
+              className={`flex flex-col items-center justify-center w-[56px] h-[64px] rounded-md transition ${
+                hasSelection ? "hover:bg-[#F3F4F6]" : "opacity-40 cursor-not-allowed"
+              }`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -756,10 +1426,31 @@ export default function FormatPanel({ store }: FormatPanelProps) {
                 <div className="flex flex-col">
                   <span className="text-[12px] text-[#6B7280]">Border</span>
                   <input
-                    type="text"
-                    value="0"
-                    className="w-[70px] flex flex-1 items-center px-[8px] pr-[48px] py-[3px] rounded-[4px] border border-[#D1D5DC] bg-white text-[13px] text-[#111827] outline-none"
-                    style={{ display: "flex" }}
+                    type="number"
+                    ref={borderRef}
+                    value={borderInput}
+                    disabled={!hasSelection}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        const parsed = Number(borderInput);
+                        if (Number.isFinite(parsed)) setBorder(parsed);
+                        borderRef.current?.blur();
+                      }
+                      if (e.key === "Escape") {
+                        setBorderInput(String(borderValue));
+                        borderRef.current?.blur();
+                      }
+                    }}
+                    onChange={(e) => setBorderInput(e.target.value)}
+                    onBlur={() => {
+                      const parsed = Number(borderInput);
+                      if (Number.isFinite(parsed)) setBorder(parsed);
+                      setBorderInput(String(borderValue));
+                    }}
+                    className="w-[70px] px-[8px] py-[3px] rounded-[4px] border border-[#D1D5DC] bg-white text-[13px] text-[#111827] outline-none"
                   />
                 </div>
               </div>
@@ -779,9 +1470,31 @@ export default function FormatPanel({ store }: FormatPanelProps) {
                 <div className="flex flex-col">
                   <span className="text-[12px] text-[#6B7280]">Corners</span>
                   <input
-                    type="text"
-                    value="0"
-                    className="w-[70px] flex flex-1 items-center px-[8px] pr-[48px] py-[3px] rounded-[4px] border border-[#D1D5DC] bg-white text-[13px] text-[#111827] outline-none"
+                    type="number"
+                    ref={cornersRef}
+                    value={cornersInput}
+                    disabled={!hasSelection}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        const parsed = Number(cornersInput);
+                        if (Number.isFinite(parsed)) setCorners(parsed);
+                        cornersRef.current?.blur();
+                      }
+                      if (e.key === "Escape") {
+                        setCornersInput(String(cornersValue));
+                        cornersRef.current?.blur();
+                      }
+                    }}
+                    onChange={(e) => setCornersInput(e.target.value)}
+                    onBlur={() => {
+                      const parsed = Number(cornersInput);
+                      if (Number.isFinite(parsed)) setCorners(parsed);
+                      setCornersInput(String(cornersValue));
+                    }}
+                    className="w-[70px] px-[8px] py-[3px] rounded-[4px] border border-[#D1D5DC] bg-white text-[13px] text-[#111827] outline-none"
                   />
                 </div>
               </div>
@@ -802,9 +1515,31 @@ export default function FormatPanel({ store }: FormatPanelProps) {
                 <div className="flex flex-col">
                   <span className="text-[12px] text-[#6B7280]">Shadow</span>
                   <input
-                    type="text"
-                    value="0"
-                    className="w-[70px] flex flex-1 items-center px-[8px] pr-[48px] py-[3px] rounded-[4px] border border-[#D1D5DC] bg-white text-[13px] text-[#111827] outline-none"
+                    type="number"
+                    ref={shadowRef}
+                    value={shadowInput}
+                    disabled={!hasSelection}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        const parsed = Number(shadowInput);
+                        if (Number.isFinite(parsed)) setShadow(parsed);
+                        shadowRef.current?.blur();
+                      }
+                      if (e.key === "Escape") {
+                        setShadowInput(String(shadowValue));
+                        shadowRef.current?.blur();
+                      }
+                    }}
+                    onChange={(e) => setShadowInput(e.target.value)}
+                    onBlur={() => {
+                      const parsed = Number(shadowInput);
+                      if (Number.isFinite(parsed)) setShadow(parsed);
+                      setShadowInput(String(shadowValue));
+                    }}
+                    className="w-[70px] px-[8px] py-[3px] rounded-[4px] border border-[#D1D5DC] bg-white text-[13px] text-[#111827] outline-none"
                   />
                 </div>
               </div>
@@ -836,7 +1571,10 @@ export default function FormatPanel({ store }: FormatPanelProps) {
                       type="range"
                       min="0"
                       max="100"
-                      defaultValue="100"
+                      value={opacityValue}
+                      disabled={!hasSelection}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onChange={(e) => setOpacity(Number(e.target.value))}
                       className="outline-none appearance-none"
                       style={{
                         width: "133px",
@@ -849,7 +1587,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
 
                     {/* value */}
                     <span className="text-[12px] text-[#6B7280] w-[40px]">
-                      100%
+                      {opacityValue}%
                     </span>
                   </div>
                 </div>
@@ -882,4 +1620,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
       </button>
     </div>
   );
-}
+},
+);
+
+export default FormatPanel;

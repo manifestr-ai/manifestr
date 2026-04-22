@@ -1,12 +1,183 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface EffectPanelProps {
   store: any;
 }
 
 export default function EffectPanel({ store }: EffectPanelProps) {
-  const selected = store.selectedElements;
-  const page = store.activePage;
+  const selectedElements = Array.isArray(store?.selectedElements) ? store.selectedElements : [];
+  const hasSelection = selectedElements.length > 0;
+
+  type AnimationType = "enter" | "exit" | "loop";
+  type AnimationName = "none" | "fade" | "move" | "zoom" | "blink";
+  type Direction =
+    | "right"
+    | "left"
+    | "up"
+    | "down"
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right";
+  type ZoomDirection = "in" | "out";
+
+  type AnimationSpec = {
+    type: AnimationType;
+    name: AnimationName;
+    duration: number;
+    delay: number;
+    enabled: boolean;
+    data: Record<string, any>;
+  };
+
+  const DEFAULT_ANIMATION: AnimationSpec = {
+    type: "enter",
+    name: "none",
+    duration: 700,
+    delay: 0,
+    enabled: true,
+    data: { start: "with-previous" },
+  };
+
+  const isFn = (v: any): v is (...args: any[]) => any => typeof v === "function";
+
+  const withHistoryTransaction = (fn: () => void) => {
+    if (isFn(store?.history?.startTransaction) && isFn(store?.history?.endTransaction)) {
+      store.history.startTransaction();
+      try {
+        fn();
+      } finally {
+        store.history.endTransaction();
+      }
+      return;
+    }
+    fn();
+  };
+
+  const coerceAnimationType = (v: any): AnimationType => (v === "exit" || v === "loop" ? v : "enter");
+  const coerceAnimationName = (v: any): AnimationName =>
+    v === "fade" || v === "move" || v === "zoom" || v === "blink" ? v : "none";
+
+  const buildDataForName = (name: AnimationName, base: AnimationSpec): Record<string, any> => {
+    const start = base?.data?.start || "on-click";
+    if (name === "move") {
+      const direction: Direction =
+        base?.data?.direction === "left" ||
+        base?.data?.direction === "up" ||
+        base?.data?.direction === "down" ||
+        base?.data?.direction === "top-left" ||
+        base?.data?.direction === "top-right" ||
+        base?.data?.direction === "bottom-left" ||
+        base?.data?.direction === "bottom-right"
+          ? base.data.direction
+          : "right";
+      return { start, direction, strength: base?.data?.strength ?? 1 };
+    }
+    if (name === "zoom") {
+      const direction: ZoomDirection = base?.data?.direction === "out" ? "out" : "in";
+      return { start, direction, strength: base?.data?.strength ?? 1 };
+    }
+    return { start };
+  };
+
+  const normalizeAnimation = (anyAnim: any): AnimationSpec => {
+    const type = coerceAnimationType(anyAnim?.type);
+    const name = coerceAnimationName(anyAnim?.name);
+    const duration = typeof anyAnim?.duration === "number" ? anyAnim.duration : DEFAULT_ANIMATION.duration;
+    const delay = typeof anyAnim?.delay === "number" ? anyAnim.delay : DEFAULT_ANIMATION.delay;
+    const enabled = typeof anyAnim?.enabled === "boolean" ? anyAnim.enabled : true;
+    const data = buildDataForName(name, {
+      type,
+      name,
+      duration,
+      delay,
+      enabled,
+      data: typeof anyAnim?.data === "object" && anyAnim.data ? anyAnim.data : DEFAULT_ANIMATION.data,
+    });
+    return { type, name, duration, delay, enabled, data };
+  };
+
+  const [anim, setAnim] = useState<AnimationSpec>(DEFAULT_ANIMATION);
+
+  useEffect(() => {
+    const first = selectedElements[0];
+    const current =
+      Array.isArray(first?.animations) && first.animations.length > 0 ? first.animations[0] : null;
+    setAnim(current ? normalizeAnimation(current) : DEFAULT_ANIMATION);
+  }, [selectedElements.map((e: any) => e?.id).join("|")]);
+
+  const previewSelected = (next: AnimationSpec) => {
+    if (!hasSelection) return;
+    if (!isFn(store?.play)) return;
+    const ids = selectedElements.map((e: any) => e?.id).filter(Boolean);
+    if (ids.length === 0) return;
+    const pageStart = (store?.activePage?.startTime as number) || 0;
+    const maxTime = Math.max(0, next.delay + next.duration) + 300;
+    try {
+      if (isFn(store?.stop)) store.stop();
+    } catch {}
+    const play = () => {
+      store.play({
+        animatedElementsIds: ids,
+        startTime: pageStart,
+        endTime: pageStart + maxTime,
+        repeat: false,
+      });
+    };
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(play);
+    } else {
+      play();
+    }
+  };
+
+  const applyToSelected = (next: AnimationSpec) => {
+    const coercedNext =
+      next.name === "none" ? next : { ...next, data: { ...next.data, start: "with-previous" } };
+    setAnim(coercedNext);
+    if (!hasSelection) return;
+    withHistoryTransaction(() => {
+      selectedElements.forEach((el: any) => {
+        if (!el || !isFn(el.set)) return;
+        if (coercedNext.name === "none") {
+          el.set({ animations: [] });
+          return;
+        }
+        el.set({
+          animations: [
+            {
+              type: coercedNext.type,
+              name: coercedNext.name,
+              delay: coercedNext.delay,
+              duration: coercedNext.duration,
+              enabled: coercedNext.enabled,
+              data: buildDataForName(coercedNext.name, coercedNext),
+            },
+          ],
+        });
+      });
+    });
+    if (coercedNext.name === "none") {
+      try {
+        if (isFn(store?.stop)) store.stop();
+      } catch {}
+      return;
+    }
+    previewSelected(coercedNext);
+  };
+
+  const uiActiveKey = useMemo(() => {
+    if (anim.name === "none") return "none";
+    if (anim.name === "fade") return "fade";
+    if (anim.name === "blink") return "dissolve";
+    if (anim.name === "move") {
+      return anim?.data?.direction === "left" ? "wipe-right" : "wipe-left";
+    }
+    if (anim.name === "zoom") {
+      return anim?.data?.direction === "out" ? "zoom-out" : "zoom-in";
+    }
+    return "none";
+  }, [anim.name, anim.data]);
 
   // if (!selected || selected.length === 0) {
   //   return (
@@ -21,9 +192,13 @@ export default function EffectPanel({ store }: EffectPanelProps) {
         <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10">
           {/* None */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "none" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() => applyToSelected(DEFAULT_ANIMATION)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -57,9 +232,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Fade */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "fade" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "fade",
+                data: buildDataForName("fade", anim),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -149,9 +334,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Dissolve */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "dissolve" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "blink",
+                data: buildDataForName("blink", anim),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -178,9 +373,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Wipe */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "wipe-left" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "move",
+                data: buildDataForName("move", { ...anim, data: { ...anim.data, direction: "right" } }),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -221,9 +426,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Wipe */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "wipe-right" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "move",
+                data: buildDataForName("move", { ...anim, data: { ...anim.data, direction: "left" } }),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -264,9 +479,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Slide */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              anim.name === "move" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "move",
+                data: buildDataForName("move", { ...anim, data: { ...anim.data, direction: "right" } }),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -300,9 +525,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Zoom */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "zoom-in" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "zoom",
+                data: buildDataForName("zoom", { ...anim, data: { ...anim.data, direction: "in" } }),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -350,9 +585,19 @@ export default function EffectPanel({ store }: EffectPanelProps) {
 
           {/* Zoom */}
           <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            className={`flex flex-col items-center justify-center w-[44px] rounded-md transition py-2 ${
+              uiActiveKey === "zoom-out" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
             type="button"
             tabIndex={0}
+            disabled={!hasSelection}
+            onClick={() =>
+              applyToSelected({
+                ...anim,
+                name: "zoom",
+                data: buildDataForName("zoom", { ...anim, data: { ...anim.data, direction: "out" } }),
+              })
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
