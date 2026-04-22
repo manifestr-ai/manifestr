@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import { useState } from 'react'
 import AdminHeader from '../../components/admin/AdminHeader'
 import AdminSidebar from '../../components/admin/AdminSidebar'
 import ProductUsageHeader from '../../components/admin/product-usage/ProductUsageHeader'
@@ -33,6 +34,16 @@ function SectionLabel({ children }) {
 export default function AdminProductUsage({ productUsageData }) {
   const stats = productUsageData?.stats || []
   const behaviourStats = productUsageData?.behaviourStats || []
+  const journeyModes = productUsageData?.journeyModes || {}
+  const journeyModeOptions = journeyModes?.options || [
+    { id: 'editors', label: 'Editors' },
+    { id: 'tools', label: 'Tools' },
+  ]
+  const [selectedJourneyMode, setSelectedJourneyMode] = useState(journeyModes?.defaultMode || 'tools')
+  const selectedJourneyData = journeyModes?.[selectedJourneyMode] || {}
+  const isEditorsMode = selectedJourneyMode === 'editors'
+  const usageSectionLabel = isEditorsMode ? 'Most Used Editors' : 'Most Used Tools'
+  const journeySectionLabel = isEditorsMode ? 'Cross-Editor Journeys' : 'Cross-Tool Journeys'
 
   return (
     <>
@@ -137,27 +148,47 @@ export default function AdminProductUsage({ productUsageData }) {
 
               <CompletionTime data={productUsageData?.completionTime} />
 
-              {/* Most Used Tools */}
-              <SectionLabel>Most Used Tools</SectionLabel>
-              <ToolUsersGrid data={productUsageData?.toolUsers} />
-
-              {/* ── Cross-Tool Journeys ── */}
-              <SectionLabel>Cross-Tool Journeys</SectionLabel>
-
-              {/* Most common tool sequences */}
-              <MostCommonJourneys data={productUsageData?.mostCommonJourneys} />
-
-              {/* Drop-off funnel + Multi-tool usage */}
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
-                <div className="w-full min-w-0 lg:flex-1">
-                  <TransitionDropoffsFunnel data={productUsageData?.transitionDropoffsFunnel} />
-                </div>
-                <div className="w-full min-w-0 lg:flex-1">
-                  <MultiToolUsage data={productUsageData?.multiToolUsage} />
+              <div className="w-full">
+                <div className="inline-flex items-center rounded-[10px] border border-[#e4e4e7] bg-white p-1">
+                  {journeyModeOptions.map((option) => {
+                    const isActive = selectedJourneyMode === option.id
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setSelectedJourneyMode(option.id)}
+                        className={`h-8 rounded-[8px] px-4 text-[14px] leading-5 transition-colors ${
+                          isActive
+                            ? 'bg-[#18181b] font-medium text-white'
+                            : 'font-normal text-[#52525b] hover:bg-[#f4f4f5]'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              <ToolPairingMatrix data={productUsageData?.toolPairingMatrix} />
+              <SectionLabel>{usageSectionLabel}</SectionLabel>
+              <ToolUsersGrid data={selectedJourneyData?.toolUsers || productUsageData?.toolUsers} />
+
+              <SectionLabel>{journeySectionLabel}</SectionLabel>
+
+              <MostCommonJourneys data={selectedJourneyData?.mostCommonJourneys || productUsageData?.mostCommonJourneys} />
+
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+                <div className="w-full min-w-0 lg:flex-1">
+                  <TransitionDropoffsFunnel
+                    data={selectedJourneyData?.transitionDropoffsFunnel || productUsageData?.transitionDropoffsFunnel}
+                  />
+                </div>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <MultiToolUsage data={selectedJourneyData?.multiToolUsage || productUsageData?.multiToolUsage} />
+                </div>
+              </div>
+
+              <ToolPairingMatrix data={selectedJourneyData?.toolPairingMatrix || productUsageData?.toolPairingMatrix} />
             </div>
           </div>
         </div>
