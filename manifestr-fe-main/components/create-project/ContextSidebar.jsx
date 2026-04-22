@@ -151,7 +151,6 @@ export default function ContextSidebar() {
               value={toneStyle}
               onChange={(e) => setToneStyle(e.target.value)}
               options={toneStyleOptions}
-              required
             />
           </div>
 

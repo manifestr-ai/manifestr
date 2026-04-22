@@ -42,7 +42,7 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
       <div className={
         viewMode === 'list'
           ? "flex flex-col gap-0 mb-6 bg-white rounded-lg border border-[#e4e4e7] overflow-hidden"
-          : `grid ${gridCols} gap-3 lg:gap-3 space-y-4 mb-6 justify-items-center`
+          : `grid ${gridCols} gap-6 mb-6`
       }>
         {viewMode === 'list' && (
           <div className="flex items-center px-4 py-3 border-b border-[#e4e4e7] bg-[#f4f4f5] text-[12px] font-medium text-[#71717a]">

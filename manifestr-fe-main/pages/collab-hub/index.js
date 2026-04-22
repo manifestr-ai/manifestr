@@ -117,7 +117,7 @@ export default function CollabHub() {
                   onClick={() => setShowCreateModal(true)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-[#18181b] text-white rounded-md h-[40px] px-4 flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity w-full md:w-auto"
+                  className="bg-white text-black border border-[#e4e4e7] rounded-md h-[40px] px-4 flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#f4f4f5] transition-colors w-full md:w-auto shadow-sm whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" />
                   New Collab

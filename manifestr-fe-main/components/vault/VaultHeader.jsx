@@ -16,7 +16,11 @@ export default function VaultHeader({ title = 'THE vault', description = 'Your s
             className="w-full h-full object-cover"
           />
           {isBlack ? (
-            <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/20 lg:hidden" />
+            <>
+              {/* Horizontal gradient from solid black to transparent (matches Figma) */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#18181b] from-[32%] via-[rgba(96,96,94,0)] via-[56%] to-[rgba(96,96,94,0)] to-[70%]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/20 lg:hidden" />
+            </>
           ) : (
             <div className="absolute inset-0 bg-gradient-to-b from-[#f4f4f5]/80 to-[#ffffff]/80 lg:hidden" />
           )}
@@ -29,26 +33,34 @@ export default function VaultHeader({ title = 'THE vault', description = 'Your s
         <div className="mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-0">
             {/* Left Section */}
-            <div className={`flex flex-col gap-2 w-full ${showActionButtons ? 'md:max-w-[300px]' : ''}`}>
+            <div className="flex flex-col gap-2 flex-1">
               {typeof title === 'string' ? (
-                <h1 className={`text-[34px] leading-[48px] tracking-[0.4063px] ${isBlack ? 'text-white' : 'text-[#18181b]'}`}>
-                  {title.split(' ').map((word, index) => {
-                    if (index === 0) {
-                      // First word: bold, uppercase, sans-serif (Hanken Grotesk)
-                      return (
-                        <span key={index} className="font-bold uppercase font-sans">
-                          {word}
-                        </span>
-                      )
-                    } else {
-                      // Rest: italicized, lowercase, serif (Playfair Display)
-                      return (
-                        <span key={index} className="italic lowercase font-accent">
-                          {' '}{word}
-                        </span>
-                      )
-                    }
-                  })}
+                <h1 className={`tracking-[0.4063px] ${isBlack ? 'text-white' : 'text-[#18181b]'}`}>
+                  {(() => {
+                    const words = title.split(' ')
+                    const first = words[0]
+                    const second = words[1]
+                    const rest = words.slice(2).join(' ')
+                    return (
+                      <>
+                        {first && (
+                          <span className="font-bold uppercase font-sans text-[34px] leading-[48px]">
+                            {first}
+                          </span>
+                        )}
+                        {second && (
+                          <span className="italic lowercase font-accent text-[44px] leading-[48px]">
+                            {' '}{second}
+                          </span>
+                        )}
+                        {rest && (
+                          <span className="font-light uppercase font-sans text-[34px] leading-[48px]">
+                            {' '}{rest}
+                          </span>
+                        )}
+                      </>
+                    )
+                  })()}
                 </h1>
               ) : (
                 <h1 className={`text-[48px] leading-[48px] tracking-tight ${isBlack ? 'text-white' : 'text-[#18181b]'}`}>
@@ -56,7 +68,7 @@ export default function VaultHeader({ title = 'THE vault', description = 'Your s
                 </h1>
               )}
               {description && (
-                <p className={`text-[16px] leading-[24px] tracking-[-0.3125px] max-w-[560px] ${isBlack ? 'text-white/80' : 'text-[#181818]'}`}>
+                <p className={`text-[16px] font-normal leading-[24px] tracking-[-0.312px] ${isBlack ? 'text-[#a1a1aa]' : 'text-[#181818]'}`} style={{ fontFamily: 'Inter' }}>
                   {description}
                 </p>
               )}
@@ -77,7 +89,7 @@ export default function VaultHeader({ title = 'THE vault', description = 'Your s
                     <Plus className="w-4 h-4" />
                     New Collab
                   </motion.button>
-                 
+
                   <motion.button
                     onClick={onUploadClick}
                     whileHover={{ scale: 1.02 }}

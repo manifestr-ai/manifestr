@@ -6,15 +6,15 @@ interface EditorBottomToolbarProps {
   editorType?: string;
 }
 
-type BottomToolbarTool = {
+interface ToolItem {
   key: string;
   label: string;
   icon: React.ReactNode;
   editor_for: string[];
   disabled?: boolean;
-};
+}
 
-const tools: BottomToolbarTool[] = [
+const tools: ToolItem[] = [
   {
     key: "ai_prompter",
     label: "AI Prompter",

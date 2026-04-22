@@ -145,10 +145,10 @@ export default function VaultArchived() {
     }
   }
 
-  // Background image URL for the header
+  // Background image URL for the header (dark marble wave - matches Figma)
   const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/Rectangle-3.png`
-    : 'http://localhost:3000/assets/banners/Rectangle-3.png'
+    ? `${window.location.origin}/assets/banners/abstract-black-wave.png`
+    : 'http://localhost:3000/assets/banners/abstract-black-wave.png'
 
   return (
     <>
@@ -158,10 +158,9 @@ export default function VaultArchived() {
       <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Header Section */}
         <VaultHeader
-          title="THE vault archived"
-          description="Hidden documents - unarchive to restore to main vault"
-          isBlack={true}
+          title="THE vault ARCHIVED/COMPLETED"
           backgroundImage={headerBackgroundImage}
+          isBlack={true}
           showActionButtons={false}
         />
 

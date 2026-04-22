@@ -47,10 +47,10 @@ export default function SidebarLayout({ children }) {
         {showCollabsFolderSidebar && (
           <motion.div
             initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 218.5, opacity: 1 }}
+            animate={{ width: 240, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="hidden md:block"
+            className="hidden md:block relative z-20"
           >
             <CollabsFolderSidebar />
           </motion.div>

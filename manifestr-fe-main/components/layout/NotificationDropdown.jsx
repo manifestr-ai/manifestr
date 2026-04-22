@@ -276,20 +276,18 @@ let svg_normal =`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
             {notification.title}
           </h3>
           <div className="flex items-center justify-between">
+            <button className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer">
+              Mark read
+            </button>
             <div className="flex items-center gap-4">
-              <button className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer">
-                Mark read
-              </button>
               <button className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer">
                 Dismiss
               </button>
-           
-            <button
-              className="flex items-center justify-center h-[28px] px-[10px] gap-[6px] rounded-[8px] bg-[#101828] text-white text-[12px] leading-[16px] font-medium hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              Open
-            </button>
-       
+              <button
+                className="flex items-center justify-center h-[28px] px-[10px] gap-[6px] rounded-[8px] bg-[#101828] text-white text-[12px] leading-[16px] font-medium hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                Open
+              </button>
             </div>
           </div>
         </div>

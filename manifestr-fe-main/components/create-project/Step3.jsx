@@ -44,11 +44,10 @@ function WorkingStyleCard({ style, isSelected, onClick }) {
     <div
       data-style-card="true"
       onClick={onClick}
-      className={`flex flex-col items-start pb-[34px] pt-[42px] px-6 rounded-[24px] h-[360px] cursor-pointer transition-all duration-200 ${
-        isSelected
-          ? "border-2 border-[#000000] shadow-[2px_2px_15px_0px_rgba(0,0,0,0.13)]"
-          : "border-2 border-transparent shadow-[2px_2px_15px_0px_rgba(0,0,0,0.13)] hover:shadow-[3px_3px_30px_0px_rgba(0,0,0,0.18)]"
-      }`}
+      className={`flex flex-col items-start pb-[34px] pt-[42px] px-6 rounded-[24px] h-[360px] cursor-pointer transition-all duration-200 ${isSelected
+        ? "border-2 border-[#000000] shadow-[2px_2px_15px_0px_rgba(0,0,0,0.13)]"
+        : "border-2 border-transparent shadow-[2px_2px_15px_0px_rgba(0,0,0,0.13)] hover:shadow-[3px_3px_30px_0px_rgba(0,0,0,0.18)]"
+        }`}
     >
       <div className="flex flex-col gap-8 items-center mb-[-10px] w-full">
         {/* Icon */}
@@ -93,10 +92,6 @@ export default function Step3({ selectedStyle, onStyleSelect }) {
           <p className="font-normal text-[18px] leading-[28px] text-center text-zinc-500 tracking-[-0.4395px]">
             MANIFESTR adapts to how you think, plan, and create.
           </p>
-
-          <div className="flex-1 text-center font-inter text-[12px] font-semibold leading-[16px] tracking-[3px] uppercase text-black">
-            START ANYWHERE. SWITCH ANYTIME.
-          </div>
         </div>
       </div>
 
@@ -114,24 +109,25 @@ export default function Step3({ selectedStyle, onStyleSelect }) {
       </div>
 
       {/* Footer Text */}
-      <p className="text-black text-center font-inter text-[16px] font-medium leading-[20px] tracking-[-0.15px]">
-        Not sure which to choose?
-      </p>
-      <div
-        style={{
-          width: "101px",
-          height: "101px",
-          borderRadius: "4353.013px",
-          background: "var(--base-muted, #F4F4F5)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: 600,
-          fontSize: "32px",
-          color: "#71717A",
-        }}
-      >
+      <div className="flex-1 text-center font-inter text-[15px] font-normal leading-[28px] tracking-[8px] uppercase text-[#71717A]">
+        START ANYWHERE. SWITCH ANYTIME.
+      </div>
+      <div className="w-full flex justify-end pr-4">
+        <div
+          style={{
+            width: "101px",
+            height: "101px",
+            borderRadius: "4353.013px",
+            background: "var(--base-muted, #F4F4F5)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 600,
+            fontSize: "32px",
+            color: "#71717A",
+          }}
+        >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="72"
@@ -158,5 +154,6 @@ export default function Step3({ selectedStyle, onStyleSelect }) {
         </svg>
       </div>
     </div>
-  );
+  </div>
+);
 }
