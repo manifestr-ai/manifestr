@@ -36,6 +36,19 @@ export default function ChartEditorPage() {
       : undefined;
 
   const [store, setStore] = useState<any>(null);
+  const [zoom, setZoom] = useState(1);
+
+  const clampZoom = (value: number) => Math.min(2, Math.max(0.5, value));
+
+  const handleZoomIn = () => {
+    setZoom((prev) => clampZoom(Number((prev + 0.1).toFixed(2))));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => clampZoom(Number((prev - 0.1).toFixed(2))));
+  };
+
+  const handleZoomReset = () => setZoom(1);
 
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -57,7 +70,7 @@ export default function ChartEditorPage() {
       {/* Main Content Area */}
       <div className="flex-grow flex relative overflow-hidden bg-gray-100">
         {/* Chart Editor Container (Full Size) */}
-        <div className="flex-grow overflow-hidden relative z-10">
+        <div className="flex-grow overflow-hidden relative z-10" style={{ zoom } as any}>
           <ChartEditor 
             generationId={actualGenerationId}
             onStoreReady={setStore}
@@ -67,7 +80,13 @@ export default function ChartEditorPage() {
         {/* Right Sidebar (Floating over grid on the right) */}
         <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
           <div className="pointer-events-auto">
-            <RightSidebar />
+            <RightSidebar
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onZoomReset={handleZoomReset}
+              documentId={actualGenerationId}
+              documentTitle="Chart"
+            />
           </div>
         </div>
 
