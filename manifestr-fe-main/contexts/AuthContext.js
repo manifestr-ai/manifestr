@@ -135,7 +135,12 @@ export function AuthProvider({ children }) {
 
           
             // Redirect to home or previous page
-            router.push('/home')
+              // Redirect to home or previous page
+              if (user?.is_admin) {
+                router.push('/admin/overview')
+            } else {
+                router.push('/home')
+            }
             return response.data
         } catch (error) {
             throw error

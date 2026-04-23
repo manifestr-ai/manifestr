@@ -378,6 +378,7 @@ const DEFAULT_PRODUCT_USAGE_DATA = {
   },
 }
 
+
 export async function getAdminProductUsageData(params = {}) {
   try {
     const response = await api.get(ENDPOINTS.ADMIN.PRODUCT_USAGE, {
@@ -385,10 +386,9 @@ export async function getAdminProductUsageData(params = {}) {
       params,
     })
 
-    return response?.data?.data || response?.data || DEFAULT_PRODUCT_USAGE_DATA
-  } catch (_error) {
-    return DEFAULT_PRODUCT_USAGE_DATA
+    return response?.data?.details || null
+  } catch (error) {
+    console.error('Product Usage API Error:', error?.response?.data || error.message)
+    return null
   }
 }
-
-export { DEFAULT_PRODUCT_USAGE_DATA }

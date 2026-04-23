@@ -197,10 +197,12 @@ export async function getAdminMonetizationData(params = {}) {
       params,
     })
 
-    return response?.data?.data || response?.data || DEFAULT_MONETIZATION_DATA
-  } catch (_error) {
-    return DEFAULT_MONETIZATION_DATA
+    // Correct mapping
+    return response?.data?.details || null
+
+  } catch (error) {
+    console.error('Retention API Error:', error?.response?.data || error.message)
+
+    return null // let UI handle error properly
   }
 }
-
-export { DEFAULT_MONETIZATION_DATA }

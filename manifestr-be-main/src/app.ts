@@ -16,6 +16,7 @@ import { StyleGuideController } from './controllers/style-guide.controller';
 import { EarlyAccessController } from './controllers/early-access.controller';
 import { CollaborationController } from './controllers/collaboration.controller';
 import { CollabProjectsController } from './controllers/collab-projects.controller';
+import { AdminController } from './controllers/admin.controller';
 
 class App {
     public app: Application;
@@ -122,6 +123,7 @@ class App {
             new EarlyAccessController(),
             new CollaborationController(), // NEW: Real-time collaboration
             new CollabProjectsController(), // NEW: Collab projects/folders
+            new AdminController(),
         ];
 
         controllers.forEach((controller) => {

@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabaseAdmin } from '../lib/supabase';
+import { supabase, supabaseAdmin } from '../lib/supabase';
 
 export interface AuthRequest extends Request {
     user?: {
         userId: string;
         email: string;
         email_confirmed_at?: string;
+        is_admin?: boolean;
     };
 }
 
@@ -39,11 +40,26 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
             });
         }
 
+         // 🔥 Get full user (including is_admin)
+            const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('id, email, is_admin')
+            .eq('id', user.id)
+            .single();
+
+        if (userError || !userData) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Forbidden: Invalid or expired token'
+            });
+        }
         // Attach user info to request
         req.user = {
             userId: user.id,
             email: user.email!,
-            email_confirmed_at: user.email_confirmed_at
+            email_confirmed_at: user.email_confirmed_at,
+            is_admin: userData.is_admin,
+   
         };
 
         next();

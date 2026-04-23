@@ -221,17 +221,16 @@ const DEFAULT_FEATURE_ADOPTION_DATA = {
   },
 }
 
-export async function getAdminFeatureAdoptionData(params = {}) {
+export const getAdminFeatureAdoptionData = async (params = {}) => {
   try {
     const response = await api.get(ENDPOINTS.ADMIN.FEATURE_ADOPTION, {
       baseURL: API_BASE_URL,
       params,
     })
 
-    return response?.data?.data || response?.data || DEFAULT_FEATURE_ADOPTION_DATA
-  } catch (_error) {
-    return DEFAULT_FEATURE_ADOPTION_DATA
+    return response?.data?.details || null
+  } catch (err) {
+    console.error('Feature Adoption API error:', err)
+    return null
   }
 }
-
-export { DEFAULT_FEATURE_ADOPTION_DATA }

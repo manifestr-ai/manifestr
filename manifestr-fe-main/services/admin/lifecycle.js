@@ -167,10 +167,10 @@ export async function getAdminLifecycleData(params = {}) {
       params,
     })
 
-    return response?.data?.data || response?.data || DEFAULT_LIFECYCLE_DATA
-  } catch (_error) {
-    return DEFAULT_LIFECYCLE_DATA
+    return response?.data?.details || null
+
+  } catch (error) {
+    console.error('Lifecycle API Error:', error?.response?.data || error.message)
+    return null
   }
 }
-
-export { DEFAULT_LIFECYCLE_DATA }

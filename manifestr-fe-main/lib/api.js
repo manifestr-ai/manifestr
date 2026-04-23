@@ -111,9 +111,10 @@ api.interceptors.response.use(
                 }
                 
                 // DON'T reject - return a resolved promise to prevent error popup
-                return Promise.resolve({
-                    data: { status: 'error', message: 'Session expired' }
-                });
+                // return Promise.resolve({
+                //     data: { status: 'error', message: 'Session expired' }
+                // });
+                return Promise.reject(error);
             } finally {
                 isRefreshing = false;
             }
