@@ -53,7 +53,7 @@ const SOCIAL_LINKS = {
 }
 
 const productLinks = [
-  { label: 'The Toolkit', href: '/toolkit' },
+  { label: 'The Toolkit', href: '/tools' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Blog', href: '/blog' },
 ]
@@ -61,7 +61,7 @@ const productLinks = [
 const companyLinks = [
   { label: 'About Us', href: '/about' },
   { label: 'Careers', href: '/careers' },
-  { label: 'Affiliate Program', href: '/affiliate' },
+  { label: 'Affiliate Program', href: '/affiliates' },
 ]
 
 const supportLinks = [
@@ -263,7 +263,7 @@ export default function Footer() {
               className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] lg:leading-[20px] text-[#a1a1aa] lg:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              Cookies Settings
+              Cookies Policy
             </Link>
           </div>
         </div>

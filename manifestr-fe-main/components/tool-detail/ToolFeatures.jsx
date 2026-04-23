@@ -10,34 +10,36 @@ export default function ToolFeatures({ tool }) {
 
   return (
     <section className="w-full bg-white py-[48px] md:py-[100px]">
-      <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-[80px]">
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center text-black text-[32px] md:text-[40px] lg:text-[51px] leading-[1.2] tracking-[-0.64px] lg:tracking-[-1.02px] mb-[32px] md:mb-[48px] lg:mb-[72px]"
-        >
-          {featureHeading ? (
-            featureHeading.map((part, i) =>
-              part.style === 'italic'
-                ? <em key={i} style={{ fontFamily: "'IvyPresto Headline', serif", fontStyle: 'italic', fontWeight: 600 }}>{part.text}</em>
-                : <span key={i} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>{part.text}</span>
-            )
-          ) : (
-            <>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
-                How {prefix}{' '}
-              </span>
-              <em style={{ fontFamily: "'IvyPresto Headline', serif", fontStyle: 'italic', fontWeight: 600 }}>
-                {displayName}
-              </em>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
-                {' '}moves your work forward
-              </span>
-            </>
-          )}
-        </motion.h2>
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 min-[1600px]:px-16">
+        <div className="w-full min-w-0 overflow-x-auto md:overflow-x-visible [scrollbar-width:thin] mb-[32px] md:mb-[48px] lg:mb-[72px]">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center text-black text-[32px] md:text-[40px] lg:text-[51px] leading-[1.2] tracking-[-0.64px] lg:tracking-[-1.02px] whitespace-nowrap w-max max-w-full min-w-0 mx-auto"
+          >
+            {featureHeading ? (
+              featureHeading.map((part, i) =>
+                part.style === 'italic'
+                  ? <em key={i} style={{ fontFamily: "'IvyPresto Headline', serif", fontStyle: 'italic', fontWeight: 600 }}>{part.text}</em>
+                  : <span key={i} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>{part.text}</span>
+              )
+            ) : (
+              <>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
+                  How {prefix}{' '}
+                </span>
+                <em style={{ fontFamily: "'IvyPresto Headline', serif", fontStyle: 'italic', fontWeight: 600 }}>
+                  {displayName}
+                </em>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
+                  {' '}moves your work forward
+                </span>
+              </>
+            )}
+          </motion.h2>
+        </div>
 
         {/* Rows match Figma 12468:22075 (image left) & 12468:22082 (image right) */}
         <div className="flex flex-col gap-[24px] md:gap-[28px] lg:gap-[36px]">
@@ -54,7 +56,7 @@ export default function ToolFeatures({ tool }) {
                 className={`flex flex-col ${imageLeft ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center justify-center gap-[24px] md:gap-8 lg:gap-[64px]`}
               >
                 <div
-                  className={`order-1 lg:order-0 shrink-0 w-full max-w-[502px] mx-auto lg:mx-0 h-[231px] md:h-[300px] lg:h-[387px] lg:w-[502px] rounded-[12px] overflow-hidden ${imageUrl ? '' : 'bg-[#E3E3E3] flex items-center justify-center'}`}
+                  className={`order-1 lg:order-0 shrink-0 w-full max-w-[540px] mx-auto lg:mx-0 h-[248px] md:h-[320px] lg:h-[414px] lg:w-[540px] rounded-[12px] overflow-hidden ${imageUrl ? '' : 'bg-[#E3E3E3] flex items-center justify-center'}`}
                 >
                   {imageUrl ? (
                     <CldImage src={imageUrl} alt="" className="w-full h-full object-cover pointer-events-none rounded-[12px]" />
@@ -67,27 +69,21 @@ export default function ToolFeatures({ tool }) {
                   )}
                 </div>
 
-                <div className="order-2 lg:order-0 flex flex-1 min-w-0 flex-row gap-5 items-start w-full text-left">
-                  <span
-                    className="shrink-0 text-black text-[30px] leading-[38px] whitespace-nowrap"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
-                  >
-                    {item.number}
-                  </span>
-                  <div className="flex min-w-0 flex-1 flex-col gap-3 items-start">
+                <div className="order-2 lg:order-0 flex flex-1 min-w-0 flex-col gap-3 items-stretch w-full text-left">
+                  <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] md:overflow-x-visible pr-0">
                     <h3
-                      className="text-black text-[30px] leading-[38px] w-full min-w-0"
+                      className="w-max min-w-0 text-black text-[30px] leading-[38px] text-left whitespace-nowrap"
                       style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
                     >
-                      {item.title}
+                      {item.number} {item.title}
                     </h3>
-                    <p
-                      className="text-[#52525b] text-[18px] leading-[26px] max-w-[529px]"
-                      style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400 }}
-                    >
-                      {item.description}
-                    </p>
                   </div>
+                  <p
+                    className="text-[#52525b] text-[26px] leading-[34px] w-full max-w-2xl lg:max-w-3xl"
+                    style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400 }}
+                  >
+                    {item.description}
+                  </p>
                 </div>
               </motion.div>
             )

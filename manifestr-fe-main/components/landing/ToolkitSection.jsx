@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
+import { MobileToolAccordion, TOOLS, MOBILE_TOOL_ORDER } from '../tools/ToolsGrid'
 
 const TOOLKIT_BG = '/assets/landing/toolkit-bg.jpg'
 
@@ -19,14 +20,14 @@ const tools = [
     title: 'THE',
     accent: 'strategist',
     description:
-      'Turn objectives into clear, data-driven strategies and roadmaps.',
+      'Strategic plans, positioning and decision frameworks backed by data and built to execute.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-7_capdej.jpg',
   },
   {
     id: 'cost-ctrl',
     title: 'COST',
-    accent: 'CTRL',
+    accent: 'ctrl',
     description:
       'Smart budgets, cost breakdowns and financial summaries built fast.',
     image:
@@ -37,31 +38,31 @@ const tools = [
     title: 'THE',
     accent: 'analyzer',
     description:
-      'Data reports, competitive analyses and insight-driven documents.',
+      'Data and insights shaped into charts and visuals for confident decision-making.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941773/Stra-2_pbxx8o.jpg',
   },
   {
     id: 'design-studio',
-    title: 'Design',
-    accent: 'studio',
+    title: 'THE',
+    accent: 'design studio',
     description:
-      'Custom visuals, social assets and branded graphics in minutes.',
+      'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941774/Stra-3_ysxkgz.jpg',
   },
   {
     id: 'briefcase',
     title: 'THE',
-    accent: 'BRIEFCASE',
+    accent: 'briefcase',
     description:
-      'Polished briefs, proposals and strategic documents for every pitch.',
+      'Structured, professional documentation including briefs, reports, timelines and run sheets.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-6_ubdfxg.jpg',
   },
   {
     id: 'huddle',
-    title: 'The',
+    title: 'THE',
     accent: 'huddle',
     description:
       'Meeting notes, agendas and action plans to keep teams aligned.',
@@ -73,7 +74,7 @@ const tools = [
     title: 'THE',
     accent: 'wordsmith',
     description:
-      'Long-form copy, articles, scripts and written content with AI.',
+      'Professional copywriter delivering brand-aligned writing across formats and audiences.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-4_nmzjna.jpg',
   },
@@ -174,6 +175,13 @@ function ToolCard({ tool, isExpanded, onHover, onClick }) {
 export default function ToolkitSection() {
   const [hoveredIndex, setHoveredIndex] = useState(0)
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0)
+  const mobileGridTools = useMemo(
+    () =>
+      MOBILE_TOOL_ORDER.map((slug) => TOOLS.find((t) => t.slug === slug)).filter(
+        Boolean
+      ),
+    []
+  )
 
   return (
     <>
@@ -228,17 +236,14 @@ export default function ToolkitSection() {
             </div>
           </div>
 
-          <div
-            className="relative z-10 mt-8 pl-6 overflow-x-auto [&::-webkit-scrollbar]:hidden"
-            style={{ scrollbarWidth: 'none' }}
-          >
-            <div className="flex gap-5 pr-6 w-max">
-              {tools.map((tool, index) => (
-                <ToolCard
-                  key={tool.id}
+          <div className="relative z-10 mt-10 px-6 pb-2">
+            <div className="flex flex-col gap-[17px] max-w-[345px] mx-auto w-full">
+              {mobileGridTools.map((tool, index) => (
+                <MobileToolAccordion
+                  key={tool.slug}
                   tool={tool}
                   isExpanded={mobileActiveIndex === index}
-                  onClick={() => setMobileActiveIndex(index)}
+                  onTap={() => setMobileActiveIndex(index)}
                 />
               ))}
             </div>

@@ -54,7 +54,7 @@ export default function ToolDetailPage({ tool, relatedTools }) {
 
           <ToolWorkingStyles tool={tool} />
 
-          <ToolOutput tool={tool} />
+          <ToolOutput />
 
           <ToolElevated tool={tool} />
 

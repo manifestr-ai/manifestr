@@ -149,7 +149,7 @@ function IntroColumn({ className = '' }) {
       </div>
       <div className="flex justify-start w-full">
         <Link
-          href="/tools"
+          href="/signup"
           className="flex h-[36px] md:h-[54px] shrink-0 py-0 md:py-2 px-8 items-center justify-center gap-2 bg-[#18181b] rounded-[6px] text-[18px] leading-[20px] font-medium text-white hover:bg-[#27272a] transition-colors w-auto"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
@@ -246,7 +246,7 @@ export default function ToolsStats() {
   return (
     <section
       ref={sectionRef}
-      className="w-full overflow-x-hidden bg-white px-6 md:px-8 lg:px-[80px] py-[64px] md:max-lg:py-[80px] lg:py-[96px]"
+      className="w-full overflow-x-hidden bg-white px-6 md:px-8 lg:px-[80px] pt-[64px] md:max-lg:pt-[80px] lg:pt-[96px] pb-8 md:max-lg:pb-10 lg:pb-10"
       onPointerEnter={() => setIsSpread(true)}
     >
       {/* ── MOBILE ── */}
@@ -321,8 +321,9 @@ export default function ToolsStats() {
           className="mt-8 text-[16px] leading-[20px] text-[#71717a]"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
-          These gains are powered by{' '}
-          <span className="font-semibold text-black">MANIFESTR&apos;s</span> AI across every tool.
+          These results are driven by{' '}
+          <span className="font-semibold text-black">MANIFESTR&apos;s</span> intelligence, embedded across
+          every tool.
         </StatsReveal>
       </div>
 
@@ -370,8 +371,9 @@ export default function ToolsStats() {
             className="mt-8 md:max-lg:mt-9 lg:max-xl:mt-9 xl:mt-[34px] text-left text-[16px] leading-[20px] text-[#71717a] w-full max-w-[700px] md:max-lg:max-w-[min(100%,36rem)] md:max-lg:mx-auto lg:max-xl:mx-auto xl:mx-0"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            These gains are powered by{' '}
-            <span className="font-semibold text-black">MANIFESTR&apos;s</span> AI across every tool.
+            These results are driven by{' '}
+            <span className="font-semibold text-black">MANIFESTR&apos;s</span> intelligence, embedded
+            across every tool.
           </StatsReveal>
         </div>
 

@@ -7,8 +7,19 @@ import Logo from '../logo/Logo'
 import { useAuth } from '../../contexts/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const ABOUT_LINKS = [
-  { label: 'About Manifestr', href: '/about' },
+const TOOLKIT_LINKS = [
+  { label: 'The Deck', href: '/tools/deck' },
+  { label: 'The Strategist', href: '/tools/strategist' },
+  { label: 'The Briefcase', href: '/tools/briefcase' },
+  { label: 'Design Studio', href: '/tools/design-studio' },
+  { label: 'The Analyzer', href: '/tools/analyzer' },
+  { label: 'Cost CTRL', href: '/tools/cost-ctrl' },
+  { label: 'The Wordsmith', href: '/tools/wordsmith' },
+  { label: 'The Huddle', href: '/tools/huddle' },
+]
+
+const COMPANY_LINKS = [
+  { label: 'About MANIFESTR', href: '/about' },
   { label: 'Careers', href: '/careers' },
   { label: 'Affiliates', href: '/affiliates' },
 ]
@@ -17,33 +28,43 @@ const SUPPORT_LINKS = [
   { label: 'The Playbook', href: '/playbook' },
   { label: 'FAQs', href: '/faqs' },
   { label: 'Contact Us', href: '/contact' },
-  { label: 'Terms of Service', href: '/terms-of-service' },
-  { label: 'Security', href: '/security' },
-  { label: 'Privacy Policy', href: '/privacy' },
-  { label: 'Cookie Preferences', href: '/cookies' },
 ]
 
 // Routes that count as "active" for each top-level nav item
-const ABOUT_ROUTES = ['/about', '/careers', '/affiliates']
-const SUPPORT_ROUTES = ['/playbook', '/faqs', '/contact', '/terms-of-service', '/security', '/privacy', '/cookies', '/support']
+const COMPANY_ROUTES = ['/about', '/careers', '/affiliates']
+const SUPPORT_ROUTES = ['/playbook', '/faqs', '/contact']
 
 /** Desktop nav: full Figma spacing from xl (1280px); lg–xl (1024–1279) uses tighter gaps so the bar fits. */
 
 function NavDropdown({ label, href, links, align = 'left', isActive }) {
+  const triggerClassName =
+    'flex items-center gap-2 text-base-foreground px-1 lg:max-xl:text-[13px] lg:max-xl:leading-[18px] xl:text-[14px] xl:leading-5 xl:font-medium'
+  const labelSpan = (
+    <span
+      className={`pb-1 border-b-2 transition-colors ${isActive ? 'border-base-foreground' : 'border-transparent'}`}
+    >
+      {label}
+    </span>
+  )
+  const chevron = (
+    <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
+  )
+
   return (
     <div className="relative group">
-      {/* Clicking the label goes to href; hovering the whole group shows dropdown */}
-      <Link
-        href={href}
-        className="flex items-center gap-2 text-base-foreground px-1 lg:max-xl:text-[13px] lg:max-xl:leading-[18px] xl:text-[14px] xl:leading-5 xl:font-medium"
-      >
-        <span
-          className={`pb-1 border-b-2 transition-colors ${isActive ? 'border-base-foreground' : 'border-transparent'}`}
+      {href ? (
+        <Link href={href} className={triggerClassName}>
+          {labelSpan}
+          {chevron}
+        </Link>
+      ) : (
+        <div
+          className={`${triggerClassName} cursor-default select-none pointer-events-auto`}
         >
-          {label}
-        </span>
-        <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
-      </Link>
+          {labelSpan}
+          {chevron}
+        </div>
+      )}
 
       <div
         className={`absolute top-full ${align === 'right' ? 'right-0' : 'left-0'} pt-2
@@ -70,16 +91,21 @@ function MobileAccordion({ label, href, links, onNavigate }) {
   return (
     <div>
       <div className="flex items-center justify-between w-full">
-        <Link
-          href={href}
-          className="text-lg font-medium text-gray-900"
-          onClick={onNavigate}
-        >
-          {label}
-        </Link>
+        {href ? (
+          <Link
+            href={href}
+            className="text-lg font-medium text-gray-900"
+            onClick={onNavigate}
+          >
+            {label}
+          </Link>
+        ) : (
+          <span className="text-lg font-medium text-gray-900">{label}</span>
+        )}
         <button
           onClick={() => setOpen(!open)}
           className="p-1 text-gray-500"
+          type="button"
           aria-label={`Toggle ${label} submenu`}
         >
           <ChevronDown
@@ -122,6 +148,7 @@ export default function Header() {
   const closeMobile = () => setIsMobileMenuOpen(false)
 
   const path = router.pathname
+  const isToolkitActive = path.startsWith('/tools')
 
   const navLink = (href) =>
     `text-base-foreground px-1 pb-1 border-b-2 transition-colors lg:max-xl:text-[13px] lg:max-xl:leading-[18px] xl:text-[14px] xl:leading-5 xl:font-medium ${
@@ -137,24 +164,32 @@ export default function Header() {
 
             {/* Compact screens (under 1024px): logo + hamburger */}
             <div className="lg:hidden">
-              <Logo size="sm" />
+              <Link href="/" className="inline-block" aria-label="Manifestr home">
+                <Logo size="sm" />
+              </Link>
             </div>
 
             {/* Desktop Left Navigation — lg+ */}
             <div className="hidden lg:flex items-center flex-1 min-w-0 gap-[22px] xl:gap-[44px]">
               <Link href="/" className={navLink('/')}>Home</Link>
-              <Link href="/tools" className={navLink('/tools')}>Toolkit</Link>
               <NavDropdown
-                label="About"
-                href="/about"
-                links={ABOUT_LINKS}
-                isActive={ABOUT_ROUTES.includes(path)}
+                label="Toolkit"
+                href="/tools"
+                links={TOOLKIT_LINKS}
+                isActive={isToolkitActive}
+              />
+              <NavDropdown
+                label="Company"
+                links={COMPANY_LINKS}
+                isActive={COMPANY_ROUTES.includes(path)}
               />
               <Link href="/blog" className={navLink('/blog')}>Blog</Link>
             </div>
 
             <div className="hidden lg:flex justify-center shrink-0 lg:max-xl:w-[220px] xl:w-[271.392px]">
-              <Logo size="md" />
+              <Link href="/" className="inline-flex shrink-0" aria-label="Manifestr home">
+                <Logo size="md" />
+              </Link>
             </div>
 
             {/* Desktop Right Navigation */}
@@ -163,7 +198,6 @@ export default function Header() {
                 <Link href="/pricing" className={navLink('/pricing')}>Pricing</Link>
                 <NavDropdown
                   label="Support"
-                  href="/support"
                   links={SUPPORT_LINKS}
                   align="right"
                   isActive={SUPPORT_ROUTES.includes(path)}
@@ -231,7 +265,9 @@ export default function Header() {
               className="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-70 shadow-xl flex flex-col p-6 overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-8">
-                <Logo size="sm" />
+                <Link href="/" onClick={closeMobile} className="inline-block" aria-label="Manifestr home">
+                  <Logo size="sm" />
+                </Link>
                 <button onClick={closeMobile} className="p-2 -mr-2 text-gray-500">
                   <X className="w-6 h-6" />
                 </button>
@@ -245,14 +281,13 @@ export default function Header() {
                 >
                   Home
                 </Link>
-                <Link
+                <MobileAccordion
+                  label="Toolkit"
                   href="/tools"
-                  className={`text-lg font-medium ${path === '/tools' ? 'text-black border-b-2 border-black pb-1' : 'text-gray-900'}`}
-                  onClick={closeMobile}
-                >
-                  Toolkit
-                </Link>
-                <MobileAccordion label="About" href="/about" links={ABOUT_LINKS} onNavigate={closeMobile} />
+                  links={TOOLKIT_LINKS}
+                  onNavigate={closeMobile}
+                />
+                <MobileAccordion label="Company" links={COMPANY_LINKS} onNavigate={closeMobile} />
                 <Link
                   href="/blog"
                   className={`text-lg font-medium ${path === '/blog' ? 'text-black border-b-2 border-black pb-1' : 'text-gray-900'}`}
@@ -267,7 +302,7 @@ export default function Header() {
                 >
                   Pricing
                 </Link>
-                <MobileAccordion label="Support" href="/support" links={SUPPORT_LINKS} onNavigate={closeMobile} />
+                <MobileAccordion label="Support" links={SUPPORT_LINKS} onNavigate={closeMobile} />
 
                 <div className="border-t border-gray-100 my-2" />
 

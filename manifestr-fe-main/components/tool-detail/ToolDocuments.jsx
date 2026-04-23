@@ -17,8 +17,8 @@ export default function ToolDocuments({ tool }) {
       <CldImage src={DOC_BG_IMAGE} alt="" className="absolute inset-0 w-full h-full object-cover object-right pointer-events-none" />
       <div className="absolute inset-0 bg-white/80 md:bg-transparent pointer-events-none" />
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-[80px] py-[48px] md:py-[110px]">
-        <div className="max-w-[780px]">
+      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-[48px] md:py-[110px]">
+        <div className="w-full max-w-[960px]">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ export default function ToolDocuments({ tool }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.05 }}
-              className="text-[16px] md:text-[18px] leading-[28px] text-[#52525b] mb-[32px] max-w-[689px]"
+              className="text-[16px] md:text-[18px] leading-[28px] text-[#52525b] mb-[32px] max-w-full"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {documentDescription}

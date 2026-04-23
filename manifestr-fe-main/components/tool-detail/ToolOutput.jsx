@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CldImage from '../ui/CldImage'
 
 const ROW_1 = [
@@ -30,6 +30,13 @@ const ROW_3 = [
 ]
 
 const SLIDER_IMAGES = [...ROW_1, ...ROW_2, ...ROW_3]
+
+/**
+ * Matches the static “The Strategist / delivers” heading in this block — do not read from tool data
+ * (avoids short outputDescription or per-tool copy showing under a Strategist-only title).
+ */
+const OUTPUT_SECTION_BODY_TEXT =
+  'Forget generic strategy outputs. Strategy, held to a higher standard. The Strategist creates structured, decision-ready documents designed for real execution. Every insight is refined, defensible, and built to perform under scrutiny. Curious? See it in action.'
 
 function MarqueeRow({ images, direction = 'left', duration = 35 }) {
   const doubled = [...images, ...images]
@@ -119,11 +126,7 @@ function MobileSlider() {
   )
 }
 
-export default function ToolOutput({ tool }) {
-  const { prefix, name, calibreDescription, outputDescription } = tool
-  const displayName = name.charAt(0).toUpperCase() + name.slice(1)
-  const description = calibreDescription || outputDescription
-
+export default function ToolOutput() {
   return (
     <section className="w-full bg-[#f4f4f5] relative overflow-hidden" style={{ minHeight: '400px' }}>
       <div
@@ -132,7 +135,7 @@ export default function ToolOutput({ tool }) {
           right: '-620px',
           top: '-200px',
           width: '1300px',
-          transform: 'rotate(-45deg)',
+          transform: 'rotate(-38deg)',
           transformOrigin: 'center center',
         }}
       >
@@ -141,31 +144,42 @@ export default function ToolOutput({ tool }) {
         <MarqueeRow images={ROW_3} direction="left" duration={32} />
       </div>
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-[80px] py-[48px] md:py-[106px]">
-        <div className="max-w-full md:max-w-[500px] text-center md:text-left">
+      <div className="relative z-10 w-full max-w-[min(100%,1440px)] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 min-[1600px]:px-16 py-[48px] md:py-[106px]">
+        <div className="w-full max-w-full md:max-w-[min(100%,960px)] text-center md:text-left">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-[32px] md:text-[60px] leading-[39px] md:leading-[62px] tracking-[-0.64px] md:tracking-[-1.2px] mb-[24px]"
+            className="text-[32px] md:text-[60px] leading-tight tracking-[-0.64px] md:tracking-[-1.2px] text-[#18181b] mb-[24px]"
+            style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
           >
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The </span>
-            <em style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Calibre</em>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
-              {' '}of Output {prefix} {displayName} delivers
+            <span className="block">
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The </span>
+              <em
+                className="not-italic"
+                style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+              >
+                Calibre
+              </em>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> of Output</span>
             </span>
+            <span className="block">The Strategist</span>
+            <span className="block">delivers</span>
           </motion.h2>
 
+          {/*
+            Figma 12468:22114 — B1 18/Regular, Inter, #52525b; copy fixed to match Strategist heading
+          */}
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#52525b] mb-[24px]"
+            className="text-[18px] leading-[28px] text-[#52525b] font-normal tracking-[0] mb-[24px] w-full max-w-[min(100%,500px)] mx-auto md:mx-0"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            {description}
+            {OUTPUT_SECTION_BODY_TEXT}
           </motion.p>
 
           {/* Mobile slider */}
@@ -178,17 +192,8 @@ export default function ToolOutput({ tool }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col gap-[12px] md:flex-row md:flex-wrap"
+            className="flex flex-col gap-[12px] sm:flex-row sm:flex-wrap"
           >
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-[8px] h-[54px] md:h-[44px] px-[24px] bg-[#18181b] text-white text-[18px] md:text-[14px] leading-[20px] font-medium rounded-[6px] hover:bg-[#27272a] transition-colors whitespace-nowrap"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              <span className="md:hidden">Explore the Toolkit</span>
-              <span className="hidden md:inline">Explore the Output</span>
-              <ArrowUpRight className="w-[16px] h-[16px] hidden md:block" />
-            </Link>
             <Link
               href="/signup"
               className="inline-flex items-center justify-center h-[54px] md:h-[44px] px-[24px] bg-white border border-[#e4e4e7] text-[#18181b] text-[18px] md:text-[14px] leading-[20px] font-medium rounded-[6px] hover:bg-white/80 transition-colors whitespace-nowrap"

@@ -28,8 +28,8 @@ const TOOL_THUMBS = {
 
 const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944466/37_modern-founder_model-07-shot-02b_2_wj98bv.svg'
 
-/* Copy aligned with components/landing/ToolkitSection.jsx `tools` */
-const TOOLS = [
+/* Copy aligned with components/landing/ToolkitSection.jsx `tools` (mobile uses same `MobileToolAccordion` data) */
+export const TOOLS = [
   {
     slug: 'strategist',
     image: TOOL_IMAGES.strategist,
@@ -40,7 +40,8 @@ const TOOLS = [
     tags: ['Strategy', 'Positioning', 'Direction'],
     description: {
       title: 'Strategy & Positioning',
-      content: 'Turn objectives into clear, data-driven strategies and roadmaps.',
+      content:
+        'Strategic plans, positioning and decision frameworks backed by data and built to execute.',
     },
   },
   {
@@ -53,7 +54,8 @@ const TOOLS = [
     tags: ['Insights', 'Analysis', 'Reporting'],
     description: {
       title: 'Insights & Analysis',
-      content: 'Data reports, competitive analyses and insight-driven documents.',
+      content:
+        'Data and insights shaped into charts and visuals for confident decision-making.',
     },
   },
   {
@@ -61,25 +63,27 @@ const TOOLS = [
     image: TOOL_IMAGES.briefcase,
     titleParts: [
       { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'BRIEFCASE', font: 'ivy', size: 40 },
+      { text: 'briefcase', font: 'ivy', size: 40 },
     ],
     tags: ['Briefs', 'Templates', 'Documents'],
     description: {
       title: 'Briefs & Documents',
-      content: 'Polished briefs, proposals and strategic documents for every pitch.',
+      content:
+        'Structured, professional documentation including briefs, reports, timelines and run sheets.',
     },
   },
   {
     slug: 'design-studio',
     image: TOOL_IMAGES.designStudio,
     titleParts: [
-      { text: 'Design ', font: 'hk', size: 30 },
-      { text: 'studio', font: 'ivy', size: 40 },
+      { text: 'DESIGN ', font: 'hk', size: 30 },
+      { text: ' studio', font: 'ivy', size: 40 },
     ],
     tags: ['Images', 'Visuals', 'Moodboards'],
     description: {
       title: 'Visual & Design',
-      content: 'Custom visuals, social assets and branded graphics in minutes.',
+      content:
+        'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
     },
   },
   {
@@ -96,7 +100,8 @@ const TOOLS = [
     tags: ['Copy', 'Content', 'Messaging'],
     description: {
       title: 'Copy & Content',
-      content: 'Long-form copy, articles, scripts and written content with AI.',
+      content:
+        'Professional copywriter delivering brand-aligned writing across formats and audiences.',
     },
   },
   {
@@ -117,13 +122,14 @@ const TOOLS = [
     slug: 'huddle',
     image: TOOL_IMAGES.huddle,
     titleParts: [
-      { text: 'The ', font: 'hk', size: 30 },
+      { text: 'THE ', font: 'hk', size: 30 },
       { text: 'huddle', font: 'ivy', size: 40 },
     ],
     tags: ['Agendas', 'Meetings', 'Minutes'],
     description: {
       title: 'Meetings & Memos',
-      content: 'Meeting notes, agendas and action plans to keep teams aligned.',
+      content:
+        'Agendas, minutes, summaries and follow-ups, structured to support a continuous flow.',
     },
   },
   {
@@ -136,7 +142,8 @@ const TOOLS = [
     tags: ['Costs', 'Budgets', 'Forecasting'],
     description: {
       title: 'Budgets & Forecasting',
-      content: 'Smart budgets, cost breakdowns and financial summaries built fast.',
+      content:
+        'Budgets, forecasts, financials and reconciliations delivered in a clear, structured format.',
     },
   },
 ]
@@ -154,7 +161,7 @@ function ToolCard({ tool, index }) {
         whileHover={{ y: -8, scale: 1.02 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
-        className="relative rounded-[12px] border border-[#e4e3e1] flex items-center justify-center aspect-302/370 cursor-pointer overflow-hidden"
+        className="relative rounded-[12px] border border-[#e4e3e1] flex items-center justify-center aspect-302/369 cursor-pointer overflow-hidden"
       >
         <CldImage
           src="https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943941/Wordsmith_1_jfi1kq.jpg"
@@ -162,7 +169,15 @@ function ToolCard({ tool, index }) {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-[rgba(0,0,0,0.45)]" />
-        <CldImage src={tool.image} alt="MANIFESTR" className="relative z-10 w-[145px] h-[115px] object-contain" />
+        {/*
+          Geometric center reads left-heavy because of the mark’s dot; shift the artboard right of center.
+        */}
+        <CldImage
+          src={tool.image}
+          alt="MANIFESTR"
+          className="absolute z-10 top-1/2 w-[145px] h-[115px] object-contain"
+          style={{ left: '50%', transform: 'translate(calc(-50% + 12px), -50%)' }}
+        />
       </motion.div>
     )
   }
@@ -290,8 +305,8 @@ function ToolCard({ tool, index }) {
   )
 }
 
-/* ── Mobile vertical accordion card ── */
-function MobileToolAccordion({ tool, isExpanded, onTap }) {
+/* ── Mobile vertical accordion card (shared with home ToolkitSection) ── */
+export function MobileToolAccordion({ tool, isExpanded, onTap }) {
   const router = useRouter()
   const titleText = tool.titleParts[0].text.trim()
   const accentText = tool.titleParts[1].text
@@ -358,15 +373,15 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
           pointerEvents: isExpanded ? 'auto' : 'none',
         }}
       >
-        <p className="uppercase tracking-[0.8px] whitespace-nowrap">
+        <p className="uppercase tracking-[0.8px] text-white text-balance">
           <span
-            className="text-[20px] leading-[36px] font-extrabold text-white"
+            className="text-[20px] leading-[36px] font-extrabold"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
           >
             {titleText}{' '}
           </span>
           <span
-            className="text-[23px] leading-[36px] lowercase italic text-white"
+            className="text-[23px] leading-[36px] lowercase italic"
             style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
           >
             {accentText}
@@ -382,7 +397,7 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
 
       {/* Collapsed: left-aligned name */}
       <div
-        className="absolute inset-0 flex items-center justify-start gap-1 pl-5"
+        className="absolute inset-0 flex items-center justify-start flex-wrap gap-x-1 gap-y-0 pl-5 pr-2"
         style={{
           opacity: isExpanded ? 0 : 1,
           transition: 'opacity 0.25s ease',
@@ -407,14 +422,23 @@ function MobileToolAccordion({ tool, isExpanded, onTap }) {
   )
 }
 
-const MOBILE_TOOL_ORDER = ['deck', 'strategist', 'cost-ctrl', 'analyzer', 'design-studio', 'briefcase', 'huddle', 'wordsmith']
+export const MOBILE_TOOL_ORDER = [
+  'deck',
+  'strategist',
+  'cost-ctrl',
+  'analyzer',
+  'design-studio',
+  'briefcase',
+  'huddle',
+  'wordsmith',
+]
 
 export default function ToolsGrid() {
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0)
   const mobileTools = MOBILE_TOOL_ORDER.map((slug) => TOOLS.find((t) => t.slug === slug)).filter(Boolean)
 
   return (
-    <section className="relative w-full bg-[#e9e9ea] overflow-hidden">
+    <section className="relative w-full min-w-0 bg-[#e9e9ea]">
       {/* Desktop hero image */}
       <div
         aria-hidden="true"
@@ -510,7 +534,7 @@ export default function ToolsGrid() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-3 gap-x-[26px] gap-y-[36px]">
+        <div className="grid grid-cols-3 gap-x-[26px] gap-y-[36px] pt-2">
           {TOOLS.map((tool, i) => (
             <ToolCard
               key={tool.type === 'logo' ? 'logo' : tool.titleParts.map((p) => p.text).join('')}

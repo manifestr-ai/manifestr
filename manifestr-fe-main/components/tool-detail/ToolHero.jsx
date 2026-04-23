@@ -38,7 +38,7 @@ export default function ToolHero({ tool }) {
 
       {hasSprites ? (
         /* ══════════════════════════════════════════
-           STRATEGIST LAYOUT — gradient fade to white, content below
+           STRATEGIST LAYOUT — hero + content below
            ══════════════════════════════════════════ */
         <div className="bg-white">
           {/* Hero banner */}
@@ -51,7 +51,6 @@ export default function ToolHero({ tool }) {
               }}
             >
               <CldImage src={heroImage} alt="" className="w-full h-full object-cover md:object-center" priority />
-              <div className="absolute inset-0 bg-black/0 md:bg-black/20" />
             </div>
 
             {/* Title overlay — desktop only */}
@@ -113,9 +112,6 @@ export default function ToolHero({ tool }) {
                 )
               })}
             </div>
-
-            {/* Gradient fade to white */}
-            <div className="absolute inset-x-0 bottom-0 h-[30%] md:h-[25%] bg-linear-to-b from-transparent to-white pointer-events-none" />
           </div>
 
           {/* Content on white */}
@@ -126,13 +122,6 @@ export default function ToolHero({ tool }) {
               opacity: visible ? undefined : 0,
             }}
           >
-            <p
-              className="uppercase text-black font-semibold text-[20px] md:text-[24px] tracking-[-0.4px] md:tracking-[-0.02em] mb-[24px] text-center"
-              style={{ fontFamily: 'Inter, sans-serif', lineHeight: '24px' }}
-            >
-              WHAT IT IS
-            </p>
-
             <h2
               className="text-center text-black mb-10 max-w-[362px] md:max-w-[834px] mx-auto leading-[44px] md:leading-[1.2] tracking-[-0.64px] md:tracking-[-0.02em]"
               style={{ fontSize: 'clamp(32px, 3.75vw, 54px)' }}
@@ -181,7 +170,6 @@ export default function ToolHero({ tool }) {
               }}
             >
               <CldImage src={heroImage} alt="" className="w-full h-full object-cover object-top" priority />
-              <div className="absolute inset-x-0 bottom-0 h-[40%] bg-linear-to-b from-transparent to-white pointer-events-none" />
             </div>
 
             <div
@@ -191,13 +179,6 @@ export default function ToolHero({ tool }) {
                 opacity: visible ? undefined : 0,
               }}
             >
-              <p
-                className="uppercase text-black font-semibold text-[20px] tracking-[-0.4px] mb-[24px] text-center"
-                style={{ fontFamily: 'Inter, sans-serif', lineHeight: '24px' }}
-              >
-                WHAT IT IS
-              </p>
-
               <h2
                 className="text-center text-black mb-10 max-w-[362px] mx-auto leading-[44px] tracking-[-0.64px] capitalize"
                 style={{ fontSize: '32px' }}
@@ -247,7 +228,6 @@ export default function ToolHero({ tool }) {
               }}
             >
               <CldImage src={heroImage} alt="" className="w-full h-full object-cover object-top" priority />
-              <div className="absolute inset-0 bg-black/15" />
             </div>
 
             <div className="relative w-full aspect-1440/760">
@@ -292,13 +272,6 @@ export default function ToolHero({ tool }) {
                 opacity: visible ? undefined : 0,
               }}
             >
-              <p
-                className="uppercase text-black font-semibold text-[24px] tracking-[-0.02em] mb-[24px] text-center"
-                style={{ fontFamily: 'Inter, sans-serif', lineHeight: '24px' }}
-              >
-                WHAT IT IS
-              </p>
-
               <h2
                 className="text-center text-black mb-10 max-w-[834px] mx-auto leading-[1.2] tracking-[-0.02em]"
                 style={{ fontSize: 'clamp(32px, 3.75vw, 54px)' }}
