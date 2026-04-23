@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const UNPROTECTED_ROUTES = [
     '/',
+    '/404',
     '/login',
     '/demo-page',
     '/signup',

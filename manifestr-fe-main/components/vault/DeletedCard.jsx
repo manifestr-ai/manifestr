@@ -12,7 +12,7 @@ export default function DeletedCard({ card, index, onRestore, onPermanentDelete 
   const handleRestore = async (e) => {
     e.stopPropagation()
     if (isProcessing || !onRestore) return
-    
+
     setIsProcessing(true)
     try {
       await onRestore(card)
@@ -24,11 +24,11 @@ export default function DeletedCard({ card, index, onRestore, onPermanentDelete 
   const handleDelete = async (e) => {
     e.stopPropagation()
     if (isProcessing || !onPermanentDelete) return
-    
+
     if (!confirm('Permanently delete this document? This action cannot be undone!')) {
       return
     }
-    
+
     setIsProcessing(true)
     try {
       await onPermanentDelete(card)
@@ -62,9 +62,9 @@ export default function DeletedCard({ card, index, onRestore, onPermanentDelete 
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-transparent" />
         </div>
 
-        {/* Days Left Badge - Top Left */}
-        <div className="absolute top-2 left-2">
-          <span className="px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] bg-red-500 text-white shadow-lg">
+        {/* Days Left Badge - Bottom Left */}
+        <div className="absolute bottom-2 left-2">
+          <span className="px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] bg-white text-red-500 shadow-lg">
             {card.daysLeft} days left
           </span>
         </div>

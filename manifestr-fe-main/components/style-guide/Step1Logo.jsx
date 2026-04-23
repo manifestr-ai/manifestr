@@ -29,7 +29,17 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
   const [customColor, setCustomColor] = useState('#18181b')
 
   const steps = [
-    { id: 1, label: 'Logo', icon: Folder, active: true },
+    {
+      id: 5,
+      label: 'Logo',
+      icon: (props) => (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <path d="M15.8333 2.5H4.16667C3.24619 2.5 2.5 3.24619 2.5 4.16667V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V4.16667C17.5 3.24619 16.7538 2.5 15.8333 2.5Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 10.8333C10.4602 10.8333 10.8333 10.4602 10.8333 10C10.8333 9.53976 10.4602 9.16667 10 9.16667C9.53976 9.16667 9.16667 9.53976 9.16667 10C9.16667 10.4602 9.53976 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      active: false
+    },
     { id: 2, label: 'Typography', icon: Type, active: false },
     { id: 3, label: 'Color', icon: Palette, active: false },
     { id: 4, label: 'Style', icon: Grid, active: false },

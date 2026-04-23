@@ -24,7 +24,7 @@ export default function Step4DropZone({ onFilesChange }) {
       {/* File Upload Zone */}
       <div className="w-full">
         <FileUploadZone 
-          maxFiles={10} 
+          maxFiles={5} 
           onFilesChange={onFilesChange}
         />
       </div>

@@ -21,7 +21,17 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
   const typographyStyles = Array.isArray(data?.typography) ? data.typography : defaultStyles
 
   const steps = [
-    { id: 1, label: 'Logo', icon: Folder, active: false },
+    {
+      id: 5,
+      label: 'Logo',
+      icon: (props) => (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+          <path d="M15.8333 2.5H4.16667C3.24619 2.5 2.5 3.24619 2.5 4.16667V15.8333C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8333V4.16667C17.5 3.24619 16.7538 2.5 15.8333 2.5Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 10.8333C10.4602 10.8333 10.8333 10.4602 10.8333 10C10.8333 9.53976 10.4602 9.16667 10 9.16667C9.53976 9.16667 9.16667 9.53976 9.16667 10C9.16667 10.4602 9.53976 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+      active: false
+    },
     { id: 2, label: 'Typography', icon: Type, active: true },
     { id: 3, label: 'Color', icon: Palette, active: false },
     { id: 4, label: 'Style', icon: Grid, active: false },
@@ -109,36 +119,41 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
             </p>
           </div>
 
-          {/* Add Font Button */}
-          <div className="mb-6 mt-8 md:mt-12">
-            <Button variant="primary" size="md">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Font
-            </Button>
-          </div>
+          {/* White Container for Actions and Table */}
+          <div className="bg-white rounded-[32px] border border-[#f1f1f1] shadow-[0px_4px_24px_rgba(0,0,0,0.02)] overflow-hidden mb-12 p-10">
+            {/* Add Font Button Section */}
+            <div className="mb-10">
+              <Button
+                variant="primary"
+                size="md"
+                className="!bg-[#18181b] !text-white hover:opacity-90 flex items-center !rounded-[10px] px-6 py-3 !font-medium"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Font
+              </Button>
+            </div>
 
-          {/* Typography Table */}
-          <div className="bg-white border border-[#e4e4e7] rounded-xl overflow-hidden">
+            {/* Typography Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-[#f4f4f5] border-b border-[#e4e4e7]">
-                    <th className="px-6 py-4 text-left text-[14px] font-semibold leading-[20px] text-[#18181b] min-w-[150px]">
+                  <tr className="border-b border-[#f1f1f1]">
+                    <th className="text-left text-[13px] font-medium text-[#99A1AF] pb-4 pl-4">
                       Style
                     </th>
-                    <th className="px-6 py-4 text-left text-[14px] font-semibold leading-[20px] text-[#18181b] min-w-[180px]">
+                    <th className="text-left text-[13px] font-medium text-[#99A1AF] pb-4">
                       font
                     </th>
-                    <th className="px-6 py-4 text-left text-[14px] font-semibold leading-[20px] text-[#18181b] min-w-[120px]">
+                    <th className="text-left text-[13px] font-medium text-[#99A1AF] pb-4">
                       font-size
                     </th>
-                    <th className="px-6 py-4 text-left text-[14px] font-semibold leading-[20px] text-[#18181b] min-w-[180px]">
+                    <th className="text-left text-[13px] font-medium text-[#99A1AF] pb-4">
                       font-weight
                     </th>
-                    <th className="px-6 py-4 text-left text-[14px] font-semibold leading-[20px] text-[#18181b] min-w-[120px]">
+                    <th className="text-left text-[13px] font-medium text-[#99A1AF] pb-4">
                       line-height
                     </th>
-                    <th className="px-6 py-4 text-left text-[14px] font-semibold leading-[20px] text-[#18181b] min-w-[140px]">
+                    <th className="text-left text-[13px] font-medium text-[#99A1AF] pb-4 pr-4">
                       letter-spacing
                     </th>
                   </tr>
@@ -147,11 +162,9 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
                   {typographyStyles.map((style, index) => (
                     <tr
                       key={style.id}
-                      className={`border-b border-[#e4e4e7] ${
-                        index === typographyStyles.length - 1 ? 'border-b-0' : ''
-                      }`}
+                      className="border-none"
                     >
-                      <td className="px-6 py-4">
+                      <td className="pl-4 pr-6 py-8">
                         <div
                           style={{
                             fontFamily: style.font,
@@ -160,14 +173,14 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
                               style.fontWeight === 'Bold'
                                 ? '700'
                                 : style.fontWeight === 'SemiBold'
-                                ? '600'
-                                : style.fontWeight === 'Medium'
-                                ? '500'
-                                : style.fontWeight === 'Regular'
-                                ? '400'
-                                : style.fontWeight === 'Light'
-                                ? '300'
-                                : '400',
+                                  ? '600'
+                                  : style.fontWeight === 'Medium'
+                                    ? '500'
+                                    : style.fontWeight === 'Regular'
+                                      ? '400'
+                                      : style.fontWeight === 'Light'
+                                        ? '300'
+                                        : '400',
                             lineHeight: style.lineHeight,
                             letterSpacing: style.letterSpacing,
                           }}
@@ -176,104 +189,56 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
                           {style.name}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="w-[150px]">
+                      <td className="px-2 py-8">
+                        <div className="w-[140px]">
                           <Select
                             value={style.font}
                             onChange={(e) => updateStyle(style.id, 'font', e.target.value)}
                             options={fontOptions}
                             className="w-full"
-                            fieldClassName="bg-[#F3F3F5]"
+                            fieldClassName="!bg-[#F3F3F5] !border-none !rounded-[12px] !py-3 !px-4"
                           />
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-8">
                         <div className="relative inline-flex items-center">
                           <input
                             type="text"
                             value={style.fontSize}
                             onChange={(e) => updateStyle(style.id, 'fontSize', e.target.value)}
-                            className="w-[100px] px-3 py-2 pr-8 bg-[#F3F3F5] border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[14px] leading-[20px] text-[#18181b]"
+                            className="w-[110px] px-4 py-3 bg-[#F3F3F5] border-none rounded-[12px] focus:outline-none focus:ring-1 focus:ring-[#e4e4e7] text-[14px] leading-[20px] text-[#4A5565]"
                           />
-                          <div className="absolute inset-y-0 right-1 flex flex-col justify-center gap-0.5">
-                            <button
-                              type="button"
-                              onClick={() => bumpField(style.id, 'fontSize', 1)}
-                              className="w-5 h-3 flex items-center justify-center text-[#71717a] hover:text-[#18181b]"
-                            >
-                              <ChevronUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => bumpField(style.id, 'fontSize', -1)}
-                              className="w-5 h-3 flex items-center justify-center text-[#71717a] hover:text-[#18181b]"
-                            >
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
-                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="w-[150px]">
+                      <td className="px-2 py-8">
+                        <div className="w-[140px]">
                           <Select
                             value={style.fontWeight}
                             onChange={(e) => updateStyle(style.id, 'fontWeight', e.target.value)}
                             options={fontWeightOptions}
                             className="w-full"
-                            fieldClassName="bg-[#F3F3F5]"
+                            fieldClassName="!bg-[#F3F3F5] !border-none !rounded-[12px] !py-3 !px-4"
                           />
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-8">
                         <div className="relative inline-flex items-center">
                           <input
                             type="text"
                             value={style.lineHeight}
                             onChange={(e) => updateStyle(style.id, 'lineHeight', e.target.value)}
-                            className="w-[100px] px-3 py-2 pr-8 bg-[#F3F3F5] border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[14px] leading-[20px] text-[#18181b]"
+                            className="w-[110px] px-4 py-3 bg-[#F3F3F5] border-none rounded-[12px] focus:outline-none focus:ring-1 focus:ring-[#e4e4e7] text-[14px] leading-[20px] text-[#4A5565]"
                           />
-                          <div className="absolute inset-y-0 right-1 flex flex-col justify-center gap-0.5">
-                            <button
-                              type="button"
-                              onClick={() => bumpField(style.id, 'lineHeight', 1)}
-                              className="w-5 h-3 flex items-center justify-center text-[#71717a] hover:text-[#18181b]"
-                            >
-                              <ChevronUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => bumpField(style.id, 'lineHeight', -1)}
-                              className="w-5 h-3 flex items-center justify-center text-[#71717a] hover:text-[#18181b]"
-                            >
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
-                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 py-8 pr-4">
                         <div className="relative inline-flex items-center">
                           <input
                             type="text"
                             value={style.letterSpacing}
                             onChange={(e) => updateStyle(style.id, 'letterSpacing', e.target.value)}
-                            className="w-[100px] px-3 py-2 pr-8 bg-[#F3F3F5] border border-[#e4e4e7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent text-[14px] leading-[20px] text-[#18181b]"
+                            className="w-[110px] px-4 py-3 bg-[#F3F3F5] border-none rounded-[12px] focus:outline-none focus:ring-1 focus:ring-[#e4e4e7] text-[14px] leading-[20px] text-[#4A5565]"
                           />
-                          <div className="absolute inset-y-0 right-1 flex flex-col justify-center gap-0.5">
-                            <button
-                              type="button"
-                              onClick={() => bumpField(style.id, 'letterSpacing', 1)}
-                              className="w-5 h-3 flex items-center justify-center text-[#71717a] hover:text-[#18181b]"
-                            >
-                              <ChevronUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => bumpField(style.id, 'letterSpacing', -1)}
-                              className="w-5 h-3 flex items-center justify-center text-[#71717a] hover:text-[#18181b]"
-                            >
-                              <ChevronDown className="w-3 h-3" />
-                            </button>
-                          </div>
                         </div>
                       </td>
                     </tr>

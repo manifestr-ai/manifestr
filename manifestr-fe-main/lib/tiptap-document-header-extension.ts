@@ -1,5 +1,13 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    documentHeader: {
+      setDocumentHeader: () => ReturnType;
+    };
+  }
+}
+
 export const DocumentHeader = Node.create({
   name: 'documentHeader',
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
   MessageSquare,
   Share2,
@@ -26,6 +27,10 @@ import {
   ZoomOut,
   ExternalLink,
 } from "lucide-react";
+
+const ShareModal = dynamic(() => import("../collaboration/ShareModal"), {
+  ssr: false,
+});
 
 // --- Types ---
 
@@ -165,13 +170,22 @@ const MOCK_THREADS: ThreadItem[] = [
 const Sidebar = ({
   onToggle,
   isOpen,
+  onShare,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
 }: {
   onToggle: () => void;
   isOpen: boolean;
+  onShare?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onZoomReset?: () => void;
 }) => (
   <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40">
     <div className="bg-[#3A3A3A] rounded-[16px] w-[50px] py-4 flex flex-col items-center gap-3 border border-[rgba(0,0,0,0.30)] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.10),0_8px_10px_-6px_rgba(0,0,0,0.10)]">
       <button
+        type="button"
         onClick={onToggle}
         className="relative flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90"
       >
@@ -200,7 +214,11 @@ const Sidebar = ({
         style={{ background: "rgba(74, 85, 101, 0.50)" }}
       />
 
-      <button className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90">
+      <button
+        type="button"
+        onClick={onShare}
+        className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="36"
@@ -217,7 +235,7 @@ const Sidebar = ({
         </svg>
       </button>
 
-      <button className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90">
+      {/* <button className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="20"
@@ -232,9 +250,13 @@ const Sidebar = ({
             fill="#99A1AF"
           />
         </svg>
-      </button>
+      </button> */}
 
-      <button className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90">
+      <button
+        type="button"
+        onClick={onZoomReset}
+        className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="19"
@@ -292,7 +314,11 @@ const Sidebar = ({
         style={{ background: "rgba(74, 85, 101, 0.50)" }}
       />
 
-      <button className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90">
+      <button
+        type="button"
+        onClick={onZoomIn}
+        className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="22"
@@ -310,7 +336,11 @@ const Sidebar = ({
         </svg>
       </button>
 
-      <button className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90">
+      <button
+        type="button"
+        onClick={onZoomOut}
+        className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-white transition-all active:scale-90"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="22"
@@ -766,13 +796,58 @@ const ThreadsPopup = ({
 
 // --- Main Unified Component ---
 
-export const RightSidebar = () => {
+export const RightSidebar = ({
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
+  documentId,
+  documentTitle = "Untitled document",
+}: {
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onZoomReset?: () => void;
+  documentId?: string;
+  documentTitle?: string;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const handleShare = () => {
+    if (!documentId) return;
+    setIsShareModalOpen(true);
+  };
+
+  const handleZoomIn = () => {
+    onZoomIn?.();
+  };
+
+  const handleZoomOut = () => {
+    onZoomOut?.();
+  };
+
+  const handleZoomReset = () => {
+    onZoomReset?.();
+  };
 
   return (
     <>
-      <Sidebar isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} />
+      <Sidebar
+        isOpen={isOpen}
+        onToggle={() => setIsOpen(!isOpen)}
+        onShare={handleShare}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onZoomReset={handleZoomReset}
+      />
       <ThreadsPopup isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      {documentId && (
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          documentId={documentId}
+          documentTitle={documentTitle}
+        />
+      )}
     </>
   );
 };

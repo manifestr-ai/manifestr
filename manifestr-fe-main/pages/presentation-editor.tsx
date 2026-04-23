@@ -41,6 +41,25 @@ export default function PresentationEditorPage() {
 
   const [store, setStore] = useState<any>(null);
 
+  const clampZoom = (value: number) => Math.min(3, Math.max(0.2, value));
+
+  const getStoreScale = () => {
+    const scale =
+      store && typeof store.scale === "number" && Number.isFinite(store.scale)
+        ? store.scale
+        : 1;
+    return scale;
+  };
+
+  const setStoreScale = (value: number) => {
+    if (!store || typeof store.setScale !== "function") return;
+    store.setScale(clampZoom(value));
+  };
+
+  const handleZoomIn = () => setStoreScale(getStoreScale() + 0.1);
+  const handleZoomOut = () => setStoreScale(getStoreScale() - 0.1);
+  const handleZoomReset = () => setStoreScale(1);
+
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
       <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -75,6 +94,7 @@ export default function PresentationEditorPage() {
                 key={editorKey}
                 data={content}
                 generationId={actualGenerationId}
+                onStoreReady={setStore}
               />
             )}
           </div>
@@ -82,7 +102,13 @@ export default function PresentationEditorPage() {
           {/* Right Sidebar (Floating over grid on the right) */}
           <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
             <div className="pointer-events-auto">
-              <RightSidebar />
+              <RightSidebar
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                documentId={actualGenerationId}
+                documentTitle={content?.title || "Untitled presentation"}
+              />
             </div>
           </div>
 

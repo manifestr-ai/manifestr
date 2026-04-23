@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // For demonstration, these can be static.
 // In real usage, swap with your store's fonts list.
@@ -18,30 +18,127 @@ interface TextPanelProps {
 }
 
 export default function TextPanel({ store }: TextPanelProps) {
-  const selected = store.selectedElements?.[0];
-  const isText = selected?.type === "text";
+  const page = store?.activePage;
+  const selectedElements = Array.isArray(store?.selectedElements) ? store.selectedElements : [];
+  const selectedTextElements = useMemo(
+    () => selectedElements.filter((el: any) => el?.type === "text" && typeof el?.set === "function"),
+    [selectedElements],
+  );
+  const selectionKey = selectedTextElements.map((el: any) => el?.id).filter(Boolean).join("|");
+  const hasTextSelection =
+    selectedTextElements.length > 0 && selectedTextElements.length === selectedElements.length;
+  const primary = hasTextSelection ? selectedTextElements[0] : null;
 
-  // Make sure all needed properties are available, or use fallbacks
-  const fontFamily = selected?.fontFamily || "Inter";
-  const fontSize = selected?.fontSize || 18;
-  const fontWeight = selected?.fontWeight || "normal";
-  const fontStyle = selected?.fontStyle || "normal";
-  const textDecoration = selected?.textDecoration || "none";
-  const textDecorLine =
-    typeof textDecoration === "string" ? textDecoration : "none";
-  const align = selected?.align || "";
-  const fill = selected?.fill || "#000000";
+  const applyToSelectedText = (patch: any) => {
+    if (!hasTextSelection) return;
+    selectedTextElements.forEach((el: any) => {
+      if (el?.type !== "text" || typeof el?.set !== "function") return;
+      el.set(patch);
+    });
+  };
 
-  // if (!isText) {
-  //   return (
-  //     <div className="h-[102px] flex items-center justify-center text-gray-400 text-sm">
-  //       Select a text element to format
-  //     </div>
-  //   );
-  // }
+  const fontFamily = typeof primary?.fontFamily === "string" ? primary.fontFamily : "Inter";
+  const fontSize = typeof primary?.fontSize === "number" ? primary.fontSize : 18;
+  const fontWeight = typeof primary?.fontWeight === "string" ? primary.fontWeight : "normal";
+  const fontStyle = typeof primary?.fontStyle === "string" ? primary.fontStyle : "normal";
+  const textDecoration =
+    typeof primary?.textDecoration === "string" ? primary.textDecoration : "none";
+  const textDecorLine = typeof textDecoration === "string" ? textDecoration : "none";
+  const align = typeof primary?.align === "string" ? primary.align : "";
+  const fill = typeof primary?.fill === "string" ? primary.fill : "#000000";
 
-  // Helper to disable button if not functional
-  const disable = (available = true) => !available;
+  const isOutline = (Number(primary?.strokeWidth) || 0) > 0;
+  const isShadow = !!primary?.shadowEnabled && (Number(primary?.shadowBlur) || 0) > 0;
+
+  const [letterSpacingPct, setLetterSpacingPct] = useState(100);
+  const [lineHeightPct, setLineHeightPct] = useState(120);
+
+  useEffect(() => {
+    if (!primary) {
+      setLetterSpacingPct(100);
+      setLineHeightPct(120);
+      return;
+    }
+    const ls = Number(primary?.letterSpacing) || 0;
+    const lh = Number(primary?.lineHeight) || 1.2;
+    const nextLetter = Math.max(0, Math.min(200, Math.round(ls * 10 + 100)));
+    const nextLine = Math.max(50, Math.min(200, Math.round(lh * 100)));
+    setLetterSpacingPct(nextLetter);
+    setLineHeightPct(nextLine);
+  }, [primary?.id, selectionKey]);
+
+  const toggleTextPath = () => {
+    if (!hasTextSelection || !primary || !page?.addElement) return;
+    const rawText = typeof primary?.text === "string" ? primary.text : "";
+    const text = rawText.trim();
+    if (!text) return;
+
+    const pageW = typeof store?.width === "number" ? store.width : 800;
+    const pageH = typeof store?.height === "number" ? store.height : 600;
+    const radius = Math.max(80, Math.round(Math.min(pageW, pageH) * 0.25));
+    const centerX = Math.round(pageW / 2);
+    const centerY = Math.round(pageH / 2);
+    const step = Math.min(Math.PI / 10, Math.max(Math.PI / 40, Math.PI / (text.length + 4)));
+    const start = -Math.PI / 2 - (text.length - 1) * (step / 2);
+
+    const ids: string[] = [];
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const angle = start + i * step;
+      const x = Math.round(centerX + radius * Math.cos(angle));
+      const y = Math.round(centerY + radius * Math.sin(angle));
+      const rotation = Math.round((angle * 180) / Math.PI + 90);
+      const el = page.addElement({
+        type: "text",
+        text: ch,
+        x,
+        y,
+        width: fontSize * 2,
+        height: fontSize * 2,
+        fontFamily,
+        fontSize,
+        fill,
+        rotation,
+        align: "center",
+      });
+      if (el?.id) ids.push(el.id);
+    }
+
+    if (typeof primary?.remove === "function") {
+      try {
+        primary.remove();
+      } catch {}
+    }
+
+    if (ids.length && typeof store.selectElements === "function") {
+      store.selectElements(ids);
+    }
+    if (ids.length && typeof store.groupElements === "function") {
+      try {
+        const groupId = `text-path-${Date.now()}`;
+        try {
+          store.groupElements(ids, { id: groupId, name: "Text on Path" });
+          if (typeof store.selectElements === "function") {
+            const group =
+              typeof store.getElementById === "function" ? store.getElementById(groupId) : null;
+            if (group?.id) {
+              store.selectElements([groupId]);
+            } else {
+              const grouped = (store.selectedElements || []).find((el: any) => el?.type === "group");
+              if (grouped?.id) store.selectElements([grouped.id]);
+            }
+          }
+          return;
+        } catch {}
+
+        store.groupElements(ids);
+        const grouped = (store.selectedElements || []).find((el: any) => el?.type === "group");
+        if (grouped?.id && typeof store.selectElements === "function") {
+          store.selectElements([grouped.id]);
+        }
+      } catch {}
+    }
+  };
 
   return (
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4 overflow-x-auto">
@@ -51,7 +148,11 @@ export default function TextPanel({ store }: TextPanelProps) {
         <div className="flex gap-2 gap-[34px]">
           {/* Text */}
           <button
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontWeight === "bold" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
+            type="button"
+            disabled={!hasTextSelection}
+            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${
+              hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"
+            } py-2`}
           >
             <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
               <svg
@@ -92,10 +193,12 @@ export default function TextPanel({ store }: TextPanelProps) {
           {/* Bold */}
           <button
             onClick={() =>
-              selected.set({
+              applyToSelectedText({
                 fontWeight: fontWeight === "bold" ? "normal" : "bold",
               })
             }
+            type="button"
+            disabled={!hasTextSelection}
             className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontWeight === "bold" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
           >
             <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
@@ -123,10 +226,12 @@ export default function TextPanel({ store }: TextPanelProps) {
           {/* Italic */}
           <button
             onClick={() =>
-              selected.set({
+              applyToSelectedText({
                 fontStyle: fontStyle === "italic" ? "normal" : "italic",
               })
             }
+            type="button"
+            disabled={!hasTextSelection}
             className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition
       ${fontStyle === "italic" ? "bg-[#E9EBF0]" : "bg-transparent"}
       hover:bg-[#E9EBF0] py-2`}
@@ -170,12 +275,15 @@ export default function TextPanel({ store }: TextPanelProps) {
           {/* Underline */}
           <button
             onClick={() =>
-              selected.set({
-                textDecoration:
-                  textDecorLine === "underline" ? "none" : "underline",
+              applyToSelectedText({
+                textDecoration: textDecorLine === "underline" ? "none" : "underline",
               })
             }
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${textDecorLine === "underline" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0]`}
+            type="button"
+            disabled={!hasTextSelection}
+            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${
+              textDecorLine === "underline" ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"}`}
           >
             <span className="text-[18px] underline text-[#2B2F38] leading-none">
               <svg
@@ -268,11 +376,46 @@ export default function TextPanel({ store }: TextPanelProps) {
                   <span className="text-[11px] text-[#6B7280] mb-[2px]">
                     Font
                   </span>
-                  <input
-                    type="text"
-                    value="Inter"
-                    className="w-[100px] h-[28px] px-2 text-[13px] text-[#111827] border border-[#D1D5DB] rounded-[6px] bg-white outline-none"
-                  />
+                  <div className="relative group w-[100px]">
+                    <button
+                      type="button"
+                      disabled={!hasTextSelection}
+                      className={`w-[100px] h-[28px] px-2 text-[13px] text-[#111827] border border-[#D1D5DB] rounded-[6px] bg-white outline-none flex items-center justify-between ${
+                        hasTextSelection ? "" : "opacity-50 cursor-not-allowed"
+                      }`}
+                      style={{ fontFamily }}
+                    >
+                      <span className="truncate">{fontFamily}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        style={{ width: "12px", height: "12px", flexShrink: 0 }}
+                      >
+                        <path
+                          d="M3 4.5L6 7.5L9 4.5"
+                          stroke="#6A7282"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    <select
+                      value={fontFamily}
+                      disabled={!hasTextSelection}
+                      onChange={(e) => applyToSelectedText({ fontFamily: e.target.value })}
+                      className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                      style={{ fontFamily }}
+                    >
+                      {FONT_FAMILIES.map((f) => (
+                        <option key={f} value={f} style={{ fontFamily: f }}>
+                          {f}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* Size */}
@@ -280,11 +423,46 @@ export default function TextPanel({ store }: TextPanelProps) {
                   <span className="text-[11px] text-[#6B7280] mb-[2px]">
                     Size
                   </span>
-                  <input
-                    type="text"
-                    value="16"
-                    className="w-[60px] h-[28px] px-2 text-[13px] text-[#111827] border border-[#D1D5DB] rounded-[6px] bg-white outline-none"
-                  />
+                  <div className="relative group w-[60px]">
+                    <button
+                      type="button"
+                      disabled={!hasTextSelection}
+                      className={`w-[60px] h-[28px] px-2 text-[13px] text-[#111827] border border-[#D1D5DB] rounded-[6px] bg-white outline-none flex items-center justify-between ${
+                        hasTextSelection ? "" : "opacity-50 cursor-not-allowed"
+                      }`}
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      <span className="truncate">{fontSize}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        style={{ width: "12px", height: "12px", flexShrink: 0 }}
+                      >
+                        <path
+                          d="M3 4.5L6 7.5L9 4.5"
+                          stroke="#6A7282"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    <select
+                      value={fontSize}
+                      disabled={!hasTextSelection}
+                      onChange={(e) => applyToSelectedText({ fontSize: Number(e.target.value) })}
+                      className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      {FONT_SIZES.map((size) => (
+                        <option key={size} value={size} style={{ fontFamily: "Inter" }}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -301,7 +479,19 @@ export default function TextPanel({ store }: TextPanelProps) {
         <div className="flex gap-2 gap-[34px]">
           {/* Font */}
           <button
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontWeight === "bold" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
+            type="button"
+            disabled={!hasTextSelection}
+            onClick={() => {
+              if (!hasTextSelection) return;
+              applyToSelectedText(
+                isOutline
+                  ? { strokeWidth: 0 }
+                  : { stroke: typeof primary?.stroke === "string" ? primary.stroke : fill, strokeWidth: 2 },
+              );
+            }}
+            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${
+              isOutline ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"} py-2`}
           >
             <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
               <svg
@@ -341,7 +531,26 @@ export default function TextPanel({ store }: TextPanelProps) {
 
           {/* Effect */}
           <button
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontWeight === "bold" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
+            type="button"
+            disabled={!hasTextSelection}
+            onClick={() => {
+              if (!hasTextSelection) return;
+              applyToSelectedText(
+                isShadow
+                  ? { shadowEnabled: false, shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0, shadowOpacity: 0 }
+                  : {
+                      shadowEnabled: true,
+                      shadowBlur: 10,
+                      shadowOffsetX: 2,
+                      shadowOffsetY: 2,
+                      shadowOpacity: 0.35,
+                      shadowColor: "#000000",
+                    },
+              );
+            }}
+            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${
+              isShadow ? "bg-[#E9EBF0]" : "bg-transparent"
+            } ${hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"} py-2`}
           >
             <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
               <svg
@@ -387,8 +596,13 @@ export default function TextPanel({ store }: TextPanelProps) {
           </button>
 
           {/* Path */}
-          <button
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontStyle === "italic" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
+          {/* <button
+            type="button"
+            disabled={!hasTextSelection || !page?.addElement}
+            onClick={toggleTextPath}
+            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent ${
+              hasTextSelection && page?.addElement ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"
+            } py-2`}
           >
             <span className="text-[18px] italic text-[#2B2F38] leading-none">
               <svg
@@ -459,7 +673,7 @@ export default function TextPanel({ store }: TextPanelProps) {
             <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1 ">
               Path
             </span>
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -617,8 +831,11 @@ export default function TextPanel({ store }: TextPanelProps) {
             ].map((option) => (
               <button
                 key={option.value}
-                onClick={() => selected.set({ align: option.value })}
-                className={`flex flex-col items-center justify-center w-[44px] rounded-md transition ${align === option.value ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
+                onClick={() => applyToSelectedText({ align: option.value })}
+                disabled={!hasTextSelection}
+                className={`flex flex-col items-center justify-center w-[44px] rounded-md transition ${
+                  align === option.value ? "bg-[#E9EBF0]" : "bg-transparent"
+                } ${hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"} py-2`}
                 aria-label={`Align ${option.label}`}
                 type="button"
               >
@@ -685,8 +902,14 @@ export default function TextPanel({ store }: TextPanelProps) {
                 <input
                   type="range"
                   min="0"
-                  max="100"
-                  defaultValue="100"
+                  max="200"
+                  value={letterSpacingPct}
+                  disabled={!hasTextSelection}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    setLetterSpacingPct(next);
+                    applyToSelectedText({ letterSpacing: (next - 100) / 10 });
+                  }}
                   className="outline-none appearance-none"
                   style={{
                     width: "133px",
@@ -699,7 +922,7 @@ export default function TextPanel({ store }: TextPanelProps) {
 
                 {/* value */}
                 <span className="text-[12px] text-[#6B7280] w-[40px]">
-                  100%
+                  {letterSpacingPct}%
                 </span>
               </div>
             </div>
@@ -739,9 +962,15 @@ export default function TextPanel({ store }: TextPanelProps) {
                 {/* slider */}
                 <input
                   type="range"
-                  min="0"
-                  max="100"
-                  defaultValue="100"
+                  min="50"
+                  max="200"
+                  value={lineHeightPct}
+                  disabled={!hasTextSelection}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    setLineHeightPct(next);
+                    applyToSelectedText({ lineHeight: next / 100 });
+                  }}
                   className="outline-none appearance-none"
                   style={{
                     width: "133px",
@@ -754,7 +983,7 @@ export default function TextPanel({ store }: TextPanelProps) {
 
                 {/* value */}
                 <span className="text-[12px] text-[#6B7280] w-[40px]">
-                  100%
+                  {lineHeightPct}%
                 </span>
               </div>
             </div>

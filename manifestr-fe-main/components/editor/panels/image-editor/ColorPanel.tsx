@@ -1,63 +1,278 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface ColorPanelProps {
   store: any;
 }
 
+const COLOR_SWATCHES = [
+  "#000000",
+  "#E5E7EB",
+  "#EF4444",
+  "#F97316",
+  "#F59E0B",
+  "#84CC16",
+  "#22C55E",
+  "#14B8A6",
+  "#06B6D4",
+  "#3B82F6",
+  "#6366F1",
+  "#A855F7",
+  "#EC4899",
+  "#F43F5E",
+  "#6B7280",
+];
+
+const DEFAULT_COLOR_VALUES = {
+  saturation: 0,
+  vibrance: 0,
+  hue: 0,
+  temperature: 0,
+  tint: 0,
+};
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+const normalizeHex = (value: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const withHash = raw.startsWith("#") ? raw : `#${raw}`;
+  if (/^#[0-9a-fA-F]{6}$/.test(withHash)) return withHash.toUpperCase();
+  return null;
+};
+
+const hexToHue = (hex: string) => {
+  const normalized = normalizeHex(hex);
+  if (!normalized) return 0;
+  const r = parseInt(normalized.slice(1, 3), 16) / 255;
+  const g = parseInt(normalized.slice(3, 5), 16) / 255;
+  const b = parseInt(normalized.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  if (delta === 0) return 0;
+  let h = 0;
+  if (max === r) h = ((g - b) / delta) % 6;
+  else if (max === g) h = (b - r) / delta + 2;
+  else h = (r - g) / delta + 4;
+  h = Math.round(h * 60);
+  if (h < 0) h += 360;
+  return h;
+};
+
+const getFiltersSnapshot = (filters: any) => {
+  const out: Record<string, any> = {};
+  if (!filters) return out;
+
+  if (typeof filters.forEach === "function") {
+    filters.forEach((v: any, k: any) => {
+      const key = String(k || "");
+      if (!key) return;
+      if (v && typeof v === "object" && "intensity" in v) {
+        out[key] = { intensity: Number(v.intensity) || 0 };
+        return;
+      }
+      if (v && typeof v?.toJSON === "function") {
+        out[key] = v.toJSON();
+        return;
+      }
+      if (v && typeof v === "object") {
+        out[key] = { ...v };
+      }
+    });
+    return out;
+  }
+
+  if (typeof filters === "object") {
+    Object.entries(filters).forEach(([key, v]) => {
+      if (!key) return;
+      if (v && typeof v === "object" && "intensity" in v) {
+        out[key] = { intensity: Number((v as any).intensity) || 0 };
+      } else if (v && typeof v === "object") {
+        out[key] = v;
+      }
+    });
+  }
+
+  return out;
+};
+
+const setFilterIntensity = (filters: any, key: string, intensity: number) => {
+  const next = { ...(filters || {}) };
+  const enabled = Math.abs(intensity) > 0.0001;
+  if (!enabled) {
+    if (key in next) delete next[key];
+    return next;
+  }
+  next[key] = { ...(next[key] || {}), intensity };
+  return next;
+};
+
 export default function ColorPanel({ store }: ColorPanelProps) {
-  const selected = store.selectedElements?.[0];
+  const page = store?.activePage;
+  const pageChildren = Array.isArray(page?.children) ? page.children : [];
+  const selectedElements = Array.isArray(store?.selectedElements) ? store.selectedElements : [];
+  const selectedImages = useMemo(
+    () => selectedElements.filter((el: any) => el?.type === "image" && typeof el?.set === "function"),
+    [selectedElements],
+  );
+  const baseImage = pageChildren.find(
+    (c: any) => c?.type === "image" && c?.name === "base-image" && typeof c?.set === "function",
+  );
+  const imageTargets = selectedImages.length > 0 ? selectedImages : baseImage ? [baseImage] : [];
+  const imageTargetsKey = imageTargets.map((t: any) => t?.id).filter(Boolean).join("|");
+  const memoImageTargets = useMemo(() => imageTargets, [imageTargetsKey]);
+  const hasImageTargets = memoImageTargets.length > 0;
 
-  const [values, setValues] = useState({
-    exposure: 0,
-    brightness: 0,
-    contrast: 0,
-    highlights: 0,
-    shadows: 0,
-  });
+  const primary = selectedElements?.[0] || null;
+  const hasSelection = selectedElements.length > 0;
 
-  // Apply simulated effects
+  const [tintHex, setTintHex] = useState<string>("#000000");
+  const [hexInput, setHexInput] = useState<string>("#000000");
+  const [values, setValues] = useState(DEFAULT_COLOR_VALUES);
+
+  const applyToSelected = (patch: any) => {
+    if (!hasSelection) return;
+    selectedElements.forEach((el: any) => {
+      if (!el || typeof el?.set !== "function") return;
+      el.set(patch);
+    });
+  };
+
+  const getImageColorBase = (el: any) => {
+    const preset =
+      typeof el?.custom?.imageFilterPreset === "string" ? el.custom.imageFilterPreset : "None";
+    const existing = el?.custom?.imageColorBase;
+    if (existing && typeof existing === "object" && existing.preset === preset) return existing;
+
+    const nextBase = {
+      preset,
+      filters: getFiltersSnapshot(el?.filters),
+    };
+    el.set({
+      custom: {
+        ...(el.custom || {}),
+        imageColorBase: nextBase,
+      },
+    });
+    return nextBase;
+  };
+
+  const applyImageColor = (nextValues: typeof DEFAULT_COLOR_VALUES, nextTintHex: string) => {
+    if (!hasImageTargets) return;
+    const normalizedTint = normalizeHex(nextTintHex) || "#000000";
+    const tintHue = hexToHue(normalizedTint);
+    const tintHueIntensity = clamp(((tintHue - 180) / 180) * 0.25, -0.25, 0.25);
+
+    const saturation = clamp((Number(nextValues.saturation) || 0) / 100, -1, 1);
+    const vibrance = clamp((Number(nextValues.vibrance) || 0) / 100, -1, 1);
+    const hue = clamp((Number(nextValues.hue) || 0) / 100, -1, 1);
+    const temperature = clamp((Number(nextValues.temperature) || 0) / 100, -1, 1);
+    const tint = clamp((Number(nextValues.tint) || 0) / 100, -1, 1);
+
+    const saturationAdj = clamp(saturation * 0.9 + vibrance * 0.45 + temperature * 0.15, -1, 1);
+    const hueAdj = clamp(hue * 0.35 + temperature * 0.18 + tint * 0.18 + tintHueIntensity, -1, 1);
+
+    memoImageTargets.forEach((el: any) => {
+      if (el?.type !== "image" || typeof el?.set !== "function") return;
+      const base = getImageColorBase(el);
+      const baseFilters = base?.filters || {};
+
+      const baseSaturation = Number(baseFilters?.saturation?.intensity) || 0;
+      const baseHue = Number(baseFilters?.hue?.intensity) || 0;
+      const baseVibrance = Number(baseFilters?.vibrance?.intensity) || 0;
+      const baseTemperature = Number(baseFilters?.temperature?.intensity) || 0;
+      const baseTint = Number(baseFilters?.tint?.intensity) || 0;
+
+      let nextFilters = getFiltersSnapshot(el?.filters);
+      nextFilters = setFilterIntensity(
+        nextFilters,
+        "saturation",
+        clamp(baseSaturation + saturationAdj, -1, 1),
+      );
+      nextFilters = setFilterIntensity(nextFilters, "hue", clamp(baseHue + hueAdj, -1, 1));
+
+      nextFilters = setFilterIntensity(nextFilters, "vibrance", clamp(baseVibrance + vibrance, -1, 1));
+      nextFilters = setFilterIntensity(
+        nextFilters,
+        "temperature",
+        clamp(baseTemperature + temperature, -1, 1),
+      );
+      nextFilters = setFilterIntensity(nextFilters, "tint", clamp(baseTint + tint, -1, 1));
+
+      el.set({
+        filters: nextFilters,
+        custom: {
+          ...(el.custom || {}),
+          imageColor: nextValues,
+          imageTintHex: normalizedTint,
+        },
+      });
+    });
+  };
+
   useEffect(() => {
-    if (!selected) return;
+    const nextHex = (() => {
+      if (!primary) return "#000000";
+      if (primary?.type === "text" && typeof primary?.fill === "string") return primary.fill;
+      if (typeof primary?.fill === "string") return primary.fill;
+      if (typeof primary?.stroke === "string") return primary.stroke;
+      return "#000000";
+    })();
+    const normalized = normalizeHex(nextHex) || "#000000";
+    setTintHex(normalized);
+    setHexInput(normalized);
+  }, [primary?.id]);
 
-    // Simulate brightness via opacity + slight tint
-    selected.set({
-      opacity: 1 - values.exposure * 0.01,
-    });
-
-    // Simulate contrast via scale trick (visual feel)
-    selected.set({
-      scaleX: 1 + values.contrast * 0.001,
-      scaleY: 1 + values.contrast * 0.001,
-    });
-  }, [values, selected]);
-
-  // if (!selected || selected.type !== "image") {
-  //   return (
-  //     <div className="h-[90px] flex items-center justify-center text-gray-400 text-sm">
-  //       Select an image to adjust
-  //     </div>
-  //   );
-  // }
+  useEffect(() => {
+    const fromEl = memoImageTargets?.[0]?.custom?.imageColor;
+    const fromTint = memoImageTargets?.[0]?.custom?.imageTintHex;
+    if (fromEl && typeof fromEl === "object") {
+      setValues({
+        saturation: Number(fromEl.saturation) || 0,
+        vibrance: Number(fromEl.vibrance) || 0,
+        hue: Number(fromEl.hue) || 0,
+        temperature: Number(fromEl.temperature) || 0,
+        tint: Number(fromEl.tint) || 0,
+      });
+    } else {
+      setValues(DEFAULT_COLOR_VALUES);
+    }
+    const normalizedTint = normalizeHex(fromTint) || tintHex;
+    setTintHex(normalizedTint);
+    setHexInput(normalizedTint);
+  }, [imageTargetsKey]);
 
   const handleChange = (key: string, val: number) => {
     setValues((prev) => ({ ...prev, [key]: val }));
   };
 
   const resetAll = () => {
-    setValues({
-      exposure: 0,
-      brightness: 0,
-      contrast: 0,
-      highlights: 0,
-      shadows: 0,
-    });
+    setValues(DEFAULT_COLOR_VALUES);
+    if (!hasImageTargets) return;
+    memoImageTargets.forEach((el: any) => {
+      if (el?.type !== "image" || typeof el?.set !== "function") return;
+      const base = getImageColorBase(el);
+      const baseFilters = base?.filters || {};
+      let nextFilters = getFiltersSnapshot(el?.filters);
+      ["saturation", "hue", "vibrance", "temperature", "tint"].forEach((k) => {
+        if (baseFilters?.[k]) nextFilters[k] = { ...(baseFilters[k] || {}) };
+        else if (k in nextFilters) delete nextFilters[k];
+      });
 
-    selected.set({
-      opacity: 1,
-      scaleX: 1,
-      scaleY: 1,
+      const nextCustom = { ...(el.custom || {}) } as any;
+      delete nextCustom.imageColor;
+      delete nextCustom.imageTintHex;
+      delete nextCustom.imageColorBase;
+      el.set({
+        filters: nextFilters,
+        custom: nextCustom,
+      });
     });
   };
+
+  useEffect(() => {
+    applyImageColor(values, tintHex);
+  }, [values, tintHex, imageTargetsKey]);
 
   const Slider = ({ label, keyName, icon }: any) => (
     <div className="flex items-center gap-3 flex-1">
@@ -73,6 +288,7 @@ export default function ColorPanel({ store }: ColorPanelProps) {
             min="-100"
             max="100"
             value={values[keyName]}
+            disabled={!hasImageTargets}
             onChange={(e) => handleChange(keyName, Number(e.target.value))}
             className="outline-none appearance-none"
             style={{
@@ -153,31 +369,40 @@ export default function ColorPanel({ store }: ColorPanelProps) {
           <span className="text-[13px] text-[#374151] mr-2">Color</span>
 
           <div className="flex items-center gap-2">
-            {[
-              "#000000",
-              "#E5E7EB",
-              "#EF4444",
-              "#F97316",
-              "#F59E0B",
-              "#84CC16",
-              "#22C55E",
-              "#14B8A6",
-              "#06B6D4",
-              "#3B82F6",
-              "#6366F1",
-              "#A855F7",
-              "#EC4899",
-              "#F43F5E",
-              "#6B7280",
-            ].map((color, i) => (
+            {COLOR_SWATCHES.map((color, i) => (
               <button
                 key={i}
-                className="w-8 h-8 rounded-md border border-gray-300"
+                type="button"
+                disabled={!hasSelection && !hasImageTargets}
+                onClick={() => {
+                  const normalized = normalizeHex(color) || "#000000";
+                  setTintHex(normalized);
+                  setHexInput(normalized);
+                  if (hasSelection) {
+                    applyToSelected(
+                      primary?.type === "text" || typeof primary?.fill === "string"
+                        ? { fill: normalized }
+                        : typeof primary?.stroke === "string"
+                          ? { stroke: normalized }
+                          : {},
+                    );
+                  }
+                  if (hasImageTargets) {
+                    applyImageColor(values, normalized);
+                  }
+                }}
+                className={`w-8 h-8 rounded-md border border-gray-300 ${
+                  !hasSelection && !hasImageTargets ? "opacity-40 cursor-not-allowed" : ""
+                }`}
                 style={{ backgroundColor: color }}
               />
             ))}
 
-            <button className="w-8 h-8 rounded-md bg-black flex items-center justify-center border border-gray-300">
+            <div
+              className={`relative w-8 h-8 rounded-md bg-black flex items-center justify-center border border-gray-300 ${
+                !hasSelection && !hasImageTargets ? "opacity-40 cursor-not-allowed" : ""
+              }`}
+            >
               <span className="text-white text-xs">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -275,16 +500,56 @@ export default function ColorPanel({ store }: ColorPanelProps) {
                   </defs>
                 </svg>
               </span>
-            </button>
+              <input
+                type="color"
+                value={tintHex}
+                disabled={!hasSelection && !hasImageTargets}
+                onChange={(e) => {
+                  const normalized = normalizeHex(e.target.value) || "#000000";
+                  setTintHex(normalized);
+                  setHexInput(normalized);
+                  if (hasSelection) {
+                    applyToSelected(
+                      primary?.type === "text" || typeof primary?.fill === "string"
+                        ? { fill: normalized }
+                        : typeof primary?.stroke === "string"
+                          ? { stroke: normalized }
+                          : {},
+                    );
+                  }
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-2 ml-3 px-3 py-1.5 rounded-md border border-gray-300 bg-[#F9FAFB]">
-            <div className="w-4 h-4 rounded-sm bg-black border border-gray-300" />
+            <div
+              className="w-4 h-4 rounded-sm border border-gray-300"
+              style={{ backgroundColor: tintHex }}
+            />
             <input
               type="text"
-              value="#000000"
+              value={hexInput}
+              disabled={!hasSelection && !hasImageTargets}
+              onChange={(e) => {
+                const v = e.target.value;
+                setHexInput(v);
+                const normalized = normalizeHex(v);
+                if (normalized) {
+                  setTintHex(normalized);
+                  if (hasSelection) {
+                    applyToSelected(
+                      primary?.type === "text" || typeof primary?.fill === "string"
+                        ? { fill: normalized }
+                        : typeof primary?.stroke === "string"
+                          ? { stroke: normalized }
+                          : {},
+                    );
+                  }
+                }
+              }}
               className="bg-transparent text-[13px] outline-none w-[80px]"
-              readOnly
             />
           </div>
         </div>
@@ -317,7 +582,10 @@ export default function ColorPanel({ store }: ColorPanelProps) {
         <div className="flex flex-col items-center min-w-[150px]">
           <button
             onClick={resetAll}
-            className="inline-flex justify-center items-start gap-[8px] rounded-[14px] bg-[#F3F4F6] text-sm"
+            disabled={!hasImageTargets}
+            className={`inline-flex justify-center items-start gap-[8px] rounded-[14px] bg-[#F3F4F6] text-sm ${
+              hasImageTargets ? "" : "opacity-40 cursor-not-allowed"
+            }`}
             style={{ padding: "8.5px 15.453px 7.5px 16px" }}
           >
             {/* SVG */}
