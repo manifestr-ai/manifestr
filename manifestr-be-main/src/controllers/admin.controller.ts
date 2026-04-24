@@ -180,6 +180,24 @@ export class AdminController extends BaseController {
       // =========================
       // STEP 5: RESPONSE
       // =========================
+      const zero12 = Array(12).fill(0);
+
+      const calcChange = (current: number, previous: number) => {
+        if (!previous || previous === 0) return "0%";
+
+        const change = ((current - previous) / previous) * 100;
+        const sign = change > 0 ? "+" : "";
+
+        return `${sign}${change.toFixed(1)}%`;
+      };
+
+      const totalUsersChange = calcChange(totalUsers, prevUsers);
+      const growthChange = calcChange(newUsers, prevUsers);
+
+      // fallback (until you track properly)
+      const dauMauChange = "0%";
+      const activationChange = "0%";
+
       const data = {
         header: {
           title: "Executive Overview",
@@ -202,136 +220,185 @@ export class AdminController extends BaseController {
           },
         },
 
+        // =========================
+        // STATS
+        // =========================
+
         statRows: [
           [
             {
               title: "Total Users",
-              value: totalUsers.toLocaleString(),
-              change: "N/A",
-              period: `based on ${timeframe}`,
+              value: totalUsers?.toLocaleString() || "0",
+              change: totalUsersChange || "0%",
+              period: `vs ${timeframe}`,
             },
             {
               title: "New Signups",
-              value: newUsers.toLocaleString(),
-              change: signupChange,
-              period: `vs previous period`,
+              value: newUsers?.toLocaleString() || "0",
+              change: signupChange || "0%",
+              period: "vs previous period",
             },
             {
               title: "DAU / MAU",
-              value: dauMau,
-              change: "N/A",
-              period: "engagement ratio",
+              value: dauMau || "0%",
+              change: dauMauChange || "0%",
+              period: "vs last period",
             },
           ],
           [
             {
               title: "Activation Rate",
-              value: activationRate,
-              change: "N/A",
-              period: "users with ≥1 job",
+              value: activationRate || "0%",
+              change: activationChange || "0%",
+              period: "vs last period",
             },
             {
               title: "MRR",
-              value: "N/A",
-              change: "N/A",
-              period: "no billing data",
+              value: "$0",
+              change: "0%",
+              period: "vs last period",
             },
             {
               title: "Revenue This Month",
-              value: "N/A",
-              change: "N/A",
-              period: "no billing data",
+              value: "$0",
+              change: "0%",
+              period: "vs last month",
             },
           ],
         ],
 
+        // =========================
+        // USER GROWTH
+        // =========================
         userGrowth: {
           title: "User Growth",
           filterOptions: ["last 7d", "last 30d", "last 90d", "all time"],
-          selectedFilter: timeframe.toLowerCase(),
-          months,
-          series,
-          max: safeMax(series),
-          change: "N/A",
-          period: `based on ${timeframe}`,
+          selectedFilter: timeframe?.toLowerCase() || "last 30d",
+          months: months?.length ? months : defaultMonths,
+          series: series?.length ? series : zero12,
+          max: Math.max(...(series || [1]), 1),
+          change: growthChange || "0%",
+          period: `vs ${timeframe}`,
         },
 
+        // =========================
+        // REVENUE TREND
+        // =========================
         revenueTrend: {
           title: "Revenue Trend",
           filterOptions: ["Both", "MRR", "ARR"],
           selectedFilter: "Both",
-          months,
+          months: defaultMonths,
           yLabels: ["80K", "60K", "40K", "20K", "10K", "0"],
-          mrrData: Array(12).fill(0),
-          arrData: Array(12).fill(0),
-          mrrDollar: Array(12).fill("N/A"),
-          arrDollar: Array(12).fill("N/A"),
+          mrrData: zero12,
+          arrData: zero12,
+          mrrDollar: Array(12).fill("$0"),
+          arrDollar: Array(12).fill("$0"),
           max: 0,
-          change: "N/A",
+          change: "0%",
           period: "MoM",
         },
 
+        // =========================
+        // CONVERSION FUNNEL
+        // =========================
         conversionFunnel: {
           title: "Conversion Funnel",
           steps: [
             {
               label: "Users",
-              value: totalUsers,
-              valueLabel: totalUsers.toLocaleString(),
+              value: totalUsers || 0,
+              valueLabel: totalUsers?.toLocaleString() || "0",
             },
             {
-              label: "New Signups",
-              value: newUsers,
-              valueLabel: newUsers.toLocaleString(),
+              label: "Signups",
+              value: newUsers || 0,
+              valueLabel: newUsers?.toLocaleString() || "0",
             },
             {
-              label: "Activated Users",
-              value: activatedUsers,
-              valueLabel: activatedUsers.toLocaleString(),
+              label: "Activated",
+              value: activatedUsers || 0,
+              valueLabel: activatedUsers?.toLocaleString() || "0",
             },
             {
-              label: "Paying Users",
+              label: "Paying",
               value: 0,
-              valueLabel: "N/A",
+              valueLabel: "0",
             },
             {
               label: "Retained (90d)",
               value: 0,
-              valueLabel: "N/A",
+              valueLabel: "0",
             },
           ],
         },
 
+        // =========================
+        // RECENT ACTIVITY
+        // =========================
         recentActivity: {
           title: "Recent Activity",
-          events: (recentUsers || []).map((u: any, i: number) => ({
-            id: `ev-${i}`,
-            type: "signup",
-            actor: u.email,
-            description: `New signup — ${u.email}`,
-            time: new Date(u.created_at).toLocaleDateString(),
-          })),
+          events: recentUsers?.length
+            ? recentUsers.map((u, i) => ({
+                id: `ev-${i}`,
+                type: "signup",
+                actor: u.email || "user",
+                description: `New signup — ${u.email || "unknown"}`,
+                time: new Date(u.created_at).toLocaleDateString(),
+              }))
+            : [
+                {
+                  id: "ev-0",
+                  type: "system",
+                  actor: "System",
+                  description: "No recent activity",
+                  time: "now",
+                },
+              ],
         },
 
+        // =========================
+        // ALERTS
+        // =========================
         alerts: {
           title: "Alerts",
+
           system: [
             {
               id: "sys-1",
               title:
-                failureRate !== "0.0%"
+                failureRate && failureRate !== "0%"
                   ? "High Failure Rate Detected"
                   : "System Stable",
               description:
-                failureRate !== "0.0%"
+                failureRate && failureRate !== "0%"
                   ? `Failure rate is ${failureRate}`
                   : "No major issues detected",
-              severity: failureRate !== "0.0%" ? "warning" : "info",
+              severity:
+                failureRate && failureRate !== "0%" ? "warning" : "info",
               time: "now",
             },
           ],
-          revenue: [],
-          churn: [],
+
+          revenue: [
+            {
+              id: "rev-1",
+              title: "No Revenue Data",
+              description: "Billing system not integrated",
+              severity: "info",
+              time: "now",
+            },
+          ],
+
+          churn: [
+            {
+              id: "churn-1",
+              title: "No Churn Data",
+              description: "Churn tracking not available",
+              severity: "info",
+              time: "now",
+            },
+          ],
         },
       };
 
@@ -448,6 +515,8 @@ export class AdminController extends BaseController {
       // Response
       // -------------------------
 
+      const zero12 = Array(12).fill(0);
+
       const data = {
         header: {
           title: "Growth & User Health",
@@ -470,125 +539,136 @@ export class AdminController extends BaseController {
           },
         },
 
+        // =========================
+        // STATS
+        // =========================
         stats: [
           {
             title: "New Signups (30d)",
-            value: newUsers30d.toLocaleString(),
-            change: `${signupChange}%`,
-            period: "vs prev 30d",
+            value: newUsers30d?.toLocaleString() || "0",
+            change: signupChange || "0%",
+            period: "vs last 30d",
           },
           {
             title: "Activation Rate",
-            value: `${activationRate}%`,
-            change: "N/A",
-            period: "users with ≥1 job",
+            value: `${activationRate || 0}%`,
+            change: "0%",
+            period: "vs last 30d",
           },
           {
             title: "DAU / MAU",
-            value: `${dauMau}%`,
-            change: "N/A",
-            period: "engagement ratio",
+            value: `${dauMau || 0}%`,
+            change: "0%",
+            period: "vs last 30d",
           },
           {
             title: "Returning Users",
-            value: `${returningPct}%`,
-            change: "N/A",
+            value: `${returningPct || 0}%`,
+            change: "0%",
             period: "vs last 30d",
           },
         ],
 
+        // =========================
+        // SIGNUPS CHART
+        // =========================
         signupsOverTime: {
           title: "Signups Over Time",
           filterOptions: ["last 7d", "last 30d", "last 90d", "all time"],
           selectedFilter: "last 30d",
-          months,
-          series: signupSeries,
-          max: safeMax(signupSeries),
-          change: "N/A",
+          months: months?.length ? months : defaultMonths,
+          series: signupSeries?.length ? signupSeries : zero12,
+          max: Math.max(...(signupSeries || [1]), 1),
+          change: signupChange || "0%",
           period: "vs last 30d",
         },
 
+        // =========================
+        // RETURNING VS NEW
+        // =========================
         returningVsNew: {
           title: "Returning vs New Users",
           filterOptions: ["last 7d", "last 30d", "last 90d"],
           selectedFilter: "last 30d",
           months: returningVsNew?.months || defaultMonths,
           yLabels: ["600", "500", "400", "300", "200", "0"],
-          returning,
-          newUsers: newUsersSeries,
-          max: Math.max(...returning, ...newUsersSeries, 10),
+          returning: returning?.length ? returning : zero12,
+          newUsers: newUsersSeries?.length ? newUsersSeries : zero12,
+          max: Math.max(...(returning || [0]), ...(newUsersSeries || [0]), 10),
           legend: [
             { label: "Returning", color: "#18181b" },
             { label: "New", color: "#a1a1aa" },
           ],
         },
 
+        // =========================
+        // REGION
+        // =========================
         breakdownByRegion: {
           title: "By Region",
           xLabels: ["N. America", "Europe", "Asia", "Other"],
-          values: regionValues || [0, 0, 0, 0],
+          values: regionValues?.length ? regionValues : [0, 0, 0, 0],
           max: 50,
           yLabels: ["50%", "40%", "30%", "20%", "10%", "0%"],
-          footer: "Share of users (%)",
+          footer: "Share of signups (%)",
         },
 
+        // =========================
+        // SOURCE (NO DATA → ZERO)
+        // =========================
         breakdownBySource: {
           title: "By Source",
           xLabels: ["Organic", "Paid Search", "Referral", "Direct"],
-          values: ["N/A", "N/A", "N/A", "N/A"], // not fake anymore
-          max: 0,
-          yLabels: [],
-          footer: "N/A",
+          values: [0, 0, 0, 0],
+          max: 50,
+          yLabels: ["50%", "40%", "30%", "20%", "10%", "0%"],
+          footer: "Share of signups (%)",
         },
 
+        // =========================
+        // USER TYPE
+        // =========================
         breakdownByUserType: {
           title: "By User Type",
-          organic: returningPct,
-          paid: newPct,
+          organic: returningPct || 0,
+          paid: newPct || 0,
           legend: [
             { label: "Returning", color: "#18181b" },
             { label: "New", color: "#94a3b8" },
           ],
         },
 
+        // =========================
+        // USER HEALTH
+        // =========================
         userHealthScore: {
           title: "User Health Score",
-          averageScore: "N/A",
+          averageScore: 0,
           distribution: {
-            green: {
-              label: "Healthy",
-              range: "≥70",
-              count: 0,
-              pct: 0,
-            },
-            amber: {
-              label: "At Risk",
-              range: "40–69",
-              count: 0,
-              pct: 0,
-            },
-            red: {
-              label: "Critical",
-              range: "<40",
-              count: 0,
-              pct: 0,
-            },
+            green: { label: "Healthy", range: "≥70", count: 0, pct: 0 },
+            amber: { label: "At Risk", range: "40–69", count: 0, pct: 0 },
+            red: { label: "Critical", range: "<40", count: 0, pct: 0 },
           },
           weights: [],
         },
 
+        // =========================
+        // POWER USERS
+        // =========================
         powerUsers: {
           title: "Power Users",
           subtitle: "Top active users",
-          rows: (topUsers || []).map((u: any, i: number) => ({
-            id: u.id || `u${i}`,
-            name: u.name || "User",
-            company: "N/A",
-            outputsCreated: u.outputsCreated || 0,
-            sessions: "N/A",
-            lastActive: u.lastActive || "recent",
-            healthScore: "N/A",
-          })),
+          rows: topUsers?.length
+            ? topUsers.map((u, i) => ({
+                id: u.id || `u-${i}`,
+                name: u.name || "User",
+                company: "Unknown",
+                outputsCreated: u.outputsCreated || 0,
+                sessions: u.sessions || 0,
+                lastActive: u.lastActive || "recent",
+                healthScore: u.healthScore || 0,
+              }))
+            : [],
         },
       };
 
@@ -631,10 +711,10 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
-        const [users, jobs] = await Promise.all([
-          SupabaseDB.getAllUsers(since),
-          SupabaseDB.getAllJobs(since),
-        ]);
+      const [users, jobs] = await Promise.all([
+        SupabaseDB.getAllUsers(since),
+        SupabaseDB.getAllJobs(since),
+      ]);
 
       const totalUsers = users.length;
       const now = Date.now();
@@ -772,6 +852,8 @@ export class AdminController extends BaseController {
       // =========================
       // FINAL RESPONSE
       // =========================
+      const zero12 = Array(12).fill(0);
+
       const data = {
         header: {
           title: "Retention & Churn",
@@ -807,82 +889,133 @@ export class AdminController extends BaseController {
           },
         },
 
+        // =========================
+        // STATS
+        // =========================
         stats: [
           {
             id: "churnRate",
             title: "Churn Rate",
-            value: `${churnRate}%`,
-            change: "N/A",
+            value: `${churnRate || 0}%`,
+            change: "0%",
             period: "vs last 30d",
           },
           {
             id: "reactivationRate",
             title: "Reactivation Rate",
-            value: "N/A",
-            change: "N/A",
+            value: "0%",
+            change: "0%",
             period: "vs last 30d",
           },
           {
             id: "avgRetention",
             title: "Avg Retention (30d)",
-            value: `${avgRetention}%`,
-            change: "N/A",
+            value: `${avgRetention || 0}%`,
+            change: "0%",
             period: "vs last 30d",
           },
           {
             id: "churnedAccounts",
             title: "Churned This Month",
-            value: churnedAccounts.toString(),
-            change: "N/A",
+            value: churnedAccounts?.toString() || "0",
+            change: "0",
             period: "vs last month",
           },
         ],
 
+        // =========================
+        // COHORT TABLE
+        // =========================
         cohortRetention: {
           title: "Cohort Retention",
           subtitle:
             "Share of users retained 1 day, 7 days, and 30 days after sign-up.",
           periods: ["1d", "7d", "30d"],
-          rows: cohortRows,
+          rows: cohortRows?.length
+            ? cohortRows
+            : [
+                {
+                  cohort: "No data",
+                  size: "0 users",
+                  values: [0, 0, 0],
+                },
+              ],
         },
 
-        retentionCurve,
-        churnRateTrend,
+        // =========================
+        // RETENTION CURVE
+        // =========================
+        retentionCurve: {
+          title: "Retention Curve",
+          filterOptions: ["All", "Day 1", "Day 7", "Day 30"],
+          selectedFilter: "All",
+          months: defaultMonths,
+          yLabels: ["100%", "80%", "60%", "40%", "20%", "0%"],
+          max: 100,
+          min: 0,
+          series: [
+            { label: "Day 1", color: "#18181b", data: zero12 },
+            { label: "Day 7", color: "#52525b", data: zero12 },
+            { label: "Day 30", color: "#a1a1aa", data: zero12 },
+          ],
+        },
 
+        // =========================
+        // CHURN TREND
+        // =========================
+        churnRateTrend: {
+          title: "Churn Trend",
+          filterOptions: ["Both", "Customer Churn", "Revenue Churn"],
+          months: defaultMonths,
+          yLabels: ["6%", "5%", "4%", "3%", "2%", "1%", "0%"],
+          max: 6,
+          min: 0,
+          series: [
+            { label: "Customer Churn", color: "#18181b", data: zero12 },
+            { label: "Revenue Churn", color: "#8696b0", data: zero12 },
+          ],
+        },
+
+        // =========================
+        // REVENUE RETENTION
+        // =========================
         revenueRetention: {
           title: "Revenue Retention",
           metrics: [
             {
               id: "nrr",
               title: "NRR",
-              value: "N/A",
-              change: "N/A",
-              period: "",
+              value: "0%",
+              change: "0%",
+              period: "vs last 30d",
             },
             {
               id: "grr",
               title: "GRR",
-              value: "N/A",
-              change: "N/A",
-              period: "",
+              value: "0%",
+              change: "0%",
+              period: "vs last 30d",
             },
             {
               id: "expansion",
               title: "Expansion Revenue",
-              value: "N/A",
-              change: "N/A",
-              period: "",
+              value: "$0",
+              change: "0%",
+              period: "vs last 30d",
             },
             {
               id: "contraction",
               title: "Contraction Revenue",
-              value: "N/A",
-              change: "N/A",
-              period: "",
+              value: "$0",
+              change: "0%",
+              period: "vs last 30d",
             },
           ],
         },
 
+        // =========================
+        // NRR / GRR TREND
+        // =========================
         nrrGrrTrend: {
           title: "NRR / GRR Trend",
           filterOptions: ["Both", "NRR", "GRR"],
@@ -891,22 +1024,56 @@ export class AdminController extends BaseController {
           max: 120,
           min: 80,
           series: [
-            { label: "NRR", color: "#18181b", data: Array(12).fill(0) },
-            { label: "GRR", color: "#8696b0", data: Array(12).fill(0) },
+            { label: "NRR", color: "#18181b", data: zero12 },
+            { label: "GRR", color: "#8696b0", data: zero12 },
           ],
         },
 
+        // =========================
+        // CHURN ANALYSIS
+        // =========================
         churnAnalysis: {
           title: "Churn Analysis",
-          byPlan: { title: "By Plan", rows: [] },
-          bySegment: { title: "By Segment", rows: [] },
-          bySource: { title: "By Source", rows: [] },
+          byPlan: {
+            title: "By Plan",
+            rows: [
+              { label: "Starter", value: 0 },
+              { label: "Pro", value: 0 },
+              { label: "Enterprise", value: 0 },
+            ],
+          },
+          bySegment: {
+            title: "By Segment",
+            rows: [
+              { label: "SMB", value: 0 },
+              { label: "Mid-Market", value: 0 },
+              { label: "Enterprise", value: 0 },
+            ],
+          },
+          bySource: {
+            title: "By Source",
+            rows: [
+              { label: "Organic", value: 0 },
+              { label: "Paid Search", value: 0 },
+              { label: "Referral", value: 0 },
+              { label: "Direct", value: 0 },
+            ],
+          },
         },
 
+        // =========================
+        // CHURN REASONS
+        // =========================
         churnReasons: {
           title: "Churn Reasons",
-          subtitle: `${churnedAccounts} churned accounts`,
-          segments: [],
+          subtitle: `${churnedAccounts || 0} churned accounts`,
+          segments: [
+            { label: "Price", value: 0, color: "#18181b" },
+            { label: "Missing features", value: 0, color: "#52525b" },
+            { label: "Competitor", value: 0, color: "#8696b0" },
+            { label: "Low usage", value: 0, color: "#a1a1aa" },
+            { label: "Other", value: 0, color: "#d4d4d8" },
+          ],
         },
       };
 
@@ -949,7 +1116,7 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
-        const { users, jobs } = await SupabaseDB.getUsersWithActivity(since);
+      const { users, jobs } = await SupabaseDB.getUsersWithActivity(since);
 
       const now = Date.now();
 
@@ -1265,6 +1432,35 @@ export class AdminController extends BaseController {
       // =========================
       const outputsArray = Object.values(outputsMap);
 
+      const zero12 = Array(12).fill(0);
+
+      const ALL_TOOLS = [
+        "The Deck",
+        "The Briefcase",
+        "The Strategist",
+        "The Wordsmith",
+        "The Analyzer",
+        "Cost CTRL",
+        "Design Studio",
+        "The Huddle",
+      ];
+
+      // ✅ FIX TYPE HERE
+      const toolUsageMap: Record<string, number> = {};
+
+      // Example future usage
+      // jobs.forEach(j => {
+      //   const tool = j.tool;
+      //   if (tool) {
+      //     toolUsageMap[tool] = (toolUsageMap[tool] || 0) + 1;
+      //   }
+      // });
+
+      const toolUsers = ALL_TOOLS.map((tool) => ({
+        name: tool,
+        users: (toolUsageMap[tool] || 0).toLocaleString(),
+      }));
+
       const data = {
         header: {
           title: "Product Usage & Engagement",
@@ -1274,7 +1470,16 @@ export class AdminController extends BaseController {
         filters: {
           searchPlaceholder: "Search tools, users...",
           options: {
-            Timeframe: ["Last 7d", "Last 30d"],
+            Timeframe: [
+              "Last 7d",
+              "Last 30d",
+              "Last 90d",
+              "This year",
+              "All time",
+            ],
+            Cohort: ["All cohorts", "New users", "Returning", "Power users"],
+            Plan: ["All plans", "Free", "Pro", "Enterprise"],
+            Tool: ["All tools", ...ALL_TOOLS],
           },
         },
 
@@ -1284,118 +1489,204 @@ export class AdminController extends BaseController {
         stats: [
           {
             title: "Outputs per User",
-            value: outputsPerUser.toFixed(2),
+            value: outputsPerUser?.toFixed(2) || "0.00",
+            change: "0%",
+            period: "vs last period",
           },
           {
             title: "Time to First Output",
-            value: `${avgTimeToFirst.toFixed(1)} hrs`,
+            value: `${avgTimeToFirst?.toFixed(1) || 0} hrs`,
+            change: "0%",
+            period: "vs last period",
           },
           {
             title: "Session Frequency",
-            value: `${sessionsPerUser.toFixed(1)} / mo`,
+            value: `${sessionsPerUser?.toFixed(1) || 0} / mo`,
+            change: "0%",
+            period: "vs last period",
           },
           {
             title: "Avg Session Duration",
-            value: "N/A", // ❌ cannot compute
+            value: "0 min",
+            change: "0%",
+            period: "vs last period",
           },
           {
             title: "Completion Rate",
-            value: `${completionRate.toFixed(0)}%`,
+            value: `${completionRate?.toFixed(0) || 0}%`,
+            change: "0%",
+            period: "vs last period",
           },
           {
             title: "Abandonment Rate",
-            value: `${abandonmentRate.toFixed(0)}%`,
+            value: `${abandonmentRate?.toFixed(0) || 0}%`,
+            change: "0%",
+            period: "vs last period",
+          },
+        ],
+
+        behaviourStats: [
+          {
+            title: "Rewrites per Output",
+            value: "0",
+            change: "0%",
+            period: "vs last period",
+          },
+          {
+            title: "Accept Rate",
+            value: "0%",
+            change: "0%",
+            period: "vs last period",
+          },
+          {
+            title: "Edit Rate",
+            value: "0%",
+            change: "0%",
+            period: "vs last period",
           },
         ],
 
         // =========================
-        // BEHAVIOUR (NOT AVAILABLE)
-        // =========================
-        behaviourStats: [
-          { title: "Rewrites per Output", value: "N/A" },
-          { title: "Accept Rate", value: "N/A" },
-          { title: "Edit Rate", value: "N/A" },
-        ],
-
-        // =========================
-        // BASIC CHARTS (REAL)
+        // CHARTS
         // =========================
         decksPerUser: {
           title: "Outputs per User",
-          data: outputsArray.slice(0, 12),
+          months: defaultMonths,
+          data: outputsArray?.length ? outputsArray : zero12,
+          min: 0,
+          max: Math.max(...(outputsArray || [1]), 1),
         },
 
         timeToFirstOutput: {
           title: "Time to First Output",
-          data: timeDiffs.slice(0, 10),
+          data: timeDiffs?.length ? timeDiffs : zero12,
+          max: 100,
         },
 
         sessionFrequency: {
           title: "Session Frequency",
-          data: outputsArray.slice(0, 12),
+          data: outputsArray?.length ? outputsArray : zero12,
         },
 
         sessionDuration: {
           title: "Session Duration",
-          data: [], // ❌ not available
+          data: zero12,
         },
 
         // =========================
-        // ADVANCED (NOT AVAILABLE)
+        // ADVANCED
         // =========================
-        slideTypes: { title: "Slide Types", slices: [] },
-        rewritesVsAccepts: {},
-        exportTypes: {},
-        aiStyleSettingsUsage: { rows: [] },
-        slideTimeHeatmap: {},
-        slideDropoff: {},
-        slideRewritesVsAccepts: {},
-        rewritesVsAcceptsFlows: {},
+        slideTypes: {
+          title: "Slide Types",
+          slices: [
+            { label: "Title + Content", value: 0 },
+            { label: "Comparison", value: 0 },
+            { label: "Chart", value: 0 },
+            { label: "Quote", value: 0 },
+            { label: "Others", value: 0 },
+          ],
+        },
+
+        rewritesVsAccepts: {
+          title: "Rewrites vs Accepts",
+          months: defaultMonths,
+          accepted: zero12,
+          edited: zero12,
+          max: 100,
+        },
+
+        exportTypes: {
+          title: "Export Types",
+          slices: [
+            { label: "PDF", value: 0 },
+            { label: "PPTX", value: 0 },
+            { label: "DOCX", value: 0 },
+            { label: "Other", value: 0 },
+          ],
+        },
+
+        aiStyleSettingsUsage: {
+          title: "AI Style Settings Usage",
+          rows: [],
+        },
+
+        slideTimeHeatmap: {
+          title: "Slide Time Heatmap",
+          slides: [1, 2, 3, 4, 5, 6, 7],
+          rows: Array(5).fill(Array(7).fill(0)),
+        },
+
+        slideDropoff: {
+          title: "Slide Drop-off",
+          data: zero12,
+          max: 100,
+        },
+
+        slideRewritesVsAccepts: {
+          title: "Rewrites vs Accepts",
+          categories: [],
+          max: 100,
+        },
+
+        rewritesVsAcceptsFlows: {
+          title: "Rewrites vs Accepts",
+          rows: [],
+        },
 
         bouncedDecks: {
           title: "Bounced Decks",
-          value: `${abandonmentRate.toFixed(0)}%`,
+          value: `${abandonmentRate?.toFixed(0) || 0}%`,
+          valueLabel: "bounce rate",
+          change: "0%",
+          period: "vs last period",
+          description: "Total started vs completed decks.",
+          breakdown: "(0 started, 0 exported)",
         },
 
         completionTime: {
           title: "Completion Time",
-          data: timeDiffs.slice(0, 12),
+          months: defaultMonths,
+          data: zero12,
+          min: 0,
+          max: 100,
         },
 
         // =========================
-        // JOURNEYS (LIMITED)
+        // JOURNEYS
         // =========================
         journeyModes: {
           defaultMode: "tools",
-          options: [{ id: "tools", label: "Tools" }],
+          options: [
+            { id: "editors", label: "Editors" },
+            { id: "tools", label: "Tools" },
+          ],
+
           tools: {
             toolUsers: {
-              tools: [
-                {
-                  name: "Generator",
-                  users: totalUsers.toString(),
-                },
-              ],
+              tools: toolUsers,
             },
             mostCommonJourneys: { rows: [] },
-            transitionDropoffsFunnel: { data: [] },
-            multiToolUsage: {},
+            transitionDropoffsFunnel: { data: Array(6).fill(0) },
+            multiToolUsage: { percent: "0%", rows: [] },
+            toolPairingMatrix: { rows: [] },
+          },
+
+          editors: {
+            toolUsers: { tools: [] },
+            mostCommonJourneys: { rows: [] },
+            transitionDropoffsFunnel: { data: Array(6).fill(0) },
+            multiToolUsage: { percent: "0%", rows: [] },
             toolPairingMatrix: { rows: [] },
           },
         },
 
         toolUsers: {
-          tools: [
-            {
-              name: "Generator",
-              users: totalUsers.toString(),
-            },
-          ],
+          tools: toolUsers,
         },
 
         mostCommonJourneys: { rows: [] },
-        transitionDropoffsFunnel: { data: [] },
-        multiToolUsage: {},
+        transitionDropoffsFunnel: { data: Array(6).fill(0) },
+        multiToolUsage: { percent: "0%", rows: [] },
         toolPairingMatrix: { rows: [] },
       };
 
