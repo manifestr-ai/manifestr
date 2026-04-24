@@ -1,25 +1,25 @@
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "../../contexts/AuthContext";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { useAuth } from '../../contexts/AuthContext'
-
-import Head from 'next/head'
-import AdminHeader from '../../components/admin/AdminHeader'
-import AdminSidebar from '../../components/admin/AdminSidebar'
-import FeatureAdoptionHeader from '../../components/admin/feature-adoption/FeatureAdoptionHeader'
-import AiPerformanceFilters from '../../components/admin/ai-performance/AiPerformanceFilters'
-import StatCard from '../../components/admin/overview/StatCard'
-import AdoptionFunnelChart from '../../components/admin/feature-adoption/AdoptionFunnelChart'
-import FeatureAdoptionGrid from '../../components/admin/feature-adoption/FeatureAdoptionGrid'
-import TopFeaturesTable from '../../components/admin/feature-adoption/TopFeaturesTable'
-import PlanBreakdownChart from '../../components/admin/feature-adoption/PlanBreakdownChart'
-import WorkspacesCreated from '../../components/admin/feature-adoption/WorkspacesCreated'
-import MembersAdded from '../../components/admin/feature-adoption/MembersAdded'
-import CommentsPerDocument from '../../components/admin/feature-adoption/CommentsPerDocument'
-import SharedVsSoloUsage from '../../components/admin/feature-adoption/SharedVsSoloUsage'
-import TopCollaborativeProjects from '../../components/admin/feature-adoption/TopCollaborativeProjects'
-import TeamTable from '../../components/admin/feature-adoption/TeamTable'
-import { getAdminFeatureAdoptionData } from '../../services/admin/feature-adoption'
+import Head from "next/head";
+import AdminHeader from "../../components/admin/AdminHeader";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import FeatureAdoptionHeader from "../../components/admin/feature-adoption/FeatureAdoptionHeader";
+import AiPerformanceFilters from "../../components/admin/ai-performance/AiPerformanceFilters";
+import StatCard from "../../components/admin/overview/StatCard";
+import AdoptionFunnelChart from "../../components/admin/feature-adoption/AdoptionFunnelChart";
+import FeatureAdoptionGrid from "../../components/admin/feature-adoption/FeatureAdoptionGrid";
+import TopFeaturesTable from "../../components/admin/feature-adoption/TopFeaturesTable";
+import PlanBreakdownChart from "../../components/admin/feature-adoption/PlanBreakdownChart";
+import WorkspacesCreated from "../../components/admin/feature-adoption/WorkspacesCreated";
+import MembersAdded from "../../components/admin/feature-adoption/MembersAdded";
+import CommentsPerDocument from "../../components/admin/feature-adoption/CommentsPerDocument";
+import SharedVsSoloUsage from "../../components/admin/feature-adoption/SharedVsSoloUsage";
+import TopCollaborativeProjects from "../../components/admin/feature-adoption/TopCollaborativeProjects";
+import TeamTable from "../../components/admin/feature-adoption/TeamTable";
+import { getAdminFeatureAdoptionData } from "../../services/admin/feature-adoption";
+import OverviewFilters from "../../components/admin/overview/OverviewFilters";
 
 function SectionLabel({ children }) {
   return (
@@ -28,10 +28,20 @@ function SectionLabel({ children }) {
         {children}
       </p>
     </div>
-  )
+  );
 }
 
 export default function AdminFeatureAdoption() {
+  const [filters, setFilters] = useState({
+    timeframe: "Last 30d",
+    search: "",
+  });
+  const handleFiltersChange = ({ search, filters: selected }) => {
+    setFilters({
+      timeframe: selected?.Timeframe || "Last 30d",
+      search: search || "",
+    });
+  };
   const [featureAdoptionData, setFeatureAdoptionData] = useState(null);
   const [error, setError] = useState(false);
 
@@ -40,20 +50,28 @@ export default function AdminFeatureAdoption() {
 
   useEffect(() => {
     if (!loading && (!user || !user.is_admin)) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [user, loading, router]);
 
   useEffect(() => {
     if (user?.is_admin) {
-      getAdminFeatureAdoptionData()
-        .then((data) => {
-          if (!data) setError(true);
-          else setFeatureAdoptionData(data);
-        })
-        .catch(() => setError(true));
+      fetchFeatureAdoption();
     }
-  }, [user]);
+  }, [user?.is_admin, filters]);
+
+  const fetchFeatureAdoption = async () => {
+    try {
+      const data = await getAdminFeatureAdoptionData(filters);
+      if (!data) {
+        setError(true);
+      } else {
+        setFeatureAdoptionData(data);
+      }
+    } catch {
+      setError(true);
+    }
+  };
 
   if (loading) {
     return <div className="p-6">Loading...</div>;
@@ -83,9 +101,16 @@ export default function AdminFeatureAdoption() {
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
-              <AiPerformanceFilters
+              {/* <AiPerformanceFilters
                 searchPlaceholder={featureAdoptionData?.filters?.searchPlaceholder}
                 options={featureAdoptionData?.filters?.options}
+                onFiltersChange={handleFiltersChange}
+              /> */}
+
+              <OverviewFilters
+                filters={featureAdoptionData?.filters?.options}
+                searchPlaceholder={featureAdoptionData?.filters?.searchPlaceholder}
+                onFiltersChange={handleFiltersChange}
               />
 
               {/* KPI: Adoption Stages */}
@@ -108,7 +133,9 @@ export default function AdminFeatureAdoption() {
 
               {/* Per-Feature Funnels + Adoption Score */}
               <SectionLabel>Per-Feature Funnels</SectionLabel>
-              <FeatureAdoptionGrid data={featureAdoptionData?.featureAdoptionGrid} />
+              <FeatureAdoptionGrid
+                data={featureAdoptionData?.featureAdoptionGrid}
+              />
 
               {/* Feature Adoption Score Matrix */}
               <SectionLabel>Adoption Score Matrix</SectionLabel>
@@ -119,10 +146,14 @@ export default function AdminFeatureAdoption() {
               <PlanBreakdownChart data={featureAdoptionData?.planBreakdown} />
               <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
                 <div className="w-full min-w-0 lg:flex-1">
-                  <PlanBreakdownChart data={featureAdoptionData?.roleBreakdown} />
+                  <PlanBreakdownChart
+                    data={featureAdoptionData?.roleBreakdown}
+                  />
                 </div>
                 <div className="w-full min-w-0 lg:flex-1">
-                  <PlanBreakdownChart data={featureAdoptionData?.regionBreakdown} />
+                  <PlanBreakdownChart
+                    data={featureAdoptionData?.regionBreakdown}
+                  />
                 </div>
               </div>
 
@@ -131,21 +162,27 @@ export default function AdminFeatureAdoption() {
 
               <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
                 <div className="w-full min-w-0 lg:flex-1">
-                  <WorkspacesCreated data={featureAdoptionData?.workspacesCreated} />
+                  <WorkspacesCreated
+                    data={featureAdoptionData?.workspacesCreated}
+                  />
                 </div>
                 <div className="w-full min-w-0 lg:flex-1">
                   <MembersAdded data={featureAdoptionData?.membersAdded} />
                 </div>
               </div>
 
-              <CommentsPerDocument data={featureAdoptionData?.commentsPerDocument} />
+              <CommentsPerDocument
+                data={featureAdoptionData?.commentsPerDocument}
+              />
 
               <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
                 <div className="w-full min-w-0 lg:flex-1">
                   <SharedVsSoloUsage data={featureAdoptionData?.sharedVsSolo} />
                 </div>
                 <div className="w-full min-w-0 lg:flex-[1.4]">
-                  <TopCollaborativeProjects data={featureAdoptionData?.topCollaborativeProjects} />
+                  <TopCollaborativeProjects
+                    data={featureAdoptionData?.topCollaborativeProjects}
+                  />
                 </div>
               </div>
 
@@ -155,6 +192,5 @@ export default function AdminFeatureAdoption() {
         </div>
       </div>
     </>
-  )
+  );
 }
-

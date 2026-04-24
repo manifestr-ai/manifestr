@@ -355,10 +355,11 @@ import { API_BASE_URL, ENDPOINTS } from '../config'
 //   },
 // }
 
-export const getAdminAiPerformanceData = async () => {
+export const getAdminAiPerformanceData = async (params = {}) => {
   try {
     const res = await api.get(ENDPOINTS.ADMIN.AI_PERFORMANCE, {
       baseURL: API_BASE_URL,
+      params,
     })
 
     return res?.data?.details || null

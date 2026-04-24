@@ -253,8 +253,6 @@ export const getAdminOverviewData = async (params = {}) => {
       params,
     });
 
-    console.log(response?.data?.details);
-
     //  backend must return full structure now
     return response?.data?.details;
 

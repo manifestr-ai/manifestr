@@ -8,19 +8,25 @@ const DEFAULT_FILTERS = {
   Device: ['All devices', 'Desktop', 'Mobile', 'Tablet'],
 }
 
-function FilterDropdown({ label, options, value, onChange }) {
+function FilterDropdown({ label, options, value, onChange, disabled }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
   useEffect(() => {
+    if (!open) return
     function handleClick(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
-    if (open) document.addEventListener('mousedown', handleClick)
+    document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
   const displayLabel = value || label
+
+  // Close dropdown if becoming disabled while open
+  useEffect(() => {
+    if (disabled && open) setOpen(false)
+  }, [disabled, open])
 
   return (
     <div
@@ -29,8 +35,11 @@ function FilterDropdown({ label, options, value, onChange }) {
     >
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        className="flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#e4e4e7] bg-white px-4 py-2 text-left text-[14px] font-medium leading-5 text-[#18181b] transition-colors hover:bg-[#f4f4f5] lg:inline-flex lg:w-auto"
+        onClick={() => { if (!disabled) setOpen(!open) }}
+        disabled={disabled}
+        className={`flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[#e4e4e7] bg-white px-4 py-2 text-left text-[14px] font-medium leading-5 text-[#18181b] transition-colors ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#f4f4f5]'
+        } lg:inline-flex lg:w-auto`}
       >
         <span className="min-w-0 flex-1 truncate">{displayLabel}</span>
         <ChevronDown
@@ -39,7 +48,7 @@ function FilterDropdown({ label, options, value, onChange }) {
         />
       </button>
 
-      {open && (
+      {open && !disabled && (
         <div
           className="absolute left-0 right-0 top-full z-[300] mt-1 max-h-[min(280px,50vh)] overflow-y-auto rounded-[6px] border border-[#e4e4e7] bg-white py-1 shadow-lg lg:left-auto lg:right-0 lg:min-w-[180px] lg:w-max lg:max-w-[min(320px,90vw)]"
         >
@@ -112,9 +121,15 @@ export default function OverviewFilters({
             options={options}
             value={selectedFilters[label]}
             onChange={(value) => updateFilter(label, value)}
+            disabled={
+              label.toLowerCase() === "cohort" ||
+              label.toLowerCase() === "persona" ||
+              label.toLowerCase() === "device"
+            }
           />
         ))}
       </div>
+
     </div>
   )
 }

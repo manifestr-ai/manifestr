@@ -91,10 +91,38 @@ export class AdminController extends BaseController {
    */
   private getOverview = async (req: AuthRequest, res: Response) => {
     try {
+      // =========================
+      // STEP 1: READ FILTERS
+      // =========================
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
+      // =========================
+      // STEP 2: FETCH DATA (DYNAMIC)
+      // =========================
       const [
         totalUsers,
-        newUsers7d,
-        newUsersPrev7d,
+        newUsers,
+        prevUsers,
         userGrowth,
         recentUsers,
         dau,
@@ -103,47 +131,44 @@ export class AdminController extends BaseController {
         totalJobs,
         failedJobs,
       ] = await Promise.all([
-        SupabaseDB.getUsersCount(),
+        SupabaseDB.getUsersCount(since, search),
 
-        SupabaseDB.getNewUsersLastDays(7),
-        SupabaseDB.getNewUsersPreviousDays(7),
+        SupabaseDB.getNewUsersLastDays(days),
+        SupabaseDB.getNewUsersPreviousDays(days),
 
-        SupabaseDB.getUserGrowthMonthly(),
+        SupabaseDB.getUserGrowthMonthly(since),
 
-        SupabaseDB.getRecentUsers(5),
+        SupabaseDB.getRecentUsers(5, since),
 
-        SupabaseDB.getDAU(),
-        SupabaseDB.getMAU(),
+        SupabaseDB.getDAU(since),
+        SupabaseDB.getMAU(since),
 
-        SupabaseDB.getActivatedUsersCount(), // users with >=1 job
+        SupabaseDB.getActivatedUsersCount(since),
 
-        SupabaseDB.getTotalJobsCount(),
-        SupabaseDB.getFailedJobsCount(),
+        SupabaseDB.getTotalJobsCount(since),
+        SupabaseDB.getFailedJobsCount(since),
       ]);
 
-      // -------------------------
-      // Derived Metrics
-      // -------------------------
-
+      // =========================
+      // STEP 3: METRICS
+      // =========================
       const dauMau = mau ? ((dau / mau) * 100).toFixed(1) + "%" : "0%";
 
       const activationRate = totalUsers
         ? ((activatedUsers / totalUsers) * 100).toFixed(1) + "%"
         : "0%";
 
-      const signupChange = newUsersPrev7d
-        ? (((newUsers7d - newUsersPrev7d) / newUsersPrev7d) * 100).toFixed(1) +
-          "%"
+      const signupChange = prevUsers
+        ? (((newUsers - prevUsers) / prevUsers) * 100).toFixed(1) + "%"
         : "0%";
 
       const failureRate = totalJobs
         ? ((failedJobs / totalJobs) * 100).toFixed(1) + "%"
         : "0%";
 
-      // -------------------------
-      // Growth Chart Safety
-      // -------------------------
-
+      // =========================
+      // STEP 4: SAFE CHART DATA
+      // =========================
       const months = userGrowth?.months?.length
         ? userGrowth.months
         : defaultMonths;
@@ -152,10 +177,9 @@ export class AdminController extends BaseController {
         ? userGrowth.values
         : Array(12).fill(0);
 
-      // -------------------------
-      // Response Object
-      // -------------------------
-
+      // =========================
+      // STEP 5: RESPONSE
+      // =========================
       const data = {
         header: {
           title: "Executive Overview",
@@ -184,13 +208,13 @@ export class AdminController extends BaseController {
               title: "Total Users",
               value: totalUsers.toLocaleString(),
               change: "N/A",
-              period: "vs last 30d",
+              period: `based on ${timeframe}`,
             },
             {
-              title: "New Signups (7d)",
-              value: newUsers7d.toLocaleString(),
+              title: "New Signups",
+              value: newUsers.toLocaleString(),
               change: signupChange,
-              period: "vs prev 7d",
+              period: `vs previous period`,
             },
             {
               title: "DAU / MAU",
@@ -210,13 +234,13 @@ export class AdminController extends BaseController {
               title: "MRR",
               value: "N/A",
               change: "N/A",
-              period: "vs last 30d",
+              period: "no billing data",
             },
             {
               title: "Revenue This Month",
               value: "N/A",
               change: "N/A",
-              period: "vs last month",
+              period: "no billing data",
             },
           ],
         ],
@@ -224,12 +248,12 @@ export class AdminController extends BaseController {
         userGrowth: {
           title: "User Growth",
           filterOptions: ["last 7d", "last 30d", "last 90d", "all time"],
-          selectedFilter: "last 30d",
+          selectedFilter: timeframe.toLowerCase(),
           months,
           series,
           max: safeMax(series),
           change: "N/A",
-          period: "vs last 30d",
+          period: `based on ${timeframe}`,
         },
 
         revenueTrend: {
@@ -256,9 +280,9 @@ export class AdminController extends BaseController {
               valueLabel: totalUsers.toLocaleString(),
             },
             {
-              label: "New Signups (7d)",
-              value: newUsers7d,
-              valueLabel: newUsers7d.toLocaleString(),
+              label: "New Signups",
+              value: newUsers,
+              valueLabel: newUsers.toLocaleString(),
             },
             {
               label: "Activated Users",
@@ -328,6 +352,28 @@ export class AdminController extends BaseController {
    */
   private getGrowth = async (req: AuthRequest, res: Response) => {
     try {
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
       const [
         totalUsers,
         newUsers30d,
@@ -340,16 +386,20 @@ export class AdminController extends BaseController {
         regionValues,
         activatedUsers,
       ] = await Promise.all([
-        SupabaseDB.getUsersCount(),
-        SupabaseDB.getNewUsersLastDays(30),
-        SupabaseDB.getNewUsersPreviousDays(30),
-        SupabaseDB.getDAU(),
-        SupabaseDB.getMAU(),
-        SupabaseDB.getUserGrowthMonthly(),
-        SupabaseDB.getReturningVsNewMonthly(),
-        SupabaseDB.getPowerUsers(),
-        SupabaseDB.getUsersByRegion(),
-        SupabaseDB.getActivatedUsersCount(),
+        SupabaseDB.getUsersCount(since, search),
+        SupabaseDB.getNewUsersLastDays(days),
+        SupabaseDB.getNewUsersPreviousDays(days),
+
+        SupabaseDB.getDAU(since),
+        SupabaseDB.getMAU(since),
+
+        SupabaseDB.getUserGrowthMonthly(since),
+        SupabaseDB.getReturningVsNewMonthly(since),
+
+        SupabaseDB.getPowerUsers(since),
+        SupabaseDB.getUsersByRegion(since),
+
+        SupabaseDB.getActivatedUsersCount(since),
       ]);
 
       // -------------------------
@@ -559,10 +609,32 @@ export class AdminController extends BaseController {
    */
   private getRetention = async (req: AuthRequest, res: Response) => {
     try {
-      const [users, jobs] = await Promise.all([
-        SupabaseDB.getAllUsers(),
-        SupabaseDB.getAllJobs(),
-      ]);
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
+        const [users, jobs] = await Promise.all([
+          SupabaseDB.getAllUsers(since),
+          SupabaseDB.getAllJobs(since),
+        ]);
 
       const totalUsers = users.length;
       const now = Date.now();
@@ -855,7 +927,29 @@ export class AdminController extends BaseController {
    */
   private getLifecycle = async (req: AuthRequest, res: Response) => {
     try {
-      const { users, jobs } = await SupabaseDB.getUsersWithActivity();
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
+        const { users, jobs } = await SupabaseDB.getUsersWithActivity(since);
 
       const now = Date.now();
 
@@ -1079,93 +1173,111 @@ export class AdminController extends BaseController {
    */
   private getProductUsage = async (req: AuthRequest, res: Response) => {
     try {
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
       const [jobs, users] = await Promise.all([
-        SupabaseDB.getAllJobs(),
-        SupabaseDB.getAllUsers(),
+        SupabaseDB.getAllJobs(since),
+        SupabaseDB.getAllUsers(since),
       ]);
-  
+
       const totalUsers = users.length;
       const totalOutputs = jobs.length;
-  
+
       // =========================
       // OUTPUTS PER USER
       // =========================
       const outputsMap: Record<string, number> = {};
-  
+
       jobs.forEach((j: any) => {
         outputsMap[j.user_id] = (outputsMap[j.user_id] || 0) + 1;
       });
-  
-      const outputsPerUser =
-        totalUsers > 0 ? totalOutputs / totalUsers : 0;
-  
+
+      const outputsPerUser = totalUsers > 0 ? totalOutputs / totalUsers : 0;
+
       // =========================
       // TIME TO FIRST OUTPUT
       // =========================
       const firstOutputMap: Record<string, number> = {};
-  
+
       jobs.forEach((j: any) => {
         const t = new Date(j.created_at).getTime();
-  
+
         if (!firstOutputMap[j.user_id] || t < firstOutputMap[j.user_id]) {
           firstOutputMap[j.user_id] = t;
         }
       });
-  
+
       const timeDiffs: number[] = [];
-  
+
       users.forEach((u: any) => {
         const created = new Date(u.created_at).getTime();
         const first = firstOutputMap[u.id];
-  
+
         if (first) {
           timeDiffs.push((first - created) / (1000 * 60 * 60)); // hours
         }
       });
-  
+
       const avgTimeToFirst =
         timeDiffs.length > 0
           ? timeDiffs.reduce((a, b) => a + b, 0) / timeDiffs.length
           : 0;
-  
+
       // =========================
       // SESSION FREQUENCY (approx)
       // =========================
-      const sessionsPerUser =
-        totalUsers > 0 ? totalOutputs / totalUsers : 0;
-  
+      const sessionsPerUser = totalUsers > 0 ? totalOutputs / totalUsers : 0;
+
       // =========================
       // COMPLETION RATE (REALISTIC PROXY)
       // =========================
       const completedJobs = jobs.filter(
-        (j: any) => j.status === "completed"
+        (j: any) => j.status === "completed",
       ).length;
-  
+
       const completionRate =
-        totalOutputs > 0
-          ? (completedJobs / totalOutputs) * 100
-          : 0;
-  
+        totalOutputs > 0 ? (completedJobs / totalOutputs) * 100 : 0;
+
       const abandonmentRate = 100 - completionRate;
-  
+
       // =========================
       // SAFE ARRAYS
       // =========================
       const outputsArray = Object.values(outputsMap);
-  
+
       const data = {
         header: {
           title: "Product Usage & Engagement",
           subtitle: "Track how users interact with Manifestr tools.",
         },
-  
+
         filters: {
           searchPlaceholder: "Search tools, users...",
           options: {
             Timeframe: ["Last 7d", "Last 30d"],
           },
         },
-  
+
         // =========================
         // CORE KPIs
         // =========================
@@ -1195,7 +1307,7 @@ export class AdminController extends BaseController {
             value: `${abandonmentRate.toFixed(0)}%`,
           },
         ],
-  
+
         // =========================
         // BEHAVIOUR (NOT AVAILABLE)
         // =========================
@@ -1204,7 +1316,7 @@ export class AdminController extends BaseController {
           { title: "Accept Rate", value: "N/A" },
           { title: "Edit Rate", value: "N/A" },
         ],
-  
+
         // =========================
         // BASIC CHARTS (REAL)
         // =========================
@@ -1212,22 +1324,22 @@ export class AdminController extends BaseController {
           title: "Outputs per User",
           data: outputsArray.slice(0, 12),
         },
-  
+
         timeToFirstOutput: {
           title: "Time to First Output",
           data: timeDiffs.slice(0, 10),
         },
-  
+
         sessionFrequency: {
           title: "Session Frequency",
           data: outputsArray.slice(0, 12),
         },
-  
+
         sessionDuration: {
           title: "Session Duration",
           data: [], // ❌ not available
         },
-  
+
         // =========================
         // ADVANCED (NOT AVAILABLE)
         // =========================
@@ -1239,17 +1351,17 @@ export class AdminController extends BaseController {
         slideDropoff: {},
         slideRewritesVsAccepts: {},
         rewritesVsAcceptsFlows: {},
-  
+
         bouncedDecks: {
           title: "Bounced Decks",
           value: `${abandonmentRate.toFixed(0)}%`,
         },
-  
+
         completionTime: {
           title: "Completion Time",
           data: timeDiffs.slice(0, 12),
         },
-  
+
         // =========================
         // JOURNEYS (LIMITED)
         // =========================
@@ -1271,7 +1383,7 @@ export class AdminController extends BaseController {
             toolPairingMatrix: { rows: [] },
           },
         },
-  
+
         toolUsers: {
           tools: [
             {
@@ -1280,13 +1392,13 @@ export class AdminController extends BaseController {
             },
           ],
         },
-  
+
         mostCommonJourneys: { rows: [] },
         transitionDropoffsFunnel: { data: [] },
         multiToolUsage: {},
         toolPairingMatrix: { rows: [] },
       };
-  
+
       return res.json({
         status: "success",
         details: data,
@@ -1303,70 +1415,92 @@ export class AdminController extends BaseController {
    */
   private getFeatureAdoption = async (req: AuthRequest, res: Response) => {
     try {
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
       const [users, jobs, collabProjects, collabMembers, docCollaborators] =
         await Promise.all([
-          SupabaseDB.getAllUsers(),
-          SupabaseDB.getAllJobs(),
-          SupabaseDB.getCollabProjects(),
-          SupabaseDB.getCollabMembers(),
-          SupabaseDB.getDocumentCollaborators(),
+          SupabaseDB.getAllUsers(since),
+          SupabaseDB.getAllJobs(since),
+          SupabaseDB.getCollabProjects(since),
+          SupabaseDB.getCollabMembers(since),
+          SupabaseDB.getDocumentCollaborators(since),
         ]);
-  
+
       const totalUsers = users.length;
-  
+
       // =========================
       // JOB COUNT MAP (OPTIMIZED)
       // =========================
       const jobCountMap = new Map<string, number>();
-  
+
       jobs.forEach((j: any) => {
         jobCountMap.set(j.user_id, (jobCountMap.get(j.user_id) || 0) + 1);
       });
-  
+
       // =========================
       // ADOPTION FUNNEL
       // =========================
       const discovered = totalUsers;
-  
+
       let firstUse = 0;
       let repeat = 0;
       let habitual = 0;
-  
+
       jobCountMap.forEach((count) => {
         if (count >= 1) firstUse++;
         if (count >= 2) repeat++;
         if (count >= 4) habitual++;
       });
-  
+
       const percent = (val: number) =>
         discovered > 0 ? ((val / discovered) * 100).toFixed(1) : "0";
-  
+
       // =========================
       // COLLABORATION
       // =========================
       const workspacesCreated = collabProjects.length;
       const membersAdded = collabMembers.length;
-  
+
       const sharedDocs = docCollaborators.length;
       const soloDocs = Math.max(0, jobs.length - sharedDocs);
-  
+
       // =========================
       // PROJECT MAP (OPTIMIZED)
       // =========================
       const projectMemberMap = new Map<string, number>();
-  
+
       collabMembers.forEach((m: any) => {
         projectMemberMap.set(
           m.collab_project_id,
-          (projectMemberMap.get(m.collab_project_id) || 0) + 1
+          (projectMemberMap.get(m.collab_project_id) || 0) + 1,
         );
       });
-  
+
       const userJobMap = new Map<string, number>();
       jobs.forEach((j: any) => {
         userJobMap.set(j.user_id, (userJobMap.get(j.user_id) || 0) + 1);
       });
-  
+
       // =========================
       // TOP PROJECTS
       // =========================
@@ -1377,7 +1511,7 @@ export class AdminController extends BaseController {
         exports: "N/A",
         lastActive: new Date(p.updated_at).toLocaleDateString(),
       }));
-  
+
       // =========================
       // TEAM
       // =========================
@@ -1390,12 +1524,12 @@ export class AdminController extends BaseController {
           ? new Date(u.updated_at).toLocaleDateString()
           : "N/A",
       }));
-  
+
       // =========================
       // MEMBERS TREND (SAFE)
       // =========================
       const avgMembers = Math.floor(membersAdded / 12);
-  
+
       // =========================
       // FINAL RESPONSE
       // =========================
@@ -1404,12 +1538,12 @@ export class AdminController extends BaseController {
           title: "Feature Adoption",
           subtitle: "Measure depth of feature usage.",
         },
-  
+
         filters: {
           searchPlaceholder: "Search features...",
           options: {},
         },
-  
+
         stats: [
           {
             id: "discovered",
@@ -1432,7 +1566,7 @@ export class AdminController extends BaseController {
             value: habitual.toString(),
           },
         ],
-  
+
         adoptionFunnel: {
           title: "Overall Adoption Funnel",
           rows: [
@@ -1462,14 +1596,14 @@ export class AdminController extends BaseController {
             },
           ],
         },
-  
+
         // ❌ NOT AVAILABLE (NO EVENT TRACKING)
         featureAdoptionGrid: { features: [] },
         topFeatures: { rows: [] },
         planBreakdown: { plans: [] },
         roleBreakdown: { plans: [] },
         regionBreakdown: { plans: [] },
-  
+
         // =========================
         // COLLABORATION (REAL)
         // =========================
@@ -1482,18 +1616,18 @@ export class AdminController extends BaseController {
             percent: 0,
           })),
         },
-  
+
         membersAdded: {
           title: "Members Added",
           bars: Array(12).fill(avgMembers),
           trend: Array(12).fill(avgMembers),
         },
-  
+
         commentsPerDocument: {
           title: "Comments per Document",
           data: [], // ❌ no comments table
         },
-  
+
         sharedVsSolo: {
           title: "Shared vs Solo Usage",
           slices: [
@@ -1501,18 +1635,18 @@ export class AdminController extends BaseController {
             { label: "Solo", value: soloDocs },
           ],
         },
-  
+
         topCollaborativeProjects: {
           title: "Top Collaborative Projects",
           rows: topProjects,
         },
-  
+
         team: {
           title: "Team",
           rows: team,
         },
       };
-  
+
       return res.json({
         status: "success",
         details: data,
@@ -1530,38 +1664,59 @@ export class AdminController extends BaseController {
    */
   private getMonetization = async (req: AuthRequest, res: Response) => {
     try {
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
       const [users, jobs] = await Promise.all([
         SupabaseDB.getAllUsers(),
         SupabaseDB.getAllJobs(),
       ]);
-  
+
       const totalUsers = users.length;
-  
+
       // =========================
       // ACTIVE USERS (REAL)
       // =========================
       const activeUsersSet = new Set(jobs.map((j: any) => j.user_id));
       const activeUsers = activeUsersSet.size;
-  
+
       // =========================
       // BASIC USAGE MAP
       // =========================
       const usageMap = new Map<string, number>();
-  
+
       jobs.forEach((j: any) => {
         usageMap.set(j.user_id, (usageMap.get(j.user_id) || 0) + 1);
       });
-  
+
       // =========================
       // APPROX PAID USERS (ONLY FOR SIGNAL)
       // =========================
       const paidUsers = Array.from(usageMap.values()).filter(
-        (c) => c > 3
+        (c) => c > 3,
       ).length;
-  
-      const freeToPaid =
-        totalUsers > 0 ? (paidUsers / totalUsers) * 100 : 0;
-  
+
+      const freeToPaid = totalUsers > 0 ? (paidUsers / totalUsers) * 100 : 0;
+
       // =========================
       // TOP USERS (USAGE-BASED)
       // =========================
@@ -1575,7 +1730,7 @@ export class AdminController extends BaseController {
           outputs: count,
           lastActive: "recent",
         }));
-  
+
       // =========================
       // FINAL RESPONSE
       // =========================
@@ -1584,7 +1739,7 @@ export class AdminController extends BaseController {
           title: "Monetization",
           subtitle: "Track revenue, conversion, and plan-level performance.",
         },
-  
+
         filters: {
           Timeframe: {
             label: "30 days",
@@ -1603,7 +1758,7 @@ export class AdminController extends BaseController {
             options: ["All segments"],
           },
         },
-  
+
         // ❌ NOT AVAILABLE
         totalRevenue: {
           title: "Total Revenue",
@@ -1611,21 +1766,21 @@ export class AdminController extends BaseController {
           change: "N/A",
           period: "vs last month",
         },
-  
+
         mrr: {
           title: "MRR",
           value: "N/A",
           change: "N/A",
           period: "vs last month",
         },
-  
+
         arr: {
           title: "ARR",
           value: "N/A",
           change: "N/A",
           period: "vs last year",
         },
-  
+
         // ⚠️ APPROX (USAGE-BASED ONLY)
         freeToPaid: {
           title: "Free → Paid (approx)",
@@ -1633,7 +1788,7 @@ export class AdminController extends BaseController {
           change: "N/A",
           period: "based on usage only",
         },
-  
+
         // ❌ NOT AVAILABLE
         upgradeRate: {
           title: "Upgrade Rate",
@@ -1641,7 +1796,7 @@ export class AdminController extends BaseController {
           change: "N/A",
           period: "vs last month",
         },
-  
+
         downgradeRate: {
           title: "Downgrade Rate",
           value: "N/A",
@@ -1649,7 +1804,7 @@ export class AdminController extends BaseController {
           period: "vs last month",
           changeNegativeIsGood: true,
         },
-  
+
         // ❌ NOT AVAILABLE
         revenueTrend: {
           title: "Revenue Trend",
@@ -1662,7 +1817,7 @@ export class AdminController extends BaseController {
           selectedFilter: "Both",
           series: [],
         },
-  
+
         // ❌ NOT AVAILABLE
         revenueByPlan: {
           title: "Revenue by Plan",
@@ -1670,7 +1825,7 @@ export class AdminController extends BaseController {
           total: 0,
           rows: [],
         },
-  
+
         // ⚠️ PARTIAL (USAGE-BASED)
         conversionFunnel: {
           title: "Free → Paid Conversion Funnel",
@@ -1698,7 +1853,7 @@ export class AdminController extends BaseController {
             },
           ],
         },
-  
+
         exportUsageByPlan: {
           title: "Export Usage by Plan",
           subtitle: "",
@@ -1707,20 +1862,20 @@ export class AdminController extends BaseController {
           max: 0,
           yLabels: [],
         },
-  
+
         paywallEvents: {
           title: "Paywall Interaction Events",
           subtitle: "",
           events: [],
         },
-  
+
         topRevenueUsers: {
           title: "Top Users by Revenue",
           subtitle: "",
           rows: topUsers,
         },
       };
-  
+
       return res.json({
         status: "success",
         details: data,
@@ -1739,51 +1894,73 @@ export class AdminController extends BaseController {
 
   private getAiPerformance = async (req: AuthRequest, res: Response) => {
     try {
-      const jobs = await SupabaseDB.getAllJobs();
-  
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
+      const jobs = await SupabaseDB.getAllJobs(since);
+
       const total = jobs.length;
-  
+
       // =========================
       // STATUS COUNTS
       // =========================
       const success = jobs.filter((j) => j.status === "completed").length;
       const failed = jobs.filter((j) => j.status === "failed").length;
       const pending = jobs.filter((j) => j.status === "pending").length;
-  
+
       const successRate = total > 0 ? (success / total) * 100 : 0;
-  
+
       // =========================
       // LATENCY (APPROX FROM progress)
       // =========================
       const latencies = jobs
         .map((j) => j.progress)
         .filter((v) => typeof v === "number");
-  
+
       const avgLatency =
         latencies.length > 0
           ? latencies.reduce((a, b) => a + b, 0) / latencies.length
           : 0;
-  
+
       // =========================
       // REGENERATIONS (FAILURE PROXY)
       // =========================
       const regenCount = failed;
       const regenPerOutput = total > 0 ? regenCount / total : 0;
-  
+
       // =========================
       // COMPLETION (REALISTIC)
       // =========================
       const completedPct = successRate;
       const pendingPct = total > 0 ? (pending / total) * 100 : 0;
       const failedPct = total > 0 ? (failed / total) * 100 : 0;
-  
+
       // =========================
       // LATENCY SERIES
       // =========================
       const latencySeries = jobs
         .slice(0, 12)
         .map((j) => (typeof j.progress === "number" ? j.progress : 0));
-  
+
       // =========================
       // ERROR LOGS
       // =========================
@@ -1799,7 +1976,7 @@ export class AdminController extends BaseController {
           tool: j.type || "unknown",
           detail: j.error || "N/A",
         }));
-  
+
       // =========================
       // FINAL RESPONSE
       // =========================
@@ -1809,12 +1986,12 @@ export class AdminController extends BaseController {
           subtitle:
             "Measure AI output quality, prompt performance, error logs, and latency alerts.",
         },
-  
+
         filters: {
           searchPlaceholder: "Search files, content, and tags...",
           options: {},
         },
-  
+
         // =========================
         // OUTPUT METRICS
         // =========================
@@ -1854,7 +2031,7 @@ export class AdminController extends BaseController {
             },
           ],
         },
-  
+
         // =========================
         // PROMPT SUCCESS
         // =========================
@@ -1867,7 +2044,7 @@ export class AdminController extends BaseController {
             { label: "Failed", color: "#18181b" },
           ],
         },
-  
+
         // =========================
         // LATENCY TREND
         // =========================
@@ -1886,7 +2063,7 @@ export class AdminController extends BaseController {
             },
           ],
         },
-  
+
         // =========================
         // REGENERATIONS
         // =========================
@@ -1901,7 +2078,7 @@ export class AdminController extends BaseController {
             },
           ],
         },
-  
+
         // ❌ NOT AVAILABLE
         aiFeedback: {
           title: "AI Feedback",
@@ -1910,7 +2087,7 @@ export class AdminController extends BaseController {
           max: 0,
           values: [],
         },
-  
+
         // =========================
         // COMPLETION RATE
         // =========================
@@ -1925,7 +2102,7 @@ export class AdminController extends BaseController {
             { label: "Failed", value: failedPct, color: "#e4e4e7" },
           ],
         },
-  
+
         // =========================
         // LOGS
         // =========================
@@ -1934,7 +2111,7 @@ export class AdminController extends BaseController {
           errors: errorLogs,
           timeouts: [],
         },
-  
+
         // =========================
         // ALERTS
         // =========================
@@ -1968,20 +2145,20 @@ export class AdminController extends BaseController {
                 ]
               : [],
         },
-  
+
         // ❌ NOT AVAILABLE
         driftAlerts: {
           title: "Drift Alerts",
           alerts: [],
         },
-  
+
         predictiveSignals: {
           highActivityCohorts: { cohorts: [] },
           churnRiskHeatmap: { rows: [] },
           aiFrustrationAlerts: { alerts: [] },
         },
       };
-  
+
       return res.json({
         status: "success",
         details: data,
@@ -1999,36 +2176,58 @@ export class AdminController extends BaseController {
    */
   private getPlatformHealth = async (req: AuthRequest, res: Response) => {
     try {
-      const jobs = await SupabaseDB.getAllJobs();
-  
+      const timeframeRaw = req.query.timeframe;
+      const searchRaw = req.query.search;
+
+      const timeframe =
+        typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
+
+      const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const timeframeMap: Record<string, number | null> = {
+        "Last 7d": 7,
+        "Last 30d": 30,
+        "Last 90d": 90,
+        "This year": 365,
+        "All time": 999,
+      };
+
+      const days = timeframeMap[timeframe] ?? 30;
+
+      const since = days
+        ? new Date(Date.now() - days * 86400000).toISOString()
+        : undefined;
+
+      const jobs = await SupabaseDB.getAllJobs(since);
+
       const total = jobs.length;
-  
+
       const failed = jobs.filter((j) => j.status === "failed").length;
       const timeout = jobs.filter((j) => j.status === "timeout").length;
-  
+
       const errorRate = total > 0 ? (failed / total) * 100 : 0;
       const timeoutRate = total > 0 ? (timeout / total) * 100 : 0;
-  
+
       // =========================
       // LATENCY (APPROX FROM progress)
       // =========================
       const latencies = jobs
         .map((j) => j.progress)
         .filter((v) => typeof v === "number");
-  
+
       const avgLatency =
         latencies.length > 0
           ? latencies.reduce((a, b) => a + b, 0) / latencies.length
           : 0;
-  
+
       // =========================
       // ENDPOINT AGGREGATION
       // =========================
       const endpointMap = new Map<string, any>();
-  
+
       jobs.forEach((j: any) => {
         const key = j.type || "unknown";
-  
+
         if (!endpointMap.has(key)) {
           endpointMap.set(key, {
             endpoint: key,
@@ -2037,24 +2236,24 @@ export class AdminController extends BaseController {
             latencies: [],
           });
         }
-  
+
         const entry = endpointMap.get(key);
-  
+
         entry.calls++;
         entry.latencies.push(typeof j.progress === "number" ? j.progress : 0);
-  
+
         if (j.status === "failed") {
           entry.errors++;
         }
       });
-  
+
       const percentile = (arr: number[], p: number) => {
         if (!arr.length) return 0;
         const sorted = [...arr].sort((a, b) => a - b);
         const idx = Math.floor((p / 100) * sorted.length);
         return sorted[idx] || 0;
       };
-  
+
       const endpointRows = Array.from(endpointMap.values()).map((val, i) => ({
         id: `ep-${i}`,
         endpoint: val.endpoint,
@@ -2066,14 +2265,14 @@ export class AdminController extends BaseController {
         callsPerHour: val.calls, // ⚠️ approximation
         status: val.errors > 5 ? "degraded" : "healthy",
       }));
-  
+
       // =========================
       // API PERCENTILES
       // =========================
       const p50 = percentile(latencies, 50);
       const p95 = percentile(latencies, 95);
       const p99 = percentile(latencies, 99);
-  
+
       // =========================
       // FINAL RESPONSE
       // =========================
@@ -2083,7 +2282,7 @@ export class AdminController extends BaseController {
           subtitle:
             "Engineering and reliability visibility — API performance, queues, logs, and real-time alerts.",
         },
-  
+
         apiPercentiles: {
           title: "API Response Time",
           p50,
@@ -2093,7 +2292,7 @@ export class AdminController extends BaseController {
           statusLabel: errorRate > 1 ? "Elevated" : "Healthy",
           period: "Based on job latency (approx)",
         },
-  
+
         errorRate: {
           title: "Error Rate",
           value: `${errorRate.toFixed(2)}%`,
@@ -2102,7 +2301,7 @@ export class AdminController extends BaseController {
           status: errorRate > 1 ? "warning" : "healthy",
           statusLabel: errorRate > 1 ? "Elevated" : "Normal",
         },
-  
+
         timeoutRate: {
           title: "Timeout Rate",
           value: `${timeoutRate.toFixed(2)}%`,
@@ -2111,7 +2310,7 @@ export class AdminController extends BaseController {
           status: timeoutRate > 1 ? "warning" : "healthy",
           statusLabel: timeoutRate > 1 ? "Elevated" : "Normal",
         },
-  
+
         // ❌ NOT TRUE UPTIME
         uptime: {
           title: "Uptime (30d)",
@@ -2121,12 +2320,12 @@ export class AdminController extends BaseController {
           status: "healthy",
           statusLabel: "Unknown",
         },
-  
+
         endpointPerformance: {
           title: "Endpoint Performance",
           rows: endpointRows,
         },
-  
+
         // ⚠️ APPROX ONLY
         monitoring: {
           queue: {
@@ -2148,7 +2347,7 @@ export class AdminController extends BaseController {
             subRows: [],
           },
         },
-  
+
         systemLogs: {
           title: "System Logs",
           incidents: jobs
@@ -2167,7 +2366,7 @@ export class AdminController extends BaseController {
           deploys: [],
           releases: [],
         },
-  
+
         realtimeAlerts: {
           title: "Real-Time System Alerts",
           alerts:
@@ -2186,7 +2385,7 @@ export class AdminController extends BaseController {
                 ]
               : [],
         },
-  
+
         failuresAlerts: {
           title: "Failures & Alerts",
           subtitle: "Recent incidents",
@@ -2204,7 +2403,7 @@ export class AdminController extends BaseController {
             })),
         },
       };
-  
+
       return res.json({
         status: "success",
         details: data,

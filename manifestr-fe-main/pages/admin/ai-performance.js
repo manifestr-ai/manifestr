@@ -19,9 +19,21 @@ import DriftAlertsGrid from "../../components/admin/ai-performance/DriftAlertsGr
 import PredictiveSignalsSection from "../../components/admin/ai-performance/PredictiveSignalsSection";
 
 import { getAdminAiPerformanceData } from "../../services/admin/ai-performance";
+import OverviewFilters from "../../components/admin/overview/OverviewFilters";
 
 export default function AdminAiPerformance() {
-  const [aiPerformanceData, setAiPerformanceData] = useState(null)
+  const [filters, setFilters] = useState({
+    timeframe: "Last 30d",
+    search: "",
+  });
+  const handleFiltersChange = ({ search, filters: selected }) => {
+    setFilters({
+      timeframe: selected?.Timeframe || "Last 30d",
+      search: search || "",
+    });
+  };
+
+  const [aiPerformanceData, setAiPerformanceData] = useState(null);
   const [error, setError] = useState(false);
 
   const { user, loading } = useAuth();
@@ -37,16 +49,24 @@ export default function AdminAiPerformance() {
   // 📡 fetch
   useEffect(() => {
     if (user?.is_admin) {
-      getAdminAiPerformanceData()
-        .then((res) => {
-          if (!res) setError(true);
-          else setAiPerformanceData(res);
-        })
-        .catch(() => setError(true));
+      fetchAiPerformance();
     }
-  }, [user]);
+  }, [user?.is_admin, filters]);
 
-  if (loading ) return <div className="p-6">Loading...</div>;
+  const fetchAiPerformance = async () => {
+    try {
+      const data = await getAdminAiPerformanceData(filters);
+      if (!data) {
+        setError(true);
+      } else {
+        setAiPerformanceData(data);
+      }
+    } catch {
+      setError(true);
+    }
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">Failed to load</div>;
   return (
     <>
@@ -66,11 +86,19 @@ export default function AdminAiPerformance() {
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
-              <AiPerformanceFilters
+              {/* <AiPerformanceFilters
                 searchPlaceholder={
                   aiPerformanceData?.filters?.searchPlaceholder
                 }
                 options={aiPerformanceData?.filters?.options}
+                onFiltersChange={handleFiltersChange}
+              /> */}
+              <OverviewFilters
+                filters={aiPerformanceData?.filters?.options}
+                searchPlaceholder={
+                  aiPerformanceData?.filters?.searchPlaceholder
+                }
+                onFiltersChange={handleFiltersChange}
               />
 
               {/* Metrics: acceptance rate, edit/accept ratio, regen per output, time to generate */}
@@ -111,4 +139,3 @@ export default function AdminAiPerformance() {
     </>
   );
 }
-

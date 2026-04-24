@@ -17,6 +17,16 @@ import ChurnBreakdownChart from "../../components/admin/retention/ChurnBreakdown
 import { getAdminRetentionData } from "../../services/admin/retention";
 
 export default function AdminRetention() {
+  const [filters, setFilters] = useState({
+    timeframe: "Last 30d",
+    search: "",
+  });
+  const handleFiltersChange = ({ search, filters: selected }) => {
+    setFilters({
+      timeframe: selected?.Timeframe || "Last 30d",
+      search: search || "",
+    });
+  };
   const [retentionData, setRetentionData] = useState(null);
   const [error, setError] = useState(false);
 
@@ -33,14 +43,22 @@ export default function AdminRetention() {
   // 📡 Fetch data (client-side → token works)
   useEffect(() => {
     if (user?.is_admin) {
-      getAdminRetentionData()
-        .then((data) => {
-          if (!data) setError(true);
-          else setRetentionData(data);
-        })
-        .catch(() => setError(true));
+      fetchRetention();
     }
-  }, [user]);
+  }, [user?.is_admin, filters]);
+
+  const fetchRetention = async () => {
+    try {
+      const data = await getAdminRetentionData(filters);
+      if (!data) {
+        setError(true);
+      } else {
+        setRetentionData(data);
+      }
+    } catch {
+      setError(true);
+    }
+  };
 
   if (loading) return <div className="p-6">Loading...</div>
   if (error) return <div className="p-6 text-red-500">Failed to load data</div>
@@ -69,7 +87,9 @@ export default function AdminRetention() {
               <OverviewFilters
                 filters={retentionData?.filters?.options}
                 searchPlaceholder={retentionData?.filters?.searchPlaceholder}
+                onFiltersChange={handleFiltersChange}
               />
+        
 
               {/* KPI — 2×2 mobile, one row on lg */}
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">

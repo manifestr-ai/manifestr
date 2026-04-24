@@ -34,6 +34,18 @@ function SectionLabel({ children }) {
 }
 // { productUsageData }
 export default function AdminProductUsage() {
+
+  const [filters, setFilters] = useState({
+    timeframe: "Last 30d",
+    search: "",
+  });
+  const handleFiltersChange = ({ search, filters: selected }) => {
+    setFilters({
+      timeframe: selected?.Timeframe || "Last 30d",
+      search: search || "",
+    });
+  };
+  
   const [productUsageData, setProductUsageData] = useState(null);
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -66,14 +78,21 @@ export default function AdminProductUsage() {
 
   useEffect(() => {
     if (user?.is_admin) {
-      getAdminProductUsageData()
-        .then((data) => {
-          if (!data) setError(true);
-          else setProductUsageData(data);
-        })
-        .catch(() => setError(true));
+      const fetchProductUsage = async () => {
+        try {
+          const data = await getAdminProductUsageData(filters);
+          if (!data) {
+            setError(true);
+          } else {
+            setProductUsageData(data);
+          }
+        } catch {
+          setError(true);
+        }
+      };
+      fetchProductUsage();
     }
-  }, [user]);
+  }, [user?.is_admin, filters]);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">Failed to load data</div>;
@@ -98,6 +117,7 @@ export default function AdminProductUsage() {
               <OverviewFilters
                 filters={productUsageData?.filters?.options}
                 searchPlaceholder={productUsageData?.filters?.searchPlaceholder}
+                onFiltersChange={handleFiltersChange}
               />
 
               {/* ── Core Metrics ── */}
