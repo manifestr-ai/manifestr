@@ -135,9 +135,11 @@ export default function OverviewFilters({
               label.toLowerCase() === "plan" ||
               label.toLowerCase() === "region" ||
               label.toLowerCase() === "source" ||
-              label.toLowerCase() === "segment"
-              || label.toLowerCase() === "stage"
-       
+              label.toLowerCase() === "segment" ||
+              label.toLowerCase() === "stage" ||
+              label.toLowerCase() === "tool" ||
+              label.toLowerCase() === "feature" ||
+              label.toLowerCase() === "role"
             }
           />
         ))}
