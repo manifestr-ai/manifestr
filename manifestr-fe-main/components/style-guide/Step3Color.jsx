@@ -324,14 +324,24 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
                 </p>
               </div>
               <div className="flex items-center gap-3 w-full md:w-auto">
-                <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onBack}
+                  className="flex-1 md:flex-none justify-center !bg-white hover:!bg-white"
+                >
                   Skip
                 </Button>
-                <Button variant="secondary" size="md" onClick={onSaveExit} className="flex-1 md:flex-none justify-center">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onSaveExit}
+                  className="flex-1 md:flex-none justify-center !bg-white hover:!bg-white"
+                >
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
-                  Continue <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
+                  Continue To Style <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
                 </Button>
               </div>
             </div>

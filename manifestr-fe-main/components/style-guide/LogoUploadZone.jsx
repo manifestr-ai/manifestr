@@ -186,13 +186,13 @@ export default function LogoUploadZone({ onFilesChange }) {
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   onClick={() => toggleDropdown(file.id)}
-                  className="flex items-center gap-3 px-6 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl hover:bg-[#f1f5f9] transition-colors cursor-pointer min-w-[280px] justify-between shadow-sm"
+                  className="flex items-center gap-3 px-6 py-3 bg-white border border-[#e4e4e7] rounded-xl hover:bg-[#f4f4f5] transition-colors cursor-pointer min-w-[280px] justify-between"
                 >
-                  <span className="text-[14px] font-medium leading-[20px] text-[#1e293b]">
+                  <span className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
                     {file.category}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-[#94a3b8] transition-transform duration-300 ${openDropdowns[file.id] ? 'rotate-180' : ''
+                    className={`w-4 h-4 text-[#71717a] transition-transform duration-300 ${openDropdowns[file.id] ? 'rotate-180' : ''
                       }`}
                   />
                 </motion.button>
@@ -205,7 +205,7 @@ export default function LogoUploadZone({ onFilesChange }) {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute z-10 mt-1 w-full bg-white border border-[#e4e4e7] rounded-lg shadow-lg overflow-hidden"
+                      className="absolute z-10 mt-1 w-full bg-white border border-[#e4e4e7] rounded-xl shadow-[0px_10px_20px_rgba(0,0,0,0.06)] overflow-hidden"
                     >
                       {categories.map((category) => (
                         <button

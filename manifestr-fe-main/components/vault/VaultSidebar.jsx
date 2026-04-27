@@ -88,7 +88,9 @@ export default function VaultSidebar() {
                         ? 'font-bold text-white tracking-[-0.1504px]'
                         : itemIsActive
                           ? 'font-medium text-[#18181b]'
-                          : 'text-[#18181b]'
+                          : isDeleted
+                            ? 'font-bold text-[#18181b]'
+                            : 'text-[#18181b]'
                         }`}>
                         {item.label}
                       </span>

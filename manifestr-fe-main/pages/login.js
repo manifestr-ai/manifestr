@@ -247,9 +247,11 @@ export default function Login() {
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                   />
+                </div>
+                <div className="w-full flex justify-center">
                   <Link
                     href="/forgot-password"
-                    className="text-l2-medium text-base-secondary hover:opacity-80 px-1"
+                    className="text-l2-medium text-base-secondary hover:opacity-80"
                   >
                     Forgot password?
                   </Link>

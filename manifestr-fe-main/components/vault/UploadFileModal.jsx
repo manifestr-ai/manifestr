@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Upload as UploadIcon, FileText, CheckCircle2, ChevronDown, CheckCircle, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/router'
-import ToggleSwitch from '../forms/ToggleSwitch'
+import Checkbox from '../forms/Checkbox'
 
 export default function UploadFileModal({ isOpen, onClose, onUpload }) {
   const router = useRouter()
@@ -617,12 +617,14 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                         </div>
 
                         {/* Sync Checkbox */}
-                        <ToggleSwitch
+                        <Checkbox
                           checked={syncToCollab}
-                          onChange={(checked) => setSyncToCollab(checked)}
-                          label="Sync this file to a Collab Hub project"
-                          labelPosition="right"
-                          className="text-[14px]"
+                          onChange={(e) => setSyncToCollab(e.target.checked)}
+                          label={
+                            <span className="text-[14px] text-[#18181b]">
+                              Sync this file to a Collab Hub project
+                            </span>
+                          }
                         />
                       </div>
                     </div>

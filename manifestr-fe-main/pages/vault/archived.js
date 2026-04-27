@@ -159,6 +159,7 @@ export default function VaultArchived() {
         {/* Header Section */}
         <VaultHeader
           title="THE vault ARCHIVED/COMPLETED"
+          description={null}
           backgroundImage={headerBackgroundImage}
           isBlack={true}
           showActionButtons={false}

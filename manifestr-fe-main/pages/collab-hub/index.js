@@ -108,7 +108,13 @@ export default function CollabHub() {
           <>
             <VaultHeader
               title={<span className="text-[#18181b] font-bold">Collabs</span>}
-              description="Collabs are shared workspaces to keep people + documents together, all in one view."
+              description={(
+                <span className="text-[#71717b] text-[18px]">
+                  Collabs are shared workspaces to keep people
+                  <br />
+                  + documents together, all in one view.
+                </span>
+              )}
               isBlack={false}
               backgroundImage={headerBackgroundImage}
               showActionButtons={true}

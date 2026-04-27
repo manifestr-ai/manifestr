@@ -104,6 +104,10 @@ export default function CollabDetailPage() {
 
   const isVaultFolder = typeof folderId === 'string' && !!getVaultFolderById(folderId)
   const vaultFolder = typeof folderId === 'string' ? getVaultFolderById(folderId) : null
+  const hideVaultFolderHeaderChrome =
+    isVaultFolder &&
+    typeof folderId === 'string' &&
+    ['marketing-materials', 'finance-reports', 'presentations', 'client-assets'].includes(folderId)
 
   const handleProjectClick = (card) => {
     if (!card?.id) return
@@ -156,10 +160,16 @@ export default function CollabDetailPage() {
       <div className="flex-1 flex flex-col overflow-y-auto">
         <VaultHeader
           title={(isVaultFolder ? vaultFolder?.headerTitle : collabData?.name?.toUpperCase()) || 'COLLAB PROJECT'}
-          description={(isVaultFolder ? VAULT_FOLDER_DESCRIPTION : collabData?.purpose_notes) || null}
+          description={
+            (isVaultFolder
+              ? hideVaultFolderHeaderChrome
+                ? null
+                : VAULT_FOLDER_DESCRIPTION
+              : collabData?.purpose_notes) || null
+          }
           isBlack={false}
           backgroundImage={(isVaultFolder ? headerBackgroundImage : collabData?.cover_image) || headerBackgroundImage}
-          showActionButtons={isVaultFolder}
+          showActionButtons={isVaultFolder && !hideVaultFolderHeaderChrome}
         />
 
         {isLoading ? (

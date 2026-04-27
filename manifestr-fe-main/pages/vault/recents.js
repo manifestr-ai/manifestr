@@ -186,7 +186,7 @@ export default function VaultRecents() {
         {/* Header Section */}
         <VaultHeader
           title="THE vault recents"
-          description="Your secure workspace for every project, deck & document."
+          description={null}
           backgroundImage={headerBackgroundImage}
           showActionButtons={false}
         />

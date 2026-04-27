@@ -122,7 +122,7 @@ export default function VaultPromptsInProgress() {
                   className="bg-white border border-[#e4e4e7] rounded-xl shadow-[0px_1px_3px_rgba(0,0,0,0.08)] p-5 flex flex-col"
                 >
                   <div className="flex items-start gap-2">
-                    <div className="w-6 h-6 rounded-md bg-[#f4f4f5] border border-[#e4e4e7] flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
                       <Sparkles className="w-4 h-4 text-[#18181b]" />
                     </div>
                     <h3 className="text-[14px] font-semibold leading-[20px] text-[#18181b] line-clamp-2">
