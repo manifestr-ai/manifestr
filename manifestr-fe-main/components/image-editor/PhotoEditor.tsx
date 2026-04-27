@@ -10,6 +10,10 @@ import { Button } from "@blueprintjs/core";
 
 import EditorBottomToolbar from "../editor/EditorBottomToolbar";
 import ToolPanel from "../editor/panels/image-editor/ToolPanel";
+import StyleGuideModal from "../editor/StyleGuideModal";
+import { useToast } from "../../hooks/useToast";
+import { useRouter } from "next/router";
+import api from "../../lib/api";
 
 interface PhotoEditorProps {
   imageSrc?: string;
@@ -997,6 +1001,65 @@ const PhotoEditor = observer(function PhotoEditor({
   const [drawing, setDrawing] = useState<DrawingState>(null);
   const [effect, setEffect] = useState<EffectState>(null);
   const workspaceContainerRef = useRef<HTMLDivElement | null>(null);
+  const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  const handleSelectStyleGuide = async (styleGuide: any) => {
+    setShowStyleGuideModal(false);
+    showToast('Regenerating image with selected style...', 'info');
+
+    try {
+      const imageIdParam = router.query.id;
+      const actualImageId = typeof imageIdParam === 'string' ? imageIdParam : Array.isArray(imageIdParam) ? imageIdParam[0] : undefined;
+
+      if (actualImageId) {
+        // Update existing image
+        const response = await api.post('/image-generator/modify', {
+          generationId: actualImageId,
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            name: styleGuide.name,
+            primaryColor: styleGuide.primaryColor,
+            secondaryColor: styleGuide.secondaryColor,
+            accentColor: styleGuide.accentColor,
+            backgroundColor: styleGuide.backgroundColor,
+            textColor: styleGuide.textColor,
+            fontFamily: styleGuide.fontFamily,
+          },
+          modifyPrompt: `Regenerate this image using the "${styleGuide.name}" style guide.`,
+        });
+
+        if (response.data.success && response.data.imageUrl) {
+          showToast('Image regenerated successfully!', 'success');
+          window.location.reload();
+        }
+      } else {
+        // Generate new image
+        const response = await api.post('/image-generator/generate', {
+          prompt: `Generate an image using the "${styleGuide.name}" style guide`,
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            name: styleGuide.name,
+            primaryColor: styleGuide.primaryColor,
+            secondaryColor: styleGuide.secondaryColor,
+            accentColor: styleGuide.accentColor,
+            backgroundColor: styleGuide.backgroundColor,
+            textColor: styleGuide.textColor,
+            fontFamily: styleGuide.fontFamily,
+          },
+        });
+
+        if (response.data.success && response.data.generationId) {
+          showToast('Image generated successfully!', 'success');
+          router.push(`/image-editor?id=${response.data.generationId}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error applying style guide:', error);
+      showToast('Failed to apply style guide', 'error');
+    }
+  };
 
   useEffect(() => {
     if (activeTool !== "format") {
@@ -1161,6 +1224,7 @@ const PhotoEditor = observer(function PhotoEditor({
         activeTool={activeTool}
         setActiveTool={setActiveTool}
         editorType="image"
+        onInsertTheme={() => setShowStyleGuideModal(true)}
       />
 
       {/* AI PROMPTER BELOW TOOLBAR */}
@@ -1175,6 +1239,14 @@ const PhotoEditor = observer(function PhotoEditor({
           setEffect={setEffect}
         />
       )}
+
+      {/* Style Guide Modal */}
+      <StyleGuideModal
+        isOpen={showStyleGuideModal}
+        onClose={() => setShowStyleGuideModal(false)}
+        onSelect={handleSelectStyleGuide}
+        editorType="image"
+      />
     </div>
   );
 });

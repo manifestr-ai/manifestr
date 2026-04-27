@@ -16,6 +16,7 @@ interface ModifySpreadsheetRequest {
     spreadsheetData: any;
     userId?: string;
     meta?: any;
+    generationId?: string;
 }
 
 export class SpreadsheetGeneratorController extends BaseController {
@@ -210,7 +211,7 @@ IMPORTANT: Return a JSON object with this exact structure:
 
     private async modifySpreadsheet(req: Request, res: Response) {
         try {
-            const { prompt, spreadsheetData, userId, meta } = req.body as ModifySpreadsheetRequest;
+            const { prompt, spreadsheetData, userId, meta, generationId } = req.body as ModifySpreadsheetRequest;
 
             if (!prompt || !spreadsheetData) {
                 return res.status(400).json({ error: 'Missing required fields: prompt and spreadsheetData' });
@@ -221,21 +222,33 @@ IMPORTANT: Return a JSON object with this exact structure:
 
             console.log(`📊 Modifying spreadsheet for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
+            
+            // Check if we're updating an existing generation
+            let job: any;
+            if (generationId) {
+                console.log(`🔄 Updating existing generation: ${generationId}`);
+                // Update existing job
+                job = { id: generationId };
+                await SupabaseDB.updateGenerationJob(generationId, jobUserId, {
+                    status: 'processing',
+                    progress: 0
+                });
+            } else {
+                // 1. Create NEW job in database
+                job = await SupabaseDB.createGenerationJob(jobUserId, {
+                    type: 'spreadsheet',
+                    input_data: {
+                        prompt: prompt,
+                        spreadsheetData: spreadsheetData,
+                        output: 'spreadsheet',
+                        meta: meta || {},
+                        title: `Modified: ${prompt.substring(0, 50)}`
+                    },
+                    status: 'processing'
+                });
+            }
 
-            // 1. Create job in database
-            const job = await SupabaseDB.createGenerationJob(jobUserId, {
-                type: 'spreadsheet',
-                input_data: {
-                    prompt: prompt,
-                    spreadsheetData: spreadsheetData,
-                    output: 'spreadsheet',
-                    meta: meta || {},
-                    title: `Modified: ${prompt.substring(0, 50)}`
-                },
-                status: 'processing'
-            });
-
-            console.log(`📝 Job created: ${job.id}`);
+            console.log(`📝 Job ID: ${job.id}`);
 
             // 2. Generate modification prompt
             const systemPrompt = `

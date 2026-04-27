@@ -32,6 +32,9 @@ import { saveAs } from "file-saver";
 import docsContent from "../assets/dummy/docs-content.json";
 import useGenerationLoader from "../hooks/useGenerationLoader";
 import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
+import StyleGuideModal from "../components/editor/StyleGuideModal";
+import { useToast } from "../hooks/useToast";
+import api from "../lib/api";
 
 export default function DocsEditor() {
   const router = useRouter();
@@ -41,6 +44,8 @@ export default function DocsEditor() {
   const [editorInstance, setEditorInstance] = useState(null);
   const [zoom, setZoom] = useState(1);
   const { loading, error, status, content, id } = useGenerationLoader();
+  const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
+  const { showToast } = useToast();
 
   const extractHeadings = (html) => {
     // Store HTML for download
@@ -237,6 +242,69 @@ export default function DocsEditor() {
 
   const useCollaboration = !!actualDocumentId; // Enable collaboration if we have a document ID
 
+  const handleSelectStyleGuide = async (styleGuide: any) => {
+    setShowStyleGuideModal(false);
+    showToast("Regenerating document with selected style...", "info");
+
+    try {
+      const currentContent = editorInstance?.getHTML() || editorHTML;
+
+      if (actualDocumentId) {
+        // Update existing document
+        const response = await api.post("/document-generator/modify", {
+          generationId: actualDocumentId,
+          currentDocument: { html: currentContent },
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            name: styleGuide.name,
+            primaryColor: styleGuide.primaryColor,
+            secondaryColor: styleGuide.secondaryColor,
+            accentColor: styleGuide.accentColor,
+            backgroundColor: styleGuide.backgroundColor,
+            textColor: styleGuide.textColor,
+            fontFamily: styleGuide.fontFamily,
+          },
+          modifyPrompt: `Regenerate this document using the "${styleGuide.name}" style guide.`,
+        });
+
+        if (response.data.success && response.data.modifiedDocument) {
+          showToast("Document regenerated successfully!", "success");
+          if (editorInstance?.commands?.setContent) {
+            editorInstance.commands.setContent(
+              response.data.modifiedDocument.html,
+            );
+          } else {
+            window.location.reload();
+          }
+        }
+      } else {
+        // Generate new document
+        const response = await api.post("/document-generator/generate", {
+          prompt: `Generate a document using the "${styleGuide.name}" style guide`,
+          content: { html: currentContent },
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            name: styleGuide.name,
+            primaryColor: styleGuide.primaryColor,
+            secondaryColor: styleGuide.secondaryColor,
+            accentColor: styleGuide.accentColor,
+            backgroundColor: styleGuide.backgroundColor,
+            textColor: styleGuide.textColor,
+            fontFamily: styleGuide.fontFamily,
+          },
+        });
+
+        if (response.data.success && response.data.generationId) {
+          showToast("Document generated successfully!", "success");
+          router.push(`/docs-editor?id=${response.data.generationId}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error applying style guide:", error);
+      showToast("Failed to apply style guide", "error");
+    }
+  };
+
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
       <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -299,8 +367,19 @@ export default function DocsEditor() {
 
         {/* Bottom Section */}
         <div className="flex-none z-30">
-          <DocsEditorBottomToolbar editor={editorInstance} />
+          <DocsEditorBottomToolbar
+            editor={editorInstance}
+            onInsertTheme={() => setShowStyleGuideModal(true)}
+          />
         </div>
+
+        {/* Style Guide Modal */}
+        <StyleGuideModal
+          isOpen={showStyleGuideModal}
+          onClose={() => setShowStyleGuideModal(false)}
+          onSelect={handleSelectStyleGuide}
+          editorType="document"
+        />
       </div>
     </GenerationLoaderUI>
   );

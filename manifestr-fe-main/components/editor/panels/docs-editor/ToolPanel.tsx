@@ -1,5 +1,5 @@
 import React from "react";
-import AIPromptPanel from "./AIPromptPanel";
+import AiPrompterPanel from "../comman-panel/AiPrompterPanel";
 import FormatPanel from "./FormatPanel";
 import InsertPanel from "./InsertPanel";
 import LayoutPanel from "./LayoutPanel";
@@ -17,8 +17,9 @@ export default function ToolPanel({ activeTool, store, editor }: ToolPanelProps)
   if (!activeTool) return null;
 
   switch (activeTool) {
+    case "ai_prompter":
     case "ai-prompt":
-      return <AIPromptPanel store={store} editor={editor} />;
+      return <AiPrompterPanel store={store} editorType="document" />;
     case "format":
       return <FormatPanel store={store} editor={editor} />;
     case "insert":

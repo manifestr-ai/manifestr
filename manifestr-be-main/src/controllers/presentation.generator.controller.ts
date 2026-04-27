@@ -16,6 +16,7 @@ interface ModifyPresentationRequest {
     presentationData: any;
     userId?: string;
     meta?: any;
+    generationId?: string;
 }
 
 export class PresentationGeneratorController extends BaseController {
@@ -248,7 +249,7 @@ Make it visually stunning, with modern design, proper typography, and engaging l
 
     private async modifyPresentation(req: Request, res: Response) {
         try {
-            const { prompt, presentationData, userId, meta } = req.body as ModifyPresentationRequest;
+            const { prompt, presentationData, userId, meta, generationId } = req.body as ModifyPresentationRequest;
 
             if (!prompt || !presentationData) {
                 return res.status(400).json({ error: 'Missing required fields: prompt and presentationData' });
@@ -260,20 +261,32 @@ Make it visually stunning, with modern design, proper typography, and engaging l
             console.log(`📽️  Modifying presentation for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
 
-            // 1. Create job in database
-            const job = await SupabaseDB.createGenerationJob(jobUserId, {
-                type: 'presentation',
-                input_data: {
-                    prompt: prompt,
-                    presentationData: presentationData,
-                    output: 'presentation',
-                    meta: meta || {},
-                    title: `Modified: ${prompt.substring(0, 50)}`
-                },
-                status: 'processing'
-            });
+            // Check if we're updating an existing generation
+            let job: any;
+            if (generationId) {
+                console.log(`🔄 Updating existing generation: ${generationId}`);
+                // Update existing job
+                job = { id: generationId };
+                await SupabaseDB.updateGenerationJob(generationId, jobUserId, {
+                    status: 'processing',
+                    progress: 0
+                });
+            } else {
+                // 1. Create NEW job in database
+                job = await SupabaseDB.createGenerationJob(jobUserId, {
+                    type: 'presentation',
+                    input_data: {
+                        prompt: prompt,
+                        presentationData: presentationData,
+                        output: 'presentation',
+                        meta: meta || {},
+                        title: `Modified: ${prompt.substring(0, 50)}`
+                    },
+                    status: 'processing'
+                });
+            }
 
-            console.log(`📝 Job created: ${job.id}`);
+            console.log(`📝 Job ID: ${job.id}`);
 
             // 2. Generate modification prompt
             const systemPrompt = `
