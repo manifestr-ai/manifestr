@@ -12,6 +12,9 @@ import {
   FloatingFAB,
 } from "../components/spreadsheet/FloatingElements";
 import dynamic from "next/dynamic";
+import StyleGuideModal from "../components/editor/StyleGuideModal";
+import { useToast } from "../components/ui/Toast";
+import api from "../lib/api";
 
 import spreadsheetData from "../assets/dummy/spreadsheet-data.json";
 import useGenerationLoader from "../hooks/useGenerationLoader";
@@ -28,14 +31,99 @@ export default function SpreadsheetEditor() {
   const univerRef = useRef(null);
   const [univerAPI, setUniverAPI] = useState(null);
   const { loading, error, status, content, id } = useGenerationLoader();
-
-  const data = content || spreadsheetData;
+  const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
+  const { success } = useToast();
+  
+  // Use useMemo to prevent data reference changes from causing re-renders
+  const data = React.useMemo(() => content || spreadsheetData, [content]);
 
   // Ensure generationId is string
   const actualGenerationId =
     typeof id === "string" ? id : Array.isArray(id) ? id[0] : undefined;
 
   const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
+  
+  // Handle style guide selection - REGENERATE with style guide
+  const handleSelectStyleGuide = async (styleGuide: any) => {
+    console.log('🎨 Regenerating spreadsheet with style guide:', styleGuide);
+    
+    try {
+      setShowStyleGuideModal(false);
+      
+      // Show loading state
+      success(`🔄 Regenerating spreadsheet with "${styleGuide.brand_name || styleGuide.name}" theme...`);
+      
+      // Get current spreadsheet content for context
+      const currentPrompt = data?.workbook?.name || data?.title || 'Professional spreadsheet';
+      
+      // If we have a generation ID, use modify endpoint to update the SAME spreadsheet
+      if (actualGenerationId) {
+        console.log('📝 Updating existing spreadsheet with ID:', actualGenerationId);
+        
+        const response = await api.post('/spreadsheet-generator/modify', {
+          prompt: `Apply brand style guide: ${styleGuide.brand_name || styleGuide.name} to this ${currentPrompt}`,
+          spreadsheetData: data,
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            colors: styleGuide.colors,
+            typography: styleGuide.typography,
+            brandName: styleGuide.brand_name || styleGuide.name,
+            logo: styleGuide.logo
+          },
+          generationId: actualGenerationId,
+          meta: { 
+            editorType: 'spreadsheet',
+            applyStyleGuide: true,
+            updateExisting: true
+          }
+        });
+        
+        console.log('📊 Modified spreadsheet response:', response.data);
+        
+        // Reload the SAME page (keeps the ID)
+        console.log('🔄 Reloading page to show updated spreadsheet...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+        
+      } else {
+        // No ID - create new
+        console.log('📝 Creating new spreadsheet with style guide');
+        
+        const response = await api.post('/spreadsheet-generator/generate', {
+          prompt: `${currentPrompt}. Apply brand style guide: ${styleGuide.brand_name || styleGuide.name}`,
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            colors: styleGuide.colors,
+            typography: styleGuide.typography,
+            brandName: styleGuide.brand_name || styleGuide.name,
+            logo: styleGuide.logo
+          },
+          meta: { 
+            editorType: 'spreadsheet',
+            applyStyleGuide: true
+          }
+        });
+        
+        console.log('📊 API Response:', response.data);
+        
+        if (response.data?.data?.jobId) {
+          // Redirect to the new spreadsheet with its ID
+          window.location.href = `/spreadsheet-editor?id=${response.data.data.jobId}`;
+        } else {
+          // Fallback: reload current page
+          setTimeout(() => window.location.reload(), 1000);
+        }
+      }
+      
+      success(`✅ Spreadsheet regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`);
+      
+    } catch (error: any) {
+      console.error('❌ Failed to regenerate spreadsheet:', error);
+      const errorMsg = error?.response?.data?.message || error?.message || 'Unknown error';
+      success(`⚠️ Regeneration in progress... Check console: ${errorMsg}`);
+    }
+  };
 
   const handleZoomIn = () => {
     if (!univerAPI || typeof (univerAPI as any).executeCommand !== "function")
@@ -249,6 +337,7 @@ export default function SpreadsheetEditor() {
     }
   };
 
+  // Use ref to persist activeTool across re-renders
   const [activeTool, setActiveTool] = useState<
     | "ai_prompter"
     | "format"
@@ -258,6 +347,12 @@ export default function SpreadsheetEditor() {
     | "data"
     | "style"
   >("insert");
+  
+  // Store activeTool in ref to prevent resets during collaboration syncs
+  const activeToolRef = useRef(activeTool);
+  React.useEffect(() => {
+    activeToolRef.current = activeTool;
+  }, [activeTool]);
 
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
@@ -358,6 +453,7 @@ export default function SpreadsheetEditor() {
         />
 
         <button
+          onClick={() => setShowStyleGuideModal(true)}
           className="px-3 py-2 flex items-center gap-2 rounded-[10px] bg-[#F3F4F6] text-[#0A0A0A] font-medium transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300
             text-[13px] xs:text-[14px] sm:px-4 sm:py-2"
           style={{
@@ -427,6 +523,7 @@ export default function SpreadsheetEditor() {
                 onAPIReady={setUniverAPI}
                 data={data}
                 generationId={actualGenerationId}
+                isAIPrompterActive={activeTool === "ai_prompter"}
               />
             ) : (
               <UniverSheet
@@ -495,6 +592,14 @@ export default function SpreadsheetEditor() {
         {activeTool === "ai_prompter" && (
           <ToolPanel activeTool={activeTool} store={univerAPI} />
         )}
+        
+        {/* Style Guide Modal */}
+        <StyleGuideModal
+          isOpen={showStyleGuideModal}
+          onClose={() => setShowStyleGuideModal(false)}
+          onSelect={handleSelectStyleGuide}
+          editorType="spreadsheet"
+        />
       </div>
     </GenerationLoaderUI>
   );

@@ -9,6 +9,13 @@ interface GenerateDocumentRequest {
     pageCount?: number;
 }
 
+interface ModifyDocumentRequest {
+    prompt: string;
+    documentData: any;
+    userId?: string;
+    meta?: any;
+}
+
 export class DocumentGeneratorController extends BaseController {
     public basePath = '/document-generator';
     private openai: OpenAI;
@@ -56,9 +63,14 @@ export class DocumentGeneratorController extends BaseController {
          */
         this.routes = [
             {
-                verb: 'POST', // Corrected from 'post' to 'POST' to match RouteDefinition type
+                verb: 'POST',
                 path: '/create',
                 handler: this.generateDocument.bind(this),
+            },
+            {
+                verb: 'POST',
+                path: '/modify',
+                handler: this.modifyDocument.bind(this),
             },
         ];
     }
@@ -179,6 +191,89 @@ GENERATE THE JSON NOW.
 
         } catch (error) {
             return res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : String(error) });
+        }
+    }
+
+    private async modifyDocument(req: Request, res: Response) {
+        try {
+            const { prompt, documentData, userId, meta } = req.body as ModifyDocumentRequest;
+
+            if (!prompt || !documentData) {
+                return res.status(400).json({ 
+                    error: 'Missing required fields: prompt and documentData are required' 
+                });
+            }
+
+            console.log('📝 Modifying document with prompt:', prompt);
+            console.log('📄 Current document HTML length:', typeof documentData === 'string' ? documentData.length : 0);
+
+            // System prompt for HTML document modification
+            const systemPrompt = `
+You are a DOCUMENT MODIFICATION EXPERT specializing in HTML content for rich text editors.
+
+**YOUR TASK**: Modify the existing HTML document based on the user's request while maintaining clean, semantic HTML.
+
+**MODIFICATION RULES**:
+1. **Preserve HTML Structure**: Keep valid HTML with proper tags (<h1>, <h2>, <p>, <strong>, <em>, <ul>, <ol>, etc.)
+2. **Content Updates**: Apply the user's requested changes (text edits, formatting, additions, deletions, restructuring)
+3. **Semantic HTML**: Use appropriate tags (h1-h6 for headings, p for paragraphs, strong for bold, em for italic)
+4. **Clean Code**: No inline styles unless specifically requested; use semantic HTML tags
+5. **Maintain Formatting**: Preserve existing formatting unless user asks to change it
+
+**COMMON MODIFICATIONS**:
+- Text changes: Update specific words, sentences, or paragraphs
+- Formatting: Add headings, bold, italic, lists
+- Structure: Reorder sections, add new paragraphs, remove content
+- Style changes: Change heading levels, convert to lists, etc.
+
+**RETURN FORMAT**: Return ONLY the modified HTML content, no extra wrapper, no markdown code blocks, just pure HTML.
+`;
+
+            const userPrompt = `
+USER MODIFICATION REQUEST: "${prompt}"
+
+CURRENT DOCUMENT HTML:
+${documentData}
+
+Please modify the document HTML according to the user's request and return the COMPLETE modified HTML.
+Return only the HTML content, no additional formatting or code blocks.
+`;
+
+            const completion = await this.openai.chat.completions.create({
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                model: 'gpt-4o',
+                max_tokens: 16000
+            });
+
+            let modifiedHTML = completion.choices[0].message.content;
+
+            if (!modifiedHTML) {
+                return res.status(500).json({ error: 'Failed to generate modified document from OpenAI' });
+            }
+
+            // Clean up any markdown code blocks if AI added them
+            modifiedHTML = modifiedHTML.replace(/^```html\n?/, '').replace(/\n?```$/, '').trim();
+
+            console.log('✅ Document modified successfully!');
+            console.log('📄 Modified HTML length:', modifiedHTML.length);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    documentData: modifiedHTML,
+                    generatedAt: new Date().toISOString()
+                }
+            });
+
+        } catch (error: any) {
+            console.error('❌ Document modification failed:', error);
+            return res.status(500).json({ 
+                error: 'Internal server error', 
+                details: error instanceof Error ? error.message : String(error) 
+            });
         }
     }
 }

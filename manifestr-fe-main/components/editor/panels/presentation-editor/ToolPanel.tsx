@@ -19,7 +19,7 @@ export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
 
   switch (activeTool) {
     case "ai_prompter":
-      return <AiPrompterPanel store={store} />;
+      return <AiPrompterPanel store={store} editorType="presentation" />;
     case "insert":
       return <InsertPanel store={store} />;
 

@@ -1,20 +1,30 @@
 import React, { useState } from "react";
 import ToolPanel from "./panels/docs-editor/ToolPanel";
-import { Sparkles, Type, Plus, PanelBottomOpen, Link2, MessageSquare, Wand2 } from "lucide-react";
+import { Sparkles, Type, Plus, PanelBottomOpen, Link2, MessageSquare, Wand2, Palette } from "lucide-react";
 
 interface DocsEditorBottomToolbarProps {
   store?: any;
   editor?: any;
+  onInsertTheme?: () => void;
 }
 
-export default function DocsEditorBottomToolbar({ store, editor }: DocsEditorBottomToolbarProps) {
+export default function DocsEditorBottomToolbar({ store, editor, onInsertTheme }: DocsEditorBottomToolbarProps) {
   const [activeTool, setActiveTool] = useState<string | null>("format");
+  
+  // Log editor availability for debugging
+  console.log('📋 DocsEditorBottomToolbar - editor available:', !!editor);
+  console.log('📋 DocsEditorBottomToolbar - editor type:', typeof editor);
 
   const tools = [
     {
       id: "ai-prompt",
       label: "AI Prompter",
       icon: Sparkles,
+    },
+    {
+      id: "insert_theme",
+      label: "Insert Theme",
+      icon: Palette,
     },
     {
       id: "format",
@@ -49,17 +59,26 @@ export default function DocsEditorBottomToolbar({ store, editor }: DocsEditorBot
   ];
 
   const handleToolClick = (toolId: string) => {
-    if (toolId === "ai-prompt") {
-      return;
+    if (toolId === "insert_theme" && onInsertTheme) {
+      onInsertTheme();
+    } else {
+      setActiveTool(activeTool === toolId ? null : toolId);
     }
-    setActiveTool(activeTool === toolId ? null : toolId);
   };
 
   return (
     <div className="flex flex-col">
       {/* Tool Panel (shows above toolbar) */}
-      {activeTool && activeTool !== "ai-prompt" && (
-        <ToolPanel activeTool={activeTool} store={store} editor={editor} />
+      {activeTool && (
+        <>
+          {!editor && activeTool === "ai-prompt" && (
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+              <p className="font-bold">Editor Loading...</p>
+              <p>Please wait for the editor to fully load before using AI Prompter.</p>
+            </div>
+          )}
+          <ToolPanel activeTool={activeTool} store={editor} editor={editor} />
+        </>
       )}
 
       {/* Bottom Toolbar */}

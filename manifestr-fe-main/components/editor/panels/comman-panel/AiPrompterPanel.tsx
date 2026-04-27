@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Sparkles,
   History,
@@ -9,17 +9,583 @@ import {
   Command,
   Upload,
   Search,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import useAiPrompter, { PromptHistoryItem } from "../../../../hooks/useAiPrompter";
 
 interface AiPrompterPanelProps {
   store: any;
+  editorType?: 'image' | 'document' | 'spreadsheet' | 'presentation' | 'chart';
 }
-export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
+
+export default function AiPrompterPanel({ store, editorType = 'image' }: AiPrompterPanelProps) {
   const [activeTab, setActiveTab] = useState("Freestyle");
   const [mode, setMode] = useState("Prompt Mode");
   const [isRecording, setIsRecording] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [historyFilter, setHistoryFilter] = useState("All");
+  
+  // Freestyle tab state
+  const [freestylePrompt, setFreestylePrompt] = useState("");
+  
+  // Brief Me tab state
+  const [briefData, setBriefData] = useState({
+    whatToDo: "",
+    focusArea: "",
+    style: "",
+    presentation: "",
+    constraints: ""
+  });
+  
+  // Voice recording state
+  const recognitionRef = useRef<any>(null);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
+  
+  // File upload ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // AI Prompter hook
+  const {
+    isProcessing,
+    error: aiError,
+    history,
+    modifyImage,
+    modifyContent,
+    generateContent,
+    processVoiceInput,
+    processUploadedFile,
+    processBrief,
+    clearHistory
+  } = useAiPrompter({
+    editorType,
+    onSuccess: async (result) => {
+      console.log('✅ AI Prompter success! Result keys:', Object.keys(result));
+      console.log('📦 Result data:', result);
+      console.log('📋 Editor/Store available:', !!store);
+      console.log('📋 Editor type check:', editorType);
+
+      // Update editor based on result
+      if (store) {
+        console.log('🔄 Calling updateEditorWithData...');
+        await updateEditorWithData(result);
+        console.log('✅ updateEditorWithData completed!');
+        
+        // Show success message to user
+        setTimeout(() => {
+          console.log('🎉 Document updated successfully!');
+        }, 100);
+      } else {
+        console.error('❌ No store/editor available to update!');
+        console.error('❌ This means the editor instance was not passed correctly');
+        alert('Editor not available. Please refresh the page and try again.');
+      }
+    },
+    onError: (error) => {
+      console.error('❌ AI Prompter error:', error);
+    }
+  });
+  
+  // Get current editor data (image URL, spreadsheet data, or presentation data)
+  const getCurrentEditorData = (): any => {
+    console.log('📥 Getting current editor data for:', editorType);
+    console.log('📥 Store available:', !!store);
+    
+    if (!store) {
+      console.warn('⚠️ No store available');
+      return null;
+    }
+    
+    try {
+      if (editorType === 'image') {
+        // For Polotno store (image editor)
+        const page = store.activePage;
+        if (!page) {
+          console.warn('⚠️ No active page');
+          return null;
+        }
+        
+        // Find the first image element
+        const imageElement = page.children.find((child: any) => child.type === 'image');
+        if (imageElement && imageElement.src) {
+          console.log('✅ Got image URL:', imageElement.src);
+          return imageElement.src;
+        }
+        
+        console.warn('⚠️ No image element found');
+        return null;
+      } else if (editorType === 'document') {
+        // For Tiptap editor (HTML content)
+        // Get HTML content from editor
+        if (store && store.getHTML) {
+          const html = store.getHTML();
+          console.log('✅ Got document HTML, length:', html?.length || 0);
+          return html;
+        } else if (store && store.state) {
+          // Fallback: Try to get HTML from editor state
+          console.log('⚠️ Using fallback method to get HTML');
+          return null;
+        } else {
+          console.warn('⚠️ Store does not have getHTML method');
+          console.log('📋 Store type:', typeof store);
+          console.log('📋 Store methods:', store ? Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 10) : 'no store');
+          return null;
+        }
+      } else if (editorType === 'presentation') {
+        // For Polotno store (presentation editor)
+        // Get complete presentation JSON
+        if (store.toJSON) {
+          const data = store.toJSON();
+          console.log('✅ Got presentation data, pages:', data?.pages?.length);
+          return data;
+        } else {
+          console.warn('⚠️ Store does not have toJSON method');
+          return null;
+        }
+      } else if (editorType === 'spreadsheet') {
+        // For Univer (spreadsheet editor)
+        // Get current spreadsheet data from store (univerAPI)
+        console.log('📋 Store type:', typeof store);
+        console.log('📋 Store has getActiveWorkbook:', typeof store.getActiveWorkbook === 'function');
+        
+        try {
+          // The store is the univerAPI object
+          if (store.getActiveWorkbook) {
+            const workbook = store.getActiveWorkbook();
+            
+            if (!workbook) {
+              console.warn('⚠️ No active workbook found');
+              return null;
+            }
+            
+            console.log('✅ Got active workbook');
+            
+            // Get workbook data as JSON
+            if (workbook.save) {
+              const data = workbook.save();
+              console.log('✅ Got workbook data via save()');
+              console.log('✅ Data keys:', Object.keys(data).slice(0, 10));
+              return data;
+            } else if (workbook.getSnapshot) {
+              const data = workbook.getSnapshot();
+              console.log('✅ Got workbook data via getSnapshot()');
+              return data;
+            } else {
+              console.error('❌ Workbook has no save() or getSnapshot() method');
+              return null;
+            }
+          } else if (store.getData) {
+            // Fallback for different API structure
+            const data = store.getData();
+            console.log('✅ Got data via getData()');
+            return data;
+          } else {
+            console.error('❌ Store has no getActiveWorkbook() or getData() method');
+            console.error('❌ Available methods:', Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 20));
+            return null;
+          }
+        } catch (error) {
+          console.error('❌ Error extracting workbook data:', error);
+          return null;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('❌ Error getting current editor data:', error);
+      return null;
+    }
+  };
+  
+  // Update editor with new data (image, spreadsheet, or presentation)
+  const updateEditorWithData = async (result: any) => {
+    if (!store) return;
+    
+    try {
+      if (editorType === 'image' && result.imageUrl) {
+        // Update image editor
+        const page = store.activePage;
+        if (!page) return;
+        
+        // Find existing image element or create new one
+        let imageElement = page.children.find((child: any) => child.type === 'image');
+        
+        if (imageElement) {
+          // Update existing image
+          imageElement.set({ src: result.imageUrl });
+          console.log('✅ Updated existing image element');
+        } else {
+          // Create new image element
+          page.addElement({
+            type: 'image',
+            src: result.imageUrl,
+            x: 0,
+            y: 0,
+            width: page.width,
+            height: page.height
+          });
+          console.log('✅ Created new image element');
+        }
+      } else if (editorType === 'document' && result.documentData) {
+        // Update document editor (Tiptap - HTML content)
+        console.log('📝 Updating document with new HTML');
+        console.log('📄 New HTML length:', result.documentData?.length || 0);
+        console.log('📋 Store available:', !!store);
+        console.log('📋 Store type:', typeof store);
+        
+        try {
+          // Verify editor instance
+          if (!store) {
+            console.error('❌ No editor instance available');
+            alert('Editor not ready. Please try again.');
+            return;
+          }
+
+          // Log available methods for debugging
+          if (store.commands) {
+            console.log('✅ Editor has commands object');
+          }
+          
+          // Tiptap setContent method (Primary method)
+          if (store.commands && typeof store.commands.setContent === 'function') {
+            console.log('🔄 Calling editor.commands.setContent()...');
+            const success = store.commands.setContent(result.documentData);
+            console.log('✅ setContent result:', success);
+            console.log('✅ Document HTML updated successfully!');
+            console.log('✅ You should see the changes in the editor now!');
+          } else if (store.setContent && typeof store.setContent === 'function') {
+            // Alternative method 1
+            console.log('🔄 Calling editor.setContent()...');
+            store.setContent(result.documentData);
+            console.log('✅ Document updated successfully using setContent');
+          } else if (store.setHTML && typeof store.setHTML === 'function') {
+            // Alternative method 2
+            console.log('🔄 Calling editor.setHTML()...');
+            store.setHTML(result.documentData);
+            console.log('✅ Document updated successfully using setHTML');
+          } else {
+            console.error('❌ Could not find method to update document HTML');
+            console.log('📋 Available store properties:', Object.keys(store).slice(0, 30));
+            console.log('📋 Commands available:', store.commands ? Object.keys(store.commands).slice(0, 30) : 'no commands');
+            alert('Failed to update document. The editor API might have changed. Please refresh the page and try again.');
+          }
+        } catch (updateError) {
+          console.error('❌ Error updating document HTML:', updateError);
+          console.error('❌ Error details:', updateError);
+          alert('Failed to update document: ' + (updateError instanceof Error ? updateError.message : String(updateError)));
+        }
+      } else if (editorType === 'presentation' && result.presentationData) {
+        // Update presentation editor (Polotno)
+        console.log('📽️  Updating presentation with new data:', result.presentationData);
+        
+        try {
+          // Polotno loadJSON method to replace entire presentation
+          if (store.loadJSON) {
+            store.loadJSON(result.presentationData);
+            console.log('✅ Presentation updated successfully using loadJSON');
+          } else if (store.clear && store.addPage) {
+            // Fallback: Clear all pages and add new ones
+            store.clear();
+            const pages = result.presentationData.pages || [];
+            pages.forEach((pageData: any) => {
+              const page = store.addPage(pageData);
+              console.log('✅ Added page:', page.id);
+            });
+            console.log('✅ Presentation updated successfully via clear/addPage');
+          } else {
+            console.warn('⚠️ Could not find method to update presentation');
+            console.log('💡 Try refreshing the page to see updated presentation');
+          }
+        } catch (loadError) {
+          console.error('❌ Error loading presentation JSON:', loadError);
+          console.log('💡 Consider refreshing the page to see updated presentation');
+        }
+      } else if (editorType === 'spreadsheet' && result.spreadsheetData) {
+        // Update spreadsheet editor (Univer)
+        console.log('📊 Updating spreadsheet with new data');
+        console.log('📋 New data keys:', Object.keys(result.spreadsheetData).slice(0, 10));
+        
+        try {
+          // The store is the univerAPI object
+          if (store.getActiveWorkbook && store.disposeUnit && store.createWorkbook) {
+            // Get current workbook to get its ID
+            const currentWorkbook = store.getActiveWorkbook();
+            
+            if (currentWorkbook) {
+              const workbookId = currentWorkbook.getUnitId();
+              console.log('📋 Current workbook ID:', workbookId);
+              console.log('📋 Disposing current workbook...');
+              
+              // Dispose current workbook
+              store.disposeUnit(workbookId);
+              console.log('✅ Workbook disposed');
+              
+              // Small delay to ensure disposal is complete
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+              // Create new workbook with updated data
+              console.log('📋 Creating new workbook with AI-modified data...');
+              const newWorkbook = store.createWorkbook(result.spreadsheetData);
+              
+              // Verify new workbook was created
+              await new Promise(resolve => setTimeout(resolve, 200));
+              const verifyWorkbook = store.getActiveWorkbook();
+              
+              if (verifyWorkbook) {
+                console.log('✅ New workbook created successfully!');
+                console.log('✅ New workbook ID:', verifyWorkbook.getUnitId());
+                console.log('✅ Spreadsheet updated! Changes should be visible now.');
+              } else {
+                console.error('❌ Failed to create new workbook');
+              }
+            } else {
+              console.warn('⚠️ No active workbook to replace');
+            }
+          } else if (store.setData) {
+            // Fallback 1
+            store.setData(result.spreadsheetData);
+            console.log('✅ Spreadsheet updated via setData()');
+          } else if (store.loadData) {
+            // Fallback 2
+            store.loadData(result.spreadsheetData);
+            console.log('✅ Spreadsheet updated via loadData()');
+          } else {
+            console.warn('⚠️ Could not find method to update spreadsheet data');
+            console.log('💡 Available methods:', Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 20));
+            console.log('💡 Consider refreshing the page to see updated spreadsheet');
+          }
+        } catch (updateError) {
+          console.error('❌ Error updating spreadsheet:', updateError);
+          console.log('💡 Consider refreshing the page to see updated spreadsheet');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error updating editor:', error);
+    }
+  };
+  
+  // Handle Freestyle prompt submission
+  const handleFreestyleSubmit = async () => {
+    if (!freestylePrompt.trim()) return;
+    
+    const currentData = getCurrentEditorData();
+    
+    try {
+      if (currentData) {
+        await modifyContent(freestylePrompt, currentData, 'Freestyle');
+      } else {
+        await generateContent(freestylePrompt, 'Freestyle');
+      }
+      
+      // Clear input on success
+      setFreestylePrompt("");
+    } catch (error) {
+      // Error is already handled by the hook
+    }
+  };
+  
+  // Handle voice recording with Web Speech API
+  const startRecording = () => {
+    try {
+      // Check if browser supports Speech Recognition
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+        return;
+      }
+      
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        console.log('🎤 Voice recognition started');
+        setIsRecording(true);
+        setVoiceTranscript("");
+      };
+      
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          setVoiceTranscript(prev => (prev + finalTranscript).trim());
+        }
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'no-speech') {
+          console.log('No speech detected, continuing...');
+        } else {
+          alert(`Speech recognition error: ${event.error}`);
+          setIsRecording(false);
+        }
+      };
+      
+      recognition.onend = () => {
+        console.log('🎤 Voice recognition ended');
+        setIsRecording(false);
+        
+        // Process the transcript if we have one
+        if (voiceTranscript.trim()) {
+          handleVoiceTranscript(voiceTranscript);
+        }
+      };
+      
+      recognition.start();
+      recognitionRef.current = recognition;
+      
+    } catch (error) {
+      console.error('Error starting speech recognition:', error);
+      alert('Failed to start speech recognition. Please check microphone permissions.');
+    }
+  };
+  
+  const stopRecording = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+  };
+  
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+  
+  // Handle the transcribed voice input
+  const handleVoiceTranscript = async (transcript: string) => {
+    if (!transcript.trim()) {
+      alert('No speech was detected. Please try again.');
+      return;
+    }
+    
+    console.log('🎤 Processing transcript:', transcript);
+    
+    const currentData = getCurrentEditorData();
+    
+    try {
+      if (currentData) {
+        await modifyContent(transcript, currentData, 'Talk To Me');
+      } else {
+        await generateContent(transcript, 'Talk To Me');
+      }
+      
+      // Clear transcript on success
+      setVoiceTranscript("");
+    } catch (error) {
+      // Error is already handled by the hook
+      console.error('Failed to process voice input:', error);
+    }
+  };
+  
+  // Handle file upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5 MB');
+      return;
+    }
+    
+    // Validate file type based on editor type
+    if (editorType === 'image' && !file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+    
+    if (editorType === 'spreadsheet' && !['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type)) {
+      alert('Please upload a CSV or Excel file');
+      return;
+    }
+    
+    const currentData = getCurrentEditorData();
+    
+    try {
+      await processUploadedFile(file, currentData || undefined);
+      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      // Error is already handled by the hook
+    }
+  };
+  
+  // Handle Brief Me submission
+  const handleBriefSubmit = async () => {
+    // Validate that at least one field is filled
+    const hasContent = Object.values(briefData).some(val => val.trim());
+    if (!hasContent) {
+      alert('Please fill in at least one field');
+      return;
+    }
+    
+    const currentData = getCurrentEditorData();
+    
+    try {
+      await processBrief(briefData, currentData || undefined);
+      
+      // Clear form on success
+      setBriefData({
+        whatToDo: "",
+        focusArea: "",
+        style: "",
+        presentation: "",
+        constraints: ""
+      });
+    } catch (error) {
+      // Error is already handled by the hook
+    }
+  };
+  
+  // Keyboard shortcut for Freestyle (Cmd/Ctrl + Enter)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        if (activeTab === 'Freestyle' && mode === 'Prompt Mode') {
+          handleFreestyleSubmit();
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, mode, freestylePrompt]);
+  
+  // Filter history based on search and filter
+  const filteredHistory = history.filter(item => {
+    // Apply type filter
+    if (historyFilter !== 'All' && item.type !== historyFilter) {
+      return false;
+    }
+    
+    // Apply search filter
+    if (searchQuery && !item.prompt.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
 
   const prompterTabs = [
     { name: "Freestyle", icon: Sparkles },
@@ -27,59 +593,37 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
     { name: "Dropzone", icon: Upload },
     { name: "Brief Me", icon: FileText },
   ];
-
-  const mockHistory = [
-    {
-      id: 1,
-      type: "Freestyle",
-      timestamp: "Oct 31, 6:55 PM",
-      prompt:
-        "Create a modern dashboard with a sidebar, header, and grid of analytics cards showing user metrics",
-      icon: Sparkles,
-      color:
-        "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white",
-    },
-    {
-      id: 2,
-      type: "Talk To Me",
-      timestamp: "Oct 31, 5:55 PM",
-      prompt:
-        "Design a landing page for a SaaS product with a hero section, feature highlights, pricing table, and testimonials",
-      icon: Mic,
-      color:
-        "bg-[linear-gradient(135deg,_#51A2FF_0%,_#155DFC_100%)] text-white",
-    },
-    {
-      id: 3,
-      type: "Brief Me",
-      timestamp: "Oct 31, 4:55 PM",
-      prompt:
-        "Build a responsive e-commerce product gallery with filters, search, and a shopping cart",
-      icon: FileText,
-      color:
-        "bg-[linear-gradient(135deg,_#FFB900_0%,_#E17100_100%)] text-white",
-    },
-    {
-      id: 4,
-      type: "Dropzone",
-      timestamp: "Oct 30, 7:55 PM",
-      prompt:
-        "Refine the existing visual style with better typography and a warmer color palette",
-      icon: Upload,
-      color:
-        "bg-[linear-gradient(135deg,_#05DF72_0%,_#00A63E_100%)] text-white",
-    },
-    {
-      id: 5,
-      type: "Dropzone",
-      timestamp: "Oct 30, 7:55 PM",
-      prompt:
-        "Refine the existing visual style with better typography and a warmer color palette",
-      icon: Upload,
-      color:
-        "bg-[linear-gradient(135deg,_#05DF72_0%,_#00A63E_100%)] text-white",
-    },
-  ];
+  
+  // Helper function to get icon and color for history item type
+  const getHistoryItemStyle = (type: PromptHistoryItem['type']) => {
+    switch (type) {
+      case 'Freestyle':
+        return {
+          icon: Sparkles,
+          color: "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white"
+        };
+      case 'Talk To Me':
+        return {
+          icon: Mic,
+          color: "bg-[linear-gradient(135deg,_#51A2FF_0%,_#155DFC_100%)] text-white"
+        };
+      case 'Brief Me':
+        return {
+          icon: FileText,
+          color: "bg-[linear-gradient(135deg,_#FFB900_0%,_#E17100_100%)] text-white"
+        };
+      case 'Dropzone':
+        return {
+          icon: Upload,
+          color: "bg-[linear-gradient(135deg,_#05DF72_0%,_#00A63E_100%)] text-white"
+        };
+      default:
+        return {
+          icon: Sparkles,
+          color: "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white"
+        };
+    }
+  };
 
   return (
     <div
@@ -89,6 +633,22 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
           "linear-gradient(135deg, #E2E8F0 0%, #F3F4F6 50%, #E4E4E7 100%)",
       }}
     >
+      {/* Warning if editor not ready (for document editor) */}
+      {editorType === 'document' && !store && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-6 mt-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                <strong>Editor is loading...</strong> Please wait a moment for the editor to initialize, then try again.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="p-4 sm:p-6 space-y-6 mx-auto max-w-full">
         {/* Row 1: Toggles */}
         <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
@@ -131,13 +691,35 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                 {t}
                 {t === "History" && (
                   <span className="bg-[#BDC5D0] text-[#475569] px-1.5 rounded-md text-[10px] font-bold">
-                    0
+                    {history.length}
                   </span>
                 )}
               </button>
             ))}
           </div>
         </div>
+
+        {/* Processing Status */}
+        {isProcessing && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
+            <Loader2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5 animate-spin" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-800">Processing your request...</p>
+              <p className="text-xs text-blue-600 mt-0.5">This may take 20-30 seconds. Please wait.</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Error Display */}
+        {aiError && !isProcessing && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">Error</p>
+              <p className="text-xs text-red-600 mt-0.5">{aiError}</p>
+            </div>
+          </div>
+        )}
 
         {mode === "Prompt Mode" && (
           <div>
@@ -147,11 +729,12 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                 <div key={tab.name} className="flex items-center">
                   <button
                     onClick={() => setActiveTab(tab.name)}
+                    disabled={isProcessing}
                     className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                       activeTab === tab.name
                         ? "bg-white text-[#1E293B] shadow-sm border border-[#E2E8F0]"
                         : "text-[#64748B] hover:bg-slate-200/50"
-                    }`}
+                    } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <tab.icon
                       className={`w-4 h-4 ${activeTab === tab.name ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
@@ -225,6 +808,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
 
                 <div className="relative">
                   <textarea
+                    value={freestylePrompt}
+                    onChange={(e) => setFreestylePrompt(e.target.value)}
+                    disabled={isProcessing}
                     placeholder="Describe what you'd like to modify... For example: 'Change the header to navy blue, make the buttons larger, and add spacing between sections.'"
                     className="
                       flex
@@ -248,6 +834,8 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       font-medium
                       focus:ring-0
                       border-solid
+                      disabled:opacity-50
+                      disabled:cursor-not-allowed
                     "
                   />
                 </div>
@@ -263,7 +851,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                         fontWeight: 400,
                       }}
                     >
-                      10 characters
+                      {freestylePrompt.length} characters
                     </span>
                     <div className="flex items-center gap-2 px-3 py-1">
                       <span className="text-[12px] sm:text-[14px]">Press</span>
@@ -278,10 +866,12 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                   </div>
 
                   <button
+                    onClick={handleFreestyleSubmit}
+                    disabled={isProcessing || !freestylePrompt.trim()}
                     className="
                       flex
                       justify-center
-                      items-start
+                      items-center
                       gap-2
                       rounded-[16px]
                       border
@@ -292,6 +882,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       bg-gradient-to-r from-[#62748E] to-[#4A5565]
                       px-[10px] sm:px-[12.93px]
                       py-[8px] sm:py-[8.5px]
+                      disabled:opacity-50
+                      disabled:cursor-not-allowed
+                      disabled:active:scale-100
                     "
                     style={{
                       color: "#FFF",
@@ -303,8 +896,17 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       letterSpacing: "-0.15px",
                     }}
                   >
-                    <Send className="w-4 h-4" />
-                    <span>Send Prompt</span>
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Prompt</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -376,8 +978,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       <div className="absolute inset-0 bg-[#7C8797] rounded-full opacity-70 animate-pulse" />
                     )}
                     <button
-                      onClick={() => setIsRecording(!isRecording)}
-                      className={`relative z-10 w-20 h-20 sm:w-32 sm:h-32 flex items-center justify-center transition-all duration-300`}
+                      onClick={toggleRecording}
+                      disabled={isProcessing && !isRecording}
+                      className={`relative z-10 w-20 h-20 sm:w-32 sm:h-32 flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
                       style={{
                         borderRadius: "16777200px",
                         background:
@@ -386,9 +989,13 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                         transform: isRecording ? "scale(1.10)" : "scale(1)",
                       }}
                     >
-                      <Mic
-                        className={`w-8 h-8 sm:w-12 sm:h-12 text-white transition-all ${isRecording ? "animate-pulse" : ""}`}
-                      />
+                      {isProcessing && !isRecording ? (
+                        <Loader2 className="w-8 h-8 sm:w-12 sm:h-12 text-white animate-spin" />
+                      ) : (
+                        <Mic
+                          className={`w-8 h-8 sm:w-12 sm:h-12 text-white transition-all ${isRecording ? "animate-pulse" : ""}`}
+                        />
+                      )}
                     </button>
                   </div>
 
@@ -405,8 +1012,20 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     }}
                     className="mt-8 sm:mt-10"
                   >
-                    {isRecording ? "Recording..." : "Ready to record"}
+                    {isProcessing && !isRecording
+                      ? "Processing..."
+                      : isRecording
+                      ? voiceTranscript || "Listening... (tap to stop and send)"
+                      : "Ready to record"}
                   </p>
+                  
+                  {/* Show transcript while recording */}
+                  {isRecording && voiceTranscript && (
+                    <div className="mt-4 px-6 py-3 bg-white/80 rounded-xl border border-[#E2E8F0] max-w-md mx-auto">
+                      <p className="text-sm text-[#45556C] font-medium mb-1">Transcript:</p>
+                      <p className="text-sm text-[#1E293B]">{voiceTranscript}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -486,7 +1105,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       </button>
                       <label
                         htmlFor="file-upload"
-                        className="
+                        className={`
                           flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px]
                           border border-white/40
                           bg-gradient-to-r from-[#62748E] to-[#4A5565]
@@ -494,17 +1113,30 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                           text-white font-medium
                           cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
                           w-full sm:w-auto
-                        "
+                          ${isProcessing ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}
+                        `}
                         tabIndex={0}
                       >
-                        <Upload className="w-4 h-4 mr-1 text-white" />
-                        Click to upload
+                        {isProcessing ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-1 text-white animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-1 text-white" />
+                            Click to upload
+                          </>
+                        )}
                         <input
+                          ref={fileInputRef}
                           id="file-upload"
                           name="file-upload"
                           type="file"
                           className="hidden"
                           accept="image/*"
+                          onChange={handleFileUpload}
+                          disabled={isProcessing}
                         />
                       </label>
                     </div>
@@ -574,6 +1206,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       </label>
                       <input
                         type="text"
+                        value={briefData.whatToDo}
+                        onChange={(e) => setBriefData({...briefData, whatToDo: e.target.value})}
+                        disabled={isProcessing}
                         className="
                           flex
                           h-[45px]
@@ -588,6 +1223,8 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                           text-sm
                           placeholder-[#717182]
                           focus:outline-none
+                          disabled:opacity-50
+                          disabled:cursor-not-allowed
                         "
                         placeholder="Describe what you want to create or modify..."
                       />
@@ -608,6 +1245,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       </label>
                       <input
                         type="text"
+                        value={briefData.focusArea}
+                        onChange={(e) => setBriefData({...briefData, focusArea: e.target.value})}
+                        disabled={isProcessing}
                         className="
                           flex
                           h-[45px]
@@ -622,6 +1262,8 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                           text-sm
                           focus:outline-none
                           placeholder-[#717182]
+                          disabled:opacity-50
+                          disabled:cursor-not-allowed
                         "
                         placeholder="Specify the area or component..."
                       />
@@ -642,6 +1284,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       </label>
                       <input
                         type="text"
+                        value={briefData.style}
+                        onChange={(e) => setBriefData({...briefData, style: e.target.value})}
+                        disabled={isProcessing}
                         className="
                           flex
                           h-[45px]
@@ -656,6 +1301,8 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                           text-sm
                           placeholder-[#717182]
                           focus:outline-none
+                          disabled:opacity-50
+                          disabled:cursor-not-allowed
                         "
                         placeholder="Describe the style, tone, or aesthetic..."
                       />
@@ -676,6 +1323,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       </label>
                       <input
                         type="text"
+                        value={briefData.presentation}
+                        onChange={(e) => setBriefData({...briefData, presentation: e.target.value})}
+                        disabled={isProcessing}
                         className="
                           flex
                           h-[45px]
@@ -690,6 +1340,8 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                           text-sm
                           placeholder-[#717182]
                           focus:outline-none
+                          disabled:opacity-50
+                          disabled:cursor-not-allowed
                         "
                         placeholder="Specify the format or presentation..."
                       />
@@ -711,6 +1363,9 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     </label>
                     <input
                       type="text"
+                      value={briefData.constraints}
+                      onChange={(e) => setBriefData({...briefData, constraints: e.target.value})}
+                      disabled={isProcessing}
                       className="
                         flex
                         h-[45px]
@@ -725,12 +1380,16 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                         text-sm
                         placeholder-[#717182]
                         focus:outline-none
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
                       "
                       placeholder="List any specific requirements or constraints..."
                     />
                   </div>
                   <button
                     type="button"
+                    onClick={handleBriefSubmit}
+                    disabled={isProcessing || !Object.values(briefData).some(val => val.trim())}
                     className="
                       w-full mt-4 sm:mt-8
                       flex items-center justify-center
@@ -741,6 +1400,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       transition
                       hover:bg-[#475569]
                       disabled:bg-[#CBD5E1]
+                      disabled:cursor-not-allowed
                     "
                     style={{
                       borderRadius: "16px",
@@ -750,36 +1410,45 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                       boxShadow: "0 25px 50px -12px rgba(98, 116, 142, 0.50)",
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                    >
-                      <g clipPath="url(#clip0_10665_105076)">
-                        <path
-                          d="M9.68924 14.4572C9.71456 14.5203 9.75859 14.5742 9.81542 14.6116C9.87224 14.6489 9.93914 14.668 10.0071 14.6663C10.0751 14.6646 10.141 14.6421 10.1958 14.6018C10.2506 14.5616 10.2918 14.5055 10.3139 14.4412L14.6472 1.77454C14.6686 1.71547 14.6726 1.65154 14.659 1.59024C14.6453 1.52894 14.6145 1.4728 14.57 1.42839C14.5256 1.38398 14.4695 1.35314 14.4082 1.33947C14.3469 1.3258 14.283 1.32987 14.2239 1.35121L1.55723 5.68454C1.4929 5.7066 1.43685 5.74782 1.39662 5.80266C1.35638 5.85749 1.33388 5.92332 1.33214 5.99131C1.3304 6.05931 1.3495 6.1262 1.38687 6.18303C1.42425 6.23985 1.47811 6.28388 1.54123 6.30921L6.8279 8.42921C6.99503 8.49612 7.14687 8.59618 7.27428 8.72336C7.40169 8.85054 7.50202 9.0022 7.56924 9.16921L9.68924 14.4572Z"
-                          stroke="white"
-                          strokeWidth="1.33333"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M14.5707 1.43115L7.27734 8.72382"
-                          stroke="white"
-                          strokeWidth="1.33333"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_10665_105076">
-                          <rect width="16" height="16" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                    <span className="ml-2">Generate</span>
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="ml-2">Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <g clipPath="url(#clip0_10665_105076)">
+                            <path
+                              d="M9.68924 14.4572C9.71456 14.5203 9.75859 14.5742 9.81542 14.6116C9.87224 14.6489 9.93914 14.668 10.0071 14.6663C10.0751 14.6646 10.141 14.6421 10.1958 14.6018C10.2506 14.5616 10.2918 14.5055 10.3139 14.4412L14.6472 1.77454C14.6686 1.71547 14.6726 1.65154 14.659 1.59024C14.6453 1.52894 14.6145 1.4728 14.57 1.42839C14.5256 1.38398 14.4695 1.35314 14.4082 1.33947C14.3469 1.3258 14.283 1.32987 14.2239 1.35121L1.55723 5.68454C1.4929 5.7066 1.43685 5.74782 1.39662 5.80266C1.35638 5.85749 1.33388 5.92332 1.33214 5.99131C1.3304 6.05931 1.3495 6.1262 1.38687 6.18303C1.42425 6.23985 1.47811 6.28388 1.54123 6.30921L6.8279 8.42921C6.99503 8.49612 7.14687 8.59618 7.27428 8.72336C7.40169 8.85054 7.50202 9.0022 7.56924 9.16921L9.68924 14.4572Z"
+                              stroke="white"
+                              strokeWidth="1.33333"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M14.5707 1.43115L7.27734 8.72382"
+                              stroke="white"
+                              strokeWidth="1.33333"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_10665_105076">
+                              <rect width="16" height="16" fill="white" />
+                            </clipPath>
+                          </defs>
+                        </svg>
+                        <span className="ml-2">Generate</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -789,7 +1458,7 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
 
         {mode === "History" && (
           <div>
-            {!mockHistory || mockHistory.length === 0 ? (
+            {!history || history.length === 0 ? (
               <div
                 className="flex flex-col items-center justify-center w-full h-[140px] sm:h-[200px]"
                 style={{
@@ -1035,68 +1704,81 @@ export default function AiPrompterPanel({ store }: AiPrompterPanelProps) {
                     maxHeight: "280px",
                   }}
                 >
-                  {mockHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 flex gap-2 sm:gap-4 items-start shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                    >
+                  {filteredHistory.map((item) => {
+                    const itemStyle = getHistoryItemStyle(item.type);
+                    const ItemIcon = itemStyle.icon;
+                    
+                    return (
                       <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${item.color} mt-2`}
-                        style={{
-                          boxShadow:
-                            "0 0 0 1px rgba(255, 255, 255, 0.40), 0 2px 8px -1px rgba(0, 0, 0, 0.30)",
+                        key={item.id}
+                        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 flex gap-2 sm:gap-4 items-start shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                        onClick={() => {
+                          // Optionally, allow re-running a prompt from history
+                          setActiveTab(item.type);
+                          setMode("Prompt Mode");
+                          if (item.type === 'Freestyle') {
+                            setFreestylePrompt(item.prompt);
+                          }
                         }}
                       >
-                        <item.icon className="w-4 h-4" />
-                      </div>
-                      <div className="space-y-1.5 min-w-0">
-                        <div className="flex items-center gap-1 sm:gap-2 text-[11px] font-bold">
-                          <span
-                            className="bg-[#F8FAFC] px-2 py-0.5"
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${itemStyle.color} mt-2`}
+                          style={{
+                            boxShadow:
+                              "0 0 0 1px rgba(255, 255, 255, 0.40), 0 2px 8px -1px rgba(0, 0, 0, 0.30)",
+                          }}
+                        >
+                          <ItemIcon className="w-4 h-4" />
+                        </div>
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex items-center gap-1 sm:gap-2 text-[11px] font-bold">
+                            <span
+                              className="bg-[#F8FAFC] px-2 py-0.5"
+                              style={{
+                                borderRadius: "8px",
+                                border: "1px solid rgba(10, 10, 10, 0.20)",
+                                color: "#0A0A0A",
+                                fontFamily: "Inter",
+                                fontSize: "10px",
+                                fontStyle: "normal",
+                                fontWeight: 400,
+                                lineHeight: "15px",
+                                letterSpacing: "0.117px",
+                              }}
+                            >
+                              {item.type}
+                            </span>
+                            <span
+                              style={{
+                                color: "#62748E",
+                                fontFamily: "Inter",
+                                fontSize: "9px",
+                                fontStyle: "normal",
+                                fontWeight: 400,
+                                lineHeight: "13.5px",
+                                letterSpacing: "0.167px",
+                              }}
+                            >
+                              • {item.timestamp}
+                            </span>
+                          </div>
+                          <p
                             style={{
-                              borderRadius: "8px",
-                              border: "1px solid rgba(10, 10, 10, 0.20)",
-                              color: "#0A0A0A",
+                              color: "rgba(49, 65, 88, 0.90)",
                               fontFamily: "Inter",
-                              fontSize: "10px",
+                              fontSize: "14px",
                               fontStyle: "normal",
                               fontWeight: 400,
                               lineHeight: "15px",
-                              letterSpacing: "0.117px",
                             }}
+                            className="line-clamp-2"
                           >
-                            {item.type}
-                          </span>
-                          <span
-                            style={{
-                              color: "#62748E",
-                              fontFamily: "Inter",
-                              fontSize: "9px",
-                              fontStyle: "normal",
-                              fontWeight: 400,
-                              lineHeight: "13.5px",
-                              letterSpacing: "0.167px",
-                            }}
-                          >
-                            • {item.timestamp}
-                          </span>
+                            {item.prompt}
+                          </p>
                         </div>
-                        <p
-                          style={{
-                            color: "rgba(49, 65, 88, 0.90)",
-                            fontFamily: "Inter",
-                            fontSize: "14px",
-                            fontStyle: "normal",
-                            fontWeight: 400,
-                            lineHeight: "15px",
-                          }}
-                          className="line-clamp-2"
-                        >
-                          {item.prompt}
-                        </p>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

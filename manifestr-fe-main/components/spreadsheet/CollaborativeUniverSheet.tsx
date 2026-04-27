@@ -37,6 +37,7 @@ interface CollaborativeUniverSheetProps {
   onAPIReady?: (univerAPI: any) => void;
   data?: any;
   generationId: string;
+  isAIPrompterActive?: boolean;
 }
 
 // Generate consistent color for user
@@ -56,7 +57,7 @@ const getUserColor = (userId: string): string => {
 };
 
 const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
-  ({ onAPIReady, data, generationId }, ref) => {
+  ({ onAPIReady, data, generationId, isAIPrompterActive = false }, ref) => {
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement>(null);
     const univerAPIRef = useRef<any>(null);
@@ -299,7 +300,7 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
       };
 
       fetchActiveUsers();
-      const interval = setInterval(fetchActiveUsers, 5000);
+      const interval = setInterval(fetchActiveUsers, 15000); // Increased from 5s to 15s
 
       return () => clearInterval(interval);
     }, [generationId]);
@@ -529,9 +530,9 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
             setSaveStatus("saving");
             timeout = setTimeout(() => {
               saveToDatabase();
-              // Mark as not editing 3 seconds after last change
-              setTimeout(() => setIsEditing(false), 3000);
-            }, 2000);
+              // Mark as not editing 5 seconds after last change (increased from 3s)
+              setTimeout(() => setIsEditing(false), 5000);
+            }, 3000); // Increased debounce from 2s to 3s
           },
         );
       }, 600); // Wait for workbook initialization
@@ -544,13 +545,16 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
       };
     }, [generationId, lastSavedContent]);
 
-    // AUTO-REFRESH content from database every 10 seconds
+    // AUTO-REFRESH content from database every 60 seconds (reduced from 10s to prevent flickering)
     useEffect(() => {
       if (!generationId || !univerAPIRef.current) return;
 
       const refreshFromDatabase = async () => {
-        // Don't refresh while user is editing!
-        if (isEditing) return;
+        // Don't refresh while user is editing, AI Prompter is active, or if document is visible
+        if (isEditing || isAIPrompterActive || document.visibilityState === 'visible') {
+          console.log('⏭️ Skipping refresh - user is active or AI Prompter is open');
+          return;
+        }
 
         try {
           const response = await api.get(`/ai/generation/${generationId}`);
@@ -603,12 +607,12 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
         }
       };
 
-      // Run on mount and every 10 seconds
-      refreshFromDatabase();
-      const interval = setInterval(refreshFromDatabase, 10000);
+      // Run on mount and every 60 seconds (reduced to prevent flickering)
+      // Don't run on mount to prevent initial flickering
+      const interval = setInterval(refreshFromDatabase, 60000);
 
       return () => clearInterval(interval);
-    }, [generationId, isEditing]);
+    }, [generationId, isEditing, isAIPrompterActive]);
 
   
     return (

@@ -32,6 +32,8 @@ import deck11 from "../../assets/decks/Deck.11.poltno.json";
 import deck15 from "../../assets/decks/Deck.15.polotno.json";
 import EditorBottomToolbar from "../editor/EditorBottomToolbar";
 import ToolPanel from "../editor/panels/presentation-editor/ToolPanel";
+import StyleGuideModal from "../editor/StyleGuideModal";
+import { useToast } from "../ui/Toast";
 
 const ALL_DECKS = [deck1, deck2, deck5, deck6, deck7, deck8, deck11, deck15];
 
@@ -223,6 +225,8 @@ export default function CollaborativePresentationEditor({
   const [provider, setProvider] = useState<SupabaseProvider | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
+  const { success } = useToast();
   const [lastSavedContent, setLastSavedContent] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
@@ -340,7 +344,7 @@ export default function CollaborativePresentationEditor({
     };
 
     fetchActiveUsers();
-    const interval = setInterval(fetchActiveUsers, 5000);
+    const interval = setInterval(fetchActiveUsers, 15000); // Increased from 5s to 15s to reduce load
 
     return () => clearInterval(interval);
   }, [generationId]);
@@ -463,6 +467,127 @@ export default function CollaborativePresentationEditor({
     | "animation"
     | "slideshow"
   >("insert");
+
+  // Handle style guide selection - REGENERATE with style guide
+  const handleSelectStyleGuide = async (styleGuide: any) => {
+    console.log('🎨 Regenerating presentation with style guide:', styleGuide);
+    
+    try {
+      setShowStyleGuideModal(false);
+      
+      // Show loading state
+      success(`🔄 Regenerating presentation with "${styleGuide.brand_name || styleGuide.name}" theme...`);
+      
+      // Get current context
+      const currentTitle = store.pages[0]?.children.find((c: any) => c.type === 'text')?.text || 'Professional Presentation';
+      const pageCount = store.pages.length || 5;
+      const currentPresentation = store.toJSON();
+      
+      // If we have a generation ID, use modify endpoint to update the SAME presentation
+      if (generationId) {
+        console.log('📝 Updating existing presentation with ID:', generationId);
+        
+        const response = await api.post('/presentation-generator/modify', {
+          prompt: `Apply brand style guide: ${styleGuide.brand_name || styleGuide.name} to this ${currentTitle}`,
+          presentationData: currentPresentation,
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            colors: styleGuide.colors,
+            typography: styleGuide.typography,
+            brandName: styleGuide.brand_name || styleGuide.name,
+            logo: styleGuide.logo
+          },
+          generationId: generationId,
+          meta: { 
+            editorType: 'presentation',
+            applyStyleGuide: true,
+            updateExisting: true
+          }
+        });
+        
+        console.log('📽️  Modified presentation response:', response.data);
+        
+        if (response.data?.data?.presentationData && store) {
+          const updatedPresentation = response.data.data.presentationData;
+          console.log('✅ Loading updated presentation data into store');
+          
+          // Clear existing pages (correct method: deletePages)
+          const pageIds = store.pages.map((p: any) => p.id);
+          store.deletePages(pageIds);
+          
+          // Load updated presentation
+          try {
+            store.loadJSON(updatedPresentation);
+            console.log('✅ Presentation updated successfully!');
+            success(`✅ Presentation regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`);
+          } catch (loadError) {
+            console.error('❌ Error loading JSON:', loadError);
+            // Force page reload as fallback
+            setTimeout(() => window.location.reload(), 500);
+          }
+        } else {
+          // Fallback: reload page
+          console.log('🔄 Reloading page to show updated presentation...');
+          setTimeout(() => window.location.reload(), 500);
+        }
+        
+      } else {
+        // No ID - create new presentation
+        console.log('📝 Creating new presentation with style guide');
+        
+        const response = await api.post('/presentation-generator/generate', {
+          prompt: `${currentTitle}. Apply brand style guide: ${styleGuide.brand_name || styleGuide.name}`,
+          pageCount: pageCount,
+          styleGuideId: styleGuide.id,
+          styleGuide: {
+            colors: styleGuide.colors,
+            typography: styleGuide.typography,
+            brandName: styleGuide.brand_name || styleGuide.name,
+            logo: styleGuide.logo
+          },
+          meta: { 
+            editorType: 'presentation',
+            applyStyleGuide: true
+          }
+        });
+        
+        console.log('📽️  API Response:', response.data);
+        
+        if (response.data?.data?.presentationData && store) {
+          const newPresentation = response.data.data.presentationData;
+          console.log('✅ Loading regenerated presentation data into store');
+          
+          // Clear existing pages (correct method: deletePages)
+          const pageIds = store.pages.map((p: any) => p.id);
+          store.deletePages(pageIds);
+          
+          // Load new presentation
+          try {
+            store.loadJSON(newPresentation);
+            console.log('✅ Presentation loaded successfully!');
+            
+            // If we got a jobId, update URL
+            if (response.data?.data?.jobId) {
+              window.history.replaceState({}, '', `/presentation-editor?id=${response.data.data.jobId}`);
+            }
+            
+            success(`✅ Presentation regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`);
+          } catch (loadError) {
+            console.error('❌ Error loading JSON:', loadError);
+            setTimeout(() => window.location.reload(), 500);
+          }
+        } else {
+          console.warn('⚠️ No presentation data in response, reloading page...');
+          setTimeout(() => window.location.reload(), 1000);
+        }
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Failed to regenerate presentation:', error);
+      const errorMsg = error?.response?.data?.message || error?.message || 'Unknown error';
+      success(`⚠️ Regeneration in progress... Check console: ${errorMsg}`);
+    }
+  };
 
   return (
     <div className="w-full h-full bg-[#f3f4f6] flex flex-col relative">
@@ -599,6 +724,7 @@ export default function CollaborativePresentationEditor({
         />
 
         <button
+          onClick={() => setShowStyleGuideModal(true)}
           className="px-3 py-2 flex items-center gap-2 rounded-[10px] bg-[#F3F4F6] text-[#0A0A0A] font-medium transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300
             text-[13px] xs:text-[14px] sm:px-4 sm:py-2"
           style={{
@@ -1005,6 +1131,14 @@ export default function CollaborativePresentationEditor({
       {activeTool === "ai_prompter" && (
         <ToolPanel activeTool={activeTool} store={store} />
       )}
+      
+      {/* Style Guide Modal */}
+      <StyleGuideModal
+        isOpen={showStyleGuideModal}
+        onClose={() => setShowStyleGuideModal(false)}
+        onSelect={handleSelectStyleGuide}
+        editorType="presentation"
+      />
     </div>
   );
 }

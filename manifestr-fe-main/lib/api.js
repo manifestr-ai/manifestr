@@ -55,6 +55,11 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // If no config, just reject (network error, etc.)
+        if (!originalRequest) {
+            return Promise.reject(error);
+        }
+
         // Don't try to refresh token on login/signup requests - just let them fail
         const isAuthRequest = originalRequest.url?.includes('/auth/login') ||
             originalRequest.url?.includes('/auth/signup') ||
