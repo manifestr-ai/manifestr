@@ -63,16 +63,16 @@ export default function ContextSidebar() {
       <div className="px-8 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-h3-semibold text-base-foreground">Context Inputs</h2>
+        <h2 className="text-h4-bold text-base-foreground text-xl"><b>Context Inputs</b></h2>
         </div>
 
         {/* Form Fields */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {/* Objective - Required */}
           <div>
             <Input
               label="Objective"
-              placeholder="Enter objective"
+              placeholder=""
               value={objective}
               onChange={(e) => setObjective(e.target.value)}
               required
@@ -147,7 +147,7 @@ export default function ContextSidebar() {
               </button>
             </div>
             <Select
-              placeholder="Select tone / style"
+              placeholder="Select from dropdown"
               value={toneStyle}
               onChange={(e) => setToneStyle(e.target.value)}
               options={toneStyleOptions}
@@ -170,7 +170,7 @@ export default function ContextSidebar() {
             </div>
             <Input
               type="number"
-              placeholder="Enter number"
+              placeholder=""
               value={desiredPages}
               onChange={(e) => setDesiredPages(e.target.value)}
             />

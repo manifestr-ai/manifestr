@@ -190,6 +190,10 @@ export default function Home() {
   const handleCreateProject = () => {
     router.push('/create-project')
   }
+
+  const handleVaultClick = () => {
+    router.push('/vault')
+  }
   return (
     <>
       <Head>
@@ -376,6 +380,7 @@ export default function Home() {
                 <Button
                   variant="primary"
                   className="w-full h-[51px] mt-6 rounded-xl border-2 border-[#e4e4e7]"
+                  onClick={handleVaultClick}
                 >
                   <span className="text-[18px] font-medium leading-[28px]">Check Out The Vault</span>
                 </Button>
