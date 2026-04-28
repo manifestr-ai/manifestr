@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useMemo, useRef, useState, useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -18,6 +18,12 @@ export default function StyleGuide() {
 
   const [styleGuides, setStyleGuides] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+
+  const [statusFilter, setStatusFilter] = useState('all') // 'all' | 'completed' | 'in_progress'
+  const [sortBy, setSortBy] = useState('recents') // 'recents' | 'oldest'
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false)
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false)
+  const menusRef = useRef(null)
 
   // Modal states
   const [showRenameModal, setShowRenameModal] = useState(false)
@@ -77,6 +83,10 @@ export default function StyleGuide() {
             subtitle: subtitle,
             projectCount: 0, // Not in API yet
             gradient: gradient,
+            // Filtering/sorting fields
+            isCompleted: Boolean(guide.is_completed),
+            createdAt: guide.created_at ? new Date(guide.created_at).getTime() : 0,
+            updatedAt: guide.updated_at ? new Date(guide.updated_at).getTime() : 0,
           }
         })
         setStyleGuides(mappedGuides)
@@ -89,8 +99,28 @@ export default function StyleGuide() {
     fetchStyleGuides()
   }, []) // Remove router dependency to avoid re-running loop if router changes, though router.push is safe.
 
+  useEffect(() => {
+    const onDocumentMouseDown = (e) => {
+      if (!menusRef.current) return
+      if (!menusRef.current.contains(e.target)) {
+        setIsStatusMenuOpen(false)
+        setIsSortMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDocumentMouseDown)
+    return () => document.removeEventListener('mousedown', onDocumentMouseDown)
+  }, [])
+
   const handleCreateNew = () => {
     router.push('/create-style-guide')
+  }
+
+  const handleResetFilters = () => {
+    setSearchQuery('')
+    setStatusFilter('all')
+    setSortBy('recents')
+    setIsStatusMenuOpen(false)
+    setIsSortMenuOpen(false)
   }
 
   // Handle opening a style guide
@@ -190,6 +220,28 @@ export default function StyleGuide() {
     }
   }, [isLoading, styleGuides.length, router])
 
+  const displayedGuides = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+
+    let filtered = styleGuides
+
+    if (q) {
+      filtered = filtered.filter((g) => (g.title || '').toLowerCase().includes(q))
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((g) => (statusFilter === 'completed' ? g.isCompleted : !g.isCompleted))
+    }
+
+    const toSortTime = (g) => (g.updatedAt || g.createdAt || 0)
+    filtered = [...filtered].sort((a, b) => {
+      if (sortBy === 'oldest') return toSortTime(a) - toSortTime(b)
+      return toSortTime(b) - toSortTime(a)
+    })
+
+    return filtered
+  }, [searchQuery, statusFilter, sortBy, styleGuides])
+
   return (
     <>
       <Head>
@@ -258,17 +310,106 @@ export default function StyleGuide() {
               </div>
 
               {/* Filters */}
-              <div className="w-full md:w-auto flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-white border border-[#e4e4e7] rounded-lg hover:bg-[#f4f4f5] transition-colors">
-                  <span className="text-[14px] leading-[20px] text-[#18181b]">All status</span>
-                  <ChevronDown className="w-4 h-4 text-[#71717a]" />
-                </button>
-                <button className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-white border border-[#e4e4e7] rounded-lg hover:bg-[#f4f4f5] transition-colors">
-                  <Clock className="w-4 h-4 text-[#71717a]" />
-                  <span className="text-[14px] leading-[20px] text-[#18181b]">Recents</span>
-                  <ChevronDown className="w-4 h-4 text-[#71717a]" />
-                </button>
-                <button className="flex-shrink-0 px-4 py-2 text-[14px] leading-[20px] text-[#71717a] hover:text-[#18181b] transition-colors">
+              <div
+                ref={menusRef}
+                className="w-full md:w-auto flex items-center gap-3 overflow-x-auto md:overflow-visible overflow-y-visible pb-2 md:pb-0 scrollbar-hide"
+              >
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => {
+                      setIsStatusMenuOpen((v) => !v)
+                      setIsSortMenuOpen(false)
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-[#e4e4e7] rounded-lg hover:bg-[#f4f4f5] transition-colors"
+                    type="button"
+                  >
+                    <span className="text-[14px] leading-[20px] text-[#18181b]">
+                      {statusFilter === 'all' ? 'All status' : statusFilter === 'completed' ? 'Completed' : 'In progress'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-[#71717a]" />
+                  </button>
+                  {isStatusMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-44 rounded-lg border border-[#e4e4e7] bg-white shadow-lg z-50 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter('all')
+                          setIsStatusMenuOpen(false)
+                        }}
+                        className={`w-full text-left px-4 py-2 text-[14px] hover:bg-[#f4f4f5] ${statusFilter === 'all' ? 'text-[#18181b] font-semibold' : 'text-[#52525b]'}`}
+                      >
+                        All status
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter('completed')
+                          setIsStatusMenuOpen(false)
+                        }}
+                        className={`w-full text-left px-4 py-2 text-[14px] hover:bg-[#f4f4f5] ${statusFilter === 'completed' ? 'text-[#18181b] font-semibold' : 'text-[#52525b]'}`}
+                      >
+                        Completed
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter('in_progress')
+                          setIsStatusMenuOpen(false)
+                        }}
+                        className={`w-full text-left px-4 py-2 text-[14px] hover:bg-[#f4f4f5] ${statusFilter === 'in_progress' ? 'text-[#18181b] font-semibold' : 'text-[#52525b]'}`}
+                      >
+                        In progress
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => {
+                      setIsSortMenuOpen((v) => !v)
+                      setIsStatusMenuOpen(false)
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-[#e4e4e7] rounded-lg hover:bg-[#f4f4f5] transition-colors"
+                    type="button"
+                  >
+                    <Clock className="w-4 h-4 text-[#71717a]" />
+                    <span className="text-[14px] leading-[20px] text-[#18181b]">
+                      {sortBy === 'recents' ? 'Recents' : 'Oldest'}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-[#71717a]" />
+                  </button>
+                  {isSortMenuOpen && (
+                    <div className="absolute left-0 mt-2 w-44 rounded-lg border border-[#e4e4e7] bg-white shadow-lg z-50 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSortBy('recents')
+                          setIsSortMenuOpen(false)
+                        }}
+                        className={`w-full text-left px-4 py-2 text-[14px] hover:bg-[#f4f4f5] ${sortBy === 'recents' ? 'text-[#18181b] font-semibold' : 'text-[#52525b]'}`}
+                      >
+                        Recents
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSortBy('oldest')
+                          setIsSortMenuOpen(false)
+                        }}
+                        className={`w-full text-left px-4 py-2 text-[14px] hover:bg-[#f4f4f5] ${sortBy === 'oldest' ? 'text-[#18181b] font-semibold' : 'text-[#52525b]'}`}
+                      >
+                        Oldest
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleResetFilters}
+                  className="flex-shrink-0 px-4 py-2 text-[14px] leading-[20px] text-[#71717a] hover:text-[#18181b] transition-colors"
+                  type="button"
+                >
                   Reset Filters
                 </button>
                 <div className="flex-shrink-0 flex items-center border border-[#e4e4e7] rounded-lg overflow-hidden ml-auto md:ml-0">
@@ -295,7 +436,7 @@ export default function StyleGuide() {
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {styleGuides.map((guide, index) => (
+                {displayedGuides.map((guide, index) => (
                   <StyleGuideCard
                     key={guide.id}
                     category={guide.category}
@@ -314,7 +455,7 @@ export default function StyleGuide() {
               </div>
             ) : (
               <div className="space-y-4">
-                {styleGuides.map((guide, index) => (
+                {displayedGuides.map((guide, index) => (
                   <motion.div
                     key={guide.id}
                     initial={{ opacity: 0, x: -20 }}

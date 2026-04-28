@@ -560,42 +560,47 @@ export default function CreateProject() {
 
           {/* Footer Actions - Hide on Step 6 (loading screen) */}
           {currentStep !== 6 && (
-            <div className={`fixed bottom-0 right-0 z-50 backdrop-blur-sm bg-[#ffffffd5] transition-all duration-300 w-full ${currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
-              ? 'lg:left-[348px]'
-              : 'left-0'
-              }`}>
-              <div className="max-w-[1280px] mx-auto px-6 py-6 flex items-center justify-between">
+            <div
+              className={`fixed bottom-0 right-0 z-50 backdrop-blur-sm bg-[#ffffffd5] transition-all duration-300 w-full left-0 ${currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
+                ? 'lg:left-[348px] lg:w-auto lg:right-0'
+                : ''
+                }`}
+            >
+              <div
+                className={`flex items-center justify-between gap-3 sm:gap-4 ${currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
+                  ? 'w-full py-4 sm:py-6 px-4 sm:px-6 lg:px-8'
+                  : 'max-w-[1280px] mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-6'
+                  }`}
+              >
                 <button
                   onClick={handleBack}
-                  className="flex items-center gap-2 px-1 py-1 text-base-secondary hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-2 px-1 py-1 text-base-secondary hover:opacity-80 transition-opacity shrink-0 min-h-[44px] min-w-[44px] sm:min-w-0 sm:min-h-0"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 shrink-0" />
                   <span className="text-[14px] leading-[20px] font-medium">Back</span>
                 </button>
 
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onClick={handleNext}
-                    disabled={
-                      (currentStep === 1 && !selectedToolId) ||
-                      (currentStep === 2 && !selectedDocument) ||
-                      (currentStep === 3 && !selectedStyle) ||
-                      (currentStep === 4 && !validateStep4()) ||
-                      isGenerating
-                    }
-                    className="h-[40px] w-[188px] flex items-center gap-2"
-                  >
-                    <span>
-                      {isGenerating ? 'Clarifying...' :
-                        currentStep === 1 ? 'Next Flow' :
-                          currentStep === 5 ? 'Approve & Continue' :
-                            'Next'}
-                    </span>
-                    {!isGenerating && <ArrowRight className="w-4 h-4" />}
-                  </Button>
-                </div>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleNext}
+                  disabled={
+                    (currentStep === 1 && !selectedToolId) ||
+                    (currentStep === 2 && !selectedDocument) ||
+                    (currentStep === 3 && !selectedStyle) ||
+                    (currentStep === 4 && !validateStep4()) ||
+                    isGenerating
+                  }
+                  className="h-10 sm:h-[40px] w-[min(100%,11.75rem)] sm:w-[188px] flex items-center justify-center gap-2 shrink-0 px-3 sm:px-4"
+                >
+                  <span className="truncate">
+                    {isGenerating ? 'Clarifying...' :
+                      currentStep === 1 ? 'Next Flow' :
+                        currentStep === 5 ? 'Approve & Continue' :
+                          'Next'}
+                  </span>
+                  {!isGenerating && <ArrowRight className="w-4 h-4 shrink-0" />}
+                </Button>
               </div>
             </div>
           )}

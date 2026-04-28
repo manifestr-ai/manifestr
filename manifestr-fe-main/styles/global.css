@@ -486,6 +486,27 @@
   }
 }
 
+.settings-accessibility-font-range::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+  margin-top: -7px;
+  background: #ffffff;
+  border: 2px solid #18181b;
+  border-radius: 50%;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.settings-accessibility-font-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  background: #ffffff;
+  border: 2px solid #18181b;
+  border-radius: 50%;
+  box-shadow: none;
+  cursor: pointer;
+}
+
 /* Tiptap Page Break */
 .page-break {
   height: 48px;
