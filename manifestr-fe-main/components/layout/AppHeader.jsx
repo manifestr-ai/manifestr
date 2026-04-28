@@ -43,7 +43,7 @@ export default function AppHeader({ showRightActions = true }) {
     if (path === '/home') {
       return currentPath === '/home' || currentPath === '/'
     }
-    return currentPath === path
+    return currentPath.includes(path)
   }
 
   const NavItem = ({ href, label, isActive, onClick }) => {
