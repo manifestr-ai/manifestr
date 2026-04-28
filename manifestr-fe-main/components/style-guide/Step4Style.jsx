@@ -257,8 +257,8 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                   )
                 })}
               </div>
-              <p className="text-[12px] leading-[16px] text-[#71717a] mt-2">
-                These words create a baseline voice.
+              <p className="text-[18px] leading-[16px] text-[#71717a] mt-6">
+                Tip : These words create a baseline voice.
               </p>
             </Card>
 
@@ -317,9 +317,9 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                 <Button
                   variant="secondary"
                   size="md"
-                  className="bg-white border-[#e4e4e7] text-[#18181b] hover:bg-[#f4f4f5]"
+                  className="!bg-[#18181b] !border-[#18181b] !text-white hover:!bg-[#18181b]/90"
                 >
-                  <Volume2 className="w-4 h-4 mr-2 text-[#18181b]" />
+                  <Volume2 className="w-4 h-4 mr-2 text-white" />
                   Generate voice sample
                 </Button>
                 <span className="text-[14px] leading-[20px] text-[#71717a]">

@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
 import { Plus, Upload, Trash2 } from 'lucide-react'
 
-export default function VaultHeader({ title = 'THE vault', description = 'Your secure workspace for every project, deck & document.', isBlack = false, backgroundImage = null, customActionButton = null, showActionButtons = true, onNewCollabClick = null, onUploadClick = null }) {
+export default function VaultHeader({ title = 'THE vault', description = 
+  <>Your secure workspace for every <br></br>project, deck & document.
+  </>
+  , isBlack = false, backgroundImage = null, customActionButton = null, showActionButtons = true, onNewCollabClick = null, onUploadClick = null }) {
   const headerHeight = isBlack ? 'min-h-[199px]' : 'min-h-[199px]'
   const paddingY = isBlack ? 'py-[30px] md:py-[45px]' : 'py-[30px] md:py-[45px]'
 

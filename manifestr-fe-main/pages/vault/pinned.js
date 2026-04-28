@@ -179,7 +179,7 @@ export default function VaultPinned() {
         {/* Header Section */}
         <VaultHeader
           title="THE vault pinned"
-          description="Your secure workspace for every project, deck & document."
+          description={null}
           backgroundImage={headerBackgroundImage}
           showActionButtons={false}
         />

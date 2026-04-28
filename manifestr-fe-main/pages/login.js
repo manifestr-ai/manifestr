@@ -1,110 +1,107 @@
-import Head from "next/head";
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
-import Logo from "../components/logo/Logo";
-import Input from "../components/forms/Input";
-import Checkbox from "../components/forms/Checkbox";
-import Button from "../components/ui/Button";
-import GoogleIcon from "../components/icons/GoogleIcon";
-import { Toaster, Intent } from "@blueprintjs/core";
-import { useToast } from "../components/ui/Toast";
+import Head from 'next/head'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useState } from 'react'
+import Logo from '../components/logo/Logo'
+import Input from '../components/forms/Input'
+import Checkbox from '../components/forms/Checkbox'
+import Button from '../components/ui/Button'
+import GoogleIcon from '../components/icons/GoogleIcon'
+import { Toaster, Intent } from '@blueprintjs/core'
+import { useToast } from '../components/ui/Toast'
 
-import { useAuth } from "../contexts/AuthContext";
-import { useRouter } from "next/router";
+import { useAuth } from '../contexts/AuthContext'
+import { useRouter } from 'next/router'
 
 // Create toaster instance
-const AppToaster =
-  typeof window !== "undefined"
-    ? Toaster.create({
-        position: "top",
-        maxToasts: 3,
-      })
-    : null;
+const AppToaster = typeof window !== 'undefined' ? Toaster.create({
+  position: 'top',
+  maxToasts: 3,
+}) : null
 
 export default function Login() {
-  const router = useRouter();
-  const { error: showError } = useToast();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [serverError, setServerError] = useState("");
-  const [emailNotVerified, setEmailNotVerified] = useState(false);
-  const [touched, setTouched] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
-  const { loginWithGoogle } = useAuth();
+  const router = useRouter()
+  const { error: showError } = useToast()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [serverError, setServerError] = useState('')
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
+  const [touched, setTouched] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login } = useAuth()
 
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setTouched(true);
-    setServerError("");
+    e.preventDefault()
+    setTouched(true)
+    setServerError('')
 
-    const newErrors = {};
+    const newErrors = {}
 
     if (!email || !validateEmail(email)) {
-      newErrors.email = "Please enter a valid email address.";
+      newErrors.email = 'Please enter a valid email address.'
     }
 
     if (!password) {
-      newErrors.password = "Password is required.";
+      newErrors.password = 'Password is required.'
     }
 
-    setErrors(newErrors);
+    setErrors(newErrors)
 
     if (Object.keys(newErrors).length === 0) {
-      setIsSubmitting(true);
+      setIsSubmitting(true)
 
       try {
-        await login(email, password, rememberMe);
+        await login(email, password)
 
         // Success - AuthContext handles redirect to /home
         if (AppToaster) {
           AppToaster.show({
-            message: "Welcome back! Redirecting...",
+            message: 'Welcome back! Redirecting...',
             intent: Intent.SUCCESS,
-            icon: "tick-circle",
+            icon: 'tick-circle',
             timeout: 2000,
-          });
+          })
         }
       } catch (err) {
+
         console.log(err);
         // Always reset submitting state on error
-        setIsSubmitting(false);
+        setIsSubmitting(false)
 
-        let errorMessage = "Something went wrong. Please try again.";
-        let isEmailNotVerified = false;
+        let errorMessage = 'Something went wrong. Please try again.'
+        let isEmailNotVerified = false
 
         // Handle specific error cases
         if (err.response?.status === 401) {
-          const message = err.response?.data?.message || "";
+          const message = err.response?.data?.message || ''
 
           // Check if it's an email verification error
-          if (message.toLowerCase().includes("verify your email")) {
-            errorMessage = message;
-            isEmailNotVerified = true;
-            setEmailNotVerified(true);
+          if (message.toLowerCase().includes('verify your email')) {
+            errorMessage = message
+            isEmailNotVerified = true
+            setEmailNotVerified(true)
           } else {
             // Invalid credentials
-            errorMessage =
-              "Incorrect password or email! Please login with correct credentials.";
-            setEmailNotVerified(false);
+            errorMessage = 'Incorrect password or email! Please login with correct credentials.'
+            setEmailNotVerified(false)
           }
         } else if (err.response?.data?.message) {
           // Server provided a specific message
-          errorMessage = err.response.data.message;
-          setEmailNotVerified(false);
+          errorMessage = err.response.data.message
+          setEmailNotVerified(false)
         } else if (err.message) {
           // Generic error message
-          errorMessage = err.message;
-          setEmailNotVerified(false);
+          errorMessage = err.message
+          setEmailNotVerified(false)
         }
+
 
         // Show beautiful toast notification
         if (AppToaster) {
@@ -112,23 +109,23 @@ export default function Login() {
             AppToaster.show({
               message: errorMessage,
               intent: Intent.DANGER,
-              icon: "error",
+              icon: 'error',
               timeout: 5000,
-            });
+            })
           } catch (toastError) {
             // Fallback: use our toast system
-            showError(errorMessage);
+            showError(errorMessage)
           }
         } else {
           // Fallback: use our toast system
-          showError(errorMessage);
+          showError(errorMessage)
         }
 
         // Also set server error for the inline display
-        setServerError(errorMessage);
+        setServerError(errorMessage)
       }
     }
-  };
+  }
 
   return (
     <>
@@ -151,18 +148,14 @@ export default function Login() {
             <p className="text-l2-regular text-[#71717b]">
               © MANIFESTR LLC 2050
             </p>
-            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">
-              |
-            </span>
+            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">|</span>
             <Link
               href="/privacy"
               className="text-l2-regular !text-[#71717B] hover:opacity-80"
             >
               Privacy Policy
             </Link>
-            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">
-              |
-            </span>
+            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">|</span>
             <Link
               href="/terms"
               className="text-l2-regular !text-[#71717B] hover:opacity-80"
@@ -191,11 +184,7 @@ export default function Login() {
                   {emailNotVerified && (
                     <button
                       type="button"
-                      onClick={() =>
-                        router.push(
-                          `/verify-email?email=${encodeURIComponent(email)}`,
-                        )
-                      }
+                      onClick={() => router.push(`/verify-email?email=${encodeURIComponent(email)}`)}
                       className="mt-2 text-sm text-red-700 font-medium underline hover:opacity-80"
                     >
                       Resend verification email →
@@ -203,11 +192,7 @@ export default function Login() {
                   )}
                 </div>
               )}
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col gap-6 items-start w-full rounded-xl"
-                name="login-form"
-              >
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6 items-start w-full rounded-xl" name="login-form">
                 <div className="flex flex-col gap-5 items-start w-full">
                   {/* Email Input */}
                   <Input
@@ -217,19 +202,15 @@ export default function Login() {
                     id="email"
                     autoComplete="email"
                     placeholder="your@email.com"
-                    helperText={
-                      !touched || !errors.email
-                        ? "Your email stays private."
-                        : undefined
-                    }
+                    helperText={!touched || !errors.email ? "Your email stays private." : undefined}
                     error={touched && errors.email ? errors.email : undefined}
                     value={email}
                     onChange={(e) => {
-                      setEmail(e.target.value);
+                      setEmail(e.target.value)
                       if (touched && errors.email) {
-                        const newErrors = { ...errors };
-                        delete newErrors.email;
-                        setErrors(newErrors);
+                        const newErrors = { ...errors }
+                        delete newErrors.email
+                        setErrors(newErrors)
                       }
                     }}
                     required
@@ -243,21 +224,15 @@ export default function Login() {
                     id="password"
                     autoComplete="current-password"
                     placeholder="••••••••"
-                    helperText={
-                      !touched || !errors.password
-                        ? "Your data is encrypted and secure."
-                        : undefined
-                    }
-                    error={
-                      touched && errors.password ? errors.password : undefined
-                    }
+                    helperText={!touched || !errors.password ? "Your data is encrypted and secure." : undefined}
+                    error={touched && errors.password ? errors.password : undefined}
                     value={password}
                     onChange={(e) => {
-                      setPassword(e.target.value);
+                      setPassword(e.target.value)
                       if (touched && errors.password) {
-                        const newErrors = { ...errors };
-                        delete newErrors.password;
-                        setErrors(newErrors);
+                        const newErrors = { ...errors }
+                        delete newErrors.password
+                        setErrors(newErrors)
                       }
                     }}
                     showPasswordToggle
@@ -273,34 +248,21 @@ export default function Login() {
                     onChange={(e) => setRememberMe(e.target.checked)}
                   />
                 </div>
+                <div className="w-full flex justify-center">
+                  <Link
+                    href="/forgot-password"
+                    className="text-l2-medium text-base-secondary hover:opacity-80"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-4 items-start w-full">
-                  <div className="w-full flex justify-center">
-                    <Link
-                      href="/forgot-password"
-                      className="text-l2-medium text-base-secondary hover:opacity-80 px-1"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    className="w-full"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Signing in..." : "Sign in"}
+                  <Button type="submit" variant="primary" size="md" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Signing in...' : 'Sign in'}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="md"
-                    className="w-full border-[#e4e4e7]"
-                    onClick={loginWithGoogle}
-                  >
+                  <Button type="button" variant="secondary" size="md" className="w-full border-[#e4e4e7]">
                     <GoogleIcon className="mr-2" />
                     Sign in with Google
                   </Button>
@@ -341,5 +303,5 @@ export default function Login() {
         </div>
       </div>
     </>
-  );
+  )
 }

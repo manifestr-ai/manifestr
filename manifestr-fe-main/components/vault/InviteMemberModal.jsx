@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, UserPlus, Loader2, Mail, ChevronDown, Trash2 } from 'lucide-react'
+import { X, UserPlus, Loader2, Mail, ChevronDown, Trash2 , Pencil } from 'lucide-react'
 import api from '../../lib/api'
 
 export default function InviteMemberModal({ isOpen, onClose, collabProjectId, collabName, onMemberAdded }) {
@@ -158,7 +158,6 @@ export default function InviteMemberModal({ isOpen, onClose, collabProjectId, co
                   />
                 </div>
               </div>
-
               <div className="space-y-2">
                 <label className="text-[14px] font-medium text-[#52525b]">
                   Role
@@ -170,8 +169,11 @@ export default function InviteMemberModal({ isOpen, onClose, collabProjectId, co
                     whileTap={{ scale: 0.99 }}
                     className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] flex items-center justify-between hover:border-[#18181b] transition-colors"
                   >
-                    <span className="text-[14px] text-[#18181b] capitalize">
-                      {roles.find(r => r.value === role)?.label || role}
+                    <span className="inline-flex items-center gap-2 min-w-0">
+                      <Pencil className="w-4 h-4 text-[#71717a] shrink-0" />
+                      <span className="text-[14px] text-[#18181b] capitalize truncate">
+                        {roles.find(r => r.value === role)?.label || role}
+                      </span>
                     </span>
                     <ChevronDown className={`w-4 h-4 text-[#71717a] transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
                   </motion.button>

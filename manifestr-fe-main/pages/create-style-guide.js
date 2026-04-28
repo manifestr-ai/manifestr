@@ -559,7 +559,7 @@ export default function CreateStyleGuide() {
                         <h2 className="text-[16px] font-medium leading-[24px] tracking-[-0.3125px] text-[#0a0a0a] text-center">
                           Let's build your brand foundation
                         </h2>
-                        <p className="mt-4 text-[16px] leading-[24px] tracking-[-0.3125px] text-[#4A5565] text-center max-w-[475px]">
+                        <p className="mt-4 text-[16px] leading-[24px] tracking-[-0.3125px] text-[#71717b] text-center max-w-[475px]">
                           Upload your logo or brand kit — MANIFESTR AI will extract colors, fonts, and visuals to create your style guide in seconds.
                         </p>
 
