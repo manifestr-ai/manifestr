@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
@@ -79,7 +80,30 @@ function ArrowUpRight({ className = 'w-[20px] h-[20px]' }) {
 }
 
 export default function KnowledgeBase() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    if (!router.isReady) return
+    const q = router.query.q
+    if (Array.isArray(q)) setSearchQuery(q[0] ?? '')
+    else if (typeof q === 'string') setSearchQuery(q)
+  }, [router.isReady, router.query.q])
+
+  const filteredCategories = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return CATEGORIES
+    return CATEGORIES.filter(
+      (c) => c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
+    )
+  }, [searchQuery])
+
+  function applySearch(e) {
+    e?.preventDefault()
+    const q = searchQuery.trim()
+    const path = q ? `/playbook/knowledge-base?q=${encodeURIComponent(q)}` : '/playbook/knowledge-base'
+    router.push(path)
+  }
 
   return (
     <>
@@ -106,43 +130,65 @@ export default function KnowledgeBase() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[518px] flex items-center justify-center overflow-hidden">
+      <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
         <div className="absolute inset-0">
-          <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover object-top" />
-          <div className="absolute inset-0 bg-[rgba(13,13,13,0.18)]" />
+          <CldImage src={HERO_BG} alt="" className="h-full w-full object-cover object-top" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[50px] w-full max-w-[738px] px-6"
+          className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 px-0 md:max-w-[738px] md:gap-8"
         >
-          <div className="flex flex-col items-center gap-[20px]">
-            <h1 className="text-[42px] md:text-[72px] leading-[1.1] md:leading-[90px] tracking-[-1.44px] text-white text-center">
+          <div className="flex flex-col items-center gap-5 md:gap-6">
+            <h1 className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Knowledge Base </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Articles</span>
             </h1>
             <p
-              className="text-[18px] leading-[28px] text-white text-center"
+              className="text-center text-[16px] leading-[24px] text-white md:text-[18px] md:leading-[28px]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               In-depth guides and resources to help you master MANIFESTR.
             </p>
           </div>
 
-          <div className="bg-white border border-[#d5d7da] rounded-[7px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-full max-w-[449px]">
-            <svg className="w-[20px] h-[20px] text-[#71717a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search article"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] outline-none bg-transparent"
+          <div className="flex w-full max-w-[449px] flex-col items-center gap-[20px] md:gap-[24px]">
+            <form
+              onSubmit={applySearch}
+              className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:gap-2 md:px-3.5 md:py-2.5"
+            >
+              <svg className="h-5 w-5 shrink-0 text-[#71717a] md:h-5 md:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="search"
+                name="q"
+                autoComplete="off"
+                placeholder="Search articles & topics"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded bg-[#18181b] px-2.5 py-1.5 text-[13px] font-medium text-white hover:bg-[#27272a] md:px-3"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Search
+              </button>
+            </form>
+
+            <Link
+              href="/signup"
+              className="inline-flex h-[44px] w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-[24px] text-[14px] leading-[20px] font-medium text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] sm:w-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
-            />
+            >
+              Enter MANIFESTR
+            </Link>
           </div>
         </motion.div>
       </section>
@@ -151,21 +197,29 @@ export default function KnowledgeBase() {
       <PlaybookTabs />
 
       {/* ─── Browse by Category ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[96px]">
-        <div className="flex flex-col gap-[32px]">
+      <section className="w-full bg-white px-6 md:px-[80px] pt-[32px] pb-[40px] md:py-[96px]">
+        <div className="flex flex-col gap-[24px] md:gap-[32px]">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-[36px] md:text-[48px] leading-tight md:leading-[60px] tracking-[-0.96px] text-black"
+            className="text-center text-[36px] md:text-[48px] leading-tight md:leading-[60px] tracking-[-0.96px] text-black"
           >
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>Browse by </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Category</span>
           </motion.h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px]">
-            {CATEGORIES.map((cat, i) => {
+            {filteredCategories.length === 0 && (
+              <p
+                className="col-span-full text-center text-[16px] leading-[24px] text-[#52525b] py-8"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                No categories match your search. Try different keywords or browse all topics below.
+              </p>
+            )}
+            {filteredCategories.map((cat, i) => {
               const href = CATEGORY_ROUTES[cat.title] || '#'
               return (
                 <Link key={cat.title} href={href}>
@@ -174,9 +228,9 @@ export default function KnowledgeBase() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: i * 0.05 }}
-                    className="bg-white border border-[#e5e7eb] rounded-[16px] p-[24px] flex flex-col gap-[40px] items-start shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] hover:shadow-md transition-shadow cursor-pointer h-full"
+                    className="bg-[#f4f4f4] border border-[#e2e8f0] rounded-[16px] p-[24px] flex flex-col gap-[40px] items-start shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] hover:shadow-md transition-shadow cursor-pointer h-full"
                   >
-                    <div className="bg-[#eee] flex items-center justify-center rounded-[12px] w-[48px] h-[48px]">
+                    <div className="bg-white flex items-center justify-center rounded-[12px] w-[48px] h-[48px] border border-[#e5e7eb]">
                       <CldImage src={cat.icon} alt="" className="w-[24px] h-[24px]" />
                     </div>
 
@@ -229,14 +283,16 @@ export default function KnowledgeBase() {
                 <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Help?</span>
               </h2>
               <p
-                className="text-[16px] leading-[24px] text-[#52525b] max-w-[603px]"
+                className="max-w-[603px] text-[16px] leading-[24px] text-[#52525b]"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                {"Can't find what you're looking for? Our support team is here to help you succeed with MANIFESTR."}
+                {"Can't find what you're looking for?"}
+                <br className="md:hidden" />{' '}
+                Our support team is here to help you succeed with MANIFESTR.
               </p>
             </div>
             <Link
-              href="/contact"
+              href="/playbook/submit-ticket"
               className="h-[44px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >

@@ -28,6 +28,50 @@ const FAQ_DATA = {
   ],
 }
 
+function ArrowUpRight({ className }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M7 17L17 7M17 7H10M17 7V14"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ArrowDownRight({ className }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M7 7L17 17M17 17H10M17 17V10"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function PricingFAQ() {
   const [activeTab, setActiveTab] = useState('Wins')
   const [openIndex, setOpenIndex] = useState(0)
@@ -35,33 +79,43 @@ export default function PricingFAQ() {
   const faqs = FAQ_DATA[activeTab] || []
 
   return (
-    <section className="w-full bg-white py-[48px] md:py-[64px] px-6">
-      <div className="max-w-[835px] mx-auto flex flex-col items-center gap-[32px] md:gap-[64px]">
-        {/* Heading */}
-        <div className="flex flex-col items-center md:items-start gap-[14px] max-w-[707px]">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-[36px] md:text-[60px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px] text-black text-center md:text-left"
-          >
+    <section className="w-full bg-white py-[48px] md:py-[100px]">
+      <div className="max-w-[835px] mx-auto px-6 flex flex-col gap-[32px] md:gap-[40px]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <h2 className="text-[36px] md:text-[54px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.08px] text-black text-center">
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Frequently Asked </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Questions</span>
-          </motion.h2>
-          <p className="text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525b] text-center md:text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
-            {"Everything you need to know about MANIFESTR plans and features. Can't find what you're looking for? Contact our support team."}
+          </h2>
+          <p
+            className="text-center text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#52525b] mt-[12px] md:mt-[16px] max-w-[338px] md:max-w-[603px] mx-auto"
+            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          >
+            Everything you need to know about MANIFESTR plans and features.
+            {' '}Can&apos;t find what you&apos;re looking for?
+            {' '}Contact our support team.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Tabs */}
-        <div className="w-full md:w-auto overflow-x-auto scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
-          <div className="bg-white border border-black rounded-[12px] shadow-[0px_4px_4px_0px_#e4e4e7] flex items-center gap-[4px] p-[8px] w-max md:w-auto mx-auto">
+        <div className="w-full min-w-0">
+          <div
+            className="bg-white border border-black rounded-[12px] shadow-[0px_4px_4px_0px_#e4e4e7] grid w-full grid-cols-5 items-stretch gap-[2px] p-[4px]"
+            role="tablist"
+            aria-label="FAQ categories"
+          >
             {TABS.map((tab) => (
               <button
                 key={tab}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab}
                 onClick={() => { setActiveTab(tab); setOpenIndex(0) }}
-                className={`h-[36px] md:h-[44px] px-[16px] md:px-[32px] rounded-[6px] text-[13px] md:text-[16px] leading-[24px] font-medium transition-colors whitespace-nowrap ${
+                className={`min-h-[34px] md:min-h-[42px] py-[4px] px-[4px] md:px-[10px] rounded-[6px] font-medium transition-colors text-center whitespace-nowrap leading-none md:leading-[24px] text-[clamp(10px,2.25vw,16px)] md:text-[16px] ${
                   activeTab === tab
                     ? 'bg-black text-white'
                     : 'text-[#717680] hover:text-[#18181b]'
@@ -74,62 +128,84 @@ export default function PricingFAQ() {
           </div>
         </div>
 
-        {/* Accordion */}
-        <div className="w-full flex flex-col gap-[12px] md:gap-[16px]">
-          {faqs.map((faq, i) => {
+        {/* Accordion — Figma: open = gray card + ↗ in white pill; closed = white card + ↘, no pill */}
+        <div className="flex flex-col gap-4 md:gap-4">
+          {faqs.map((item, i) => {
             const isOpen = openIndex === i
             return (
-              <div
+              <motion.div
                 key={`${activeTab}-${i}`}
-                className="border border-[#c6c8d0] rounded-[14px] md:rounded-[12px] p-[16px] md:p-[20px] shadow-[0px_1px_2.8px_0px_#888891] overflow-hidden"
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.4 }}
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenIndex(isOpen ? -1 : i)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setOpenIndex(isOpen ? -1 : i)
+                  }
+                }}
+                className="cursor-pointer rounded-[16px] border border-[#e2e8f0] bg-[#f4f4f4] px-5 py-5 md:px-8 md:py-6 outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2"
               >
-                <button
-                  onClick={() => setOpenIndex(isOpen ? -1 : i)}
-                  className="w-full flex items-center justify-between gap-[16px] md:gap-[24px]"
-                >
-                  <span className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] font-medium text-black text-left" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    {faq.q}
-                  </span>
-                  <svg
-                    className={`w-[24px] h-[24px] shrink-0 text-[#18181b] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex w-full flex-col items-center gap-4 text-center">
+                  <p
+                    className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#1e293b]"
+                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                    >
-                      <p className="text-[14px] md:text-[16px] leading-[21px] md:leading-[24px] text-[#52525b] mt-[12px] md:mt-[16px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {faq.a}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                    {item.q}
+                  </p>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                        className="w-full overflow-hidden"
+                      >
+                        <p
+                          className="text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-[#475569]"
+                          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                        >
+                          {item.a}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div className="flex shrink-0 justify-center" aria-hidden>
+                    {isOpen ? (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white p-1 shadow-sm ring-1 ring-[#e2e8f0]">
+                        <ArrowUpRight className="text-[#18181b]" />
+                      </div>
+                    ) : (
+                      <div className="flex size-8 items-center justify-center text-[#475569]">
+                        <ArrowDownRight className="text-current" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
             )
           })}
         </div>
 
-        {/* CTA */}
-        <div className="flex flex-col md:flex-row items-center gap-[12px] md:gap-[16px]">
-          <span className="text-[14px] leading-[20px] font-medium text-black" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-center sm:text-left">
+          <span
+            className="text-[14px] sm:text-[16px] leading-[20px] sm:leading-[24px] font-medium text-black"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
             Need more detail?
           </span>
           <Link
             href="/playbook"
-            className="h-[36px] md:h-[44px] px-[24px] md:px-[40px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center gap-[8px] justify-center hover:bg-[#27272a] transition-colors"
+            className="h-[44px] min-h-[44px] sm:h-[54px] sm:min-h-[54px] w-full max-w-[360px] sm:w-auto sm:max-w-none px-8 md:px-10 rounded-[6px] bg-[#18181b] text-white text-[14px] md:text-[18px] md:leading-[20px] font-medium inline-flex items-center justify-center gap-2 hover:bg-[#27272a] transition-colors box-border"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Explore the Manifestr Playbook
-            <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
             </svg>
           </Link>

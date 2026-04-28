@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, X } from 'lucide-react'
 import Link from 'next/link'
 
 const ROLES = [
@@ -71,7 +72,22 @@ const ROLES = [
 
 export default function OpenRoles() {
   const [selected, setSelected] = useState(0)
+  const [jobsModalOpen, setJobsModalOpen] = useState(false)
   const role = ROLES[selected]
+
+  useEffect(() => {
+    if (!jobsModalOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e) => {
+      if (e.key === 'Escape') setJobsModalOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [jobsModalOpen])
 
   return (
     <section
@@ -111,7 +127,7 @@ export default function OpenRoles() {
                      lg:text-[16px] lg:leading-[24px] lg:mb-[60px] lg:max-w-[459px]"
           style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
         >
-          Empowering ambitious minds with AI Toolkit to thrive without sacrificing their spark or well-being.
+          If you move fast, think clearly and deliver work that matters, you&rsquo;ll fit right in.
         </p>
 
         {/* Mobile — horizontally scrolling role cards */}
@@ -271,16 +287,17 @@ export default function OpenRoles() {
                          md:max-lg:mt-auto md:max-lg:gap-3
                          lg:justify-end lg:gap-6"
             >
-              <Link
-                href="#"
-                className="inline-flex flex-1 min-w-0 items-center justify-center rounded-md bg-white border border-[#e4e4e7]
+              <button
+                type="button"
+                onClick={() => setJobsModalOpen(true)}
+                className="inline-flex flex-1 min-w-0 cursor-pointer items-center justify-center rounded-md bg-white border border-[#e4e4e7]
                            text-[#18181b] font-medium hover:bg-[#fafafa] transition-colors
                            md:max-lg:h-10 md:max-lg:px-4 md:max-lg:text-[12px] md:max-lg:leading-tight
                            lg:h-11 lg:flex-initial lg:px-6 lg:text-sm lg:leading-normal"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 More Opportunities
-              </Link>
+              </button>
               <Link
                 href="#"
                 className="inline-flex flex-1 min-w-0 items-center justify-center gap-1 rounded-md bg-[#18181b] text-white
@@ -296,6 +313,79 @@ export default function OpenRoles() {
           </motion.div>
         </div>
       </div>
+
+      {typeof document !== 'undefined' && jobsModalOpen
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="open-roles-modal-title"
+            >
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/50"
+                aria-label="Close dialog"
+                onClick={() => setJobsModalOpen(false)}
+              />
+              <div
+                className="relative z-10 flex w-full max-w-lg max-h-[min(85vh,720px)] flex-col overflow-hidden rounded-xl bg-white shadow-xl"
+              >
+                <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#e4e4e7] px-5 py-4 sm:px-6">
+                  <h3
+                    id="open-roles-modal-title"
+                    className="text-lg font-semibold text-black sm:text-xl"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    All open roles
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setJobsModalOpen(false)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[#52525b] hover:bg-[#f4f4f5] hover:text-black transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <ul className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+                  {ROLES.map((r, i) => (
+                    <li key={r.title} className="border-b border-[#e4e4e7] last:border-b-0 last:pb-0 pb-4 mb-4 last:mb-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelected(i)
+                          setJobsModalOpen(false)
+                        }}
+                        className="w-full text-left rounded-lg -mx-1 px-1 py-2 hover:bg-[#fafafa] transition-colors"
+                      >
+                        <p
+                          className="text-base font-medium text-black sm:text-lg"
+                          style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
+                        >
+                          {r.title}
+                        </p>
+                        <p
+                          className="mt-1 text-sm text-[#52525b]"
+                          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                        >
+                          {r.location}
+                        </p>
+                        <p
+                          className="mt-2 text-sm leading-relaxed text-[#52525b] sm:text-[15px] sm:leading-6"
+                          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                        >
+                          {r.desc}
+                        </p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </section>
   )
 }

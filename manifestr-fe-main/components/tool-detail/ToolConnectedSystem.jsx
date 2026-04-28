@@ -20,7 +20,7 @@ export default function ToolConnectedSystem() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-[32px] leading-[39px] tracking-[-0.64px] text-center mb-[8px]"
+              className="text-[32px] leading-[39px] mt-12 tracking-[-0.64px] text-center mb-[8px]"
             >
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>Your </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Connected</span>

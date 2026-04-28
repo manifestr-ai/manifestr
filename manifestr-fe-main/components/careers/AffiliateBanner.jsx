@@ -7,21 +7,22 @@ const MARBLE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v177502831
 export default function AffiliateBanner() {
   return (
     <section className="w-full bg-white">
+      <div className="mx-auto w-full max-w-[1440px] px-0 py-0 md:px-[80px] md:py-10">
       {/* Mobile banner */}
-      <div className="md:hidden flex justify-center py-[8px]">
+      <div className="md:hidden">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative w-[333px] h-[120px] overflow-hidden rounded-[8px]"
+          className="relative w-full h-[140px] overflow-hidden"
         >
           <CldImage
             src={MARBLE_IMG}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 flex flex-col justify-center gap-[8px] px-[14px] py-[16px]">
+          <div className="absolute inset-0 flex flex-col justify-center gap-[10px] px-6 py-[18px]">
             <h2
               className="text-[19px] leading-[25px] tracking-[-0.38px] text-white max-w-[214px]"
             >
@@ -47,7 +48,7 @@ export default function AffiliateBanner() {
       </div>
 
       {/* Desktop banner */}
-      <div className="hidden md:block px-[80px] py-[80px]">
+      <div className="hidden md:block">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -84,6 +85,7 @@ export default function AffiliateBanner() {
             </button>
           </div>
         </motion.div>
+      </div>
       </div>
     </section>
   )

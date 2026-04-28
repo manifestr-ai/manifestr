@@ -23,10 +23,10 @@ const MOBILE_THUMBNAILS = [
 
 export default function WhatsNewToday() {
   return (
-    <section className="w-full bg-[#f9fafb] py-[48px] md:py-[96px] overflow-hidden">
+    <section className="w-full bg-[#f9fafb] pt-[12px] pb-[16px] md:pt-[16px] md:pb-[16px] overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
         {/* Header */}
-        <div className="flex flex-col items-center md:flex-row md:items-end justify-between gap-[12px] md:gap-[16px] mb-[16px] md:mb-[36px]">
+        <div className="flex flex-col items-center md:flex-row md:items-end justify-between gap-[12px] md:gap-[16px] mb-[16px] md:mb-[28px]">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -43,7 +43,7 @@ export default function WhatsNewToday() {
           </p>
         </div>
 
-        {/* Mobile — 2x2 thumbnail grid */}
+        {/* Mobile — 2×2 thumbnail grid */}
         <div className="md:hidden flex flex-col gap-[16px]">
           {[0, 2].map((startIdx) => (
             <div key={startIdx} className="flex gap-[16px]">
@@ -53,16 +53,10 @@ export default function WhatsNewToday() {
                     <CldImage src={post.img} alt="" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex flex-col gap-[8px] mt-[12px]">
-                    <p
-                      className="text-[16px] leading-[24px] text-[#18181b] font-semibold"
-                      style={{ fontFamily: 'Inter, sans-serif' }}
-                    >
+                    <p className="text-[16px] leading-[24px] text-[#18181b] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
                       {post.title}
                     </p>
-                    <p
-                      className="text-[14px] leading-[20px] text-[#18181b]"
-                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
-                    >
+                    <p className="text-[14px] leading-[20px] text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}>
                       {post.date}
                     </p>
                   </div>
@@ -70,44 +64,48 @@ export default function WhatsNewToday() {
               ))}
             </div>
           ))}
-          <div className="flex justify-center mt-[16px]">
-            <button
-              className="flex items-center gap-[8px] h-[44px] px-[16px] rounded-[12px] border border-[#e4e4e7] bg-white text-[14px] leading-[20px] font-medium text-[#18181b]"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              View All Recent
-              <svg className="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
-              </svg>
-            </button>
-          </div>
         </div>
 
-        {/* Desktop — large card + 3 smaller cards */}
+        {/* Desktop — full-width landscape hero + 3 equal cards below */}
         <div className="hidden md:block">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="relative rounded-[12px] overflow-hidden h-[446px] mb-[24px] cursor-pointer group"
+            className="relative rounded-[12px] overflow-hidden w-full h-[446px] mb-[24px] cursor-pointer group"
           >
-            <CldImage src={MAIN_IMG} alt="" className="w-full h-full object-cover" />
+            {/* Landscape: full-width, object-cover keeps aspect */}
+            <CldImage src={MAIN_IMG} alt="" className="w-full h-full object-cover object-center" />
             <div className="absolute inset-0 bg-linear-to-t from-black/66 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 px-[56px] py-[32px] flex flex-col gap-[8px]">
-              <span className="bg-white text-[#212122] text-[12px] leading-[18px] font-medium px-[12px] py-[6px] rounded-[16px] self-start" style={{ fontFamily: "Inter, sans-serif" }}>
+            {/* Text: left-aligned, full width — same padding as small cards */}
+            <div className="absolute bottom-0 left-0 right-0 p-[32px] flex flex-col gap-[8px]">
+              <span
+                className="bg-white text-[#212122] text-[12px] leading-[18px] font-medium px-[12px] py-[6px] rounded-[16px] self-start"
+                style={{ fontFamily: "Inter, sans-serif" }}
+              >
                 New
               </span>
-              <div className="flex items-center justify-between">
-                <p className="text-white text-[16px] leading-[24px] font-medium flex-1 max-w-[1000px]" style={{ fontFamily: "Inter, sans-serif" }}>
+              <div className="flex items-start justify-between gap-[16px]">
+                <p
+                  className="text-white text-[16px] leading-[24px] font-medium flex-1 text-left"
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
                   Best Practices for Integrating AI into Your Existing Business Workflows
                 </p>
-                <svg className="w-[24px] h-[24px] text-white shrink-0 ml-[8px] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-[24px] h-[24px] text-white shrink-0 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform mt-[2px]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
                 </svg>
               </div>
             </div>
           </motion.div>
+
+          {/* 3-column grid — same width as hero, text left-aligned consistently */}
           <div className="grid grid-cols-3 gap-[20px]">
             {SMALL_CARDS.map((card, i) => (
               <motion.div
@@ -121,14 +119,22 @@ export default function WhatsNewToday() {
                 <CldImage src={card.img} alt="" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-linear-to-t from-black/66 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-[32px] flex flex-col gap-[8px]">
-                  <span className="bg-white text-[#212122] text-[12px] leading-[18px] font-medium px-[12px] py-[6px] rounded-[16px] self-start" style={{ fontFamily: "Inter, sans-serif" }}>
+                  <span
+                    className="bg-white text-[#212122] text-[12px] leading-[18px] font-medium px-[12px] py-[6px] rounded-[16px] self-start"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
                     New
                   </span>
-                  <div className="flex items-center justify-between">
-                    <p className="text-white text-[16px] leading-[24px] font-medium flex-1" style={{ fontFamily: "Inter, sans-serif" }}>
+                  <div className="flex items-start justify-between gap-[16px]">
+                    <p className="text-white text-[16px] leading-[24px] font-medium flex-1 text-left" style={{ fontFamily: "Inter, sans-serif" }}>
                       {card.title}
                     </p>
-                    <svg className="w-[24px] h-[24px] text-white shrink-0 ml-[8px] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-[24px] h-[24px] text-white shrink-0 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform mt-[2px]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
                     </svg>
                   </div>

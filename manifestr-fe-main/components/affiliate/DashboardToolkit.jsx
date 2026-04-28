@@ -46,7 +46,7 @@ export default function DashboardToolkit() {
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>&amp; Toolkit</span>
             </h2>
             <p
-              className="text-[18px] leading-[28px] text-[#52525b] max-w-[605px]"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] max-w-[605px]"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
             >
               Get everything you need to succeed with our comprehensive affiliate dashboard and marketing toolkit.
@@ -64,7 +64,7 @@ export default function DashboardToolkit() {
               >
                 <CldImage src={CHECK_ICON} alt="" className="w-[20px] h-[20px] shrink-0" />
                 <span
-                  className="text-[18px] leading-[24px] text-[#52525b]"
+                  className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b]"
                   style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                 >
                   {f}
@@ -107,7 +107,7 @@ export default function DashboardToolkit() {
           </motion.div>
 
           <p
-            className="text-[16px] leading-[24px] text-[#52525c] max-w-[341px]"
+            className="text-[16px] leading-[24px] text-[#52525b] max-w-[341px]"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             Get everything you need to succeed with our comprehensive affiliate dashboard and marketing toolkit.
@@ -125,10 +125,18 @@ export default function DashboardToolkit() {
               >
                 <CldImage src={MOBILE_CHECK_ICON} alt="" className="w-[20px] h-[20px] shrink-0 mt-[2px]" />
                 <span
-                  className="text-[16px] leading-[24px] text-[#52525c]"
+                  className="text-[16px] leading-[24px] text-[#52525b]"
                   style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                 >
-                  {f}
+                  {i === 0 ? (
+                    <>
+                      Real-time earnings and conversion
+                      <br />
+                      tracking
+                    </>
+                  ) : (
+                    f
+                  )}
                 </span>
               </motion.div>
             ))}
@@ -136,16 +144,17 @@ export default function DashboardToolkit() {
         </div>
 
         {/* Dashboard image + CTA — absolutely positioned */}
-        <div className="absolute left-0 w-full overflow-hidden" style={{ top: 444, height: 439 }}>
+        <div className="absolute left-0 w-full overflow-hidden" style={{ top: 400, height: 439 }}>
           <CldImage
             src={DASHBOARD_IMG}
             alt="Affiliate dashboard"
             className="absolute max-w-none pointer-events-none"
-            style={{ width: '100%', height: '180.68%', left: '0%', bottom: 0 }}
+            style={{ width: '100%', height: '180.68%', left: '0%', bottom: -12 }}
           />
-          <div className="absolute left-6 right-6" style={{ top: 363 }}>
+          <div className="absolute left-6 right-6 bottom-8">
             <button
-              className="bg-[#18181b] text-white text-[16px] leading-[24px] font-medium h-[48px] w-full rounded-[8px] hover:bg-[#333] transition-colors duration-200 cursor-pointer"
+              type="button"
+              className="bg-[#18181b] text-white text-[18px] leading-[20px] font-medium h-[54px] min-h-[54px] w-full rounded-[6px] hover:bg-[#27272a] transition-colors duration-200 cursor-pointer inline-flex items-center justify-center"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
               Get Your Unique Affiliate Link

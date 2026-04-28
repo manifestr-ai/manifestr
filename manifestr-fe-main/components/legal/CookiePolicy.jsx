@@ -98,25 +98,38 @@ export default function CookiePolicy() {
 
   return (
     <>
-      {/* ─── Hero ─── */}
-      <section className="relative w-full h-[218px] md:h-[256px] flex flex-col items-center justify-center p-[48px] overflow-hidden">
-        <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block absolute inset-0 w-full h-full object-cover pointer-events-none" />
-        <CldImage src={HERO_BG_MOBILE} alt="" className="md:hidden absolute inset-0 w-full h-full object-cover pointer-events-none" />
+      {/* ─── Hero — matches Terms / Privacy ─── */}
+      <section className="relative flex h-[218px] w-full flex-col items-center justify-between overflow-hidden p-[48px] md:h-[256px]">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <CldImage src={HERO_BG_DESKTOP} alt="" className="absolute hidden h-full w-full object-cover md:block" />
+          <CldImage src={HERO_BG_MOBILE} alt="" className="absolute h-full w-full object-cover md:hidden" />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55.86%, rgba(0,0,0,0.3) 100%)' }}
+          />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative z-10 flex flex-col items-center text-center"
+          className="relative z-10 flex max-w-[342px] flex-col items-center gap-[18px] text-center text-white md:max-w-[551px] md:gap-[11px]"
         >
-          <h1 className="text-[36px] md:text-[72px] leading-[36px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
+          <h1 className="text-[36px] leading-[44px] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Cookie </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
           </h1>
+          <p className="text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={font}>
+            How MANIFESTR uses cookies and similar technologies on our platform.
+          </p>
+          <p className="text-[16px] leading-[24px] text-white/95" style={font}>
+            Last updated: 19 March 2026
+          </p>
         </motion.div>
       </section>
 
       {/* ─── Content ─── */}
-      <section className="w-full bg-white py-[48px] md:py-[96px] px-6 md:px-[80px]">
+      <section className="w-full bg-white px-6 py-[48px] md:px-[32px] md:py-[96px]">
         <div className="max-w-[1280px] mx-auto flex gap-[64px] items-start">
 
           {/* Sticky sidebar */}
@@ -131,7 +144,7 @@ export default function CookiePolicy() {
                     className={`text-left pl-[20px] py-[10px] border-l-[3px] transition-colors ${
                       isActive
                         ? 'border-[#020617] text-[#020617] font-medium'
-                        : 'border-transparent text-[#71717a]'
+                        : 'border-transparent text-[#52525b]'
                     }`}
                   >
                     <span className="text-[16px] leading-[24px]" style={font}>{s.label}</span>
@@ -143,7 +156,7 @@ export default function CookiePolicy() {
             {/* Quick link card */}
             <div className="border border-[#e4e4e7] rounded-[16px] p-[24px] flex flex-col">
               <a href="#" className="flex items-center justify-between w-full group">
-                <span className="text-[12px] leading-[18px] font-medium text-black group-hover:underline" style={font}>
+                <span className="text-[14px] leading-[22px] font-medium text-black group-hover:underline" style={font}>
                   Download Cookie Compliance Framework PDF
                 </span>
                 <ArrowTopRightIcon />
@@ -152,14 +165,14 @@ export default function CookiePolicy() {
           </aside>
 
           {/* Main content */}
-          <div className="flex-1 min-w-0 flex flex-col gap-[48px]" style={font}>
+          <div className="flex min-w-0 flex-1 flex-col gap-[48px]" style={font}>
 
             {/* Introduction */}
             <div id="introduction" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[36px] leading-[32px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Introduction
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="flex flex-col gap-[16px] text-[16px] leading-[24px] text-[#52525b]">
                 <p>MANIFESTR uses cookies and similar technologies to ensure the platform operates securely, performs reliably, and delivers a smooth user experience.</p>
                 <p>This Cookies Policy explains what cookies are, how we use them, and the choices you have in managing them.</p>
                 <p>We aim to design our practices in line with applicable privacy laws, including GDPR, CPRA, and other regional requirements where relevant.</p>
@@ -169,10 +182,10 @@ export default function CookiePolicy() {
 
             {/* What Are Cookies? */}
             <div id="what-are-cookies" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 What Are Cookies?
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[16px]">
                 <p>Cookies are small text files stored on your device when you use a website or application.</p>
                 <p>They help us recognise your browser, remember your preferences, and ensure the platform functions as expected.</p>
                 <p>Some cookies are essential for basic operation. Others help improve performance or personalise your experience.</p>
@@ -181,25 +194,25 @@ export default function CookiePolicy() {
 
             {/* Types of Cookies We Use */}
             <div id="types" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Types of Cookies We Use
               </h2>
-              <p className="text-[16px] leading-[24px] text-[#71717a]">You can choose which categories of cookies you want to allow.</p>
+              <p className="text-[16px] leading-[24px] text-[#52525b]">You can choose which categories of cookies you want to allow.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
                 {COOKIE_TYPES.map((type) => (
                   <div key={type.title} className="border border-[#c6c8d0] md:border-[#e4e4e7] rounded-[12px] p-[14px] md:p-[24px] flex flex-col gap-[12px] md:gap-[16px]">
-                    <h3 className="text-[18px] md:text-[16px] leading-[28px] md:leading-[24px] font-medium text-black md:text-[#1b1b1f]" style={font}>
+                    <h3 className="text-[16px] leading-[24px] font-medium text-[#1b1b1f]" style={font}>
                       {type.title}
                     </h3>
-                    <div className="text-[14px] leading-[20px] text-[#52525b] md:text-[#71717a] flex flex-col gap-[14px] md:gap-0 md:list-item-style">
+                    <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[14px] md:gap-0">
                       <ul className="hidden md:flex list-disc pl-[20px] flex-col gap-[8px]">
                         {type.items.map((item, i) => (
-                          <li key={i} className="text-[14px] leading-[20px] text-[#71717a]">{item}</li>
+                          <li key={i} className="text-[16px] leading-[24px] text-[#52525b]">{item}</li>
                         ))}
                       </ul>
                       <div className="flex md:hidden flex-col">
                         {type.items.map((item, i) => (
-                          <p key={i} className="text-[14px] leading-[20px] text-[#52525b] mb-[14px] last:mb-0">{item}</p>
+                          <p key={i} className="text-[16px] leading-[24px] text-[#52525b] mb-[14px] last:mb-0">{item}</p>
                         ))}
                       </div>
                     </div>
@@ -210,10 +223,10 @@ export default function CookiePolicy() {
 
             {/* Third-Party Cookies */}
             <div id="third-party" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Third-Party Cookies
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[16px]">
                 <p>Some cookies may be set by trusted third-party providers that support MANIFESTR&apos;s functionality, such as infrastructure or analytics tools.</p>
                 <p>These providers are expected to use data only for authorised purposes and handle it responsibly.</p>
               </div>
@@ -221,10 +234,10 @@ export default function CookiePolicy() {
 
             {/* How You Can Control Cookies */}
             <div id="control" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 How You Can Control Cookies
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[8px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[8px]">
                 <li><span className="font-medium text-[#1b1b1f]">Cookie Preferences Panel:</span> You can adjust your preferences at any time via Manage Cookies in the footer.</li>
                 <li><span className="font-medium text-[#1b1b1f]">Essential Cookies:</span> remain active as they are required for the platform to function.</li>
                 <li><span className="font-medium text-[#1b1b1f]">Browser Settings:</span> Most browsers allow blocking or deleting cookies. Disabling may affect certain features.</li>
@@ -234,10 +247,10 @@ export default function CookiePolicy() {
 
             {/* Data Retention & Security */}
             <div id="retention" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Data Retention &amp; Security
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[8px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[8px]">
                 <li>Session cookies are deleted when you close your browser.</li>
                 <li>Persistent cookies remain until they expire or are manually deleted.</li>
               </ul>
@@ -245,10 +258,10 @@ export default function CookiePolicy() {
 
             {/* Business Transfers */}
             <div id="transfers" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Business Transfers
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[16px]">
                 <p>If MANIFESTR is involved in a merger, acquisition, or sale of assets, cookie-related data may be transferred as part of that transaction.</p>
                 <p>Your rights and choices will continue to apply.</p>
               </div>
@@ -256,10 +269,10 @@ export default function CookiePolicy() {
 
             {/* Updates to This Policy */}
             <div id="updates" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Updates to This Policy
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[16px]">
                 <p>We may update this Cookies Policy from time to time to reflect legal, technical, or business changes.</p>
                 <p>The latest version will always be available on this page, with the updated date shown above.</p>
               </div>
@@ -267,10 +280,10 @@ export default function CookiePolicy() {
 
             {/* Contact Us */}
             <div id="contact" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={headingFont}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={headingFont}>
                 Contact Us
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[16px]">
                 <p>If you have questions, concerns, or complaints regarding cookies or your privacy rights, contact us:</p>
                 <p>Email: privacy@manifestr.com</p>
                 <p>Mailing Address: MANIFESTR — Data Protection Office, Delaware LLC Registered Address.</p>
@@ -283,7 +296,7 @@ export default function CookiePolicy() {
             {/* Mobile download card */}
             <div className="lg:hidden border border-[#e4e4e7] rounded-[16px] p-[24px] flex flex-col">
               <a href="#" className="flex items-center justify-between w-full group">
-                <span className="text-[12px] leading-[18px] font-medium text-black group-hover:underline" style={font}>
+                <span className="text-[14px] leading-[22px] font-medium text-black group-hover:underline" style={font}>
                   Download Cookie Compliance Framework PDF
                 </span>
                 <ArrowTopRightIcon />

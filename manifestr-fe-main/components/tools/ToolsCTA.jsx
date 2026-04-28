@@ -37,7 +37,7 @@ export default function ToolsCTA() {
         >
           <span className="md:hidden">
             Pick the plan that fits your needs and start boosting your
-            productivity today. No risk, just results.
+            productivity today.<br />No risk, just results.
           </span>
           <span className="hidden md:inline">
             Choose the plan that aligns with how you work and unlock a more
@@ -54,7 +54,7 @@ export default function ToolsCTA() {
         >
           <Link
             href="/pricing"
-            className="inline-flex items-center justify-center h-[36px] md:h-[54px] px-[12px] md:px-[32px] bg-white border border-[#e4e4e7] text-[#18181b] text-[14px] md:text-[18px] leading-[20px] font-medium rounded-[6px] hover:bg-gray-100 transition-colors"
+            className="inline-flex items-center justify-center h-[54px] min-h-[54px] px-[12px] md:px-[32px] bg-white border border-[#e4e4e7] text-[#18181b] text-[18px] leading-[20px] font-medium rounded-[6px] hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             <span className="md:hidden">Explore Pricing</span>
@@ -62,7 +62,7 @@ export default function ToolsCTA() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center h-[36px] md:h-[54px] px-[12px] md:px-[32px] bg-[#18181b] text-white text-[14px] md:text-[18px] leading-[20px] font-medium rounded-[6px] hover:bg-[#27272a] transition-colors"
+            className="inline-flex items-center justify-center h-[54px] min-h-[54px] px-[12px] md:px-[32px] bg-[#18181b] text-white text-[18px] leading-[20px] font-medium rounded-[6px] hover:bg-[#27272a] transition-colors"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             <span className="md:hidden">Get Started Now</span>

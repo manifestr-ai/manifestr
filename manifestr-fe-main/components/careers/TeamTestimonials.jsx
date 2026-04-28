@@ -12,8 +12,8 @@ const TESTIMONIALS = [
 
 export default function TeamTestimonials() {
   return (
-    <section className="w-full bg-white py-[48px] md:py-[96px]">
-      <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
+    <section className="w-full bg-white pt-[48px] pb-8 md:pt-[96px] md:pb-12">
+      <div className="mx-auto w-full max-w-[1440px] px-6 md:px-[80px]">
 
         {/* Heading */}
         <div className="text-center mb-[20px]">
@@ -31,7 +31,7 @@ export default function TeamTestimonials() {
         </p>
 
         {/* Mobile — horizontally scrolling testimonial cards */}
-        <div className="md:hidden flex gap-[24px] overflow-x-auto overflow-y-hidden -mx-6 px-6 pb-[4px] scrollbar-hide">
+        <div className="md:hidden flex gap-3 overflow-x-auto overflow-y-hidden -mx-6 px-6 pb-[4px] scrollbar-hide">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={t.name}
@@ -39,17 +39,17 @@ export default function TeamTestimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-[12px] p-[24px] flex flex-col gap-[24px] w-[295px] shrink-0"
+              className="flex h-[228px] w-[411px] max-w-[min(411px,calc(100vw-3rem))] shrink-0 flex-col items-start gap-6 overflow-hidden rounded-[12px] border border-[#e4e4e7] bg-[#f4f4f4] p-6"
             >
-              <div className="flex items-start gap-[12px]">
+              <div className="flex w-full min-w-0 items-start gap-3">
                 <CldImage
                   src={t.avatar}
                   alt={t.name}
-                  className="w-[60px] h-[60px] rounded-full object-cover border-[1.5px] border-black/8"
+                  className="h-[60px] w-[60px] shrink-0 rounded-full border-[1.5px] border-black/8 object-cover"
                 />
-                <div className="w-[163px]">
+                <div className="min-w-0 flex-1">
                   <p
-                    className="text-[18px] leading-[28px] text-[#030303] font-semibold"
+                    className="text-[18px] leading-[28px] font-semibold text-[#030303]"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
                     {t.name}
@@ -63,7 +63,7 @@ export default function TeamTestimonials() {
                 </div>
               </div>
               <p
-                className="text-[16px] leading-[24px] text-[#52525b]"
+                className="min-h-0 flex-1 overflow-hidden text-[14px] leading-5 text-[#52525b] line-clamp-4"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
               >
                 {t.quote}
@@ -72,8 +72,8 @@ export default function TeamTestimonials() {
           ))}
         </div>
 
-        {/* Desktop — Testimonial grid */}
-        <div className="hidden md:grid grid-cols-3 gap-[24px]">
+        {/* Desktop — Figma cards 411×228px, tight grid */}
+        <div className="hidden md:grid w-full grid-cols-2 justify-items-center gap-3 xl:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={t.name + '-desktop'}
@@ -81,17 +81,17 @@ export default function TeamTestimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="bg-[#fafafa] border border-[#e4e4e7] rounded-[12px] p-[24px] flex flex-col gap-[24px]"
+              className="flex h-[228px] w-full max-w-[411px] flex-col items-start gap-6 overflow-hidden rounded-[12px] border border-[#e4e4e7] bg-[#f4f4f4] p-6"
             >
-              <div className="flex items-start gap-[12px]">
+              <div className="flex w-full min-w-0 items-start gap-3">
                 <CldImage
                   src={t.avatar}
                   alt={t.name}
-                  className="w-[60px] h-[60px] rounded-full object-cover border-[1.5px] border-transparent"
+                  className="h-[60px] w-[60px] shrink-0 rounded-full border-[1.5px] border-transparent object-cover"
                 />
-                <div>
+                <div className="min-w-0 flex-1">
                   <p
-                    className="text-[18px] leading-[28px] text-[#030303] font-semibold"
+                    className="text-[18px] leading-[28px] font-semibold text-[#030303]"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
                     {t.name}
@@ -105,7 +105,7 @@ export default function TeamTestimonials() {
                 </div>
               </div>
               <p
-                className="text-[16px] leading-[24px] text-[#52525b]"
+                className="min-h-0 flex-1 overflow-hidden text-[14px] leading-5 text-[#52525b] line-clamp-4"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
               >
                 {t.quote}

@@ -92,7 +92,7 @@ export default function EarningPotential() {
 
             {/* Subtitle */}
             <p
-              className="text-[16px] md:text-[18px] leading-[24px] text-[#52525c] mt-[16px] max-w-[266px] md:max-w-[592px]"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] mt-[16px] max-w-[266px] md:max-w-[592px]"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
             >
               With MANIFESTR&apos;s generous commission structure, your earning potential grows with every referral.

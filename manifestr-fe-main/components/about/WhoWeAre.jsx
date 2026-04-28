@@ -16,19 +16,22 @@ export default function WhoWeAre() {
           WHO WE ARE
         </motion.p>
 
+        {/* Figma 12072:50381 — HK Grotesk Medium 36/49, -0.72px; IvyPresto semibold italic on “Professional” */}
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="text-center text-[30px] md:text-[36px] leading-[normal] md:leading-[49px] tracking-[-0.6px] md:tracking-[-0.72px] text-black max-w-[901px] mb-[12px] md:mb-[24px]"
-          style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
+          className="mb-3 w-full max-w-[901px] text-center text-[30px] capitalize leading-10 tracking-[-0.6px] text-black md:mb-6 md:text-[36px] md:leading-[49px] md:tracking-[-0.72px]"
+          style={{ fontFamily: '"HK Grotesk", "Hanken Grotesk", sans-serif', fontWeight: 500, fontStyle: 'normal' }}
         >
-          Shaped by Experience and Pressure.{' '}<br />
-          Designed To Raise The Standard Of{' '}
+          Shaped by experience and pressure.
+          <br />
+          Designed to raise <br/>the standard of{' '}
           <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
-            Professional{' '}
+            Professional
           </span>
+          {' '}
           work.
         </motion.h2>
 
@@ -51,7 +54,7 @@ export default function WhoWeAre() {
           className="flex flex-col md:flex-row gap-[12px] md:gap-[15px] w-full md:w-auto md:justify-center"
         >
           <Link
-            href="/about"
+            href="/login"
             className="h-[48px] md:h-[54px] px-[24px] flex items-center justify-center rounded-[8px] md:rounded-md bg-[#18181b] text-white text-[16px] md:text-[18px] font-medium hover:opacity-90 transition-opacity"
             style={{ fontFamily: "Inter, sans-serif" }}
           >

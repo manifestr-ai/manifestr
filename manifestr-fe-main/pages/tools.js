@@ -20,7 +20,7 @@ export default function Tools() {
 
       <div className="min-h-screen flex flex-col bg-white">
         <Header />
-        <main className="flex-1 bg-white pt-[76px]">
+        <main className="min-w-0 flex-1 bg-white pt-[76px]">
           <ToolsHero />
           <ToolsGrid />
           <ToolsStats />

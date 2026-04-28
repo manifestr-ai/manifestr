@@ -7,7 +7,7 @@ const SCREENSHOT_2 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041
 
 export default function ByProfessionals() {
   return (
-    <section className="w-full bg-white overflow-hidden py-[48px] md:py-[120px]">
+    <section className="w-full bg-white overflow-hidden py-[48px] md:pt-[120px] md:pb-[48px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
 
         {/* Label */}
@@ -57,7 +57,7 @@ export default function ByProfessionals() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="rounded-[10px] md:rounded-[6px] overflow-hidden h-[263px] md:h-auto"
+            className="rounded-[10px] md:rounded-[6px] mt-6 overflow-hidden h-[263px] md:h-auto"
           >
             <CldImage
               src={SCREENSHOT_1}

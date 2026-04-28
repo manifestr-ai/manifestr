@@ -116,7 +116,7 @@ export default function ContactContent() {
   return (
     <>
       {/* Form Section */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[96px] flex flex-col items-center gap-[24px] md:gap-[36px]">
+      <section className="w-full bg-white px-6 md:px-[80px] pt-[48px] md:pt-[96px] pb-[20px] md:pb-[28px] flex flex-col items-center gap-[24px] md:gap-[36px]">
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -252,7 +252,7 @@ export default function ContactContent() {
           <div className="flex flex-col gap-[6px]">
             <div className="flex gap-[2px] text-[14px] leading-[20px] font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>
               <span className="text-[#464649]">Attach Files</span>
-              <span className="text-[#a9b5c6]">(Optional)</span>
+              <span className="text-[#464649]">(Optional)</span>
             </div>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -297,7 +297,7 @@ export default function ContactContent() {
       </section>
 
       {/* Dedicated Enquiries Section */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[96px] flex flex-col items-center">
+      <section className="w-full bg-white px-6 md:px-[80px] pt-[20px] md:pt-[28px] pb-[48px] md:pb-[96px] flex flex-col items-center">
         <div className="flex flex-col items-center gap-[24px] w-full max-w-[1280px]">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -316,7 +316,7 @@ export default function ContactContent() {
             </p>
           </motion.div>
 
-          <div className="flex flex-col md:flex-row gap-[16px] md:gap-[24px] items-center md:mt-[12px] w-full md:w-auto">
+          <div className="flex flex-col md:flex-row gap-[16px] md:gap-[24px] w-full max-w-[912px] md:items-stretch">
             {ENQUIRY_CARDS.map((card) => (
               <motion.div
                 key={card.title}
@@ -324,23 +324,23 @@ export default function ContactContent() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4 }}
-                className="bg-[rgba(24,24,24,0.01)] md:bg-[#f0f0f0] rounded-[12px] p-[14px] md:p-[24px] w-full md:w-[441px] flex flex-col gap-[24px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)]"
+                className="flex h-full min-h-0 w-full flex-col items-center gap-[24px] rounded-[12px] bg-[#e4e4e7] p-[14px] text-center shadow-[0px_1px_2px_0px_rgba(10,13,18,0.06)] md:max-w-[444px] md:flex-1 md:min-w-0 md:p-[24px]"
               >
-                <div className="w-[60px] h-[60px] rounded-full overflow-hidden shrink-0">
-                  <CldImage src={M_LOGO} alt="MANIFESTR" className="w-full h-full object-cover" />
+                <div className="size-[60px] shrink-0 overflow-hidden rounded-full">
+                  <CldImage src={M_LOGO} alt="MANIFESTR" className="h-full w-full object-cover" />
                 </div>
-                <div className="flex flex-col gap-[8px] text-[#3c3c3c]">
+                <div className="flex min-h-0 flex-1 flex-col gap-[8px] text-[#3c3c3c]">
                   <h3
                     className="text-[24px] leading-[32px]"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
                   >
                     {card.title}
                   </h3>
-                  <p className="text-[16px] leading-[24px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="flex-1 text-[16px] leading-[24px]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {card.description}
                   </p>
                 </div>
-                <div className="flex items-center gap-[8px] border border-[#1b1b1b] md:border-0 md:bg-white rounded-[8px] px-[16px] py-[8px] h-[34px] w-fit shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)]">
+                <div className="flex h-[34px] w-fit shrink-0 items-center justify-center gap-[8px] rounded-[8px] border border-[#1b1b1b] px-[16px] py-[8px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] md:border-0 md:bg-white">
                   <MessageIcon />
                   <span className="text-[12px] leading-[18px] text-[#020617]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {card.email}

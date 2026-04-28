@@ -53,7 +53,7 @@ export default function HowItWorks() {
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Works</span>
           </h2>
           <p
-            className="text-[16px] leading-[24px] text-[#52525b] mx-auto mt-[12px]"
+            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] mx-auto mt-[12px]"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400, width: 898 }}
           >
             At MANIFESTR, we believe bold thinkers deserve bold rewards. Our Affiliate Program offers one of the highest paying commission structures you&apos;ll find anywhere - empowering you to transform referrals into real income.
@@ -150,7 +150,7 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="absolute text-[18px] leading-[24px] text-[#52525b] -translate-y-1/2"
+          className="absolute text-[18px] leading-[26px] text-[#52525b] -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400, left: 523, top: 548, width: 320 }}
         >
           Promote to your audience, network, or clients using your personalized marketing assets.
@@ -200,7 +200,7 @@ export default function HowItWorks() {
         {/* Background people image — centered behind lower steps */}
         <div
           className="absolute pointer-events-none left-1/2 -translate-x-1/2 overflow-hidden"
-          style={{ top: 280, width: 1152, height: 1224 }}
+          style={{ top: 410, width: 1152, height: 1124 }}
         >
           <CldImage
             alt=""
@@ -216,7 +216,7 @@ export default function HowItWorks() {
             </h2>
           </div>
           <p
-            className="text-[14px] leading-[20px] text-[#52525c] text-center mb-[24px] w-full"
+            className="text-[16px] leading-[24px] text-[#52525b] text-center mb-[24px] w-full"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             At MANIFESTR, we believe bold thinkers deserve bold rewards. Our Affiliate Program offers one of the highest paying commission structures you&apos;ll find anywhere, empowering you to transform referrals into real income.
@@ -234,10 +234,10 @@ export default function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12, duration: 0.5 }}
-                className="flex flex-col gap-[5px] items-center w-full"
+                className="flex flex-col gap-0 items-center w-full"
               >
                 <p
-                  className="text-[84px] leading-[84px] tracking-[-1.68px] uppercase font-bold select-none text-center w-full -mb-[18px]"
+                  className="mb-[16px] text-[84px] leading-[84px] tracking-[-1.68px] uppercase font-bold select-none text-center w-full"
                   style={{ ...mobileGradientNum, fontFamily: "'Hanken Grotesk', sans-serif", opacity: 0.5 }}
                 >
                   {step.num}
@@ -250,7 +250,7 @@ export default function HowItWorks() {
                     {step.title}
                   </h3>
                   <p
-                    className="text-[18px] leading-[24px] text-[#52525b]"
+                    className="text-[16px] leading-[24px] text-[#52525b]"
                     style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                   >
                     {step.desc}

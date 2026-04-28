@@ -3,28 +3,26 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import CldImage from '../ui/CldImage'
 
-/** Desktop Figma 12483:22388 — 1440×414 sand strip */
+/** Desktop — sandy background (same tile used across CTA sections) */
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
-/** Mobile Figma 12091:54445 */
+/** Mobile */
 const CTA_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775223352/Rectangle_8_1_jmywwu.png'
 
 const DESKTOP_BODY_P1 =
-  "At MANIFESTR, diversity is not a checkbox, it's a strength. We believe the future of work is shaped by bringing together different perspectives, experiences, and ways of thinking."
+  'MANIFESTR brings together the tools professionals need to create, communicate, and deliver at a higher standard. One system. Every format. Every context.'
 
 const DESKTOP_BODY_P2 =
-  'Every background adds depth, and authenticity drives better outcomes. We foster a team where inclusion is lived day to day, not written into policy. A culture where people are respected, trusted, and valued for the quality of what they contribute.'
+  'Stop switching between tools and start producing work that reflects your expertise. Built for the way you actually work — MANIFESTR turns strategy into output, fast.'
 
 const MOBILE_BODY =
-  "At MANIFESTR, inclusion is not a statement. It's a standard. We prioritise equitable access, diverse perspectives, and an environment where people are respected for the quality of their work and ideas."
+  'One system for every format. MANIFESTR removes the friction between thinking and delivering, so you can focus on what actually matters.'
 
-const DEI_HREF = '/careers'
-
-export default function ToolCTA() {
+export default function ToolCTA2() {
   return (
     <section className="relative w-full overflow-hidden bg-white">
-      {/* ── Desktop — Figma 12483:22388 (1440×414) ── */}
+      {/* ── Desktop — Figma 12483:22388 layout (1440×414 sandy strip) ── */}
       <div className="relative hidden min-h-[414px] w-full md:block">
-        {/* Full-bleed sand background — fills the entire section without horizontal cropping */}
+        {/* Full-bleed sand background */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
           <CldImage
             src={CTA_BG}
@@ -34,10 +32,10 @@ export default function ToolCTA() {
           />
         </div>
 
-        {/* Content frame: max 1440. Scales paddings + box + gap so the heading always fits on one line. */}
+        {/* Content frame: max 1440 */}
         <div className="relative z-10 mx-auto flex min-h-[414px] w-full max-w-[1440px] flex-col items-center gap-10 px-8 py-14 lg:flex-row lg:items-center lg:gap-8 lg:px-10 xl:gap-12 xl:px-12 2xl:gap-[71px] 2xl:pl-[66px] 2xl:pr-[79px]">
 
-          {/* Left column — heading, body, button stacked vertically */}
+          {/* Left column — heading, body, button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -45,14 +43,11 @@ export default function ToolCTA() {
             transition={{ duration: 0.55 }}
             className="flex w-full flex-col lg:flex-1"
           >
-            {/* Heading — one line (min-w-0 on column was clipping nowrap text in flex rows) */}
             <h2 className="whitespace-nowrap text-black text-[32px] leading-[1.1] tracking-[-0.02em] lg:text-[40px] lg:leading-[48px] lg:tracking-[-0.8px] xl:text-[52px] xl:leading-[64px] xl:tracking-[-1.04px] 2xl:text-[60px] 2xl:leading-[72px] 2xl:tracking-[-1.2px]">
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Our </span>
-              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Commitment</span>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> to Inclusion</span>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The Next Era of Work </span>
+              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Starts Here</span>
             </h2>
 
-            {/* Body */}
             <div
               className="mt-[13px] flex w-full min-w-0 max-w-[758px] flex-col gap-4 text-[14px] leading-[22px] text-[#52525b] lg:text-[16px] lg:leading-[24px]"
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
@@ -61,18 +56,17 @@ export default function ToolCTA() {
               <p>{DESKTOP_BODY_P2}</p>
             </div>
 
-            {/* Button */}
             <Link
-              href={DEI_HREF}
-              className="mt-[26px] inline-flex h-[44px] w-[234px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[6px] bg-[#18181b] px-6 py-2 text-[14px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a]"
+              href="/signup"
+              className="mt-[26px] inline-flex h-[44px] w-[200px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[6px] bg-[#18181b] px-6 py-2 text-[14px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Read Our DEI Statement
+              Enter MANIFESTR
               <ArrowUpRight className="size-4 shrink-0 text-white" strokeWidth={2} aria-hidden />
             </Link>
           </motion.div>
 
-          {/* Right black card — text perfectly centered (vertically + horizontally) */}
+          {/* Right black card */}
           <motion.div
             initial={{ opacity: 0, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -84,17 +78,17 @@ export default function ToolCTA() {
               className="text-center text-white text-[26px] font-bold leading-[1.2] tracking-[-0.02em] lg:text-[24px] lg:leading-[1.2] lg:tracking-[-0.48px] xl:text-[30px] xl:tracking-[-0.6px] 2xl:text-[40px] 2xl:leading-[normal] 2xl:tracking-[-0.8px]"
               style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
             >
-              Different minds.
+              One platform.
               <br />
-              Shared mission.
+              Infinite output.
               <br />
-              Infinite possibilities.
+              Zero compromise.
             </p>
           </motion.div>
         </div>
       </div>
 
-      {/* ── Mobile — Figma 12091:54444, 390×681 content stack, centered ── */}
+      {/* ── Mobile ── */}
       <div className="relative min-h-[560px] w-full overflow-hidden py-20 md:hidden">
         <div className="absolute inset-0" aria-hidden>
           <CldImage
@@ -113,10 +107,9 @@ export default function ToolCTA() {
           className="relative z-10 mx-auto flex w-full max-w-[340px] flex-col items-center gap-[31px] px-4"
         >
           <h2 className="w-full max-w-full text-center text-black">
-            <span className="inline-block max-w-full whitespace-nowrap text-[clamp(14px,_4vw_+_10px,_30px)] leading-tight tracking-[-0.6px]">
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Our </span>
-              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Commitment</span>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> to Inclusion</span>
+            <span className="inline-block max-w-full text-[clamp(14px,4vw+10px,30px)] leading-tight tracking-[-0.6px]">
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The Next Era of Work </span>
+              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Starts Here</span>
             </span>
           </h2>
 
@@ -132,20 +125,20 @@ export default function ToolCTA() {
               className="text-center text-[27px] leading-[normal] tracking-[-0.54px] text-white"
               style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
             >
-              Different minds.
+              One platform.
               <br />
-              Shared mission.
+              Infinite output.
               <br />
-              Infinite possibilities.
+              Zero compromise.
             </p>
           </div>
 
           <Link
-            href={DEI_HREF}
-            className="inline-flex h-11 w-[234px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-[#18181b] px-6 py-2 text-[14px] font-medium leading-5 text-white transition-colors duration-200 hover:bg-[#27272a]"
+            href="/signup"
+            className="inline-flex h-11 w-[200px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-[#18181b] px-6 py-2 text-[14px] font-medium leading-5 text-white transition-colors duration-200 hover:bg-[#27272a]"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Read Our DEI Statement
+            Enter MANIFESTR
             <ArrowUpRight className="size-4 shrink-0 text-white" strokeWidth={2} aria-hidden />
           </Link>
         </motion.div>

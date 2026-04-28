@@ -2,6 +2,127 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
+/** Design Studio hero overlay: identical type size on DESIGN + STUDIO lines (max 140px). */
+const DESIGN_STUDIO_OVERLAY_LINE = {
+  fontFamily: "'IvyPresto Headline', serif",
+  fontStyle: 'italic',
+  fontWeight: 700,
+  fontSize: 'clamp(48px, 9.5vw, 140px)',
+  lineHeight: 1.05,
+  letterSpacing: '0.1em',
+  textShadow: '12px 11px 35px #000',
+}
+
+const MOBILE_HERO_IVY = {
+  fontFamily: "'IvyPresto Headline', serif",
+  fontStyle: 'italic',
+  fontWeight: 700,
+  textShadow: '0 2px 20px rgba(0,0,0,0.5), 2px 4px 24px rgba(0,0,0,0.35)',
+}
+
+/** Big tool name on the image (THE STRATEGIST, DESIGN / STUDIO, etc.) — mobile only. */
+function MobileHeroToolTitle({ slug, prefix, name, visible }) {
+  const animReveal = (delay) => ({
+    animation: visible ? `theReveal 1s cubic-bezier(0.16,1,0.3,1) ${delay}s both` : 'none',
+    opacity: visible ? undefined : 0,
+  })
+  const animStrategist = (delay) => ({
+    animation: visible ? `strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) ${delay}s both` : 'none',
+    opacity: visible ? undefined : 0,
+  })
+
+  if (slug === 'design-studio') {
+    const fs = 'clamp(32px, 9.5vw, 52px)'
+    return (
+      <div className="flex max-w-[min(100%,360px)] flex-col items-center gap-1 text-center">
+        <p
+          className="text-white uppercase"
+          style={{
+            ...MOBILE_HERO_IVY,
+            fontSize: fs,
+            lineHeight: 1.05,
+            letterSpacing: '0.1em',
+            ...animReveal(0.2),
+          }}
+        >
+          {prefix}
+        </p>
+        <p
+          className="text-white uppercase pl-2"
+          style={{
+            ...MOBILE_HERO_IVY,
+            fontSize: fs,
+            lineHeight: 1.05,
+            letterSpacing: '0.1em',
+            ...animStrategist(0.45),
+          }}
+        >
+          {name.toUpperCase()}
+        </p>
+      </div>
+    )
+  }
+  if (slug === 'deck' || slug === 'cost-ctrl') {
+    return (
+      <div className="flex max-w-[min(100%,360px)] flex-wrap items-baseline justify-center gap-x-2 text-center">
+        <span
+          className="text-white uppercase"
+          style={{
+            ...MOBILE_HERO_IVY,
+            fontSize: 'clamp(40px, 12vw, 64px)',
+            lineHeight: 1,
+            letterSpacing: '0.1em',
+            ...animReveal(0.2),
+          }}
+        >
+          {prefix}
+        </span>
+        <span
+          className="text-white uppercase"
+          style={{
+            ...MOBILE_HERO_IVY,
+            fontSize: 'clamp(40px, 12vw, 64px)',
+            lineHeight: 1,
+            letterSpacing: '0.1em',
+            ...animStrategist(0.45),
+          }}
+        >
+          {name.toUpperCase()}
+        </span>
+      </div>
+    )
+  }
+  return (
+    <div className="flex max-w-[min(100%,360px)] flex-col items-center gap-0.5 text-center">
+      <p
+        className="text-white uppercase"
+        style={{
+          ...MOBILE_HERO_IVY,
+          fontSize: 'clamp(26px, 7vw, 36px)',
+          lineHeight: 1.1,
+          letterSpacing: '0.13em',
+          ...animReveal(0.2),
+        }}
+      >
+        {prefix}
+      </p>
+      <p
+        className="text-white uppercase"
+        style={{
+          ...MOBILE_HERO_IVY,
+          fontSize: 'clamp(36px, 11vw, 56px)',
+          lineHeight: 1,
+          letterSpacing: '0.1em',
+          marginTop: '4px',
+          ...animStrategist(0.45),
+        }}
+      >
+        {name.toUpperCase()}
+      </p>
+    </div>
+  )
+}
+
 export default function ToolHero({ tool }) {
   const sectionRef = useRef(null)
   const [visible, setVisible] = useState(false)
@@ -17,8 +138,48 @@ export default function ToolHero({ tool }) {
     return () => observer.disconnect()
   }, [])
 
-  const { heroImage, heroSprites, heroHeadline, heroCol1, heroCol2, darkBannerText, heroCtaPrimary, heroCtaSecondary, prefix, name } = tool
+  const {
+    slug,
+    heroImage,
+    heroImageMobile,
+    heroSprites,
+    heroHeadline,
+    heroCol1,
+    heroCol2,
+    darkBannerText,
+    heroCtaPrimary,
+    heroCtaSecondary,
+    prefix,
+    name,
+  } = tool
+  const mobileHeroImageSrc = heroImageMobile || heroImage
   const hasSprites = !!heroSprites
+  /** Analyzer / Briefcase / Wordsmith: left-align prefix + name; outer flex still centers the group; smaller clamps. */
+  const stackedHeroTitle =
+    slug === 'analyzer' || slug === 'briefcase' || slug === 'wordsmith'
+  /** Design Studio: same font size on both lines; STUDIO nudged 12px right; group centered. */
+  const designStudioStackedTitle = slug === 'design-studio'
+  /** Headline copy uses newlines (e.g. after first sentence). */
+  const heroHeadlinePreservesBreaks =
+    slug === 'analyzer' ||
+    slug === 'briefcase' ||
+    slug === 'design-studio' ||
+    slug === 'wordsmith' ||
+    slug === 'deck' ||
+    slug === 'huddle' ||
+    slug === 'cost-ctrl'
+  /** Extra space above hero headline (Design Studio “Define…” block). */
+  const designStudioHeadlineTopSpace = slug === 'design-studio'
+  /** Per-tool desktop title overlay vertical position (default 24%). */
+  const heroTitleOverlayTop =
+    slug === 'huddle' ? '40%' : slug === 'cost-ctrl' ? '50%' : '24%'
+
+  /** Mobile: lower tool title on image + stronger pull-up for body copy under gradient */
+  const mobileHeroTighterSpacing =
+    slug === 'design-studio' ||
+    slug === 'analyzer' ||
+    slug === 'cost-ctrl' ||
+    slug === 'huddle'
 
   return (
     <section ref={sectionRef} className="w-full">
@@ -38,7 +199,7 @@ export default function ToolHero({ tool }) {
 
       {hasSprites ? (
         /* ══════════════════════════════════════════
-           STRATEGIST LAYOUT — gradient fade to white, content below
+           STRATEGIST LAYOUT — hero + content below
            ══════════════════════════════════════════ */
         <div className="bg-white">
           {/* Hero banner */}
@@ -51,7 +212,6 @@ export default function ToolHero({ tool }) {
               }}
             >
               <CldImage src={heroImage} alt="" className="w-full h-full object-cover md:object-center" priority />
-              <div className="absolute inset-0 bg-black/0 md:bg-black/20" />
             </div>
 
             {/* Title overlay — desktop only */}
@@ -114,8 +274,14 @@ export default function ToolHero({ tool }) {
               })}
             </div>
 
-            {/* Gradient fade to white */}
-            <div className="absolute inset-x-0 bottom-0 h-[30%] md:h-[25%] bg-linear-to-b from-transparent to-white pointer-events-none" />
+            {/* Tool name — top of image; top scrim for legibility; bottom blend into white section */}
+            <div className="pointer-events-none select-none md:hidden absolute inset-x-0 top-0 z-10 flex justify-center bg-linear-to-b from-black/55 via-black/20 to-transparent px-4 pb-14 pt-10">
+              <MobileHeroToolTitle slug={slug} prefix={prefix} name={name} visible={visible} />
+            </div>
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-5 h-[38%] min-h-[110px] bg-linear-to-t from-white via-white/75 to-transparent md:hidden"
+              aria-hidden
+            />
           </div>
 
           {/* Content on white */}
@@ -126,13 +292,6 @@ export default function ToolHero({ tool }) {
               opacity: visible ? undefined : 0,
             }}
           >
-            <p
-              className="uppercase text-black font-semibold text-[20px] md:text-[24px] tracking-[-0.4px] md:tracking-[-0.02em] mb-[24px] text-center"
-              style={{ fontFamily: 'Inter, sans-serif', lineHeight: '24px' }}
-            >
-              WHAT IT IS
-            </p>
-
             <h2
               className="text-center text-black mb-10 max-w-[362px] md:max-w-[834px] mx-auto leading-[44px] md:leading-[1.2] tracking-[-0.64px] md:tracking-[-0.02em]"
               style={{ fontSize: 'clamp(32px, 3.75vw, 54px)' }}
@@ -154,14 +313,14 @@ export default function ToolHero({ tool }) {
             <div className="flex flex-col items-center justify-center gap-[15px] md:gap-[12px] md:max-w-none mx-auto md:flex-row">
               <Link
                 href={heroCtaPrimary?.href || '/signup'}
-                className="inline-flex items-center justify-center w-[290px] max-w-full md:w-auto bg-[#18181b] text-white rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+                className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[24px] text-[18px] font-medium leading-[20px] text-white whitespace-nowrap hover:bg-[#27272a] transition-colors"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {heroCtaPrimary?.label || 'Discover MANIFESTR Today'}
               </Link>
               <Link
                 href={heroCtaSecondary?.href || '/tools'}
-                className="inline-flex items-center justify-center w-[290px] max-w-full md:w-auto bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
+                className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] border border-[#e4e4e7] bg-white px-[24px] text-[18px] font-medium leading-[20px] text-[#18181b] whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {heroCtaSecondary?.label || 'Explore Our Tools'}
@@ -171,64 +330,87 @@ export default function ToolHero({ tool }) {
         </div>
       ) : (
         <>
-          {/* ── MOBILE: image on top, content on white below ── */}
-          <div className="md:hidden bg-white">
-            <div
-              className="relative w-full overflow-hidden aspect-13/10"
-              style={{
-                animation: visible ? 'heroZoomIn 1.4s cubic-bezier(0.25,0.46,0.45,0.94) forwards' : 'none',
-                opacity: visible ? undefined : 0,
-              }}
-            >
-              <CldImage src={heroImage} alt="" className="w-full h-full object-cover object-top" priority />
-              <div className="absolute inset-x-0 bottom-0 h-[40%] bg-linear-to-b from-transparent to-white pointer-events-none" />
+          {/* ── MOBILE: fixed-aspect hero image + tool title overlay, then headline & CTAs ── */}
+          <div className="md:hidden relative w-full bg-[#faf9f7]">
+            <div className="relative w-full overflow-hidden aspect-390/520">
+              <div
+                className="absolute inset-0"
+                style={{
+                  animation: visible ? 'heroZoomIn 1.4s cubic-bezier(0.25,0.46,0.45,0.94) forwards' : 'none',
+                  opacity: visible ? undefined : 0,
+                }}
+              >
+                <CldImage
+                  src={mobileHeroImageSrc}
+                  alt=""
+                  className="h-full w-full object-cover object-center"
+                  priority
+                />
+              </div>
+              {/* Fade bottom of image into cream background */}
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[45%]"
+                aria-hidden
+                style={{ background: 'linear-gradient(to top, #faf9f7 0%, #faf9f7 10%, rgba(250,249,247,0.7) 55%, transparent 100%)' }}
+              />
+              {/* Tool name — top of image with dark-to-transparent gradient behind */}
+              <div
+                className={`absolute inset-x-0 top-0 z-20 flex flex-col items-center pointer-events-none select-none px-4 pb-16 ${mobileHeroTighterSpacing ? 'pt-26' : 'pt-10'}`}
+                style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
+              >
+                <MobileHeroToolTitle slug={slug} prefix={prefix} name={name} visible={visible} />
+              </div>
             </div>
 
             <div
-              className="pb-[60px]"
+              className={`relative z-10 flex w-full max-w-[362px] mx-auto flex-col items-center gap-[26px] pl-[13px] pr-[15px] pb-[67px] pt-0 ${mobileHeroTighterSpacing ? '-mt-44' : '-mt-36'}`}
               style={{
                 animation: visible ? 'fadeInUp 1s cubic-bezier(0.16,1,0.3,1) 1.0s both' : 'none',
                 opacity: visible ? undefined : 0,
               }}
             >
-              <p
-                className="uppercase text-black font-semibold text-[20px] tracking-[-0.4px] mb-[24px] text-center"
-                style={{ fontFamily: 'Inter, sans-serif', lineHeight: '24px' }}
-              >
-                WHAT IT IS
-              </p>
-
               <h2
-                className="text-center text-black mb-10 max-w-[362px] mx-auto leading-[44px] tracking-[-0.64px] capitalize"
-                style={{ fontSize: '32px' }}
+                className={`w-[362px] max-w-full text-center tracking-[-0.64px] text-black ${heroHeadlinePreservesBreaks ? 'whitespace-pre-line' : ''}`}
               >
-                {(heroHeadline || []).map((part, i) =>
-                  part.style === 'italic'
-                    ? <em key={i} style={{ fontFamily: "'IvyPresto Headline', serif", fontStyle: 'italic', fontWeight: 600 }}>{part.text}</em>
-                    : <span key={i} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>{part.text}</span>
-                )}
+                <span className="block text-[32px] leading-[44px]">
+                  {(heroHeadline || []).map((part, i) => {
+                    const t = heroHeadlinePreservesBreaks ? part.text : part.text.replace(/\n/g, ' ')
+                    return part.style === 'italic'
+                      ? (
+                          <em key={i} style={{ fontFamily: "'IvyPresto Headline', serif", fontStyle: 'italic', fontWeight: 600 }}>
+                            {t}
+                          </em>
+                        )
+                      : (
+                          <span key={i} style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+                            {t}
+                          </span>
+                        )
+                  })}
+                </span>
               </h2>
 
               {heroCol1 && (
                 <p
-                  className="text-[#52525b] text-[15px] leading-[26px] text-center max-w-[337px] mx-auto mb-10"
+                  className="w-[337px] max-w-full text-center text-[15px] font-normal leading-[26px] text-[#52525b]"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCol1}
                 </p>
               )}
 
-              <div className="flex flex-col gap-[15px] items-center px-[51px]">
+              {/* Primary CTA — Figma 13636:24618 (289×54, shadcn Button lg) */}
+              <div className="flex w-full flex-col items-center gap-[8px]">
                 <Link
                   href={heroCtaPrimary?.href || '/signup'}
-                  className="inline-flex items-center justify-center w-[290px] max-w-full h-[54px] bg-[#18181b] text-white rounded-[6px] px-[24px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+                  className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[24px] text-[18px] font-medium leading-[20px] text-white whitespace-nowrap hover:bg-[#27272a] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaPrimary?.label || 'Discover MANIFESTR Today'}
                 </Link>
                 <Link
                   href={heroCtaSecondary?.href || '/tools'}
-                  className="inline-flex items-center justify-center w-[290px] max-w-full h-[54px] bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
+                  className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] border border-solid border-[#e4e4e7] bg-white px-[24px] text-[18px] font-medium leading-[20px] text-[#18181b] whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaSecondary?.label || 'Explore Our Tools'}
@@ -247,41 +429,129 @@ export default function ToolHero({ tool }) {
               }}
             >
               <CldImage src={heroImage} alt="" className="w-full h-full object-cover object-top" priority />
-              <div className="absolute inset-0 bg-black/15" />
             </div>
 
             <div className="relative w-full aspect-1440/760">
               <div
                 className="absolute pointer-events-none select-none flex flex-col items-center"
-                style={{ left: '9.72%', width: '80.56%', top: '15%' }}
+                style={{ left: '9.72%', width: '80.56%', top: heroTitleOverlayTop }}
               >
-                <p
-                  className="text-white uppercase text-center"
-                  style={{
-                    fontFamily: "'IvyPresto Headline', serif",
-                    fontStyle: 'italic', fontWeight: 700,
-                    fontSize: 'clamp(48px, 6.67vw, 96px)', lineHeight: 1.1,
-                    letterSpacing: '0.13em', textShadow: '0px 0px 0px #040404',
-                    animation: visible ? 'theReveal 1s cubic-bezier(0.16,1,0.3,1) 0.2s both' : 'none',
-                    opacity: visible ? undefined : 0,
-                  }}
-                >
-                  {prefix}
-                </p>
-                <p
-                  className="text-white uppercase text-center"
-                  style={{
-                    fontFamily: "'IvyPresto Headline', serif",
-                    fontStyle: 'italic', fontWeight: 700,
-                    fontSize: 'clamp(48px, 9.72vw, 140px)', lineHeight: 1,
-                    letterSpacing: '0.1em', textShadow: '12px 11px 35px #000',
-                    marginTop: '8px',
-                    animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
-                    opacity: visible ? undefined : 0,
-                  }}
-                >
-                  {name.toUpperCase()}
-                </p>
+                {stackedHeroTitle ? (
+                  <div className="inline-flex flex-col items-start">
+                    <p
+                      className="text-white uppercase text-left whitespace-nowrap"
+                      style={{
+                        fontFamily: "'IvyPresto Headline', serif",
+                        fontStyle: 'italic', fontWeight: 700,
+                        fontSize: 'clamp(42px, 5.9vw, 86px)', lineHeight: 1.1,
+                        letterSpacing: '0.13em', textShadow: '0px 0px 0px #040404',
+                        animation: visible ? 'theReveal 1s cubic-bezier(0.16,1,0.3,1) 0.2s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                        ...(slug === 'wordsmith' ? { marginLeft: '146px',marginTop:'130px' } : {}),
+                      }}
+                    >
+                      {prefix}
+                    </p>
+                    <p
+                      className="text-white uppercase text-left whitespace-nowrap"
+                      style={{
+                        fontFamily: "'IvyPresto Headline', serif",
+                        fontStyle: 'italic', fontWeight: 700,
+                        fontSize: 'clamp(40px, 8.6vw, 124px)', lineHeight: 1,
+                        letterSpacing: '0.1em', textShadow: '12px 11px 35px #000',
+                        marginTop: '8px',
+                        animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {name.toUpperCase()}
+                    </p>
+                  </div>
+                ) : designStudioStackedTitle ? (
+                  <div className="inline-flex flex-col items-start">
+                    <p
+                      className="text-white uppercase text-left whitespace-nowrap"
+                      style={{
+                        ...DESIGN_STUDIO_OVERLAY_LINE,
+                        animation: visible ? 'theReveal 1s cubic-bezier(0.16,1,0.3,1) 0.2s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {prefix}
+                    </p>
+                    <p
+                      className="text-white uppercase text-left whitespace-nowrap"
+                      style={{
+                        ...DESIGN_STUDIO_OVERLAY_LINE,
+                        marginTop: '8px',
+                        marginLeft: '36px',
+                        animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {name.toUpperCase()}
+                    </p>
+                  </div>
+                ) : slug === 'deck' || slug === 'cost-ctrl' ? (
+                  <div className="inline-flex max-w-full flex-nowrap items-baseline justify-center gap-x-[0.55em] text-center text-white uppercase">
+                    <span
+                      className="shrink-0 whitespace-nowrap"
+                      style={{
+                        fontFamily: "'IvyPresto Headline', serif",
+                        fontStyle: 'italic', fontWeight: 700,
+                        fontSize: 'clamp(48px, 9.72vw, 140px)', lineHeight: 1,
+                        letterSpacing: '0.1em', textShadow: '12px 11px 35px #000',
+                        animation: visible ? 'theReveal 1s cubic-bezier(0.16,1,0.3,1) 0.2s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {prefix}
+                    </span>
+                    <span
+                      className="shrink-0 whitespace-nowrap"
+                      style={{
+                        fontFamily: "'IvyPresto Headline', serif",
+                        fontStyle: 'italic', fontWeight: 700,
+                        fontSize: 'clamp(48px, 9.72vw, 140px)', lineHeight: 1,
+                        letterSpacing: '0.1em', textShadow: '12px 11px 35px #000',
+                        animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {name.toUpperCase()}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <p
+                      className="text-white uppercase text-center"
+                      style={{
+                        fontFamily: "'IvyPresto Headline', serif",
+                        fontStyle: 'italic', fontWeight: 700,
+                        fontSize: 'clamp(48px, 6.67vw, 96px)', lineHeight: 1.1,
+                        letterSpacing: '0.13em', textShadow: '0px 0px 0px #040404',
+                        animation: visible ? 'theReveal 1s cubic-bezier(0.16,1,0.3,1) 0.2s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {prefix}
+                    </p>
+                    <p
+                      className="text-white uppercase text-center"
+                      style={{
+                        fontFamily: "'IvyPresto Headline', serif",
+                        fontStyle: 'italic', fontWeight: 700,
+                        fontSize: 'clamp(48px, 9.72vw, 140px)', lineHeight: 1,
+                        letterSpacing: '0.1em', textShadow: '12px 11px 35px #000',
+                        marginTop: '8px',
+                        animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
+                        opacity: visible ? undefined : 0,
+                      }}
+                    >
+                      {name.toUpperCase()}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -292,15 +562,8 @@ export default function ToolHero({ tool }) {
                 opacity: visible ? undefined : 0,
               }}
             >
-              <p
-                className="uppercase text-black font-semibold text-[24px] tracking-[-0.02em] mb-[24px] text-center"
-                style={{ fontFamily: 'Inter, sans-serif', lineHeight: '24px' }}
-              >
-                WHAT IT IS
-              </p>
-
               <h2
-                className="text-center text-black mb-10 max-w-[834px] mx-auto leading-[1.2] tracking-[-0.02em]"
+                className={`text-center text-black mb-10 max-w-[834px] mx-auto leading-[1.2] tracking-[-0.02em] ${heroHeadlinePreservesBreaks ? 'whitespace-pre-line' : ''} ${designStudioHeadlineTopSpace ? 'md:mt-14 lg:mt-16' : ''}`}
                 style={{ fontSize: 'clamp(32px, 3.75vw, 54px)' }}
               >
                 {(heroHeadline || []).map((part, i) =>
@@ -320,14 +583,14 @@ export default function ToolHero({ tool }) {
               <div className="flex items-center justify-center gap-[12px]">
                 <Link
                   href={heroCtaPrimary?.href || '/signup'}
-                  className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors"
+                  className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[24px] text-[18px] font-medium leading-[20px] text-white whitespace-nowrap hover:bg-[#27272a] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaPrimary?.label || 'Discover MANIFESTR Today'}
                 </Link>
                 <Link
                   href={heroCtaSecondary?.href || '/tools'}
-                  className="inline-flex items-center justify-center bg-white border border-[#e4e4e7] text-[#18181b] rounded-[6px] px-[24px] h-[54px] text-[18px] leading-[20px] font-medium whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
+                  className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] border border-[#e4e4e7] bg-white px-[24px] text-[18px] font-medium leading-[20px] text-[#18181b] whitespace-nowrap hover:bg-[#f4f4f5] transition-colors"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {heroCtaSecondary?.label || 'Explore Our Tools'}

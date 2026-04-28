@@ -9,7 +9,7 @@ export default function VideoSection() {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <section className="w-full relative z-10 mt-[-60px] md:mt-[-264px] pt-[24px] md:pt-[62px] pb-[96px] md:pb-[62px]">
+    <section className="w-full relative z-10 mt-[-60px] md:mt-[-264px] pt-[24px] md:pt-[62px] pb-12 md:pb-[62px]">
       <div className="w-full max-w-[1480px] mx-auto px-6 md:px-[110px]">
 
         {/* Rounded video card */}

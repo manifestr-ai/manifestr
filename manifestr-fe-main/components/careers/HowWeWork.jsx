@@ -83,29 +83,31 @@ export default function HowWeWork() {
         </div>
 
         {/* Mobile — WORK watermark + cutout */}
-        <div className="md:hidden relative w-full" style={{ height: 372 }}>
+        <div className="md:hidden relative w-full" style={{ height: 420 }}>
+          {/* WORK x3 — centered, 3 rows */}
           <div
-            className="absolute left-[32px] top-0 w-[280px] h-[240px] pointer-events-none select-none"
+            className="absolute inset-x-0 top-4 gap-4 flex flex-col items-center text-center pointer-events-none select-none"
             aria-hidden="true"
             style={{
               fontFamily: "'IvyPresto Headline', serif",
               fontWeight: 600,
               fontStyle: 'italic',
-              fontSize: 95,
-              lineHeight: '63px',
+              fontSize: 114,
+              lineHeight: '76px',
               color: 'white',
               opacity: 0.74,
             }}
           >
-            <p className="mb-[16px]">WORK</p>
-            <p className="mb-[16px]">WORK</p>
+            <p>WORK</p>
+            <p>WORK</p>
             <p>WORK</p>
           </div>
-          <div className="absolute left-0 top-[-50px] w-[350px] h-[470px] overflow-hidden">
+          {/* Cutout — centered */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-[-38px] w-[400px] h-[520px] overflow-hidden">
             <CldImage
               src={CUTOUT_IMG}
               alt="Professional woman with phone"
-              className="w-full h-[500px] object-contain"
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
