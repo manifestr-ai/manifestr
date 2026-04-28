@@ -234,34 +234,30 @@ export default function ProductUpdates() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[415px] md:h-[518px] flex items-center justify-center px-6 md:px-[80px] py-[48px] md:py-[96px] overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
+      <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
           <CldImage
             src={HERO_BG}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover object-center md:object-top"
+            className="absolute inset-0 h-full w-full object-cover object-center md:object-top"
           />
-          <div className="absolute inset-0 bg-black/20 md:bg-black/20" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[25px] md:gap-[32px] w-full max-w-[342px] md:max-w-[510px]"
+          className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 md:gap-8"
         >
-          <div className="flex flex-col items-center gap-[20px] text-center">
-            <h1 className="text-[36px] md:text-[72px] leading-[normal] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
+          <div className="flex flex-col items-center gap-5 text-center md:gap-6">
+            <h1 className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Product </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Updates</span>
             </h1>
             <p
-              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-white"
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontWeight: 400,
-                textShadow: '0px 3px 19.8px black',
-              }}
+              className="text-center text-[16px] leading-[24px] text-white md:text-[18px] md:leading-[28px]"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               {"See what's new, improved, and coming soon in MANIFESTR."}
             </p>
@@ -320,7 +316,7 @@ export default function ProductUpdates() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: i * 0.06 }}
-                  className="bg-white border border-[#e2e8f0] rounded-[16px] px-[12px] md:px-[24px] py-[24px] flex flex-col gap-[12px] items-start w-full"
+                  className="w-full flex flex-col items-start gap-[12px] rounded-[16px] border-b border-[#e2e8f0] bg-[#f4f4f4] px-[12px] py-[24px] md:px-[24px]"
                 >
                   {/* Tag + date */}
                   <div className="flex items-center gap-[12px] flex-wrap">
@@ -378,7 +374,7 @@ export default function ProductUpdates() {
 
       {/* ─── Need More Help? (mobile) ─── */}
       <section className="md:hidden w-full pt-[48px]">
-        <div className="relative w-full overflow-hidden flex items-center justify-center" style={{ height: 358 }}>
+        <div className="relative flex h-[380px] w-full items-center justify-center overflow-hidden">
           <CldImage src={HELP_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -413,7 +409,7 @@ export default function ProductUpdates() {
       </section>
 
       {/* ─── Stay in the Know (desktop) ─── */}
-      <section className="hidden md:block w-full relative h-[414px] overflow-hidden">
+      <section className="relative hidden h-[414px] w-full overflow-hidden md:block">
         <CldImage src={CTA_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
@@ -425,31 +421,33 @@ export default function ProductUpdates() {
           >
             <div className="flex flex-col items-center gap-[16px]">
               <h2 className="text-[60px] leading-[72px] tracking-[-1.2px] text-black">
-                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Stay in the </span>
-                <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>know</span>
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>STAY IN THE </span>
+                <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>KNOW</span>
               </h2>
               <p
                 className="text-[16px] leading-[24px] text-[#52525b] max-w-[603px]"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                No spam. No filler.<br />
-                Updates, events, and releases only when they matter.
+                No spam. No filler. Updates,
+                <br />
+                events, and releases only when they matter.
               </p>
             </div>
             <div className="flex gap-[12px] items-center w-full max-w-[500px]">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="ENTER YOUR EMAIL"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 h-[50px] border-2 border-[#18181b] rounded-[8px] px-[16px] text-[16px] font-semibold text-black placeholder:text-black outline-none bg-transparent"
+                className="flex-1 h-[50px] rounded-[8px] border-1 border-[#8f8f8f] bg-white px-[16px] text-[16px] font-medium text-[#18181b] placeholder:text-[#71717a] outline-none"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               />
               <button
-                className="h-[50px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors shrink-0"
+                type="button"
+                className="inline-flex h-[50px] shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[16px] text-[14px] font-medium leading-[20px] tracking-wide text-white transition-colors hover:bg-[#27272a]"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Stay informed
+                STAY INFORMED
               </button>
             </div>
           </motion.div>

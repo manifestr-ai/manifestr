@@ -15,40 +15,51 @@ export default function WhyChoose() {
   return (
     <section className="relative w-full bg-white overflow-hidden">
       <div
-        className="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col min-w-0 px-6 py-[22px] gap-[40px]
-                       md:flex-row md:max-lg:items-start md:max-lg:px-6 md:max-lg:py-12 md:max-lg:gap-8
-                       lg:max-xl:px-10 lg:max-xl:py-16 lg:max-xl:gap-8
+        className="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col min-w-0 px-6 py-8 gap-8
+                       md:flex-row md:max-lg:items-start md:max-lg:px-6 md:max-lg:py-12 md:max-lg:gap-6
+                       lg:max-xl:px-10 lg:max-xl:py-16 lg:max-xl:gap-6
                        xl:px-[210px] xl:py-[87px] xl:gap-0"
       >
 
-        {/* Left — heading + M icon */}
+        {/* Left — mobile: M on top & centered; md+: heading then M */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="w-full shrink-0 flex flex-col items-center min-w-0
-                     md:max-lg:basis-[44%] md:max-lg:max-w-[44%] md:max-lg:shrink-0 md:max-lg:items-start
-                     lg:max-xl:basis-[40%] lg:max-xl:max-w-[min(380px,40%)] lg:max-xl:min-w-0
-                     xl:w-[438px] xl:max-w-none xl:basis-auto xl:shrink-0 xl:items-start"
+          className="w-full shrink-0 flex flex-col items-center text-center min-w-0
+                     md:items-start md:text-left
+                     md:max-lg:basis-[44%] md:max-lg:max-w-[44%] md:max-lg:shrink-0
+                     lg:max-xl:basis-[40%] lg:max-xl:max-w-[min(420px,44%)] lg:max-xl:min-w-0
+                     xl:min-w-[min(450px,46vw)] xl:w-max xl:max-w-none xl:basis-auto xl:shrink-0"
         >
-          <h2
-            className="text-[40px] leading-[normal] tracking-[-0.8px] text-black mb-[8px] text-center max-w-[266px] w-full min-w-0
-                       md:max-lg:text-[40px] md:max-lg:leading-[1.15] md:max-lg:tracking-[-0.8px] md:max-lg:mb-8 md:max-lg:text-left md:max-lg:max-w-none md:max-lg:break-words
-                       lg:max-xl:text-[52px] lg:max-xl:leading-[1.12] lg:max-xl:tracking-[-1.04px] lg:max-xl:mb-10
-                       xl:text-[60px] xl:leading-[72px] xl:tracking-[-1.2px] xl:mb-[50px]"
-          >
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Why </span>
-            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Work </span>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>at MANIFESTR?</span>
-          </h2>
           <CldImage
             src={M_ICON}
             alt="Manifestr icon"
-            className="w-[56px] h-[56px] object-contain max-w-full
+            className="order-1 mb-6 mx-auto shrink-0 w-[56px] h-[56px] object-contain max-w-full
+                       md:order-2 md:mb-0 md:mx-0 md:self-start
                        md:max-lg:w-[min(220px,38vw)] md:max-lg:h-auto
                        lg:max-xl:w-[min(280px,32vw)] lg:max-xl:h-auto
                        xl:w-[347px] xl:h-auto"
           />
+          <h2
+            className="order-2 w-full min-w-0 text-[40px] leading-[normal] tracking-[-0.8px] text-black mx-auto mb-0
+                       md:order-1 md:text-left md:w-max md:max-w-full md:mb-[8px]
+                       md:max-lg:text-[40px] md:max-lg:leading-[1.15] md:max-lg:tracking-[-0.8px] md:max-lg:mb-8
+                       lg:max-xl:text-[52px] lg:max-xl:leading-[1.12] lg:max-xl:tracking-[-1.04px] lg:max-xl:mb-10
+                       xl:text-[60px] xl:leading-[72px] xl:tracking-[-1.2px] xl:mb-[50px]"
+          >
+            <span className="block whitespace-nowrap">
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Why </span>
+              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Work </span>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>at</span>
+            </span>
+            <span
+              className="block whitespace-nowrap"
+              style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+            >
+              MANIFESTR?
+            </span>
+          </h2>
         </motion.div>
 
         {/* Right — body text, stats, buttons */}
@@ -57,18 +68,19 @@ export default function WhyChoose() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.15 }}
-          className="w-full flex flex-col justify-center min-w-0
+          className="w-full flex flex-col justify-center items-center text-center min-w-0
+                     md:items-start md:text-left
                      md:max-lg:flex-1 md:max-lg:min-w-0
                      lg:max-xl:flex-1 lg:max-xl:min-w-0 lg:max-xl:max-w-none
                      xl:max-w-[605px] xl:flex-none"
         >
           <div
-            className="text-[14px] leading-[28px] text-[#52525b] mb-[40px] md:max-lg:text-[15px] md:max-lg:leading-[24px] md:max-lg:mb-8
+            className="text-[14px] leading-[24px] text-[#52525b] mb-8 md:max-lg:text-[15px] md:max-lg:leading-[24px] md:max-lg:mb-8
                        lg:max-xl:text-[17px] lg:max-xl:leading-[27px] lg:max-xl:mb-10
                        xl:text-[18px] xl:leading-[28px] xl:mb-[40px]"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
-            <p className="mb-[18px]">
+            <p className="mb-4 md:mb-[18px]">
               Forget business as usual. This is the new era of work. We are not here to play by old rules. Every company has values. Ours are different. They don&rsquo;t sit on posters, they shape everything we build. Curious? Take a look.
             </p>
             <p>
@@ -77,9 +89,9 @@ export default function WhyChoose() {
           </div>
 
           {/* Stats row */}
-          <div className="flex flex-wrap gap-[16px] mb-[32px] md:max-lg:gap-x-4 md:max-lg:gap-y-3 md:max-lg:justify-between lg:max-xl:gap-6 xl:flex-nowrap xl:gap-[48px]">
+          <div className="flex flex-wrap justify-center gap-[16px] mb-8 md:mb-[32px] md:justify-start md:max-lg:gap-x-4 md:max-lg:gap-y-3 md:max-lg:justify-between lg:max-xl:gap-6 xl:flex-nowrap xl:gap-[48px]">
             {STATS.map((s) => (
-              <div key={s.label} className="min-w-0 md:max-lg:flex-1 md:max-lg:basis-[30%] lg:max-xl:flex-none">
+              <div key={s.label} className="min-w-0 text-center md:text-left md:max-lg:flex-1 md:max-lg:basis-[30%] lg:max-xl:flex-none">
                 <p
                   className="text-[32px] leading-[27px] tracking-[0.64px] text-black
                              md:max-lg:text-[28px] md:max-lg:leading-[26px] md:max-lg:tracking-[0.56px]
@@ -103,7 +115,7 @@ export default function WhyChoose() {
           </div>
 
           {/* Buttons — primary: Figma 12181:22858 (shadcn button + arrow) */}
-          <div className="flex flex-wrap items-center gap-[12px] md:max-lg:gap-3 lg:max-xl:gap-3 xl:gap-[12px]">
+          <div className="flex w-full flex-wrap items-center justify-center gap-[12px] md:justify-start md:max-lg:gap-3 lg:max-xl:gap-3 xl:gap-[12px]">
             <Link
               href="#roles"
               className="inline-flex items-center justify-center gap-2 max-w-full shrink-0 px-6 py-2 rounded-[6px] bg-[#18181b] text-white font-medium whitespace-nowrap hover:bg-[#27272a] transition-colors
@@ -138,7 +150,7 @@ export default function WhyChoose() {
         aria-hidden="true"
         style={{
           right: '-15px',
-          bottom: '113px',
+          bottom: '28px',
           width: 327,
           height: 217,
           textAlign: 'right',

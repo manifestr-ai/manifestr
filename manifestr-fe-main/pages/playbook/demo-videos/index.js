@@ -1,7 +1,7 @@
 import Head from 'next/head'
-import Header from '../../components/layout/Header'
-import Footer from '../../components/layout/Footer'
-import DemoVideos from '../../components/playbook/DemoVideos'
+import Header from '../../../components/layout/Header'
+import Footer from '../../../components/layout/Footer'
+import DemoVideos from '../../../components/playbook/DemoVideos'
 
 export default function DemoVideosPage() {
   return (

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
-import { MobileToolAccordion, TOOLS, MOBILE_TOOL_ORDER } from '../tools/ToolsGrid'
+import { MobileToolAccordion, TOOLS, MOBILE_TOOL_ORDER } from '../tools/toolkitMobileShared'
 
 const TOOLKIT_BG = '/assets/landing/toolkit-bg.jpg'
 
@@ -27,7 +27,7 @@ const tools = [
   {
     id: 'cost-ctrl',
     title: 'COST',
-    accent: 'ctrl',
+    accent: 'CTRL',
     description:
       'Smart budgets, cost breakdowns and financial summaries built fast.',
     image:
@@ -126,7 +126,7 @@ function ToolCard({ tool, isExpanded, onHover, onClick }) {
             {tool.title}{' '}
           </span>
           <span
-            className="text-[28px] leading-[44px] lowercase italic text-white"
+            className={`text-[28px] leading-[44px] italic text-white ${tool.id === 'cost-ctrl' ? 'uppercase' : 'lowercase'}`}
             style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
           >
             {tool.accent}
@@ -161,7 +161,7 @@ function ToolCard({ tool, isExpanded, onHover, onClick }) {
             {tool.title}{' '}
           </span>
           <span
-            className="text-[26px] leading-[44px] text-[#282828] italic lowercase"
+            className={`text-[26px] leading-[44px] text-[#282828] italic ${tool.id === 'cost-ctrl' ? 'uppercase' : 'lowercase'}`}
             style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
           >
             {tool.accent}
@@ -196,22 +196,23 @@ export default function ToolkitSection() {
           />
 
           <div className="relative z-10 px-6 pt-6">
-            <h2>
-              <span
-                className="font-bold italic text-white text-[30px] leading-[72px] tracking-[-0.6px]"
-                style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
-              >
+            {/* Typography aligned with AboutHero (components/about/AboutHero.jsx) */}
+            <h2
+              className="text-[36px] leading-[44px] tracking-[-0.72px] text-white"
+              style={{ textShadow: '0px 4px 20.9px rgba(0,0,0,0.25)' }}
+            >
+              <span className="font-bold" style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}>
                 THE{' '}
               </span>
               <span
-                className="italic text-[#858585] text-[40px] leading-[76px] tracking-[-0.4px]"
-                style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 300 }}
+                className="italic text-[#858585]"
+                style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
               >
                 toolkit
               </span>
             </h2>
 
-            <div className="mt-6 flex flex-col gap-5">
+            <div className="mt-4 flex flex-col gap-5">
               <p
                 className="text-[16px] text-white"
                 style={{ fontFamily: "'Inter', sans-serif" }}
@@ -264,19 +265,20 @@ export default function ToolkitSection() {
           <div className="flex flex-row gap-0 w-full">
             {/* Left: vertical title + copy + button */}
             <div className="flex flex-row items-start gap-10 w-[312px] shrink-0">
-              <div className="flex items-center justify-center w-[56px] h-[302px]">
-                <div className="-rotate-90 whitespace-nowrap">
-                  <span
-                    className="text-[60px] leading-[72px] font-bold italic text-white tracking-[-1.2px]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
-                  >
+              <div className="flex items-center justify-center w-[56px] min-h-[302px]">
+                <div
+                  className="-rotate-90 whitespace-nowrap text-[72px] leading-[80px] tracking-[-1.44px] text-white"
+                  style={{ textShadow: '0px 4px 20.9px rgba(0,0,0,0.25)' }}
+                >
+                  <span className="font-bold" style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}>
                     THE{' '}
                   </span>
                   <span
-                    className="text-[72px] leading-[76px] italic text-[#858585] tracking-[-0.72px]"
+                    className="italic text-[#858585]"
                     style={{
                       fontFamily: "'IvyPresto Headline', serif",
-                      fontWeight: 300,
+                      fontWeight: 600,
+                      fontStyle: 'italic',
                     }}
                   >
                     toolkit
@@ -304,7 +306,7 @@ export default function ToolkitSection() {
                 className="inline-flex items-center justify-center h-[54px] w-[160px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
-                Explore Toolkit
+                Explore The Toolkit
               </Link>
             </div>
             </div>

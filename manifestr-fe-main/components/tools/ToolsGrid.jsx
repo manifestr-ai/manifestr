@@ -2,155 +2,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
-
-const TOOL_IMAGES = {
-  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-3_bmpqki.jpg',
-  analyser: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229988_qqmda6.jpg',
-  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943914/Frame_2147229988-1_t5bpbd.jpg',
-  designStudio: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-5_nyawnk.jpg',
-  mLogo: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944350/Manifestr_Icon_Reverse_2_rwa1j0.svg',
-  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-2_dnxkir.jpg',
-  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-4_edhaou.jpg',
-  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943914/Frame_2147229006_s7kczy.jpg',
-  costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-1_ohfioc.jpg',
-}
-
-const TOOL_THUMBS = {
-  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648466/Stra_knxfh3.png',
-  analyzer: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648468/Stra-2_vrwn3v.png',
-  'cost-ctrl': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648467/Stra-1_qiykoo.png',
-  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648465/Stra-8_zhxvh2.png',
-  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-6_bdrpoz.png',
-  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-5_oakd3c.png',
-  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-4_p60d5g.png',
-  'design-studio': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-3_qbmovn.png',
-}
+import { TOOLS, MOBILE_TOOL_ORDER, MobileToolAccordion } from './toolkitMobileShared'
 
 const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944466/37_modern-founder_model-07-shot-02b_2_wj98bv.svg'
 
-/* Copy aligned with components/landing/ToolkitSection.jsx `tools` (mobile uses same `MobileToolAccordion` data) */
-export const TOOLS = [
-  {
-    slug: 'strategist',
-    image: TOOL_IMAGES.strategist,
-    titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'strategist', font: 'ivy', size: 40 },
-    ],
-    tags: ['Strategy', 'Positioning', 'Direction'],
-    description: {
-      title: 'Strategy & Positioning',
-      content:
-        'Strategic plans, positioning and decision frameworks backed by data and built to execute.',
-    },
-  },
-  {
-    slug: 'analyzer',
-    image: TOOL_IMAGES.analyser,
-    titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'analyzer', font: 'ivy', size: 40 },
-    ],
-    tags: ['Insights', 'Analysis', 'Reporting'],
-    description: {
-      title: 'Insights & Analysis',
-      content:
-        'Data and insights shaped into charts and visuals for confident decision-making.',
-    },
-  },
-  {
-    slug: 'briefcase',
-    image: TOOL_IMAGES.briefcase,
-    titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'briefcase', font: 'ivy', size: 40 },
-    ],
-    tags: ['Briefs', 'Templates', 'Documents'],
-    description: {
-      title: 'Briefs & Documents',
-      content:
-        'Structured, professional documentation including briefs, reports, timelines and run sheets.',
-    },
-  },
-  {
-    slug: 'design-studio',
-    image: TOOL_IMAGES.designStudio,
-    titleParts: [
-      { text: 'DESIGN ', font: 'hk', size: 30 },
-      { text: ' studio', font: 'ivy', size: 40 },
-    ],
-    tags: ['Images', 'Visuals', 'Moodboards'],
-    description: {
-      title: 'Visual & Design',
-      content:
-        'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
-    },
-  },
-  {
-    type: 'logo',
-    image: TOOL_IMAGES.mLogo,
-  },
-  {
-    slug: 'wordsmith',
-    image: TOOL_IMAGES.wordsmith,
-    titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'wordsmith', font: 'ivy', size: 40 },
-    ],
-    tags: ['Copy', 'Content', 'Messaging'],
-    description: {
-      title: 'Copy & Content',
-      content:
-        'Professional copywriter delivering brand-aligned writing across formats and audiences.',
-    },
-  },
-  {
-    slug: 'deck',
-    image: TOOL_IMAGES.deck,
-    titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'deck', font: 'ivy', size: 40 },
-    ],
-    tags: ['Presentations', 'Slides', 'Pitches'],
-    description: {
-      title: 'Presentations',
-      content:
-        'On-brand, editable presentation decks with visuals, charts and structured slides.',
-    },
-  },
-  {
-    slug: 'huddle',
-    image: TOOL_IMAGES.huddle,
-    titleParts: [
-      { text: 'THE ', font: 'hk', size: 30 },
-      { text: 'huddle', font: 'ivy', size: 40 },
-    ],
-    tags: ['Agendas', 'Meetings', 'Minutes'],
-    description: {
-      title: 'Meetings & Memos',
-      content:
-        'Agendas, minutes, summaries and follow-ups, structured to support a continuous flow.',
-    },
-  },
-  {
-    slug: 'cost-ctrl',
-    image: TOOL_IMAGES.costCtrl,
-    titleParts: [
-      { text: 'COST ', font: 'hk', size: 30 },
-      { text: 'CTRL', font: 'ivy', size: 40 },
-    ],
-    tags: ['Costs', 'Budgets', 'Forecasting'],
-    description: {
-      title: 'Budgets & Forecasting',
-      content:
-        'Budgets, forecasts, financials and reconciliations delivered in a clear, structured format.',
-    },
-  },
-]
+export { TOOLS, MOBILE_TOOL_ORDER, MobileToolAccordion }
 
-/* ── Desktop grid card ── */
+/* ── Desktop grid card — subtle lift + shadow on hover, no slide-up overlay ── */
 function ToolCard({ tool, index }) {
-  const [isHovered, setIsHovered] = useState(false)
   const router = useRouter()
 
   if (tool.type === 'logo') {
@@ -158,10 +17,11 @@ function ToolCard({ tool, index }) {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        whileHover={{ y: -8, scale: 1.02 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
-        className="relative rounded-[12px] border border-[#e4e3e1] flex items-center justify-center aspect-302/369 cursor-pointer overflow-hidden"
+        whileHover={{ y: -5, scale: 1.012, transition: { duration: 0.18, ease: 'easeOut' } }}
+        className="relative rounded-[12px] border border-[#e4e3e1] flex items-center justify-center aspect-302/369 cursor-pointer overflow-hidden shadow-sm"
+        style={{ willChange: 'transform' }}
       >
         <CldImage
           src="https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943941/Wordsmith_1_jfi1kq.jpg"
@@ -169,9 +29,7 @@ function ToolCard({ tool, index }) {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-[rgba(0,0,0,0.45)]" />
-        {/*
-          Geometric center reads left-heavy because of the mark’s dot; shift the artboard right of center.
-        */}
+        {/* Shift mark slightly right of geometric center to compensate for the dot */}
         <CldImage
           src={tool.image}
           alt="MANIFESTR"
@@ -186,20 +44,19 @@ function ToolCard({ tool, index }) {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, scale: 1.02 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      className="relative bg-white rounded-[12px] overflow-hidden aspect-302/369 cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ y: -5, scale: 1.012, transition: { duration: 0.18, ease: 'easeOut' } }}
+      className="relative bg-white rounded-[12px] overflow-hidden aspect-302/369 cursor-pointer shadow-sm"
+      style={{ willChange: 'transform' }}
+      onClick={() => { if (tool.slug) router.push(`/tools/${tool.slug}`) }}
     >
       <div className="flex flex-col p-[12px] h-full">
         <div className="relative w-full flex-1 rounded-[12px] overflow-hidden">
           <CldImage
             src={tool.image}
             alt=""
-            className="w-full h-full object-cover rounded-[12px] transition-transform duration-500 ease-out"
-            style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+            className="w-full h-full object-cover rounded-[12px]"
           />
         </div>
 
@@ -230,208 +87,9 @@ function ToolCard({ tool, index }) {
           </p>
         </div>
       </div>
-
-      <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: isHovered ? 0 : '100%' }}
-        transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
-        className="absolute inset-0 bg-white rounded-[12px] z-20 flex flex-col p-[16px]"
-      >
-        <div className="flex flex-col items-center justify-center text-center mb-[10px]">
-          <h3 className="text-center tracking-[-0.6px]">
-            {tool.titleParts.map((part, i) => (
-              <span
-                key={i}
-                className="text-black leading-[44px]"
-                style={{
-                  fontFamily: part.font === 'ivy'
-                    ? "'IvyPresto Headline', serif"
-                    : "'Hanken Grotesk', sans-serif",
-                  fontWeight: part.font === 'ivy' ? 600 : 800,
-                  fontStyle: part.font === 'ivy' ? 'italic' : 'normal',
-                  fontSize: `${part.size}px`,
-                }}
-              >
-                {part.text}
-              </span>
-            ))}
-          </h3>
-          <p
-            className="text-[14px] leading-[20px] text-black text-center mt-[4px]"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            {tool.tags.join(' • ')}
-          </p>
-        </div>
-
-        {tool.description && (
-          <div className="flex-1 overflow-hidden flex flex-col gap-[8px]">
-            <p
-              className="font-bold text-[14px] leading-[20px] text-black"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              {tool.description.title}
-            </p>
-            <p
-              className="text-[14px] leading-[20px] text-[#52525b] line-clamp-3"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              {tool.description.content}
-            </p>
-            {tool.description.quickTip && (
-              <p
-                className="text-[14px] leading-[20px] text-[#52525b] line-clamp-2"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                <span className="font-bold text-black">Quick Tip:</span>{' '}
-                {tool.description.quickTip}
-              </p>
-            )}
-          </div>
-        )}
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            if (tool.slug) router.push(`/tools/${tool.slug}`)
-          }}
-          className="mt-[12px] w-full bg-[#18181b] hover:bg-[#27272a] text-white text-[14px] font-medium leading-[20px] py-[12px] px-[16px] rounded-[8px] transition-colors duration-200 shrink-0 cursor-pointer"
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          Start Now
-        </button>
-      </motion.div>
     </motion.div>
   )
 }
-
-/* ── Mobile vertical accordion card (shared with home ToolkitSection) ── */
-export function MobileToolAccordion({ tool, isExpanded, onTap }) {
-  const router = useRouter()
-  const titleText = tool.titleParts[0].text.trim()
-  const accentText = tool.titleParts[1].text
-  const thumbSrc = TOOL_THUMBS[tool.slug]
-
-  return (
-    <div
-      onClick={() => {
-        if (isExpanded && tool.slug) {
-          router.push(`/tools/${tool.slug}`)
-        } else {
-          onTap()
-        }
-      }}
-      className="relative w-full overflow-hidden cursor-pointer"
-      style={{
-        height: isExpanded ? 232 : 59,
-        borderRadius: isExpanded ? 20 : 125,
-        transition:
-          'height 0.45s cubic-bezier(.4,0,.2,1), border-radius 0.45s cubic-bezier(.4,0,.2,1)',
-      }}
-    >
-      {/* Thumbnail — visible when collapsed */}
-      {thumbSrc && (
-        <CldImage
-          src={thumbSrc}
-          alt={`${titleText} ${accentText}`}
-          className="absolute top-0 bottom-0 right-0 w-[70%] h-full object-cover object-right"
-          style={{
-            opacity: isExpanded ? 0 : 1,
-            transition: 'opacity 0.35s cubic-bezier(.4,0,.2,1)',
-          }}
-        />
-      )}
-
-      {/* Full image — visible when expanded */}
-      <CldImage
-        src={tool.image}
-        alt={`${titleText} ${accentText}`}
-        className="absolute inset-0 w-full h-full object-cover object-right"
-        style={{
-          opacity: isExpanded ? 1 : 0,
-          transition: 'opacity 0.35s cubic-bezier(.4,0,.2,1)',
-        }}
-      />
-
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: isExpanded
-            ? 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.55) 100%)'
-            : 'linear-gradient(to left, transparent 44%, white 68%)',
-          transition: 'background 0.45s cubic-bezier(.4,0,.2,1)',
-        }}
-      />
-
-      {/* Expanded: title + description at bottom */}
-      <div
-        className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end"
-        style={{
-          opacity: isExpanded ? 1 : 0,
-          transition: 'opacity 0.3s ease',
-          transitionDelay: isExpanded ? '0.15s' : '0s',
-          pointerEvents: isExpanded ? 'auto' : 'none',
-        }}
-      >
-        <p className="uppercase tracking-[0.8px] text-white text-balance">
-          <span
-            className="text-[20px] leading-[36px] font-extrabold"
-            style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
-          >
-            {titleText}{' '}
-          </span>
-          <span
-            className="text-[23px] leading-[36px] lowercase italic"
-            style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
-          >
-            {accentText}
-          </span>
-        </p>
-        <p
-          className="text-[12px] leading-[17px] text-white font-medium mt-1 max-w-[298px]"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-        >
-          {tool.description.content}
-        </p>
-      </div>
-
-      {/* Collapsed: left-aligned name */}
-      <div
-        className="absolute inset-0 flex items-center justify-start flex-wrap gap-x-1 gap-y-0 pl-5 pr-2"
-        style={{
-          opacity: isExpanded ? 0 : 1,
-          transition: 'opacity 0.25s ease',
-          transitionDelay: isExpanded ? '0s' : '0.18s',
-          pointerEvents: isExpanded ? 'none' : 'auto',
-        }}
-      >
-        <span
-          className="text-[20px] leading-[37px] font-extrabold text-[#282828] uppercase tracking-[0.88px]"
-          style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
-        >
-          {titleText}
-        </span>
-        <span
-          className="text-[24px] leading-[37px] text-[#282828] italic lowercase tracking-[0.96px]"
-          style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
-        >
-          {accentText}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-export const MOBILE_TOOL_ORDER = [
-  'deck',
-  'strategist',
-  'cost-ctrl',
-  'analyzer',
-  'design-studio',
-  'briefcase',
-  'huddle',
-  'wordsmith',
-]
 
 export default function ToolsGrid() {
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0)
@@ -442,7 +100,7 @@ export default function ToolsGrid() {
       {/* Desktop hero image */}
       <div
         aria-hidden="true"
-        className="hidden lg:block absolute top-0 bottom-0 overflow-hidden pointer-events-none   "
+        className="hidden lg:block absolute top-0 bottom-0 overflow-hidden pointer-events-none"
       >
         <CldImage
           src={HERO_IMAGE}

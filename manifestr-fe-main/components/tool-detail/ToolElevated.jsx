@@ -87,7 +87,7 @@ export default function ToolElevated({ tool }) {
   const { elevatedTitle } = tool
 
   return (
-    <section className="w-full relative overflow-hidden">
+    <section className="hidden md:block relative w-[100vw] max-w-[100vw] ml-[calc(50%-50vw)] overflow-hidden">
       <CldImage src={MACBOOK_BG} alt="" className="w-full h-auto block" />
 
       <div className="absolute inset-0 z-10">

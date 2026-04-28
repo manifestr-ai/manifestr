@@ -1,12 +1,14 @@
 const STRATEGIST_HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954644/Strategist_hsfyhp.jpg'
 const STRATEGIST_SPRITE  = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954695/Group_1577709340_if0cs4.svg'
 
+/** Optional `heroImageMobile` per tool: full-bleed mobile hero art (Figma 14258:25165). Falls back to `heroImage`. */
 const TOOL_DETAILS = {
   strategist: {
     slug: 'strategist',
     name: 'strategist',
     prefix: 'THE',
     heroImage: STRATEGIST_HERO_BG,
+    heroImageMobile: STRATEGIST_HERO_BG,
     heroSprites: null,
     featureHeading: [
       { text: 'How The Strategist moves your work ', style: 'normal' },
@@ -71,6 +73,7 @@ const TOOL_DETAILS = {
     name: 'analyzer',
     prefix: 'THE',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Analyzer ', style: 'normal' },
@@ -84,18 +87,23 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959988/Rectangle_14-8_biluiz.jpg',
     ],
     heroHeadline: [
-      { text: 'Turn raw data into ', style: 'normal' },
-      { text: 'sharp insight',       style: 'italic' },
-      { text: '. Uncover patterns, surface what matters, and report with ',   style: 'normal' },
-      { text: 'clarity ',            style: 'italic' },
-      { text: 'that drives decisions.', style: 'normal' },
+      { text: 'Let the ', style: 'normal' },
+      { text: 'data', style: 'italic' },
+      { text: ' speak.\nTransform spreadsheets, reports and ', style: 'normal' },
+      { text: 'data', style: 'italic' },
+      { text: ' into clear visual ', style: 'normal' },
+      { text: 'insights', style: 'italic' },
+      { text: ' that reveal trends instantly.', style: 'normal' },
     ],
-    heroCol1: 'Dig deep into data sets, surface trends, and generate intelligence that informs confident decisions.',
-    heroCol2: 'Produce reports, dashboards, and insight summaries that are clear, structured, and built to impress.',
-    darkBannerText: 'Data doesn\'t tell stories — the right analysis does.',
+    heroCol1:
+      'Upload spreadsheets, reports or survey data and instantly turn them into clear charts, dashboards and visual summaries.',
+    heroCol2:
+      'Create KPI views, trend reports and performance comparisons ready to support real decisions.',
+    darkBannerText: 'WHEN THE ROOM CHALLENGES YOU, THE DATA LEAVES NO DOUBT.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Turn raw data into sharp insight.\nUncover patterns, surface what matters, and report with clarity that drives decisions.',
+    tagline:
+      'Let the data speak.\nTransform spreadsheets, reports and data into clear visual insights that reveal trends instantly.',
     inputPlaceholder: 'PASTE YOUR DATA, UPLOAD A FILE, OR DESCRIBE WHAT YOU NEED ANALYSED',
     features: [
       { icon: '📊', label: 'Deep-dive data analysis and reporting.' },
@@ -136,6 +144,7 @@ const TOOL_DETAILS = {
     name: 'briefcase',
     prefix: 'THE',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Briefcase turns plans into ', style: 'normal' },
@@ -148,18 +157,22 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959986/Rectangle_14-5_mx4xno.jpg',
     ],
     heroHeadline: [
-      { text: 'Structure that sets the ', style: 'normal' },
-      { text: 'standard',               style: 'italic' },
-      { text: '. Create briefs, templates, and documents that leave nothing to ', style: 'normal' },
-      { text: 'chance',                 style: 'italic' },
-      { text: '.', style: 'normal' },
+      { text: 'Document what ', style: 'normal' },
+      { text: 'matters', style: 'italic' },
+      { text: '.\nTurn information into structured plans that align teams and keep ', style: 'normal' },
+      { text: 'delivery', style: 'italic' },
+      { text: ' on track.', style: 'normal' },
     ],
-    heroCol1: 'Build structured briefs, scopes, and proposals that align teams and set every project up for success.',
-    heroCol2: 'Generate professional documents — from RFPs to project charters — that are clear, complete, and ready to send.',
-    darkBannerText: 'Great briefs don\'t just define work — they win it.',
+    heroCol1:
+      'Start with notes, requirements or scattered project context and organise them into structured plans ready for execution.',
+    heroCol2:
+      'Generate briefs, scopes, timelines and delivery documents teams can review, approve and act on.',
+    darkBannerText:
+      'IF IT\u2019S NOT DOCUMENTED, IT\u2019S NOT CONTROLLED. EXECUTION DEMANDS STRUCTURE.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Structure that sets the standard.\nCreate briefs, templates, and documents that leave nothing to chance.',
+    tagline:
+      'Document what matters.\nTurn information into structured plans that align teams and keep delivery on track.',
     inputPlaceholder: 'DESCRIBE THE BRIEF OR DOCUMENT YOU NEED TO CREATE',
     features: [
       { icon: '📋', label: 'Structured briefs for any project type.' },
@@ -200,6 +213,7 @@ const TOOL_DETAILS = {
     name: 'studio',
     prefix: 'DESIGN',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How Design Studio turns visuals into ', style: 'normal' },
@@ -212,18 +226,22 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959982/Rectangle_14-17_efkwdn.jpg',
     ],
     heroHeadline: [
-      { text: 'Visuals that speak ', style: 'normal' },
-      { text: 'volumes',            style: 'italic' },
-      { text: '. Create moodboards, brand assets, and design concepts that ', style: 'normal' },
-      { text: 'elevate ',           style: 'italic' },
-      { text: 'every project.', style: 'normal' },
+      { text: 'Define the visual ', style: 'normal' },
+      { text: 'direction', style: 'italic' },
+      { text: '.\nTurn ideas, references and briefs into structured visual concepts that guide ', style: 'normal' },
+      { text: 'design', style: 'italic' },
+      { text: ' and execution.', style: 'normal' },
     ],
-    heroCol1: 'Generate on-brand visuals, moodboards, and design directions that set the creative tone for any project.',
-    heroCol2: 'Produce presentation-ready image assets, layouts, and concepts that impress clients and inspire teams.',
-    darkBannerText: 'Design is not decoration — it\'s direction.',
+    heroCol1:
+      'Develop direction from ideas, references or briefs through structured moodboards and concepts that guide design exploration.',
+    heroCol2:
+      'Create brand visuals, concept imagery, presentation graphics and assets ready for real campaigns and client work.',
+    darkBannerText:
+      'DESIGN IS\u2019T DECORATION. IT DEFINES VALUE THE MOMENT IT\u2019S SEEN.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Visuals that speak volumes.\nCreate moodboards, brand assets, and design concepts that elevate every project.',
+    tagline:
+      'Define the visual direction.\nTurn ideas, references and briefs into structured visual concepts that guide design and execution.',
     inputPlaceholder: 'DESCRIBE THE VISUAL OR DESIGN YOU WANT TO CREATE',
     features: [
       { icon: '🎨', label: 'Moodboards and visual direction.' },
@@ -264,6 +282,7 @@ const TOOL_DETAILS = {
     name: 'wordsmith',
     prefix: 'THE',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Wordsmith turns words into ', style: 'normal' },
@@ -273,21 +292,25 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959984/Rectangle_13-4_u41lbv.jpg',
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-12_o2sujq.jpg',
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-13_k7diey.jpg',
-      'hhttps://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-14_patr4v.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-14_patr4v.jpg',
     ],
     heroHeadline: [
-      { text: 'Words that work ', style: 'normal' },
-      { text: 'harder',          style: 'italic' },
-      { text: '. Produce headlines, content, scripts, and messaging that ', style: 'normal' },
-      { text: 'connects ',       style: 'italic' },
-      { text: 'with your audience.', style: 'normal' },
+      { text: 'Write with ', style: 'normal' },
+      { text: 'intent', style: 'italic' },
+      { text: '.\nTurn ideas, briefs and context into clear, persuasive ', style: 'normal' },
+      { text: 'copy', style: 'italic' },
+      { text: ' that shapes perception and drives action.', style: 'normal' },
     ],
-    heroCol1: 'Generate on-brand copy for campaigns, emails, social, and more — from a single prompt or existing content.',
-    heroCol2: 'Produce longform content, video scripts, and content calendars that are consistent, strategic, and polished.',
-    darkBannerText: 'The right words don\'t just communicate — they convert.',
+    heroCol1:
+      'Start with ideas, notes or rough briefs and instantly shape them into structured copy that reflects your brand voice',
+    heroCol2:
+      'Generate headlines, copy, campaigns, scripts and content ready to use across products, presentations and marketing.',
+    darkBannerText:
+      'THE RIGHT WORDS DON\u2019T JUST CAPTURE ATTENTION. THEY ALTER THE OUTCOME.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Words that work harder.\nProduce headlines, content, scripts, and messaging that connects with your audience.',
+    tagline:
+      'Write with intent.\nTurn ideas, briefs and context into clear, persuasive copy that shapes perception and drives action.',
     inputPlaceholder: 'DESCRIBE THE CONTENT OR COPY YOU NEED',
     features: [
       { icon: '✏️', label: 'Headlines, taglines, and CTAs.' },
@@ -328,6 +351,7 @@ const TOOL_DETAILS = {
     name: 'deck',
     prefix: 'THE',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Deck moves your work ', style: 'normal' },
@@ -340,18 +364,22 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959989/Rectangle_14-11_hyljdz.jpg',
     ],
     heroHeadline: [
-      { text: 'Presentations that command ', style: 'normal' },
-      { text: 'attention',                  style: 'italic' },
-      { text: '. Create stunning, on-brand decks from prompts, documents, or ', style: 'normal' },
-      { text: 'URLs',                       style: 'italic' },
-      { text: '.', style: 'normal' },
+      { text: 'Make every ', style: 'normal' },
+      { text: 'slide', style: 'italic' },
+      { text: ' count.\nShape research, documents and ideas into structured ', style: 'normal' },
+      { text: 'presentations', style: 'italic' },
+      { text: ' that communicate clearly.', style: 'normal' },
     ],
-    heroCol1: 'Transform briefs, documents, and ideas into polished decks with clear narratives and on-brand design.',
-    heroCol2: 'Generate pitch decks, proposals, and presentations that win rooms and close deals — in minutes.',
-    darkBannerText: 'A great deck doesn\'t just inform — it persuades.',
+    heroCol1:
+      'Import research, notes, documents or rough ideas and instantly transform them into structured slides with a clear narrative.',
+    heroCol2:
+      'Produce presentation slide decks for pitches, reports, proposals and meetings that drive business decisions.',
+    darkBannerText:
+      'CAREERS ARE BUILT ON PRESENTATIONS. MAKE YOURS UNDENIABLE.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Presentations that command attention.\nCreate stunning, on-brand decks from prompts, documents, or URLs.',
+    tagline:
+      'Make every slide count.\nShape research, documents and ideas into structured presentations that communicate clearly.',
     inputPlaceholder: 'DESCRIBE THE PRESENTATION YOU NEED TO CREATE',
     features: [
       { icon: '🎯', label: 'Pitch decks that win business.' },
@@ -392,6 +420,7 @@ const TOOL_DETAILS = {
     name: 'huddle',
     prefix: 'THE',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Huddle helps you lead the ', style: 'normal' },
@@ -404,18 +433,22 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959983/Rectangle_14-20_erpma7.jpg',
     ],
     heroHeadline: [
-      { text: 'Meetings that actually move things ', style: 'normal' },
-      { text: 'forward',                           style: 'italic' },
-      { text: '. AI-generated agendas, pre-reads, minutes, and ', style: 'normal' },
-      { text: 'follow-ups',                        style: 'italic' },
+      { text: 'Lead the room. Align the ', style: 'normal' },
+      { text: 'team', style: 'italic' },
+      { text: '.\nRun meetings that turn conversations into clear decisions and real ', style: 'normal' },
+      { text: 'progress', style: 'italic' },
       { text: '.', style: 'normal' },
     ],
-    heroCol1: 'Turn any meeting into a structured, outcome-driven session with AI-generated agendas and pre-reads.',
-    heroCol2: 'Capture minutes, actions, and follow-ups automatically — so nothing falls through the cracks.',
-    darkBannerText: 'The best meetings are the ones that make the next meeting unnecessary.',
+    heroCol1:
+      'Upload meeting topics, notes or context and instantly structure them into clear agendas, briefing notes and discussion frameworks.',
+    heroCol2:
+      'Generate summaries, action items and follow-ups that capture decisions, assign ownership and drive action.',
+    darkBannerText:
+      'LEAD THE ROOM. ALIGN THE TEAM. OWN THE OUTCOME EVERY TIME.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Meetings that actually move things forward.\nAI-generated agendas, pre-reads, meeting notes, and follow-ups.',
+    tagline:
+      'Lead the room. Align the team.\nRun meetings that turn conversations into clear decisions and real progress.',
     inputPlaceholder: 'DESCRIBE THE MEETING OR AGENDA YOU NEED TO PREPARE',
     features: [
       { icon: '📋', label: 'Smart agendas that drive outcomes.' },
@@ -456,6 +489,7 @@ const TOOL_DETAILS = {
     name: 'CTRL',
     prefix: 'COST',
     heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How Cost CTRL elevates how you ', style: 'normal' },
@@ -468,18 +502,22 @@ const TOOL_DETAILS = {
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959988/Rectangle_14-8_biluiz.jpg',
     ],
     heroHeadline: [
-      { text: 'Control that keeps you ', style: 'normal' },
-      { text: 'ahead',                  style: 'italic' },
-      { text: '. Track costs, forecast budgets, and deliver financial ', style: 'normal' },
-      { text: 'clarity ',               style: 'italic' },
-      { text: 'across every project.', style: 'normal' },
+      { text: 'Control the ', style: 'normal' },
+      { text: 'numbers', style: 'italic' },
+      { text: '.\nBuild clear financial models that reveal margin, risk and the true cost of every ', style: 'normal' },
+      { text: 'decision', style: 'italic' },
+      { text: '.', style: 'normal' },
     ],
-    heroCol1: 'Track budgets, analyse spend, and produce financial reports that give you complete visibility across projects.',
-    heroCol2: 'Forecast costs, reconcile variances, and deliver the financial clarity that stakeholders and boards expect.',
-    darkBannerText: 'Control your costs — or your costs will control you.',
+    heroCol1:
+      'Upload numbers, forecasts, reports or raw data and transform them into structured financial models and working spreadsheets.',
+    heroCol2:
+      'Generate P&Ls, budgets, forecasts and financial reports that protect margin and guide real business decisions.',
+    darkBannerText:
+      'PRECISION IN THE NUMBERS. POWER IN THE GROWTH. CONFIDENCE IN EVERY DECISION.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },
-    tagline: 'Control that keeps you ahead.\nTrack costs, forecast budgets, and deliver financial clarity across every project.',
+    tagline:
+      'Control the numbers.\nBuild clear financial models that reveal margin, risk and the true cost of every decision.',
     inputPlaceholder: 'DESCRIBE THE BUDGET, FORECAST, OR COST ANALYSIS YOU NEED',
     features: [
       { icon: '💰', label: 'Budget tracking and forecasting.' },

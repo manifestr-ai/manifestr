@@ -111,7 +111,7 @@ const FEATURE_GROUPS = [
     features: [
       { name: 'Knowledge Base & Tutorials', starter: true,           pro: true,           elite: true },
       { name: 'Priority Processing',        starter: false,          pro: true,           elite: true },
-      { name: 'Support',                    starter: 'Email',        pro: 'Email + Chat', elite: 'Dedicated' },
+      { name: 'Support',                    starter: 'Email',        pro: 'Email\n+ Chat', elite: 'Dedicated' },
       { name: 'Onboarding Concierge',       starter: false,          pro: false,          elite: true },
     ],
   },
@@ -143,7 +143,10 @@ function CellValue({ value, filled }) {
   if (value === true) return filled ? <FilledCheckIcon /> : <CheckIcon />
   if (value === false) return <DashIcon />
   return (
-    <span className="text-[14px] leading-[20px] font-medium text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <span
+      className={`text-[14px] leading-[20px] font-medium text-[#18181b] ${typeof value === 'string' && value.includes('\n') ? 'whitespace-pre-line' : ''}`}
+      style={{ fontFamily: 'Inter, sans-serif' }}
+    >
       {value}
     </span>
   )
@@ -223,31 +226,41 @@ function MobileFeatureGroup({ group }) {
 
 function BillingToggle({ isAnnual, setIsAnnual }) {
   return (
-    <div className="border border-[#e4e4e7] rounded-[6px] overflow-hidden">
-      <div className="bg-[#f4f4f5] rounded-[6px] p-[4px] flex w-[223px]">
-        <button
-          onClick={() => setIsAnnual(false)}
-          className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${
-            !isAnnual
-              ? 'bg-white text-[#18181b] shadow-[0px_1px_3px_0px_rgba(10,13,18,0.1),0px_1px_2px_-1px_rgba(10,13,18,0.1)]'
-              : 'text-[#71717a]'
-          }`}
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          Monthly
-        </button>
-        <button
-          onClick={() => setIsAnnual(true)}
-          className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${
-            isAnnual
-              ? 'bg-white text-[#18181b] shadow-[0px_1px_3px_0px_rgba(10,13,18,0.1),0px_1px_2px_-1px_rgba(10,13,18,0.1)]'
-              : 'text-[#71717a]'
-          }`}
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          Yearly
-        </button>
+    <div className="flex flex-col items-center gap-2 w-full max-w-[280px]">
+      <div className="border border-[#e4e4e7] rounded-[6px] overflow-hidden w-full">
+        <div className="bg-[#f4f4f5] rounded-[6px] p-[4px] flex w-full min-w-[223px]">
+          <button
+            type="button"
+            onClick={() => setIsAnnual(false)}
+            className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${
+              !isAnnual
+                ? 'bg-white text-[#18181b] shadow-[0px_1px_3px_0px_rgba(10,13,18,0.1),0px_1px_2px_-1px_rgba(10,13,18,0.1)]'
+                : 'text-[#71717a]'
+            }`}
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAnnual(true)}
+            className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${
+              isAnnual
+                ? 'bg-white text-[#18181b] shadow-[0px_1px_3px_0px_rgba(10,13,18,0.1),0px_1px_2px_-1px_rgba(10,13,18,0.1)]'
+                : 'text-[#71717a]'
+            }`}
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Yearly
+          </button>
+        </div>
       </div>
+      <p
+        className="text-[12px] leading-[18px] text-center text-[#52525b] max-w-[240px]"
+        style={{ fontFamily: 'Inter, sans-serif' }}
+      >
+        <span className="font-medium text-[#18181b]">15% off</span> when you pay annually
+      </p>
     </div>
   )
 }
@@ -392,7 +405,7 @@ export default function PricingContent() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-[12px] mt-[30px]">
+        {/* <div className="flex flex-col sm:flex-row items-center justify-center gap-[12px] mt-[30px]">
           <Link
             href="/tools"
             className="h-[36px] md:h-[44px] px-[12px] md:px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors w-full sm:w-auto"
@@ -406,7 +419,7 @@ export default function PricingContent() {
           >
             Explore All Plans
           </button>
-        </div>
+        </div> */}
       </section>
 
       {/* Mobile & Tablet plan cards + feature comparison */}
@@ -624,9 +637,9 @@ export default function PricingContent() {
         </div>
       </section>
 
-      {/* Affiliate Program Banner */}
-      <section className="w-full py-[32px] px-4 sm:px-6">
-        <div className="max-w-[1280px] mx-auto relative rounded-[8px] md:rounded-[12px] overflow-hidden h-[180px] sm:h-[220px] md:h-[310px]">
+      {/* Affiliate Program Banner — full-width on mobile like careers; inset + max width from md */}
+      <section className="w-full py-[32px] px-0 md:px-6">
+        <div className="relative w-full md:max-w-[1280px] md:mx-auto rounded-none md:rounded-[12px] overflow-hidden h-[180px] sm:h-[220px] md:h-[310px]">
           <CldImage src={AFFILIATE_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="relative z-10 h-full flex flex-col justify-center px-[20px] sm:px-[32px] md:px-[80px]">
             <h3 className="text-[22px] sm:text-[32px] md:text-[54px] leading-[28px] sm:leading-[40px] md:leading-[72px] tracking-[-0.48px] md:tracking-[-1.08px] text-white max-w-[608px]">

@@ -31,12 +31,87 @@ const ROW_3 = [
 
 const SLIDER_IMAGES = [...ROW_1, ...ROW_2, ...ROW_3]
 
-/**
- * Matches the static “The Strategist / delivers” heading in this block — do not read from tool data
- * (avoids short outputDescription or per-tool copy showing under a Strategist-only title).
- */
-const OUTPUT_SECTION_BODY_TEXT =
-  'Forget generic strategy outputs. Strategy, held to a higher standard. The Strategist creates structured, decision-ready documents designed for real execution. Every insight is refined, defensible, and built to perform under scrutiny. Curious? See it in action.'
+/** Middle line of “The Calibre of Output … delivers” + body copy (per tool page). */
+const OUTPUT_SECTION_BY_SLUG = {
+  strategist: {
+    middleLine: 'The Strategist',
+    body:
+      'Forget generic strategy outputs. Strategy, held to a higher standard. The Strategist creates structured, decision-ready documents designed for real execution. Every insight is refined, defensible, and built to perform under scrutiny. Curious? See it in action.',
+  },
+  deck: {
+    middleLine: 'The Deck',
+    body:
+      'Forget average presentations. This is persuasion engineered to win the room. The Deck produces structured, visually powerful presentations designed to command attention and drive decision. Every slide is intentional, refined and built to stand up under pressure. Curious? See it in action.',
+  },
+  analyzer: {
+    middleLine: 'The Analyzer',
+    body:
+      'Forget surface-level reporting. Insight designed to remove doubt. The Analyzer produces structured, decision-ready analysis built to withstand challenge. Every chart is intentional, refined, and built to support confident decisions. Curious? See it in action.',
+  },
+  briefcase: {
+    middleLine: 'The Briefcase',
+    body:
+      'Forget scattered notes and decisions lost in threads. This is documentation built to run the work. The Briefcase produces structured, execution-ready documents designed to align teams and secure scope. Every detail is deliberate, defined, and built to prevent drift.\nCurious? See it in action.',
+  },
+  'cost-ctrl': {
+    middleLine: 'Cost CTRL',
+    body:
+      'Forget spreadsheet chaos and financial guesswork. This is commercial discipline in action. Cost CTRL produces structured, decision-ready financial documents built for accountability, margin protection, and growth. Every number is precise, defensible, and built to support confident scale. Curious? See it in action.',
+  },
+  wordsmith: {
+    middleLine: 'The Wordsmith',
+    body:
+      'Forget filler copy and empty messaging. This is language built to influence. Wordsmith produces structured, outcome-driven messaging designed to shape perception and drive decision. Every word is deliberate, refined, and built to alter the outcome. Curious? See it in action.',
+  },
+  'design-studio': {
+    middleLine: 'The Design Studio',
+    body:
+      'Forget generic visuals and design guesswork. This is creative that elevates value. Design Studio produces structured, brand-aligned visuals designed to meet a professional standard. Every asset is intentional, refined, and built to define perception instantly. Curious? See it in action.',
+  },
+  huddle: {
+    middleLine: 'The Huddle',
+    body:
+      'Forget meetings that go nowhere. This is collaboration built for execution. The Huddle produces structured, accountability-ready documentation designed to move work forward. Every conversation is structured and built to translate into documented results. Curious? See it in action.',
+  },
+}
+
+function getOutputSection(slug) {
+  return OUTPUT_SECTION_BY_SLUG[slug] || OUTPUT_SECTION_BY_SLUG.strategist
+}
+
+const hk700 = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
+const ivy600 = {
+  fontFamily: "'IvyPresto Headline', serif",
+  fontWeight: 600,
+  fontStyle: 'italic',
+}
+
+/** Renders e.g. “The Wordsmith”, “Cost CTRL” — “The”/“Cost” in HK, name in Ivy (matches “Calibre” line). */
+function OutputMiddleLine({ line }) {
+  if (line.startsWith('The ')) {
+    const rest = line.slice(4)
+    return (
+      <>
+        <span style={hk700}>The </span>
+        <em className="not-italic" style={ivy600}>
+          {rest}
+        </em>
+      </>
+    )
+  }
+  if (line.startsWith('Cost ')) {
+    const rest = line.slice(5)
+    return (
+      <>
+        <span style={hk700}>Cost </span>
+        <em className="not-italic" style={ivy600}>
+          {rest}
+        </em>
+      </>
+    )
+  }
+  return <span style={hk700}>{line}</span>
+}
 
 function MarqueeRow({ images, direction = 'left', duration = 35 }) {
   const doubled = [...images, ...images]
@@ -126,7 +201,10 @@ function MobileSlider() {
   )
 }
 
-export default function ToolOutput() {
+export default function ToolOutput({ tool }) {
+  const slug = tool?.slug
+  const { middleLine, body } = getOutputSection(slug)
+
   return (
     <section className="w-full bg-[#f4f4f5] relative overflow-hidden" style={{ minHeight: '400px' }}>
       <div
@@ -164,22 +242,21 @@ export default function ToolOutput() {
               </em>
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> of Output</span>
             </span>
-            <span className="block">The Strategist</span>
+            <span className="block">
+              <OutputMiddleLine line={middleLine} />
+            </span>
             <span className="block">delivers</span>
           </motion.h2>
 
-          {/*
-            Figma 12468:22114 — B1 18/Regular, Inter, #52525b; copy fixed to match Strategist heading
-          */}
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className="text-[18px] leading-[28px] text-[#52525b] font-normal tracking-[0] mb-[24px] w-full max-w-[min(100%,500px)] mx-auto md:mx-0"
+            className={`text-[18px] leading-[28px] text-[#52525b] font-normal tracking-[0] mb-[24px] w-full max-w-[min(100%,500px)] mx-auto md:mx-0 ${body.includes('\n') ? 'md:whitespace-pre-line' : ''}`}
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            {OUTPUT_SECTION_BODY_TEXT}
+            {body}
           </motion.p>
 
           {/* Mobile slider */}

@@ -26,13 +26,12 @@ const COMPANY_LINKS = [
 
 const SUPPORT_LINKS = [
   { label: 'The Playbook', href: '/playbook' },
-  { label: 'FAQs', href: '/faqs' },
   { label: 'Contact Us', href: '/contact' },
 ]
 
 // Routes that count as "active" for each top-level nav item
 const COMPANY_ROUTES = ['/about', '/careers', '/affiliates']
-const SUPPORT_ROUTES = ['/playbook', '/faqs', '/contact']
+const SUPPORT_ROUTES = ['/playbook', '/contact']
 
 /** Desktop nav: full Figma spacing from xl (1280px); lg–xl (1024–1279) uses tighter gaps so the bar fits. */
 

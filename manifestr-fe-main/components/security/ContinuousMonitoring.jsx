@@ -67,8 +67,8 @@ export default function ContinuousMonitoring() {
     <>
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[48px] md:py-[96px]">
-          <nav className="flex flex-wrap items-center gap-[4px] mb-[16px] md:mb-[32px]">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[36px] md:py-[64px]">
+          <nav className="flex flex-wrap items-center gap-[4px] mb-3 md:mb-6">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Home</Link>
             <ChevronRight />
             <Link href="/security" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Security</Link>
@@ -76,14 +76,15 @@ export default function ContinuousMonitoring() {
             <span className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px]" style={font}>Continuous Monitoring &amp; Updates</span>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-[32px] lg:gap-[64px] items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
             <div className="flex flex-col gap-[16px] w-full lg:w-[592px] shrink-0">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-black text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px]"
+                className="text-black text-[36px] leading-[1.1] tracking-[-0.72px] md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
                 style={headingFont}
               >
-                Always on.<br />Always evolving.
+                <span className="block">Always on.</span>
+                <span className="block -mt-0.5 md:-mt-1">Always evolving.</span>
               </motion.h1>
 
               <motion.div
@@ -119,8 +120,8 @@ export default function ContinuousMonitoring() {
       </section>
 
       {/* ─── Accordion ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[32px] md:gap-[48px] items-center">
+      <section className="w-full bg-white px-6 md:px-[80px] py-[36px] md:py-[64px]">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-6 md:gap-8 items-center">
           <div className="flex flex-col gap-[16px] w-full">
             {ACCORDION_ITEMS.map((item) => {
               const isOpen = !!openIds[item.id]
@@ -185,7 +186,7 @@ export default function ContinuousMonitoring() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#deddda] px-6 md:px-[80px] py-[48px] md:py-[96px]">
+      <section className="w-full bg-[#deddda] px-6 md:px-[80px] py-[36px] md:py-[64px]">
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
           <motion.h2
             {...fadeUp}

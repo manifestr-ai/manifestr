@@ -150,7 +150,7 @@ function IntroColumn({ className = '' }) {
       <div className="flex justify-start w-full">
         <Link
           href="/signup"
-          className="flex h-[36px] md:h-[54px] shrink-0 py-0 md:py-2 px-8 items-center justify-center gap-2 bg-[#18181b] rounded-[6px] text-[18px] leading-[20px] font-medium text-white hover:bg-[#27272a] transition-colors w-auto"
+          className="inline-flex h-[54px] min-h-[54px] shrink-0 px-8 items-center justify-center gap-2 bg-[#18181b] rounded-[6px] text-[18px] leading-[20px] font-medium text-white hover:bg-[#27272a] transition-colors w-auto"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
           Explore MANIFESTR
@@ -246,7 +246,7 @@ export default function ToolsStats() {
   return (
     <section
       ref={sectionRef}
-      className="w-full overflow-x-hidden bg-white px-6 md:px-8 lg:px-[80px] pt-[64px] md:max-lg:pt-[80px] lg:pt-[96px] pb-8 md:max-lg:pb-10 lg:pb-10"
+      className="w-full overflow-x-hidden bg-white px-6 md:px-8 lg:px-[80px] pt-[64px] md:max-lg:pt-[80px] lg:pt-[96px] pb-5 md:max-lg:pb-6 lg:pb-6"
       onPointerEnter={() => setIsSpread(true)}
     >
       {/* ── MOBILE ── */}
