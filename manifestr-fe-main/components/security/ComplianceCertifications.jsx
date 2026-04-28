@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
@@ -73,7 +73,27 @@ const fadeUp = {
   transition: { duration: 0.5 },
 }
 
+function PackScrollArrow({ dir, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-[#e4e4e7] bg-white text-[#52525b] shadow-sm transition-colors hover:border-[#d4d4d8] hover:text-[#18181b]"
+    >
+      <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        {dir === 'left' ? (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 18l-6-6 6-6" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18l6-6-6-6" />
+        )}
+      </svg>
+    </button>
+  )
+}
+
 export default function ComplianceCertifications() {
+  const packScrollRef = useRef(null)
   const [openIds, setOpenIds] = useState({})
   const font = { fontFamily: 'Inter, sans-serif' }
   const headingFont = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
@@ -82,13 +102,17 @@ export default function ComplianceCertifications() {
     setOpenIds((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
+  const scrollPack = (dir) => {
+    packScrollRef.current?.scrollBy({ left: dir * 342, behavior: 'smooth' })
+  }
+
   return (
     <>
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[48px] md:py-[96px]">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[36px] md:py-[64px]">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-[4px] mb-[32px]">
+          <nav className="flex items-center gap-[4px] mb-6">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>
               Home
             </Link>
@@ -102,15 +126,15 @@ export default function ComplianceCertifications() {
             </span>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-[32px] lg:gap-[64px] items-center lg:items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start">
             {/* Left — text */}
-            <div className="flex flex-col gap-[40px] w-full lg:w-[592px] shrink-0 items-center lg:items-start">
+            <div className="flex flex-col gap-6 md:gap-8 w-full lg:w-[592px] shrink-0 items-center lg:items-start">
               <div className="flex flex-col gap-[20px]">
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
-                  className="text-black text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-center lg:text-left"
+                  className="text-center text-black text-[36px] leading-[1.1] tracking-[-0.72px] md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px] lg:text-left"
                   style={headingFont}
                 >
                   Aligned with global standards.
@@ -167,8 +191,8 @@ export default function ComplianceCertifications() {
       </section>
 
       {/* ─── SOC 2 Type II — Accordion ─── */}
-      <section id="soc2-section" className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[96px] scroll-mt-[80px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[32px] md:gap-[48px]">
+      <section id="soc2-section" className="w-full bg-white px-6 md:px-[80px] py-[36px] md:py-[64px] scroll-mt-[80px]">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-6 md:gap-8">
           <motion.h2
             {...fadeUp}
             className="text-black text-center text-[30px] md:text-[60px] leading-[38px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px]"
@@ -177,7 +201,7 @@ export default function ComplianceCertifications() {
             SOC 2 Type II
           </motion.h2>
 
-          <div className="flex flex-col gap-[16px] md:gap-[24px]">
+          <div className="flex flex-col gap-4 md:gap-5">
             {ACCORDION_ITEMS.map((item) => {
               const isOpen = !!openIds[item.id]
               return (
@@ -231,8 +255,8 @@ export default function ComplianceCertifications() {
       </section>
 
       {/* ─── Investor Security Pack ─── */}
-      <section className="w-full bg-white py-[48px] md:py-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[24px] md:gap-[48px] items-center px-6 md:px-[80px]">
+      <section className="w-full bg-white py-[36px] md:py-[64px]">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-5 md:gap-8 items-center px-6 md:px-[80px]">
           <motion.h2
             {...fadeUp}
             className="text-black text-center text-[36px] md:text-[60px] leading-[normal] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px] w-full"
@@ -241,7 +265,7 @@ export default function ComplianceCertifications() {
             Our Investor Security Pack includes
           </motion.h2>
 
-          <div className="flex flex-col gap-[32px] md:gap-[40px] w-full">
+          <div className="flex flex-col gap-6 md:gap-8 w-full">
             {/* Desktop grid */}
             <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-[24px]">
               {PACK_CARDS.map((card, i) => (
@@ -271,41 +295,69 @@ export default function ComplianceCertifications() {
             </div>
 
             {/* Mobile horizontal scroll */}
-            <div className="md:hidden overflow-x-auto -mx-6 px-6 scrollbar-hide">
-              <div className="flex gap-[27px] w-max">
-                {PACK_CARDS.map((card, i) => (
-                  <motion.div
-                    key={card.title}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-40px' }}
-                    transition={{ duration: 0.45, delay: i * 0.1 }}
-                    className="bg-white border border-[#e4e4e7] rounded-[12px] overflow-hidden flex flex-col w-[315px] shrink-0"
-                  >
-                    <div className="relative w-full h-[207px] overflow-hidden bg-[#f4f4f5]">
-                      <CldImage
-                        src={card.image}
-                        alt={card.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent pointer-events-none" />
-                    </div>
-                    <div className="px-[21px] py-[20px]">
-                      <h3 className="text-black text-[24px] leading-[32px]" style={headingFont}>
-                        {card.title}
-                      </h3>
-                    </div>
-                  </motion.div>
-                ))}
+            <div className="relative md:hidden">
+              <div
+                ref={packScrollRef}
+                className="-mx-6 w-full overflow-x-auto px-6 pb-14 scrollbar-hide"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
+                <div className="flex gap-[27px] w-max">
+                  {PACK_CARDS.map((card, i) => (
+                    <motion.div
+                      key={card.title}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ duration: 0.45, delay: i * 0.1 }}
+                      className="bg-white border border-[#e4e4e7] rounded-[12px] overflow-hidden flex flex-col w-[315px] shrink-0"
+                    >
+                      <div className="relative w-full h-[207px] overflow-hidden bg-[#f4f4f5]">
+                        <CldImage
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent pointer-events-none" />
+                      </div>
+                      <div className="px-[21px] py-[20px]">
+                        <h3 className="text-black text-[24px] leading-[32px]" style={headingFont}>
+                          {card.title}
+                        </h3>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+              <div className="pointer-events-none absolute bottom-0 right-6 z-10 flex items-center gap-2">
+                <span className="pointer-events-auto">
+                  <PackScrollArrow
+                    dir="left"
+                    label="Scroll investor security pack cards left"
+                    onClick={() => scrollPack(-1)}
+                  />
+                </span>
+                <span className="pointer-events-auto">
+                  <PackScrollArrow
+                    dir="right"
+                    label="Scroll investor security pack cards right"
+                    onClick={() => scrollPack(1)}
+                  />
+                </span>
               </div>
             </div>
 
             {/* Access Protocol */}
-            <motion.div {...fadeUp} className="flex flex-col gap-[8px]">
-              <h3 className="text-[#18181b] text-[24px] leading-[32px]" style={headingFont}>
+            <motion.div
+              {...fadeUp}
+              className="flex w-full max-w-[720px] flex-col gap-[12px] items-center text-center mx-auto"
+            >
+              <h3
+                className="text-[#18181b] text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] font-semibold"
+                style={font}
+              >
                 Access Protocol
               </h3>
-              <p className="text-[#52525b] text-[16px] leading-[24px]" style={font}>
+              <p className="text-[#52525b] text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={font}>
                 Certain compliance reports may require a non-disclosure agreement (NDA) or investor credentials to
                 access, ensuring sensitive audit details remain protected.
               </p>
@@ -327,7 +379,7 @@ export default function ComplianceCertifications() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#e4e3e1] md:bg-[#deddda] px-6 md:px-[80px] py-[48px] md:py-[96px]">
+      <section className="w-full bg-[#e4e3e1] md:bg-[#deddda] px-6 md:px-[80px] py-[36px] md:py-[64px]">
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
           <motion.h2
             {...fadeUp}

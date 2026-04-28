@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
@@ -57,9 +58,33 @@ const fadeUp = {
   transition: { duration: 0.5 },
 }
 
+function FrameworkScrollArrow({ dir, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-[#e4e4e7] bg-white text-[#52525b] shadow-sm transition-colors hover:border-[#d4d4d8] hover:text-[#18181b]"
+    >
+      <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        {dir === 'left' ? (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 18l-6-6 6-6" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18l6-6-6-6" />
+        )}
+      </svg>
+    </button>
+  )
+}
+
 export default function Security() {
+  const frameworkScrollRef = useRef(null)
   const font = { fontFamily: 'Inter, sans-serif' }
   const headingFont = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
+
+  const scrollFramework = (dir) => {
+    frameworkScrollRef.current?.scrollBy({ left: dir * 340, behavior: 'smooth' })
+  }
 
   return (
     <>
@@ -86,8 +111,8 @@ export default function Security() {
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[24px] md:gap-[48px] items-center">
           <motion.h2
             {...fadeUp}
-            className="text-[#0d0d0d] text-center text-[36px] leading-[44px] md:text-[72px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] max-w-[1100px]"
-            style={headingFont}
+            className="w-full max-w-[1100px] text-center text-[36px] capitalize leading-[49px] tracking-[-0.72px] text-black font-medium"
+            style={{ fontFamily: '"HK Grotesk", "Hanken Grotesk", sans-serif', fontStyle: 'normal' }}
           >
             Security isn&apos;t an afterthought. It&apos;s our foundation.
           </motion.h2>
@@ -95,7 +120,7 @@ export default function Security() {
           <motion.p
             {...fadeUp}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[#0d0d0d] text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-center max-w-[874px]"
+            className="text-[#0d0d0d] text-[16px] leading-[24px] text-center max-w-[874px]"
             style={font}
           >
             At MANIFESTR, your data is guarded with the same precision we use to build our platform: encrypted,
@@ -159,15 +184,20 @@ export default function Security() {
               </span>
               <span style={headingFont}> Framework</span>
             </h2>
-            <p className="text-[#52525b] text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] max-w-[830px]" style={font}>
+            <p className="text-[#52525b] text-[16px] leading-[24px] max-w-[830px]" style={font}>
               From data protection to investor assurance, each part of MANIFESTR&apos;s security program is built to
               earn and keep your trust. Dive into the areas that matter most to you.
             </p>
           </motion.div>
 
-          {/* Cards - horizontal scroll on mobile, grid on desktop */}
-          <div className="w-full overflow-x-auto md:overflow-visible -mx-6 px-6 md:mx-0 md:px-0 scrollbar-hide">
-            <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-[24px] w-max md:w-full">
+          {/* Cards — horizontal scroll on mobile (arrows hint scroll); grid on md+ */}
+          <div className="relative w-full">
+            <div
+              ref={frameworkScrollRef}
+              className="-mx-6 w-full overflow-x-auto px-6 pb-14 scrollbar-hide md:mx-0 md:overflow-visible md:px-0 md:pb-0"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <div className="flex w-max gap-[24px] md:grid md:w-full md:grid-cols-2 lg:grid-cols-3">
               {FRAMEWORK_CARDS.map((card, i) => (
                 <Link key={card.title} href={card.href} className="contents">
                   <motion.div
@@ -196,6 +226,23 @@ export default function Security() {
                   </motion.div>
                 </Link>
               ))}
+              </div>
+            </div>
+            <div className="pointer-events-none absolute bottom-0 right-6 z-10 flex items-center gap-2 md:hidden">
+              <span className="pointer-events-auto">
+                <FrameworkScrollArrow
+                  dir="left"
+                  label="Scroll framework cards left"
+                  onClick={() => scrollFramework(-1)}
+                />
+              </span>
+              <span className="pointer-events-auto">
+                <FrameworkScrollArrow
+                  dir="right"
+                  label="Scroll framework cards right"
+                  onClick={() => scrollFramework(1)}
+                />
+              </span>
             </div>
           </div>
         </div>

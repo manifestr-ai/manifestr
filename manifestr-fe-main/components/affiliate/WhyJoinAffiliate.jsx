@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
 const AFFILIATE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023100/Affiliate2_1_ckvktn.jpg'
@@ -42,7 +43,7 @@ export default function WhyJoinAffiliate() {
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Program?</span>
             </h2>
             <p
-              className="text-[16px] leading-[24px] text-[#52525b] max-w-[605px]"
+              className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] max-w-[605px]"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
             >
               At MANIFESTR, we believe bold thinkers deserve bold rewards. Our Affiliate Program offers one of the highest paying commission structures you&apos;ll find anywhere, empowering you to transform referrals into real income.
@@ -68,7 +69,7 @@ export default function WhyJoinAffiliate() {
                 >
                   <CldImage src={CHECK_ICON} alt="" className="w-[20px] h-[20px] shrink-0 mt-[2px]" />
                   <span
-                    className="text-[18px] leading-[24px] text-[#52525b]"
+                    className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b]"
                     style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                   >
                     {b}
@@ -77,6 +78,14 @@ export default function WhyJoinAffiliate() {
               ))}
             </div>
           </div>
+
+          <Link
+            href="/signup"
+            className="inline-flex h-11 mb-12 w-full items-center justify-center self-start rounded-[6px] bg-[#18181b] px-8 text-[14px] font-medium leading-5 text-white transition-colors duration-200 hover:bg-[#27272a] md:h-[54px] md:w-auto md:text-[18px] md:leading-[20px]"
+            style={{ fontFamily: "Inter, sans-serif" }}
+          >
+            Apply now
+          </Link>
         </motion.div>
       </div>
 

@@ -53,7 +53,7 @@ const SOCIAL_LINKS = {
 }
 
 const productLinks = [
-  { label: 'The Toolkit', href: '/toolkit' },
+  { label: 'The Toolkit', href: '/tools' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Blog', href: '/blog' },
 ]
@@ -61,12 +61,12 @@ const productLinks = [
 const companyLinks = [
   { label: 'About Us', href: '/about' },
   { label: 'Careers', href: '/careers' },
-  { label: 'Affiliate Program', href: '/affiliate' },
+  { label: 'Affiliate Program', href: '/affiliates' },
 ]
 
 const supportLinks = [
   { label: 'The Playbook', href: '/playbook' },
-  { label: 'FAQs', href: '/faqs' },
+  { label: 'FAQs', href: '/playbook/faqs' },
   { label: 'Contact Us', href: '/contact' },
   { label: 'Security', href: '/security' },
 ]
@@ -110,12 +110,12 @@ export default function Footer() {
 
   return (
     <footer className="bg-black text-white w-full">
-      {/* Logo — large wordmark on desktop per marketing spec */}
+      {/* Logo — Figma 1440×161 aspect; full-bleed to viewport edges on desktop */}
       <div className="w-full overflow-hidden py-6 md:py-8 lg:py-10">
         <CldImage
           src={FOOTER_LOGO}
           alt="MANIFESTR"
-          className="w-full max-h-[43px] sm:max-h-[56px] md:max-h-[88px] lg:max-h-[120px] xl:max-h-[161px] object-contain"
+          className="mx-auto block w-full max-w-[1440px] aspect-1440/161 object-contain object-center lg:mx-0 lg:max-w-none"
         />
       </div>
 

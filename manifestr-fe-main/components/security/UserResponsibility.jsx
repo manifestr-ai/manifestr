@@ -88,6 +88,9 @@ const USER_ROLE = [
   },
 ]
 
+const bodyText =
+  'text-[#52525b] text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]'
+
 export default function UserResponsibility() {
   const font = { fontFamily: 'Inter, sans-serif' }
   const headingFont = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
@@ -96,8 +99,8 @@ export default function UserResponsibility() {
     <>
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-12 md:py-[96px]">
-          <nav className="flex items-center gap-[4px] mb-[32px]">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-9 md:py-[64px]">
+          <nav className="flex flex-wrap items-center justify-center gap-[4px] mb-6">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Home</Link>
             <ChevronRight />
             <Link href="/security" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Security</Link>
@@ -105,12 +108,12 @@ export default function UserResponsibility() {
             <span className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px]" style={font}>User Responsibility</span>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-[64px] items-start">
-            <div className="flex flex-col gap-[40px] w-full lg:w-[592px] shrink-0 items-center lg:items-start text-center lg:text-left">
-              <div className="flex flex-col gap-[20px] w-full">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+            <div className="flex flex-col gap-6 md:gap-8 w-full lg:w-[592px] shrink-0 items-center text-center">
+              <div className="flex flex-col gap-[20px] w-full items-center">
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                  className="text-black tracking-[-0.72px] md:tracking-[-1.44px] text-[36px] leading-[44px] md:text-[72px] md:leading-[90px]"
+                  className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
                   style={headingFont}
                 >
                   Security is a shared responsibility.
@@ -118,24 +121,25 @@ export default function UserResponsibility() {
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-                  className="flex flex-col gap-[20px] text-[16px] leading-[24px] md:text-[18px] md:leading-[28px] w-full" style={font}
+                  className={`flex flex-col gap-[20px] w-full items-center text-center ${bodyText}`}
+                  style={font}
                 >
-                  <p className="text-[#52525b]">
+                  <p className={`max-w-[640px] ${bodyText}`}>
                     At MANIFESTR, security is built on a Shared Responsibility Model. This model defines what we
                     secure at the platform level, and what customers must secure at the account and endpoint level.
                   </p>
 
-                  <div className="flex flex-col gap-[8px] text-left lg:text-left">
-                    <p className="text-[#18181b] font-semibold text-[18px] leading-[28px] md:text-[18px] md:leading-[28px]">MANIFESTR&apos;s role:</p>
-                    <p className="text-[#52525b] text-[16px] leading-[24px] md:text-[16px] md:leading-[24px]">Protecting the platform infrastructure, ensuring compliance, and implementing enterprise-grade controls.</p>
+                  <div className="flex flex-col gap-[8px] w-full max-w-[560px] mx-auto items-center">
+                    <p className="text-[#18181b] font-semibold text-[18px] leading-[28px]">MANIFESTR&apos;s role:</p>
+                    <p className={bodyText}>Protecting the platform infrastructure, ensuring compliance, and implementing enterprise-grade controls.</p>
                   </div>
 
-                  <div className="flex flex-col gap-[8px] text-left lg:text-left">
-                    <p className="text-[#18181b] font-semibold text-[18px] leading-[28px] md:text-[18px] md:leading-[28px]">Your role:</p>
-                    <p className="text-[#52525b] text-[16px] leading-[24px] md:text-[16px] md:leading-[24px]">Protecting credentials, endpoints, and internal access management.</p>
+                  <div className="flex flex-col gap-[8px] w-full max-w-[560px] mx-auto items-center">
+                    <p className="text-[#18181b] font-semibold text-[18px] leading-[28px]">Your role:</p>
+                    <p className={bodyText}>Protecting credentials, endpoints, and internal access management.</p>
                   </div>
 
-                  <p className="text-[#52525b]">
+                  <p className={`max-w-[640px] ${bodyText}`}>
                     This clear division of responsibilities ensures that both MANIFESTR and our customers uphold their
                     obligations under laws such as GDPR, CPRA, and HIPAA (where applicable), as well as industry
                     standards including SOC 2 Type II and NIST cybersecurity guidelines.
@@ -146,7 +150,7 @@ export default function UserResponsibility() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
                 <Link
                   href="/security/compliance-certifications"
-                  className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
+                  className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] h-[44px] md:py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
                   style={font}
                 >
                   See Our Compliance Standards
@@ -179,40 +183,40 @@ export default function UserResponsibility() {
       </section>
 
       {/* ─── Two-Column Roles ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-12 md:py-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row gap-[64px] items-start">
+      <section className="w-full bg-white px-6 md:px-[80px] py-9 md:py-[64px]">
+        <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 items-start lg:items-start">
           {/* MANIFESTR's Role */}
-          <motion.div {...fadeUp} className="flex-1 min-w-0 flex flex-col gap-[48px]">
-            <div className="flex flex-col gap-[20px]">
+          <motion.div {...fadeUp} className="flex-1 min-w-0 flex flex-col gap-8 md:gap-10 items-center text-center">
+            <div className="flex flex-col gap-[20px] items-center">
               <h2 className="text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]" style={headingFont}>
                 MANIFESTR&apos;s Role
               </h2>
-              <p className="text-[#52525b] text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={font}>
+              <p className={`max-w-[640px] ${bodyText}`} style={font}>
                 As the service provider, MANIFESTR is responsible for securing the underlying platform and ensuring
                 compliance across its infrastructure. Our obligations include:
               </p>
             </div>
 
-            <div className="flex flex-col gap-[20px]">
+            <div className="flex flex-col gap-[20px] w-full max-w-[640px] mx-auto items-center">
               {MANIFESTR_ROLE.map((section) => (
-                <div key={section.title} className="flex flex-col gap-[8px]">
-                  <h4 className="text-[#18181b] text-[16px] leading-[24px] font-semibold" style={font}>{section.title}</h4>
-                  <ul className="list-disc pl-[24px] flex flex-col gap-[4px]">
+                <div key={section.title} className="flex flex-col gap-[12px] items-center w-full">
+                  <h4 className="text-[#18181b] text-[18px] leading-[28px] font-semibold" style={font}>{section.title}</h4>
+                  <ul className="flex flex-col gap-[8px] list-none p-0 m-0">
                     {section.items.map((item, i) => (
-                      <li key={i} className="text-[#52525b] text-[16px] leading-[24px]" style={font}>{item}</li>
+                      <li key={i} className={`${bodyText}`} style={font}>{item}</li>
                     ))}
                   </ul>
                 </div>
               ))}
             </div>
 
-            <p className="text-[#52525b] text-[18px] leading-[28px]" style={font}>
+            <p className={`max-w-[640px] ${bodyText}`} style={font}>
               These safeguards represent MANIFESTR&apos;s non-negotiable obligations under our Terms of Service, Privacy
               Policy, and Data Processing Agreements.
             </p>
 
-            <div className="flex flex-col gap-[48px]">
-              <p className="text-[#52525b] text-[14px] leading-[20px]" style={font}>
+            <div className="flex flex-col gap-8 md:gap-10 items-center w-full max-w-[640px] mx-auto">
+              <p className={bodyText} style={font}>
                 Security is strongest when shared. By combining MANIFESTR&apos;s enterprise-grade controls with your
                 organization&apos;s account- and device-level security, together we ensure a comprehensive defense against
                 evolving threats. This partnership enables compliance with global regulations, protects sensitive data,
@@ -221,7 +225,7 @@ export default function UserResponsibility() {
               </p>
               <Link
                 href="#"
-                className="inline-flex self-start items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
+                className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] h-[44px] md:py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
                 style={font}
               >
                 Enable MFA Now
@@ -230,31 +234,31 @@ export default function UserResponsibility() {
           </motion.div>
 
           {/* User's Role */}
-          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.15 }} className="flex-1 min-w-0 flex flex-col gap-[48px]">
-            <div className="flex flex-col gap-[20px]">
+          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.15 }} className="flex-1 min-w-0 flex flex-col gap-8 md:gap-10 items-center text-center">
+            <div className="flex flex-col gap-[20px] items-center">
               <h2 className="text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]" style={headingFont}>
                 User&apos;s Role
               </h2>
-              <p className="text-[#52525b] text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={font}>
+              <p className={`max-w-[640px] ${bodyText}`} style={font}>
                 While MANIFESTR protects the platform, customers retain responsibility for how their accounts, teams,
                 and devices interact with the system. To maintain compliance and minimize liability, customers must:
               </p>
             </div>
 
-            <div className="flex flex-col gap-[20px]">
+            <div className="flex flex-col gap-[20px] w-full max-w-[640px] mx-auto items-center">
               {USER_ROLE.map((section) => (
-                <div key={section.title} className="flex flex-col gap-[8px]">
-                  <h4 className="text-[#18181b] text-[16px] leading-[24px] font-semibold" style={font}>{section.title}</h4>
-                  <ul className="list-disc pl-[24px] flex flex-col gap-[4px]">
+                <div key={section.title} className="flex flex-col gap-[12px] items-center w-full">
+                  <h4 className="text-[#18181b] text-[18px] leading-[28px] font-semibold" style={font}>{section.title}</h4>
+                  <ul className="flex flex-col gap-[8px] list-none p-0 m-0">
                     {section.items.map((item, i) => (
-                      <li key={i} className="text-[#52525b] text-[16px] leading-[24px]" style={font}>{item}</li>
+                      <li key={i} className={bodyText} style={font}>{item}</li>
                     ))}
                   </ul>
                 </div>
               ))}
             </div>
 
-            <p className="text-[#52525b] text-[18px] leading-[28px]" style={font}>
+            <p className={`max-w-[640px] ${bodyText}`} style={font}>
               Failure to fulfill these user-side responsibilities may shift liability to the customer in the event of a
               data breach. Regulators such as the California Privacy Protection Agency (CPRA) and EU supervisory
               authorities (GDPR) hold businesses accountable for negligent user practices.
@@ -264,18 +268,18 @@ export default function UserResponsibility() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-12 md:py-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
+      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-5 md:py-8">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-2 md:gap-3 items-center text-center">
           <motion.h2
             {...fadeUp}
-            className="text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]"
+            className="text-black tracking-[-0.48px] md:tracking-[-0.72px] text-[22px] leading-[28px] md:text-[34px] md:leading-[42px]"
             style={headingFont}
           >
             Legal Disclaimer
           </motion.h2>
           <motion.p
             {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[#52525b] text-[16px] leading-[24px] max-w-[1120px]" style={font}
+            className="max-w-[1120px] text-[#52525b] text-[14px] leading-[20px] md:text-[15px] md:leading-[22px]" style={font}
           >
             This page is provided for informational purposes only and does not constitute legal advice.
             MANIFESTR&apos;s Shared Responsibility Model reflects common SaaS industry practices (SOC 2, NIST, CSA).

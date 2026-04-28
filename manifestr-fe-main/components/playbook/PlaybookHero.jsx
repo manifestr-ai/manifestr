@@ -9,7 +9,7 @@ export default function PlaybookHero() {
   return (
     <section
       className="relative flex w-full flex-col items-center justify-between overflow-hidden
-                 h-[436px] p-12
+                 h-[400px] p-8
                  md:max-lg:h-[min(100%,500px)] md:max-lg:min-h-[420px] md:max-lg:p-8
                  lg:h-[518px] lg:p-12"
     >
@@ -23,7 +23,7 @@ export default function PlaybookHero() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className="relative z-10 flex w-full max-w-[720px] flex-col items-center gap-8 md:max-lg:gap-6 lg:max-w-none lg:gap-8"
+        className="relative z-10 flex w-full max-w-[720px] flex-col items-center gap-6 md:max-lg:gap-6 lg:max-w-none lg:gap-8"
       >
         {/* Breadcrumbs — tablet + desktop */}
         <nav className="hidden items-center gap-1 md:flex md:max-lg:gap-1 lg:gap-1">
@@ -66,27 +66,38 @@ export default function PlaybookHero() {
             </p>
           </div>
 
-          {/* Search input */}
-          <div
+          {/* Search — submits to Knowledge Base with query string */}
+          <form
+            action="/playbook/knowledge-base"
+            method="get"
             className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)]
                        md:max-lg:max-w-[min(100%,400px)] md:max-lg:py-2
                        lg:w-[449px] lg:max-w-none lg:gap-2 lg:px-3.5 lg:py-2.5"
           >
-            <svg className="h-5 w-5 shrink-0 text-[#71717a] md:max-lg:h-[18px] md:max-lg:w-[18px] lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 shrink-0 text-[#71717a] md:max-lg:h-[18px] md:max-lg:w-[18px] lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
-              type="text"
-              placeholder="Search"
-              className="flex-1 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a] md:max-lg:text-[15px] md:max-lg:leading-snug lg:text-[16px] lg:leading-6"
+              name="q"
+              type="search"
+              placeholder="Search articles & topics"
+              autoComplete="off"
+              className="flex-1 min-w-0 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a] md:max-lg:text-[15px] md:max-lg:leading-snug lg:text-[16px] lg:leading-6"
               style={{ fontFamily: 'Inter, sans-serif' }}
             />
-          </div>
+            <button
+              type="submit"
+              className="shrink-0 rounded bg-[#18181b] px-2.5 py-1 text-[13px] font-medium text-white hover:bg-[#27272a] md:px-3"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Search
+            </button>
+          </form>
         </div>
 
         {/* CTA Button — desktop only */}
         <Link
-          href="/contact"
+          href="/playbook/submit-ticket"
           className="hidden items-center justify-center gap-2 rounded-md bg-[#18181b] font-medium text-white transition-colors hover:bg-[#27272a] md:inline-flex
                      md:max-lg:h-10 md:max-lg:px-4 md:max-lg:text-[13px] md:max-lg:leading-5
                      lg:h-11 lg:px-4 lg:text-sm lg:leading-5"

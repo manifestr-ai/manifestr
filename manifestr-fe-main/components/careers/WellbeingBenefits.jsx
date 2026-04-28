@@ -52,7 +52,7 @@ export default function WellbeingBenefits() {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-6 md:px-[80px]">
+      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 md:px-[80px]">
 
         {/* Heading */}
         <div className="text-center mb-[20px]">
@@ -97,64 +97,34 @@ export default function WellbeingBenefits() {
           ))}
         </div>
 
-        {/* Desktop — 3×2 card grid */}
-        <div className="hidden md:flex flex-col gap-[24px] shadow-[0px_8px_27.6px_0px_rgba(0,0,0,0.08)] rounded-[12px]">
-          <div className="grid grid-cols-3 gap-[24px]">
-            {BENEFITS.slice(0, 3).map((b, i) => (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}
-                className="bg-white rounded-[12px] p-[24px] shadow-xs flex flex-col gap-[40px]"
-              >
-                <FigmaIcon icon={b.icon} />
-                <div>
-                  <h3
-                    className="text-[24px] leading-[32px] text-black mb-[12px]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
-                  >
-                    {b.title}
-                  </h3>
-                  <p
-                    className="text-[16px] leading-[24px] text-[#52525b]"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-                  >
-                    {b.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="grid grid-cols-3 gap-[24px]">
-            {BENEFITS.slice(3).map((b, i) => (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: (i + 3) * 0.08, duration: 0.5 }}
-                className="bg-white rounded-[12px] p-[24px] shadow-xs flex flex-col gap-[40px]"
-              >
-                <FigmaIcon icon={b.icon} />
-                <div>
-                  <h3
-                    className="text-[24px] leading-[32px] text-black mb-[12px]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
-                  >
-                    {b.title}
-                  </h3>
-                  <p
-                    className="text-[16px] leading-[24px] text-[#52525b]"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-                  >
-                    {b.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+        {/* Desktop — 3×2: Figma card 410.667px, 24px padding, 40px stack gap, shadow-xs, tight grid */}
+        <div className="hidden md:grid w-full grid-cols-2 justify-items-center gap-x-3 gap-y-3 lg:grid-cols-3 lg:gap-x-3 lg:gap-y-3">
+          {BENEFITS.map((b, i) => (
+            <motion.div
+              key={b.title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08, duration: 0.5 }}
+              className="flex w-full max-w-[410.667px] flex-col items-start gap-10 rounded-[12px] bg-white p-6 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)]"
+            >
+              <FigmaIcon icon={b.icon} />
+              <div className="flex w-full flex-col items-start gap-3">
+                <h3
+                  className="text-[24px] leading-[32px] text-black"
+                  style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                >
+                  {b.title}
+                </h3>
+                <p
+                  className="text-[16px] leading-[24px] text-[#52525b]"
+                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                >
+                  {b.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
       </div>

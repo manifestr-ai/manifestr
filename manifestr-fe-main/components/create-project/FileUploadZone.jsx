@@ -109,12 +109,12 @@ export default function FileUploadZone({
           {/* Upload Content */}
           <div className="relative z-10 flex flex-col gap-3 items-center w-full">
             <div className="relative h-[78.896px] w-[56.522px] flex items-center justify-center">
-              <div className="relative w-[29px] h-[40px]">
+              <div className="relative w-[80px] h-[120px]">
                 <Image
                   src="/assets/icons/upload-logo.svg"
                   alt="Upload"
-                  width={29}
-                  height={40}
+                  width={80}
+                  height={120}
                   className="w-full h-full"
                 />
               </div>

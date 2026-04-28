@@ -34,7 +34,7 @@ export default function CareersHero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center text-white text-[48px] md:text-[72px] leading-[59px] md:leading-[90px] tracking-[-0.96px] md:tracking-[-1.44px] max-w-[333px] md:max-w-none"
+          className="text-center text-white text-[48px] md:text-[72px] leading-[1.06] md:leading-[1.05] tracking-[-0.96px] md:tracking-[-1.44px] max-w-[333px] md:max-w-none"
         >
           <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
             Careers{' '}

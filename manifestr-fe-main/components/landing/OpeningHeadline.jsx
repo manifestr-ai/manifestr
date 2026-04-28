@@ -54,7 +54,7 @@ export default function OpeningHeadline() {
           className="grid w-full max-w-[1100px] mx-auto grid-cols-1 justify-items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-x-8 lg:gap-x-10 mb-3 md:mb-4"
         >
           <h2
-            className="w-full min-w-0 max-w-[900px] text-[30px] sm:text-[44px] md:text-[60px] leading-normal md:leading-[62px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center md:col-start-1 md:row-start-1 px-1"
+            className="w-full min-w-0 max-w-[900px] text-[30px] sm:text-[44px] md:text-[60px] leading-[34px] sm:leading-[46px] md:leading-[54px] text-black tracking-[-0.6px] md:tracking-[-1.2px] text-center md:col-start-1 md:row-start-1 px-1"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
           >
             Professional documentation for
@@ -83,21 +83,21 @@ export default function OpeningHeadline() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="md:hidden text-[18px] leading-[28px] text-[#52525b] text-center flex flex-col gap-[18px] mb-6"
+          className="md:hidden text-[18px] text-[#52525b] text-center flex flex-col gap-[18px] mb-6"
           style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
         >
-          <p>
+          <p className="leading-[28px]">
             Presentations, documents, spreadsheets, charts, visuals and copy are produced
             inside a single, refined execution system.
           </p>
-          <p>
+          <p className="leading-[28px]">
             By removing hours of manual creation, rewrites, editing and tool switching,
             MANIFESTR turns ideas into polished work, ready to deliver.
           </p>
         </motion.div>
 
         {/* ── Mobile layout: image + circle row, then second image, then sub-headline ─── */}
-        <div className="md:hidden flex flex-col gap-6">
+        <div className="md:hidden mt-12 flex flex-col gap-6">
           <div className="flex items-center gap-6">
             <div className="relative w-[65%] h-[226px] rounded-[6px] overflow-hidden shrink-0">
               <CldImage src={IMG_LEFT} alt="Professional at work" className="absolute inset-0 w-full h-full object-cover object-top" />
@@ -150,14 +150,14 @@ export default function OpeningHeadline() {
             className="flex flex-col justify-between gap-8 flex-1"
           >
             <div
-              className="text-[20px] leading-[28px] text-[#52525b] flex flex-col gap-[18px]"
+              className="text-[20px] text-[#52525b] flex flex-col gap-[18px]"
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300 }}
             >
-              <p>
+              <p className="leading-[28px]">
                 Presentations, documents, spreadsheets, charts, visuals and copy are produced
                 inside a single, refined execution system.
               </p>
-              <p>
+              <p className="leading-[28px]">
                 By removing hours of manual creation, rewrites, editing and tool switching,
                 MANIFESTR turns ideas into polished work, ready to deliver.
               </p>

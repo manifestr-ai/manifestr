@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
@@ -9,25 +8,18 @@ const AVATARS = [
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775029642/Ellipse-1_temqyi.png',
 ]
 
-const CATEGORIES = [
-  'AI Strategy & Insights',
-  'AI Strategy & Insights',
-  'AI Strategy & Insights',
-  'AI & Business',
+export const BLOG_CATEGORIES = [
+  'AI & Automation',
+  'Business Growth',
+  'Productivity',
+  'Tools & Workflows',
+  'Future of Work',
 ]
 
-export default function ExploreCategories() {
-  const scrollRef = useRef(null)
-
-  const scroll = (dir) => {
-    if (!scrollRef.current) return
-    scrollRef.current.scrollBy({ left: dir * 300, behavior: 'smooth' })
-  }
-
+export default function ExploreCategories({ activeCategory, onCategoryChange }) {
   return (
-    <section className="w-full bg-[#f9fafb] py-[48px] md:py-[80px] overflow-hidden">
+    <section className="w-full bg-[#f9fafb] pt-[16px] pb-[48px] md:pt-[24px] md:pb-[80px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
-        {/* Header */}
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -39,54 +31,42 @@ export default function ExploreCategories() {
           Explore Categories
         </motion.h2>
 
-        {/* Category pills */}
+        {/* Category pills — single row, scrollable; .no-scrollbar hides the bar (global.css) */}
         <div
-          ref={scrollRef}
-          className="flex gap-[21px] md:gap-[40px] overflow-x-auto overflow-y-hidden pb-[4px] -mx-6 px-6 md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+          className="no-scrollbar flex flex-nowrap gap-[16px] md:gap-[24px] overflow-x-auto overflow-y-hidden overscroll-x-contain -mx-6 px-6 md:mx-0 md:px-0 pb-[4px]"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {CATEGORIES.map((cat, i) => (
-            <motion.button
-              key={i}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.35 }}
-              className="flex items-center gap-[5px] md:gap-[10px] bg-white rounded-full py-[10px] md:pt-[18px] md:pb-[24px] px-[10px] md:px-[18px] shadow-[0px_0.5px_1px_0px_rgba(10,13,18,0.05)] md:shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] shrink-0 hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <CldImage
-                src={AVATARS[i % AVATARS.length]}
-                alt=""
-                className="w-[34px] h-[34px] md:w-[64px] md:h-[64px] rounded-full object-cover shrink-0"
-              />
-              <span
-                className="text-[14px] md:text-[24px] leading-[17px] md:leading-[32px] text-black whitespace-nowrap"
-                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700, fontStyle: 'italic' }}
+          {BLOG_CATEGORIES.map((cat, i) => {
+            const isActive = activeCategory === cat
+            return (
+              <motion.button
+                key={cat}
+                type="button"
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.35 }}
+                onClick={() => onCategoryChange(cat)}
+                className={`flex items-center gap-[5px] md:gap-[10px] rounded-full py-[10px] md:py-[18px] px-[10px] md:px-[18px] transition-all duration-200 cursor-pointer shrink-0
+                  ${isActive
+                    ? 'bg-[#18181b] shadow-md ring-2 ring-[#18181b]'
+                    : 'bg-white shadow-[0px_0.5px_1px_0px_rgba(10,13,18,0.05)] md:shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] hover:shadow-md'
+                  }`}
               >
-                {cat}
-              </span>
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Navigation arrows */}
-        <div className="flex items-center justify-center md:justify-end gap-[10px] mt-[16px] md:mt-[24px]">
-          <button
-            onClick={() => scroll(-1)}
-            className="w-[44px] h-[44px] rounded-[6px] bg-[#b4b4b4] border border-[#e4e4e7] flex items-center justify-center text-white hover:bg-[#9a9a9a] transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 12L6 8l4-4" />
-            </svg>
-          </button>
-          <button
-            onClick={() => scroll(1)}
-            className="w-[44px] h-[44px] rounded-[6px] bg-[#18181b] border border-[#e4e4e7] flex items-center justify-center text-white hover:bg-[#27272a] transition-colors"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 4l4 4-4 4" />
-            </svg>
-          </button>
+                <CldImage
+                  src={AVATARS[i % AVATARS.length]}
+                  alt=""
+                  className="w-[34px] h-[34px] md:w-[56px] md:h-[56px] rounded-full object-cover shrink-0"
+                />
+                <span
+                  className={`text-[14px] md:text-[20px] leading-[17px] md:leading-[28px] whitespace-nowrap transition-colors duration-200 ${isActive ? 'text-white' : 'text-black'}`}
+                  style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700, fontStyle: 'italic' }}
+                >
+                  {cat}
+                </span>
+              </motion.button>
+            )
+          })}
         </div>
       </div>
     </section>

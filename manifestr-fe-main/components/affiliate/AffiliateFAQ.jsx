@@ -85,7 +85,7 @@ export default function AffiliateFAQ() {
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Questions</span>
           </h2>
           <p
-            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#52525b] mt-[12px] md:mt-[16px] max-w-[338px] md:max-w-[603px] mx-auto"
+            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-[#52525b] mt-[12px] md:mt-[16px] max-w-[338px] md:max-w-[603px] mx-auto"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             Everything you need to know about MANIFESTR plans and features.
@@ -124,7 +124,7 @@ export default function AffiliateFAQ() {
                     className={`flex-1 min-w-0 flex flex-col ${isOpen ? 'gap-3' : 'gap-0'}`}
                   >
                     <p
-                      className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-black"
+                      className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-black"
                       style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
                     >
                       {item.q}
@@ -139,7 +139,7 @@ export default function AffiliateFAQ() {
                           className="overflow-hidden"
                         >
                           <p
-                            className="text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-black pt-0"
+                            className="text-[16px] md:text-[16px] leading-[24px] md:leading-[24px] text-[#52525b] pt-0"
                             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                           >
                             {item.a}

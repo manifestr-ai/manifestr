@@ -222,14 +222,28 @@ export default function ProfileDropdown() {
                 {/* KNOWLEDGE HUB */}
                 <div className="p-2">
                   <CategoryHeading label="KNOWLEDGE HUB" />
-                  <MenuItem icon={FileText} label="The Playbook" />
+                  <MenuItem
+                    icon={FileText}
+                    label="The Playbook"
+                    onClick={() => {
+                      setIsOpen(false)
+                      router.push('/playbook')
+                    }}
+                  />
                   <MenuItem icon={Video} label="Tutorials" />
                 </div>
 
                 {/* SUPPORT */}
                 <div className="p-2">
                   <CategoryHeading label="SUPPORT" />
-                  <MenuItem icon={HelpCircle} label="Help" />
+                  <MenuItem
+                    icon={HelpCircle}
+                    label="Help"
+                    onClick={() => {
+                      setIsOpen(false)
+                      router.push('/faqs')
+                    }}
+                  />
                   <MenuItem icon={ThumbsUp} label="Share Feedback" onClick={() => window.open('https://mail.google.com/mail/u/0/?fs=1&to=hello@manifestr.ai&su=Feedback&tf=cm', '_blank')} />
                   <MenuItem icon={MessageSquare} label="Contact Us" onClick={() => window.open('https://mail.google.com/mail/u/0/?fs=1&to=hello@manifestr.ai&tf=cm', '_blank')} />
                 </div>

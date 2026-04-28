@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
-import TOOL_DETAILS, { ALL_TOOL_SLUGS, getToolBySlug } from '../../data/toolDetails'
+import { ALL_TOOL_SLUGS, getToolBySlug } from '../../data/toolDetails'
 
 import ToolHero           from '../../components/tool-detail/ToolHero'
 import ToolFeatures       from '../../components/tool-detail/ToolFeatures'
@@ -13,6 +13,7 @@ import ToolWhyManifest    from '../../components/tool-detail/ToolWhyManifest'
 import ToolConnectedSystem from '../../components/tool-detail/ToolConnectedSystem'
 import ToolDiscover       from '../../components/tool-detail/ToolDiscover'
 import ToolCTA            from '../../components/tool-detail/ToolCTA'
+import ToolCTA2           from '../../components/tool-detail/ToolCTA2'
 
 export async function getStaticPaths() {
   return {
@@ -25,14 +26,10 @@ export async function getStaticProps({ params }) {
   const tool = getToolBySlug(params.slug)
   if (!tool) return { notFound: true }
 
-  const relatedTools = tool.relatedTools
-    .map((s) => TOOL_DETAILS[s])
-    .filter(Boolean)
-
-  return { props: { tool, relatedTools } }
+  return { props: { tool } }
 }
 
-export default function ToolDetailPage({ tool, relatedTools }) {
+export default function ToolDetailPage({ tool }) {
   if (!tool) return null
 
   return (
@@ -62,9 +59,11 @@ export default function ToolDetailPage({ tool, relatedTools }) {
 
           <ToolConnectedSystem />
 
-          <ToolDiscover relatedTools={relatedTools} />
+          <ToolDiscover />
 
           <ToolCTA />
+
+          {/* <ToolCTA2 /> */}
         </main>
 
         <Footer />

@@ -68,15 +68,15 @@ export default function TermsOfService() {
           transition={{ duration: 0.6 }}
           className="relative z-10 flex flex-col items-center gap-[18px] md:gap-[11px] text-center text-white max-w-[342px] md:max-w-[551px]"
         >
-          <h1 className="text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px]">
-            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Terms</span>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> of Service</span>
+          <h1 className="text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Terms of </span>
+            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Service</span>
           </h1>
-          <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
             Binding Legal Agreement between you and MANIFESTR LLC
           </p>
-          <p className="text-[16px] leading-[24px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Last Updated: 19 March 2026
+          <p className="text-[16px] leading-[24px] text-white/95" style={{ fontFamily: 'Inter, sans-serif' }}>
+            Last updated: 19 March 2026
           </p>
         </motion.div>
       </section>
@@ -96,7 +96,7 @@ export default function TermsOfService() {
                   className={`text-left pl-[20px] py-[10px] border-l-[3px] transition-colors ${
                     isActive
                       ? 'border-[#020617] text-[#020617] font-medium'
-                      : 'border-transparent text-[#71717a]'
+                      : 'border-transparent text-[#52525b]'
                   }`}
                 >
                   <span
@@ -118,7 +118,7 @@ export default function TermsOfService() {
               <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Introduction
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]">
+              <div className="text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[16px]" style={{ fontFamily: 'Inter, sans-serif' }}>
                 <p>These Terms of Service (&quot;Agreement&quot;) constitute a legally binding agreement between you (&quot;User,&quot; &quot;you,&quot; or &quot;your&quot;) and MANIFESTR LLC (&quot;MANIFESTR,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), a Delaware limited liability company.</p>
                 <p>By accessing or using our platform, applications, or services (collectively, the &quot;Services&quot;), you agree to be bound by this Agreement and our Privacy Policy. If you do not agree, you must discontinue use immediately.</p>
                 <p>We may update these Terms from time to time. Where appropriate, we will notify you via email or within the platform. Continued use of the Services constitutes acceptance of the updated Terms.</p>
@@ -127,28 +127,28 @@ export default function TermsOfService() {
 
             {/* Eligibility & Account Responsibilities */}
             <div id="eligibility" className="flex flex-col gap-[24px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Eligibility &amp; Account Responsibilities
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li>You must be at least 18 years old or the legal age of majority in your jurisdiction</li>
                 <li>You must provide accurate and current information</li>
                 <li>You are responsible for maintaining account security</li>
                 <li>You are responsible for all activity under your account</li>
-                <li><span className="font-bold text-[#71717a]">Business Use: </span>If registering on behalf of an organisation, you confirm you have authority to bind that entity.</li>
-                <li><span className="font-bold text-[#71717a]">Team Accounts: </span>The account owner is responsible for all users under the account.</li>
+                <li><span className="font-bold text-[#52525b]">Business Use: </span>If registering on behalf of an organisation, you confirm you have authority to bind that entity.</li>
+                <li><span className="font-bold text-[#52525b]">Team Accounts: </span>The account owner is responsible for all users under the account.</li>
               </ul>
             </div>
 
             {/* Use of Services */}
             <div id="use" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Use of Services
               </h2>
 
               <div className="flex flex-col gap-[16px]">
                 <p className="text-[16px] leading-[24px] font-semibold text-[#09090b]">Permitted Use:</p>
-                <ul className="list-disc pl-[21px] text-[14px] leading-[20px] text-[#52525b] flex flex-col gap-[2px]">
+                <ul className="list-disc pl-[21px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[2px]">
                   <li>Use the Services for lawful business and professional purposes</li>
                   <li>Generate and use outputs within your subscription limits</li>
                 </ul>
@@ -156,7 +156,7 @@ export default function TermsOfService() {
 
               <div className="flex flex-col gap-[16px]">
                 <p className="text-[16px] leading-[24px] font-semibold text-[#09090b]">Prohibited Use:</p>
-                <div className="text-[14px] leading-[20px] text-[#52525b]">
+                <div className="text-[16px] leading-[24px] text-[#52525b]">
                   <p className="mb-[14px]">You agree not to, directly or indirectly:</p>
                   <ul className="list-disc pl-[21px] flex flex-col gap-[2px] mb-[14px]">
                     <li>Use the Services for unlawful, harmful, fraudulent, or abusive purposes</li>
@@ -185,10 +185,10 @@ export default function TermsOfService() {
 
             {/* Payments & Subscriptions */}
             <div id="payments" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Payments &amp; Subscriptions
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li><span className="font-semibold text-[#09090b]">Paid Services: </span>Certain features require a paid subscription. Pricing, features, and limits are outlined on the Pricing page and may be updated.</li>
                 <li><span className="font-semibold text-[#09090b]">Billing &amp; Renewal: </span>Subscriptions are billed in advance on a recurring basis (monthly or annually). Subscriptions renew automatically unless cancelled before the renewal date.</li>
                 <li><span className="font-semibold text-[#09090b]">Plan Changes: </span>
@@ -226,10 +226,10 @@ export default function TermsOfService() {
 
             {/* Intellectual Property */}
             <div id="ip" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Intellectual Property
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li><span className="font-semibold text-[#09090b]">Ownership of Platform: </span>MANIFESTR and its licensors retain all rights, title, and interest in the Services, including software, technology, algorithms, interfaces, designs, trademarks, and brand assets.</li>
                 <li><span className="font-semibold text-[#09090b]">User Content: </span>You retain ownership of any content you upload to the Services. By uploading, you grant MANIFESTR a worldwide, non-exclusive, royalty-free license to host, process, and display such content solely for providing the Services.</li>
                 <li><span className="font-semibold text-[#09090b]">Generated Outputs: </span>Subject to payment of applicable fees, you may use the outputs generated by the Services for your business purposes. MANIFESTR does not claim ownership of Outputs created using your User Content.</li>
@@ -239,22 +239,22 @@ export default function TermsOfService() {
 
             {/* AI Services & Generated Content */}
             <div id="ai" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 AI Services &amp; Generated Content
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li><span className="font-semibold text-[#09090b]">AI Functionality: </span>MANIFESTR provides AI-powered tools that generate content, including documents, presentations, strategies, financial outputs, reports, and other materials. These Outputs are generated based on user inputs, system prompts, and probabilistic machine learning models.</li>
                 <li><span className="font-semibold text-[#09090b]">No Guarantee of Accuracy: </span>Outputs may contain errors, omissions, inconsistencies, or outdated information. MANIFESTR does not guarantee the accuracy, completeness, reliability, or suitability of any Outputs for your specific use case.</li>
                 <li><span className="font-semibold text-[#09090b]">User Responsibility &amp; Review: </span>You are solely responsible for reviewing, validating, and approving all Outputs before using them.</li>
               </ul>
-              <p className="text-[16px] leading-[24px] text-[#71717a]">This includes, without limitation:</p>
-              <ul className="list-disc pl-[42px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[2px]">
+              <p className="text-[16px] leading-[24px] text-[#52525b]">This includes, without limitation:</p>
+              <ul className="list-disc pl-[42px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[2px]">
                 <li>Business decisions</li>
                 <li>Financial planning or forecasts</li>
                 <li>Client deliverables</li>
                 <li>Legal, regulatory, or compliance-related content</li>
               </ul>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li><span className="font-semibold text-[#09090b]">No Professional Advice: </span>Outputs do not constitute professional, legal, financial, or tax advice. Consult qualified professionals before relying on any Output in a professional context.</li>
                 <li><span className="font-semibold text-[#09090b]">Use at Your Own Risk: </span>MANIFESTR shall not be liable for any losses, damages, or claims arising from reliance on AI-generated Outputs.</li>
                 <li><span className="font-semibold text-[#09090b]">Infringement &amp; IP Risk: </span>While we take reasonable steps to reduce the risk of infringing output, we cannot guarantee Outputs will not inadvertently include content similar to third-party intellectual property.</li>
@@ -263,10 +263,10 @@ export default function TermsOfService() {
 
             {/* Disclaimers & Limitations */}
             <div id="disclaimers" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Disclaimers &amp; Limitations of Liability
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li><span className="font-semibold text-[#09090b]">Disclaimer of Warranties: </span>The Services are provided &quot;as is&quot; and &quot;as available.&quot; We disclaim all warranties, express or implied, including merchantability, fitness for a particular purpose, and non-infringement.</li>
                 <li><span className="font-semibold text-[#09090b]">Limitation of Liability: </span>To the maximum extent permitted by law, MANIFESTR shall not be liable for any indirect, incidental, consequential, special, or punitive damages arising from your use of the Services.</li>
                 <li><span className="font-semibold text-[#09090b]">Liability Cap: </span>Our total aggregate liability shall not exceed the fees you paid to MANIFESTR in the twelve (12) months preceding the event giving rise to the claim.</li>
@@ -275,10 +275,10 @@ export default function TermsOfService() {
 
             {/* Service Availability & Changes */}
             <div id="availability" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Service Availability &amp; Changes
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li>We strive for reliable service but do not guarantee uninterrupted availability.</li>
                 <li>Scheduled or emergency maintenance may occur.</li>
                 <li>We may modify, suspend, or discontinue features at our discretion.</li>
@@ -287,10 +287,10 @@ export default function TermsOfService() {
 
             {/* Termination & Suspension */}
             <div id="termination" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Termination &amp; Suspension
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li>You may cancel your account at any time.</li>
                 <li>We may suspend or terminate your access if you breach these Terms.</li>
                 <li>Upon termination, your right to use the Services ceases. Certain provisions of these Terms will survive termination.</li>
@@ -299,10 +299,10 @@ export default function TermsOfService() {
 
             {/* Governing Law */}
             <div id="governing" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Governing Law &amp; Dispute Resolution
               </h2>
-              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[4px]">
+              <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#52525b] flex flex-col gap-[4px]">
                 <li><span className="font-semibold text-[#09090b]">Governing Law: </span>This Agreement is governed by the laws of the State of Delaware, without regard to conflict of law principles.</li>
                 <li><span className="font-semibold text-[#09090b]">Arbitration: </span>Any disputes shall be resolved through binding arbitration administered under JAMS rules, held in Delaware, USA.</li>
                 <li><span className="font-semibold text-[#09090b]">Class Action Waiver: </span>You waive the right to participate in class-action lawsuits or class-wide arbitration.</li>
@@ -311,10 +311,10 @@ export default function TermsOfService() {
 
             {/* Contact Information */}
             <div id="contact" className="flex flex-col gap-[20px] scroll-mt-[120px]">
-              <h2 className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+              <h2 className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]" style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
                 Contact Information
               </h2>
-              <div className="text-[16px] leading-[24px] text-[#71717a]">
+              <div className="text-[16px] leading-[24px] text-[#52525b]">
                 <p className="mb-[8px]">For questions about these Terms, contact us at:</p>
                 <p className="font-semibold text-[#09090b]">MANIFESTR LLC</p>
                 <p>Email: legal@manifestr.com</p>

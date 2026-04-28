@@ -9,6 +9,7 @@ export default function Step3({ email, onNext }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Password requirements validation
   const passwordRequirements = {
@@ -40,22 +41,24 @@ export default function Step3({ email, onNext }) {
     return null
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setTouched({ newPassword: true, confirmPassword: true })
-
-    // Only validate if all requirements are met
+  
     if (!allRequirementsMet) {
       setErrors({
         newPassword: 'Password does not meet all requirements',
-        confirmPassword: touched.confirmPassword && confirmPassword !== newPassword ? 'Passwords do not match' : undefined,
+        confirmPassword:
+          touched.confirmPassword && confirmPassword !== newPassword
+            ? 'Passwords do not match'
+            : undefined,
       })
       return
     }
-
+  
     const newPasswordError = validatePassword(newPassword)
     const confirmPasswordError = validateConfirmPassword(confirmPassword)
-
+  
     if (newPasswordError || confirmPasswordError) {
       setErrors({
         newPassword: newPasswordError,
@@ -63,10 +66,21 @@ export default function Step3({ email, onNext }) {
       })
       return
     }
-
-    // All validations passed
-    setErrors({})
-    onNext({ newPassword, confirmPassword })
+  
+    try {
+      setIsSubmitting(true)
+      setErrors({})
+  
+      await onNext({ password: newPassword })
+  
+    } catch (err) {
+      setErrors({
+        newPassword:
+          err?.response?.data?.message || "Failed to reset password",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleNewPasswordChange = (e) => {
@@ -225,9 +239,9 @@ export default function Step3({ email, onNext }) {
           variant="primary" 
           size="md" 
           className="w-full"
-          disabled={!isFormValid}
+          disabled={!isFormValid || isSubmitting}
         >
-          Reset password
+          {isSubmitting ? "Updating..." : "Reset password"}
         </Button>
 
         {/* Back to Login Link */}

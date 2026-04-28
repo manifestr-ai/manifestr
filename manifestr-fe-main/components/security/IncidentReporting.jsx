@@ -62,8 +62,8 @@ export default function IncidentReporting() {
     <>
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-12 md:py-[96px]">
-          <nav className="flex items-center gap-[4px] mb-[32px]">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-9 md:py-[64px]">
+          <nav className="flex items-center gap-[4px] mb-6">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Home</Link>
             <ChevronRight />
             <Link href="/security" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Security</Link>
@@ -71,11 +71,11 @@ export default function IncidentReporting() {
             <span className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px]" style={font}>Incident Reporting</span>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-[64px] items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
             <div className="flex flex-col gap-[16px] w-full lg:w-[592px] shrink-0">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-black tracking-[-0.72px] md:tracking-[-1.44px] text-[36px] leading-[44px] md:text-[72px] md:leading-[90px]"
+                className="text-[36px] leading-[1.1] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
                 style={headingFont}
               >
                 Transparency in action.
@@ -127,8 +127,8 @@ export default function IncidentReporting() {
       </section>
 
       {/* ─── Accordion ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-12 md:py-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[48px] items-center">
+      <section className="w-full bg-white px-6 md:px-[80px] py-9 md:py-[64px]">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-8 md:gap-10 items-center">
           <div className="flex flex-col gap-[16px] w-full">
             {ACCORDION_ITEMS.map((item) => {
               const isOpen = !!openIds[item.id]
@@ -190,18 +190,18 @@ export default function IncidentReporting() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-12 md:py-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
+      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-5 md:py-8">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-2 md:gap-3 items-center text-center">
           <motion.h2
             {...fadeUp}
-            className="text-black tracking-[-0.6px] md:tracking-[-0.96px] text-[30px] leading-[38px] md:text-[48px] md:leading-[60px]"
+            className="text-black tracking-[-0.48px] md:tracking-[-0.72px] text-[22px] leading-[28px] md:text-[34px] md:leading-[42px]"
             style={headingFont}
           >
             Legal Disclaimer
           </motion.h2>
           <motion.p
             {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[#52525b] text-[16px] leading-[24px] max-w-[1119px]" style={font}
+            className="text-[#52525b] text-[14px] leading-[20px] md:text-[15px] md:leading-[22px] max-w-[1120px]" style={font}
           >
             This page is provided for informational purposes only and does not constitute legal advice.
             MANIFESTR&apos;s incident response, disclosure, and bug bounty programs are operated in accordance
