@@ -146,7 +146,7 @@ export default function TheNewEra() {
                          lg:w-auto lg:h-[54px] lg:px-[32px] lg:rounded-md lg:border lg:border-[#e4e4e7] lg:text-[18px]"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
-              Explore Our Toolkit
+              Explore The Toolkit
             </Link>
             <Link
               href="/signup"

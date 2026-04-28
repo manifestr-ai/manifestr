@@ -1,95 +1,138 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import Button from '../ui/Button'
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import Button from "../ui/Button";
+import api from "../../lib/api";
 
-const CORRECT_CODE = '123123'
+// const CORRECT_CODE = '123123'
 
 export default function Step2({ email, onNext }) {
-  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', ''])
-  const [codeError, setCodeError] = useState('')
-  const [isShaking, setIsShaking] = useState(false)
-  const codeInputRefs = useRef([])
+  const [verificationCode, setVerificationCode] = useState([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  const [codeError, setCodeError] = useState("");
+  const [isShaking, setIsShaking] = useState(false);
+  const codeInputRefs = useRef([]);
+
+  const [isResending, setIsResending] = useState(false);
+  const [timer, setTimer] = useState(60);
+
+  useEffect(() => {
+    if (timer <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timer]);
 
   // Focus first input on mount
   useEffect(() => {
     if (codeInputRefs.current[0]) {
-      codeInputRefs.current[0].focus()
+      codeInputRefs.current[0].focus();
     }
-  }, [])
+  }, []);
 
   const handleCodeChange = (index, value) => {
     // Only allow numbers
-    if (value && !/^\d$/.test(value)) return
-    
+    if (value && !/^\d$/.test(value)) return;
+
     // Clear error when user starts typing
     if (codeError) {
-      setCodeError('')
+      setCodeError("");
     }
-    
-    const newCode = [...verificationCode]
-    newCode[index] = value
-    setVerificationCode(newCode)
-    
+
+    const newCode = [...verificationCode];
+    newCode[index] = value;
+    setVerificationCode(newCode);
+
     // Auto-focus next input
     if (value && index < 5) {
-      codeInputRefs.current[index + 1]?.focus()
+      codeInputRefs.current[index + 1]?.focus();
     }
-  }
+  };
 
   const handleCodeKeyDown = (index, e) => {
     // Handle backspace
-    if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
-      codeInputRefs.current[index - 1]?.focus()
+    if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
+      codeInputRefs.current[index - 1]?.focus();
     }
-  }
+  };
 
   const handleCodePaste = (e) => {
-    e.preventDefault()
-    const pastedData = e.clipboardData.getData('text').trim()
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
     if (/^\d{6}$/.test(pastedData)) {
-      const newCode = pastedData.split('')
-      setVerificationCode(newCode)
+      const newCode = pastedData.split("");
+      setVerificationCode(newCode);
       // Focus last input
-      codeInputRefs.current[5]?.focus()
+      codeInputRefs.current[5]?.focus();
     }
-  }
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const code = verificationCode.join('')
-    
-    if (code.length !== 6) {
-      return
-    }
-    
-    // Check if code is correct
-    if (code === CORRECT_CODE) {
-      setCodeError('')
-      onNext(code)
-    } else {
-      // Incorrect code - trigger vibration animation
-      setCodeError('The verification code is incorrect. Please try again.')
-      setIsShaking(true)
-      
-      // Reset shaking after animation
-      setTimeout(() => {
-        setIsShaking(false)
-      }, 500)
-      
-      // Clear the code inputs
-      setVerificationCode(['', '', '', '', '', ''])
-      // Focus first input
-      setTimeout(() => {
-        if (codeInputRefs.current[0]) {
-          codeInputRefs.current[0].focus()
-        }
-      }, 600)
-    }
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const code = verificationCode.join("");
 
-  const isCodeComplete = verificationCode.every(digit => digit !== '')
+    if (code.length !== 6) return;
+
+    try {
+      setCodeError("");
+
+      await onNext(code); // ✅ parent handles API
+    } catch (err) {
+      const message = err?.response?.data?.message;
+
+      if (message === "Code expired") {
+        setCodeError("This code has expired. Please request a new one.");
+
+        setVerificationCode(["", "", "", "", "", ""]);
+        codeInputRefs.current[0]?.focus();
+
+        setTimer(0); // enable resend instantly
+      } else {
+        setCodeError(
+          message || "The verification code is incorrect. Please try again.",
+        );
+
+        setIsShaking(true);
+
+        setTimeout(() => setIsShaking(false), 500);
+
+        setVerificationCode(["", "", "", "", "", ""]);
+
+        setTimeout(() => {
+          codeInputRefs.current[0]?.focus();
+        }, 600);
+      }
+    }
+  };
+
+  const handleResend = async () => {
+    if (timer > 0) return;
+
+    try {
+      setIsResending(true);
+
+      await api.post("/auth/send-reset-code", {
+        email,
+      });
+
+      setTimer(60);
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to resend code");
+    } finally {
+      setIsResending(false);
+    }
+  };
+  const isCodeComplete = verificationCode.every((digit) => digit !== "");
 
   return (
     <>
@@ -107,14 +150,18 @@ export default function Step2({ email, onNext }) {
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
         {/* Code Input Fields */}
         <div className="flex flex-col gap-4 w-full">
-          <motion.div 
+          <motion.div
             className="flex gap-2 justify-center"
-            animate={isShaking ? {
-              x: [0, -10, 10, -10, 10, -5, 5, 0]
-            } : {}}
+            animate={
+              isShaking
+                ? {
+                    x: [0, -10, 10, -10, 10, -5, 5, 0],
+                  }
+                : {}
+            }
             transition={{
               duration: 0.5,
-              ease: 'easeInOut'
+              ease: "easeInOut",
             }}
           >
             {verificationCode.map((digit, index) => (
@@ -130,19 +177,29 @@ export default function Step2({ email, onNext }) {
                 onPaste={handleCodePaste}
                 className="w-full h-14 bg-white border rounded-md text-center text-[24px] font-semibold text-[#09090b] focus:outline-none focus:ring-2 focus:ring-base-foreground focus:ring-offset-0"
                 style={{
-                  borderColor: codeError ? '#fca5a5' : '#e4e4e7'
+                  borderColor: codeError ? "#fca5a5" : "#e4e4e7",
                 }}
-                animate={isShaking ? {
-                  borderColor: ['#fca5a5', '#dc2626', '#fca5a5', '#dc2626', '#fca5a5']
-                } : {}}
+                animate={
+                  isShaking
+                    ? {
+                        borderColor: [
+                          "#fca5a5",
+                          "#dc2626",
+                          "#fca5a5",
+                          "#dc2626",
+                          "#fca5a5",
+                        ],
+                      }
+                    : {}
+                }
                 transition={{
                   duration: 0.5,
-                  ease: 'easeInOut'
+                  ease: "easeInOut",
                 }}
               />
             ))}
           </motion.div>
-          
+
           {/* Error Message */}
           {codeError && (
             <motion.p
@@ -153,7 +210,7 @@ export default function Step2({ email, onNext }) {
               {codeError}
             </motion.p>
           )}
-          
+
           {/* Resend Code Link */}
           <div className="flex items-center justify-center gap-1">
             <p className="text-l2-regular text-base-muted-foreground">
@@ -162,20 +219,19 @@ export default function Step2({ email, onNext }) {
             <button
               type="button"
               className="text-l2-medium text-zinc-900 hover:opacity-80 px-1"
-              onClick={() => {
-                // Handle resend logic
-              }}
+              onClick={handleResend}
+              disabled={timer > 0 || isResending}
             >
-              Resend
+              {timer > 0 ? `Resend in ${timer}s` : "Resend"}
             </button>
           </div>
         </div>
 
         {/* Verify Button */}
-        <Button 
-          type="submit" 
-          variant="primary" 
-          size="md" 
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
           className="w-full"
           disabled={!isCodeComplete}
         >
@@ -192,6 +248,5 @@ export default function Step2({ email, onNext }) {
         </Link>
       </form>
     </>
-  )
+  );
 }
-

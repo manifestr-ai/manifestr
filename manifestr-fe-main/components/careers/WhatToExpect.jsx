@@ -26,21 +26,21 @@ const STEPS = [
 
 export default function WhatToExpect() {
   return (
-    <section className="w-full bg-white py-[48px] md:py-[96px]">
-      <div className="max-w-[1280px] mx-auto px-6 md:px-[80px] flex flex-col gap-[24px] md:gap-[60px] items-center">
+    <section className="w-full bg-white pt-8 pb-[48px] md:pt-12 md:pb-[96px]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-[24px] px-6 md:gap-[60px] md:px-[80px]">
 
-        {/* Intro + heading (body copy first per design) */}
-        <div className="flex flex-col gap-[12px] items-center text-center w-full">
-          <p
-            className="text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] text-[#52525c] w-full max-w-[342px] md:max-w-none"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-          >
-            Empowering ambitious minds with AI Toolkit to thrive - without sacrificing their spark or well-being.
-          </p>
-          <h2 className="text-[30px] md:text-[60px] leading-[43px] md:leading-[72px] tracking-[-0.6px] md:tracking-[-1.2px] text-black max-w-[342px] md:max-w-none">
+        {/* Heading first, then intro (what to expect + empowering context) */}
+        <div className="flex w-full max-w-[720px] flex-col items-center gap-[12px] text-center md:max-w-[860px]">
+          <h2 className="max-w-[342px] text-[30px] leading-[43px] tracking-[-0.6px] text-black md:max-w-none md:text-[60px] md:leading-[72px] md:tracking-[-1.2px]">
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The Application </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Process </span>
           </h2>
+          <p
+            className="w-full max-w-[342px] text-[16px] leading-[24px] text-[#52525b] md:max-w-none"
+            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          >
+            What to expect when applying to MANIFESTR.
+          </p>
         </div>
 
         {/* Mobile steps — centered text blocks */}
@@ -54,15 +54,15 @@ export default function WhatToExpect() {
               transition={{ delay: i * 0.12, duration: 0.5 }}
               className="text-center tracking-[-0.28px]"
             >
-              <p
-                className="text-[16px] leading-[17px] text-black font-bold"
-                style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
+              <h3
+                className="text-[24px] leading-[32px] text-black"
+                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
               >
                 {step.title}:
-              </p>
+              </h3>
               <p
-                className="text-[14px] leading-[17px] text-black mt-[4px]"
-                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 400 }}
+                className="text-[16px] leading-[24px] text-[#52525b] mt-2"
+                style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
               >
                 {step.desc}
               </p>
@@ -147,7 +147,7 @@ export default function WhatToExpect() {
                   className={`flex items-center ${step.isLast ? 'min-h-[110px]' : 'min-h-[139px]'}`}
                 >
                   <p
-                    className="max-w-[362px] text-[16px] leading-[24px] text-[#18181b]"
+                    className="max-w-[362px] text-[16px] leading-[24px] text-[#52525b]"
                     style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {step.desc}

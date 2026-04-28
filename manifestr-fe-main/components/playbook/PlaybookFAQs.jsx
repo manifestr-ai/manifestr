@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
 const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044769/Frame_3_esfcck.png'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const SIDEBAR_CATEGORIES = [
   {
@@ -18,41 +20,43 @@ const FAQ_DATA = {
     {
       id: 'toolkit-included',
       question: 'What Toolkit are included in MANIFESTR?',
+      searchable:
+        'deck briefcase strategist cost ctrl wordsmith design studio huddle analyzer toolkit the vault',
       defaultOpen: true,
       answer: (
-        <div className="flex flex-col gap-[16px] text-[14px] leading-[20px] text-[#cacaca]" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="flex flex-col gap-[16px] text-[15px] leading-[24px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
           <p>MANIFESTR includes a suite of AI-powered Toolkit that cover your whole workflow:</p>
-          <ul className="list-disc pl-[20px] flex flex-col gap-[12px]">
+          <ul className="flex flex-col gap-[12px] pl-[20px] list-disc">
             <li>
-              <span className="font-semibold text-white">THE DECK</span>
+              <span className="font-semibold text-[#18181b]">THE DECK</span>
               {' - Instantly create on-brand presentations for pitches and reports.'}
             </li>
             <li>
-              <span className="font-semibold text-white">BRIEFCASE</span>
+              <span className="font-semibold text-[#18181b]">BRIEFCASE</span>
               {' - Draft strategies, timelines, recaps, and proposals.'}
             </li>
             <li>
-              <span className="font-semibold text-white">THE STRATEGIST</span>
+              <span className="font-semibold text-[#18181b]">THE STRATEGIST</span>
               {' - Turn ideas and inputs into insight-driven frameworks.'}
             </li>
             <li>
-              <span className="font-semibold text-white">COST CTRL</span>
+              <span className="font-semibold text-[#18181b]">COST CTRL</span>
               {' - Build budgets, margins, and financial summaries.'}
             </li>
             <li>
-              <span className="font-semibold text-white">WORDSMITH</span>
+              <span className="font-semibold text-[#18181b]">WORDSMITH</span>
               {' - Write persuasive copy, headlines, and localizations.'}
             </li>
             <li>
-              <span className="font-semibold text-white">DESIGN STUDIO</span>
+              <span className="font-semibold text-[#18181b]">DESIGN STUDIO</span>
               {' - Generate visuals, mockups, and brand graphics.'}
             </li>
             <li>
-              <span className="font-semibold text-white">THE HUDDLE</span>
+              <span className="font-semibold text-[#18181b]">THE HUDDLE</span>
               {' - Auto-generate agendas, summaries, and discussion guides.'}
             </li>
             <li>
-              <span className="font-semibold text-white">THE ANALYZER</span>
+              <span className="font-semibold text-[#18181b]">THE ANALYZER</span>
               {' - Turn data into charts, graphs, and summaries.'}
             </li>
           </ul>
@@ -165,10 +169,18 @@ const FAQ_DATA = {
   Support: [],
 }
 
-function ChevronIcon({ open }) {
+function matchesFaqQuery(q, faq) {
+  const s = q.trim().toLowerCase()
+  if (!s) return true
+  if (faq.question.toLowerCase().includes(s)) return true
+  if (faq.searchable && faq.searchable.toLowerCase().includes(s)) return true
+  return false
+}
+
+function ChevronIcon({ open, className = '' }) {
   return (
     <svg
-      className={`w-[20px] h-[20px] shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+      className={`h-5 w-5 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''} ${className}`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -179,6 +191,7 @@ function ChevronIcon({ open }) {
 }
 
 export default function PlaybookFAQs() {
+  const router = useRouter()
   const [activeCategory, setActiveCategory] = useState('Platform')
   const [openIds, setOpenIds] = useState(() => {
     const defaultOpen = {}
@@ -190,15 +203,31 @@ export default function PlaybookFAQs() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mobileCatOpen, setMobileCatOpen] = useState(false)
 
-  const faqs = FAQ_DATA[activeCategory] || []
+  useEffect(() => {
+    if (!router.isReady) return
+    const raw = router.query.q
+    if (raw === undefined) {
+      setSearchQuery('')
+      return
+    }
+    if (Array.isArray(raw)) setSearchQuery(raw[0] ?? '')
+    else if (typeof raw === 'string') setSearchQuery(raw)
+  }, [router.isReady, router.query.q])
 
-  const filteredFaqs = searchQuery.trim()
-    ? Object.values(FAQ_DATA)
-        .flat()
-        .filter((f) =>
-          f.question.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    : faqs
+  const filteredFaqs = useMemo(() => {
+    const q = searchQuery.trim()
+    if (!q) return FAQ_DATA[activeCategory] || []
+    return Object.values(FAQ_DATA)
+      .flat()
+      .filter((f) => matchesFaqQuery(q, f))
+  }, [searchQuery, activeCategory])
+
+  function applySearch(e) {
+    e?.preventDefault()
+    const q = searchQuery.trim()
+    const path = q ? `/playbook/faqs?q=${encodeURIComponent(q)}` : '/playbook/faqs'
+    router.push(path, undefined, { shallow: true })
+  }
 
   function toggleFaq(id) {
     setOpenIds((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -212,6 +241,9 @@ export default function PlaybookFAQs() {
     })
     setOpenIds(defaults)
     setSearchQuery('')
+    if (router.isReady && router.query.q) {
+      router.push('/playbook/faqs', undefined, { shallow: true })
+    }
     setMobileCatOpen(false)
   }
 
@@ -240,20 +272,20 @@ export default function PlaybookFAQs() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[426px] md:h-[518px] flex items-center justify-center px-6 md:px-[80px] overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <CldImage src={HERO_BG} alt="" className="absolute w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/17" />
+      <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <CldImage src={HERO_BG} alt="" className="absolute h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[25px] md:gap-[44px] w-full max-w-[342px] md:max-w-none"
+          className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 md:gap-8"
         >
-          <div className="flex flex-col items-center gap-[14px] text-center">
-            <h1 className="text-[36px] md:text-[60px] leading-[normal] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px] text-white">
+          <div className="flex max-w-[603px] flex-col items-center gap-5 text-center md:gap-6">
+            <h1 className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
                 Frequently Asked{' '}
               </span>
@@ -262,26 +294,47 @@ export default function PlaybookFAQs() {
               </span>
             </h1>
             <p
-              className="text-[16px] leading-[24px] text-[#e1e1e1] max-w-[603px]"
-              style={{ fontFamily: 'Inter, sans-serif' }}
+              className="text-center text-[16px] leading-[24px] text-white md:text-[18px] md:leading-[28px]"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               Common questions, answered. Platform, plans, AI, collaboration and support.
             </p>
           </div>
 
-          {/* Search */}
-          <div className="bg-white border border-[#d5d7da] rounded-[6px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-full md:w-[449px] max-w-full">
-            <svg className="w-[20px] h-[20px] text-[#71717a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 text-[16px] leading-[24px] text-[#71717a] placeholder:text-[#71717a] outline-none bg-transparent"
+          <div className="flex w-full max-w-[449px] flex-col items-center gap-5">
+            <form
+              onSubmit={applySearch}
+              className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5"
+            >
+              <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                name="q"
+                type="search"
+                autoComplete="off"
+                placeholder="Search questions & topics"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded bg-[#18181b] px-2.5 py-1.5 text-[13px] font-medium text-white hover:bg-[#27272a] md:px-3"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Search
+              </button>
+            </form>
+
+            <Link
+              href="/signup"
+              className="inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] sm:w-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
-            />
+            >
+              Enter MANIFESTR
+            </Link>
           </div>
         </motion.div>
       </section>
@@ -403,7 +456,6 @@ export default function PlaybookFAQs() {
             ) : (
               filteredFaqs.map((faq, i) => {
                 const isOpen = !!openIds[faq.id]
-                const isDark = faq.defaultOpen && isOpen && !searchQuery
 
                 return (
                   <motion.div
@@ -411,27 +463,28 @@ export default function PlaybookFAQs() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: i * 0.04 }}
-                    className={`rounded-[12px] overflow-hidden ${
-                      isDark
-                        ? 'bg-[#09090b] px-[16px] md:px-[24px] py-[24px]'
-                        : 'border border-[#c6c8d0] p-[20px]'
-                    }`}
+                    className={`overflow-hidden rounded-[12px] border p-5 transition-colors md:px-6 md:py-5 ${
+                      isOpen
+                        ? 'border-[#e2e8f0] bg-[#f4f4f4]'
+                        : 'border-[#c6c8d0] bg-white'
+                    } `}
                   >
                     <button
+                      type="button"
                       onClick={() => toggleFaq(faq.id)}
-                      className="w-full flex items-start gap-[12px] md:gap-[24px] text-left"
+                      className="flex w-full items-start gap-3 text-left md:gap-6"
                     >
                       <span
                         className={`flex-1 font-medium ${
-                          isDark
-                            ? 'text-[18px] leading-[28px] text-white'
-                            : 'text-[14px] md:text-[18px] leading-[24px] md:leading-[28px] text-black'
+                          isOpen
+                            ? 'text-[16px] leading-[26px] text-[#1e293b] md:text-[18px] md:leading-[28px]'
+                            : 'text-[14px] leading-[24px] text-[#0f172a] md:text-[18px] md:leading-[28px]'
                         }`}
                         style={{ fontFamily: 'Inter, sans-serif' }}
                       >
                         {faq.question}
                       </span>
-                      <span className={`mt-[4px] shrink-0 ${isDark ? 'text-white' : 'text-[#475569]'}`}>
+                      <span className="mt-1 shrink-0 text-[#64748b]">
                         <ChevronIcon open={isOpen} />
                       </span>
                     </button>
@@ -455,6 +508,40 @@ export default function PlaybookFAQs() {
               })
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ─── Need More Help? ─── */}
+      <section className="relative h-[380px] w-full overflow-hidden md:h-[414px]">
+        <CldImage src={CTA_BG} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col items-center gap-[30px] px-6 text-center"
+          >
+            <div className="flex flex-col items-center gap-[16px]">
+              <h2 className="text-[36px] leading-tight text-black md:text-[60px] md:leading-[72px] md:tracking-[-1.2px]">
+                <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Need More </span>
+                <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Help?</span>
+              </h2>
+              <p
+                className="max-w-[603px] text-[16px] leading-[24px] text-[#52525b]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {"Can't find what you're looking for? Our support team is here to help you succeed with MANIFESTR."}
+              </p>
+            </div>
+            <Link
+              href="/playbook/submit-ticket"
+              className="inline-flex h-[44px] items-center justify-center rounded-[6px] bg-[#18181b] px-4 text-[14px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a]"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Submit a Support Ticket
+            </Link>
+          </motion.div>
         </div>
       </section>
     </>

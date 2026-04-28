@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
@@ -52,10 +53,38 @@ const GLOSSARY = {
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const ACTIVE_LETTERS = Object.keys(GLOSSARY)
 
+function buildFilteredGlossary(query) {
+  const q = query.trim().toLowerCase()
+  if (!q) return GLOSSARY
+  return Object.fromEntries(
+    Object.entries(GLOSSARY)
+      .map(([letter, terms]) => [
+        letter,
+        terms.filter(
+          (t) =>
+            t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q)
+        ),
+      ])
+      .filter(([, terms]) => terms.length > 0)
+  )
+}
+
 export default function Glossary() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeLetter, setActiveLetter] = useState('A')
   const contentRef = useRef(null)
+
+  useEffect(() => {
+    if (!router.isReady) return
+    const raw = router.query.q
+    if (raw === undefined) {
+      setSearchQuery('')
+      return
+    }
+    if (Array.isArray(raw)) setSearchQuery(raw[0] ?? '')
+    else if (typeof raw === 'string') setSearchQuery(raw)
+  }, [router.isReady, router.query.q])
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
@@ -82,27 +111,24 @@ export default function Glossary() {
     return undefined
   }, [])
 
+  const filteredGlossary = useMemo(
+    () => buildFilteredGlossary(searchQuery),
+    [searchQuery]
+  )
+
+  function applySearch(e) {
+    e?.preventDefault()
+    const q = searchQuery.trim()
+    const path = q ? `/playbook/glossary?q=${encodeURIComponent(q)}` : '/playbook/glossary'
+    router.push(path, undefined, { shallow: true })
+  }
+
   const handleLetterClick = (letter) => {
     if (!ACTIVE_LETTERS.includes(letter)) return
     setActiveLetter(letter)
     const el = document.getElementById(`glossary-${letter}`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-
-  const filteredGlossary = searchQuery
-    ? Object.fromEntries(
-        Object.entries(GLOSSARY)
-          .map(([letter, terms]) => [
-            letter,
-            terms.filter(
-              (t) =>
-                t.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                t.def.toLowerCase().includes(searchQuery.toLowerCase())
-            ),
-          ])
-          .filter(([, terms]) => terms.length > 0)
-      )
-    : GLOSSARY
 
   return (
     <>
@@ -158,19 +184,31 @@ export default function Glossary() {
           </div>
 
           {/* Search */}
-          <div className="bg-white border border-[#d5d7da] rounded-[6px] shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] flex items-center gap-[8px] px-[14px] py-[10px] w-full max-w-[449px]">
-            <svg className="w-[20px] h-[20px] text-[#71717a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <form
+            onSubmit={applySearch}
+            className="flex w-full max-w-[449px] items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5"
+          >
+            <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
-              type="text"
-              placeholder="Quick lookup"
+              name="q"
+              type="search"
+              autoComplete="off"
+              placeholder="Search terms & definitions"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] outline-none bg-transparent"
+              className="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             />
-          </div>
+            <button
+              type="submit"
+              className="shrink-0 rounded bg-[#18181b] px-2.5 py-1.5 text-[13px] font-medium text-white hover:bg-[#27272a] md:px-3"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Search
+            </button>
+          </form>
 
           <div className="flex flex-col items-center gap-[16px] w-full">
             <a
@@ -226,6 +264,14 @@ export default function Glossary() {
 
       {/* ─── Glossary Content ─── */}
       <section ref={contentRef} className="w-full bg-white px-6 md:px-[112px] pt-[32px] pb-[96px]">
+        {searchQuery.trim() && Object.keys(filteredGlossary).length === 0 ? (
+          <p
+            className="max-w-[640px] py-8 text-[16px] leading-[24px] text-[#52525b]"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            No terms match &ldquo;{searchQuery.trim()}&rdquo;. Try different keywords or browse by letter.
+          </p>
+        ) : null}
         <div className="flex flex-col gap-[48px]">
           {Object.entries(filteredGlossary).map(([letter, terms]) => (
             <div
@@ -289,7 +335,7 @@ export default function Glossary() {
               </p>
             </div>
             <Link
-              href="/contact"
+              href="/playbook/submit-ticket"
               className="h-[44px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >

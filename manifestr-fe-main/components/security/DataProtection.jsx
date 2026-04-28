@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
@@ -87,7 +87,27 @@ const fadeUp = {
   transition: { duration: 0.5 },
 }
 
+function ComplianceScrollArrow({ dir, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border border-[#e4e4e7] bg-white text-[#52525b] shadow-sm transition-colors hover:border-[#d4d4d8] hover:text-[#18181b]"
+    >
+      <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        {dir === 'left' ? (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 18l-6-6 6-6" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18l6-6-6-6" />
+        )}
+      </svg>
+    </button>
+  )
+}
+
 export default function DataProtection() {
+  const complianceScrollRef = useRef(null)
   const [openIds, setOpenIds] = useState({})
   const font = { fontFamily: 'Inter, sans-serif' }
   const headingFont = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
@@ -96,13 +116,17 @@ export default function DataProtection() {
     setOpenIds((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
+  const scrollCompliance = (dir) => {
+    complianceScrollRef.current?.scrollBy({ left: dir * 342, behavior: 'smooth' })
+  }
+
   return (
     <>
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[48px] md:py-[96px]">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-[36px] md:py-[64px]">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-[4px] mb-[16px] md:mb-[32px] justify-center lg:justify-start">
+          <nav className="flex items-center gap-[4px] mb-3 md:mb-6 justify-center lg:justify-start">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>
               Home
             </Link>
@@ -116,17 +140,18 @@ export default function DataProtection() {
             </span>
           </nav>
 
-          <div className="flex flex-col lg:flex-row gap-[32px] lg:gap-[64px] items-center lg:items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start">
             {/* Left — text */}
             <div className="flex flex-col gap-[16px] w-full lg:w-[592px] shrink-0">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="text-black text-[36px] md:text-[72px] leading-[44px] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-center lg:text-left"
+                className="text-black text-[36px] leading-[1.1] tracking-[-0.72px] text-center md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px] lg:text-left"
                 style={headingFont}
               >
-                Your data,<br />secured at every layer.
+                <span className="block">Your data,</span>
+                <span className="block -mt-0.5 md:-mt-1">secured at every layer.</span>
               </motion.h1>
 
               <motion.div
@@ -169,8 +194,8 @@ export default function DataProtection() {
       </section>
 
       {/* ─── Accordion Section ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] pb-[48px] md:pb-[96px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[16px] md:gap-[24px]">
+      <section className="w-full bg-white px-6 md:px-[80px] pb-9 md:pb-16">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-4 md:gap-5">
           {ACCORDION_ITEMS.map((item) => {
             const isOpen = !!openIds[item.id]
             return (
@@ -223,8 +248,8 @@ export default function DataProtection() {
       </section>
 
       {/* ─── Compliance & Legal Alignment ─── */}
-      <section className="w-full bg-white px-6 md:px-[80px] py-[48px] md:py-[80px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[24px] md:gap-[64px] items-center">
+      <section className="w-full bg-white px-6 md:px-[80px] py-[36px] md:py-[56px]">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-5 md:gap-10 items-center">
           {/* Heading */}
           <motion.div {...fadeUp} className="flex flex-col gap-[12px] items-center text-center w-full">
             <h2
@@ -295,31 +320,53 @@ export default function DataProtection() {
             </div>
 
             {/* Mobile horizontal scroll */}
-            <div className="md:hidden overflow-x-auto -mx-6 px-6 scrollbar-hide">
-              <div className="flex gap-[27px] w-max">
-                {[...COMPLIANCE_CARDS_ROW1, ...COMPLIANCE_CARDS_ROW2].map((card, i) => (
-                  <motion.div
-                    key={card.title}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-40px' }}
-                    transition={{ duration: 0.45, delay: i * 0.08 }}
-                    className="bg-white border border-[#e4e4e7] rounded-[12px] overflow-hidden flex flex-col group w-[315px] shrink-0"
-                  >
-                    <div className="relative w-full h-[207px] overflow-hidden">
-                      <CldImage
-                        src={card.image}
-                        alt={card.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent pointer-events-none" />
-                    </div>
-                    <div className="px-[21px] py-[20px] flex flex-col gap-[12px]">
-                      <h3 className="text-black text-[24px] leading-[32px]" style={headingFont}>{card.title}</h3>
-                      <p className="text-[#52525b] text-[16px] leading-[24px]" style={font}>{card.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
+            <div className="relative md:hidden">
+              <div
+                ref={complianceScrollRef}
+                className="-mx-6 w-full overflow-x-auto px-6 pb-14 scrollbar-hide"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
+                <div className="flex gap-[27px] w-max">
+                  {[...COMPLIANCE_CARDS_ROW1, ...COMPLIANCE_CARDS_ROW2].map((card, i) => (
+                    <motion.div
+                      key={card.title}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ duration: 0.45, delay: i * 0.08 }}
+                      className="bg-white border border-[#e4e4e7] rounded-[12px] overflow-hidden flex flex-col group w-[315px] shrink-0"
+                    >
+                      <div className="relative w-full h-[207px] overflow-hidden">
+                        <CldImage
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent pointer-events-none" />
+                      </div>
+                      <div className="px-[21px] py-[20px] flex flex-col gap-[12px]">
+                        <h3 className="text-black text-[24px] leading-[32px]" style={headingFont}>{card.title}</h3>
+                        <p className="text-[#52525b] text-[16px] leading-[24px]" style={font}>{card.description}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+              <div className="pointer-events-none absolute bottom-0 right-6 z-10 flex items-center gap-2">
+                <span className="pointer-events-auto">
+                  <ComplianceScrollArrow
+                    dir="left"
+                    label="Scroll compliance cards left"
+                    onClick={() => scrollCompliance(-1)}
+                  />
+                </span>
+                <span className="pointer-events-auto">
+                  <ComplianceScrollArrow
+                    dir="right"
+                    label="Scroll compliance cards right"
+                    onClick={() => scrollCompliance(1)}
+                  />
+                </span>
               </div>
             </div>
           </div>
@@ -328,7 +375,7 @@ export default function DataProtection() {
           <motion.div {...fadeUp}>
             <Link
               href="/security"
-              className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
+              className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] h-[44px] md:py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
               style={font}
             >
               See Our Compliance Standards

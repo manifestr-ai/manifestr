@@ -6,6 +6,7 @@ const HERO_BG_DESKTOP = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775
 const HERO_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775224463/Card_3_xz4ihd.png'
 
 const SECTIONS = [
+  { id: 'introduction', label: 'Introduction' },
   { id: 'data-collect', label: 'Data We Collect' },
   { id: 'how-use', label: 'How We Use Data' },
   { id: 'sharing', label: 'Sharing & Third Parties' },
@@ -109,7 +110,7 @@ function ArrowTopRightIcon() {
 }
 
 export default function PrivacyPolicy() {
-  const [activeSection, setActiveSection] = useState('data-collect')
+  const [activeSection, setActiveSection] = useState('introduction')
   const [openIds, setOpenIds] = useState({})
   const sectionRefs = useRef({})
 
@@ -118,6 +119,10 @@ export default function PrivacyPolicy() {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
+            if (entry.target.id === 'introduction') {
+              setActiveSection('introduction')
+              break
+            }
             const item = ACCORDION_ITEMS.find((a) => a.id === entry.target.id)
             if (item) setActiveSection(item.section)
             break
@@ -126,6 +131,9 @@ export default function PrivacyPolicy() {
       },
       { rootMargin: '-100px 0px -60% 0px', threshold: 0 }
     )
+
+    const introEl = document.getElementById('introduction')
+    if (introEl) observer.observe(introEl)
 
     ACCORDION_ITEMS.forEach((item) => {
       const el = document.getElementById(item.id)
@@ -139,6 +147,10 @@ export default function PrivacyPolicy() {
   }, [])
 
   function scrollToSection(sectionId) {
+    if (sectionId === 'introduction') {
+      document.getElementById('introduction')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
     const item = ACCORDION_ITEMS.find((a) => a.section === sectionId)
     if (item) {
       const el = document.getElementById(item.id)
@@ -152,31 +164,38 @@ export default function PrivacyPolicy() {
 
   return (
     <>
-      {/* ─── Hero ─── */}
-      <section className="relative w-full h-[256px] flex flex-col items-center justify-center p-[48px] overflow-hidden">
-        <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block absolute inset-0 w-full h-full object-cover pointer-events-none" />
-        <img src={HERO_BG_MOBILE} alt="" className="md:hidden absolute inset-0 w-full h-full object-cover pointer-events-none" loading="eager" />
+      {/* ─── Hero — matches Terms / Cookie ─── */}
+      <section className="relative flex h-[218px] w-full flex-col items-center justify-between overflow-hidden p-[48px] md:h-[256px]">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <CldImage src={HERO_BG_DESKTOP} alt="" className="absolute hidden h-full w-full object-cover md:block" />
+          <CldImage src={HERO_BG_MOBILE} alt="" className="absolute h-full w-full object-cover md:hidden" />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55.86%, rgba(0,0,0,0.3) 100%)' }}
+          />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative z-10 flex flex-col items-center text-center"
+          className="relative z-10 flex max-w-[342px] flex-col items-center gap-[18px] text-center text-white md:max-w-[551px] md:gap-[11px]"
         >
-          <h1 className="text-[36px] md:text-[72px] leading-[44px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.44px] text-white">
-            <span className="md:hidden">
-              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Privacy</span>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>{' '}Policy</span>
-            </span>
-            <span className="hidden md:inline">
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Privacy </span>
-              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
-            </span>
+          <h1 className="text-[36px] leading-[44px] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Privacy </span>
+            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
           </h1>
+          <p className="text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            How MANIFESTR collects, uses, stores, and protects your personal information.
+          </p>
+          <p className="text-[16px] leading-[24px] text-white/95" style={{ fontFamily: 'Inter, sans-serif' }}>
+            Last updated: 19 March 2026
+          </p>
         </motion.div>
       </section>
 
       {/* ─── Content ─── */}
-      <section className="w-full bg-white py-[96px]">
+      <section className="w-full bg-white py-[48px] md:py-[96px]">
         <div className="max-w-[1280px] mx-auto flex gap-[64px] items-start px-6 md:px-[32px]">
 
           {/* Sticky sidebar */}
@@ -192,7 +211,7 @@ export default function PrivacyPolicy() {
                     className={`text-left pl-[20px] py-[10px] border-l-[3px] transition-colors ${
                       isActive
                         ? 'border-[#020617] text-[#020617] font-medium'
-                        : 'border-transparent text-[#71717a]'
+                        : 'border-transparent text-[#52525b]'
                     }`}
                   >
                     <span
@@ -215,7 +234,7 @@ export default function PrivacyPolicy() {
                   className="flex items-center justify-between w-full group"
                 >
                   <span
-                    className="text-[12px] leading-[18px] font-medium text-black group-hover:underline"
+                    className="text-[14px] leading-[22px] font-medium text-black group-hover:underline"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     {link.label}
@@ -226,8 +245,28 @@ export default function PrivacyPolicy() {
             </div>
           </aside>
 
-          {/* Accordion content */}
-          <div className="flex-1 min-w-0 flex flex-col gap-[16px]">
+          {/* Introduction + accordions */}
+          <div className="flex min-w-0 flex-1 flex-col gap-[24px]">
+            <div id="introduction" className="scroll-mt-[120px] flex flex-col gap-[20px]">
+              <h2
+                className="text-[30px] md:text-[36px] leading-[38px] md:leading-[44px] tracking-[-0.72px] text-[#1b1b1f]"
+                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
+              >
+                Introduction
+              </h2>
+              <div className="flex flex-col gap-[16px] text-[16px] leading-[24px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <p>
+                  This Privacy Policy describes how MANIFESTR LLC (&quot;MANIFESTR,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) handles personal information when you use our websites, applications, and services (collectively, the &quot;Services&quot;).
+                </p>
+                <p>
+                  We are committed to protecting your privacy and being transparent about our practices. By using the Services, you acknowledge that you have read and understood this policy. If you do not agree, please discontinue use of the Services.
+                </p>
+                <p>
+                  The sections below explain what data we collect, how we use it, who we may share it with, and the choices you have. For detail on each topic, expand the corresponding section.
+                </p>
+              </div>
+            </div>
+
             {ACCORDION_ITEMS.map((item) => {
               const isOpen = !!openIds[item.id]
 
@@ -242,7 +281,7 @@ export default function PrivacyPolicy() {
                     className="w-full flex items-start gap-[24px] text-left"
                   >
                     <span
-                      className="flex-1 text-[18px] leading-[28px] font-medium text-black"
+                      className="flex-1 text-[20px] leading-[28px] font-medium text-[#1b1b1f] md:text-[22px] md:leading-[32px]"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
                       {item.title}
@@ -263,7 +302,7 @@ export default function PrivacyPolicy() {
                         className="overflow-hidden"
                       >
                         <p
-                          className="pt-[16px] text-[16px] leading-[24px] text-[#71717a]"
+                          className="pt-[16px] text-[16px] leading-[24px] text-[#52525b]"
                           style={{ fontFamily: 'Inter, sans-serif' }}
                         >
                           {item.content}

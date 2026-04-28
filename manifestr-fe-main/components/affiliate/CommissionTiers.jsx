@@ -14,7 +14,7 @@ export default function CommissionTiers() {
     <section className="relative w-full bg-[#242424] overflow-hidden py-[70px]">
       {/* Marble texture */}
       <div className="absolute inset-0">
-        <CldImage src={MARBLE_BG} alt="" className="w-full h-full object-cover opacity-[0.39]" />
+        <CldImage src={MARBLE_BG} alt="" className="w-full h-full object-cover opacity-[0.7]" />
       </div>
 
       <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px]">
@@ -31,7 +31,7 @@ export default function CommissionTiers() {
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Tiers</span>
           </h2>
           <p
-            className="text-[18px] leading-[24px] text-white mt-[12px] md:mt-[16px]"
+            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-white mt-[12px] md:mt-[16px]"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
             Unlock higher tiers. Elevate your status. Rewards reserved for those who rise.
@@ -63,7 +63,7 @@ export default function CommissionTiers() {
               </div>
 
               {/* Percentage */}
-              <div className="flex flex-col gap-[8px]">
+              <div className="flex flex-col gap-0">
                 <div className="flex items-end">
                   <span
                     className="text-[48px] md:text-[72px] leading-[56px] md:leading-[72px] tracking-[-0.96px] md:tracking-[-1.44px] text-black"
@@ -85,9 +85,8 @@ export default function CommissionTiers() {
                   </span>
                 </div>
 
-                {/* Range */}
                 <p
-                  className="text-[16px] md:text-[18px] leading-[20px] md:leading-[18px] text-[#18181b]"
+                  className="mt-4 text-[16px] md:mt-5 md:text-[18px] leading-[20px] md:leading-[18px] text-[#18181b]"
                   style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                 >
                   {tier.range}

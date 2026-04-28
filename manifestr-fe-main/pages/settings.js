@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight, ChevronDown, CheckCircle2, ChevronUp, Sun, Moon, Monitor, Search, UserPlus, MoreVertical, Trash2, Gift, Clock3, Crown, UserCog, Pencil, Eye, HelpCircle, X, Palette, Zap, Stars, Database, Presentation, Briefcase, Loader, CreditCard, Download, RefreshCw, Link, Cloud, Settings as SettingsIcon, CloudCog, Sparkles, Mic, BarChart3, Brain, FileText, Archive, RotateCw, FileImage, Check, Shield, Lock, Key, Smartphone, AlertTriangle, AlertCircle, LogOut, Globe, Github, Twitter, Layers, Clock, Building2, Users } from 'lucide-react'
@@ -765,13 +765,13 @@ function GeneralTabContent({
                   max="100"
                   value={fontAdjust}
                   onChange={(e) => setFontAdjust(Number(e.target.value))}
-                  className="w-full h-2 rounded-lg cursor-pointer bg-[#ffffff]"
+                  className="settings-accessibility-font-range w-full h-2 rounded-lg cursor-pointer bg-[#ffffff]"
                   style={{
                     background: `linear-gradient(to right, #18181b 0%, #18181b ${fontAdjust}%, #ffffff ${fontAdjust}%, #ffffff 100%)`,
                   }}
                 />
                 <div
-                  className="absolute top-full mt-2 text-[14px] leading-[20px] text-[#18181b] pointer-events-none"
+                  className="absolute top-full mt-3 text-[16px] leading-[24px] font-semibold text-[#18181b] pointer-events-none"
                   style={{
                     left: `${fontAdjust}%`,
                     transform: 'translateX(-50%)',
@@ -785,7 +785,7 @@ function GeneralTabContent({
 
           {/* Reduced Motion */}
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-12">
               <input
                 id="reduced-motion"
                 type="checkbox"
@@ -830,15 +830,71 @@ function GeneralTabContent({
   )
 }
 
+const INITIAL_TEAM_MEMBERS = [
+  {
+    id: 'phoenix',
+    name: 'Phoenix Ba...',
+    email: 'phoenix@g...',
+    role: 'Owner',
+    status: 'Active',
+    collabs: 12,
+    lastActive: '2 hours ago',
+    avatar: '/assets/dummy/avatar.png',
+  },
+  {
+    id: 'drew',
+    name: 'Drew Cano',
+    email: 'drew@gma...',
+    role: 'Admin',
+    status: 'Active',
+    collabs: 6,
+    lastActive: '1 day ago',
+    avatar: '/assets/dummy/avatar.png',
+  },
+  {
+    id: 'table',
+    name: 'Table Cell...',
+    email: 'phoenix@g...',
+    role: 'Editor',
+    status: 'Active',
+    collabs: 15,
+    lastActive: '20 mints ago',
+    avatar: '/assets/dummy/avatar.png',
+  },
+  {
+    id: 'natali',
+    name: 'Natali Creg',
+    email: 'natali@gm...',
+    role: 'Editor',
+    status: 'Pending',
+    collabs: 0,
+    lastActive: 'Never',
+    avatar: '/assets/dummy/avatar.png',
+  },
+  {
+    id: 'umar',
+    name: 'Umar Islam',
+    email: 'umar@gma...',
+    role: 'Viewer',
+    status: 'Active',
+    collabs: 0,
+    lastActive: '21 August 2025',
+    avatar: '/assets/dummy/avatar.png',
+  },
+]
+
 // Team Tab Component
 function TeamTabContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUsers, setSelectedUsers] = useState(['phoenix'])
+  const [members, setMembers] = useState(() => INITIAL_TEAM_MEMBERS.map((m) => ({ ...m })))
+  const [bulkAssignRole, setBulkAssignRole] = useState('Editor')
+  const [showBulkRoleDropdown, setShowBulkRoleDropdown] = useState(false)
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [showStatusDropdown, setShowStatusDropdown] = useState(false)
   const [showActionsMenu, setShowActionsMenu] = useState(null)
-  const [selectedRoleFilter, setSelectedRoleFilter] = useState('All roles')
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All roles')
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState('All Roles')
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('Status')
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmails, setInviteEmails] = useState(['umarzapta@gmail.com', 'umarzapta@gmail.com'])
   const [selectedRole, setSelectedRole] = useState('Editor')
@@ -846,63 +902,37 @@ function TeamTabContent() {
   const [selectedCollabs, setSelectedCollabs] = useState(['collab1', 'collab4'])
   const [emailInput, setEmailInput] = useState('')
 
+  const bulkRoleDropdownRef = useRef(null)
   const roleDropdownRef = useRef(null)
   const statusDropdownRef = useRef(null)
   const roleModalDropdownRef = useRef(null)
   const modalRef = useRef(null)
 
-  const teamMembers = [
-    {
-      id: 'phoenix',
-      name: 'Phoenix Ba...',
-      email: 'phoenix@g...',
-      role: 'Owner',
-      status: 'Active',
-      collabs: 12,
-      lastActive: '2 hours ago',
-      avatar: '/assets/dummy/avatar.png',
-    },
-    {
-      id: 'drew',
-      name: 'Drew Cano',
-      email: 'drew@gma...',
-      role: 'Admin',
-      status: 'Active',
-      collabs: 6,
-      lastActive: '1 day ago',
-      avatar: '/assets/dummy/avatar.png',
-    },
-    {
-      id: 'table',
-      name: 'Table Cell...',
-      email: 'phoenix@g...',
-      role: 'Editor',
-      status: 'Active',
-      collabs: 15,
-      lastActive: '20 mints ago',
-      avatar: '/assets/dummy/avatar.png',
-    },
-    {
-      id: 'natali',
-      name: 'Natali Creg',
-      email: 'natali@gm...',
-      role: 'Editor',
-      status: 'Pending',
-      collabs: 0,
-      lastActive: 'Never',
-      avatar: '/assets/dummy/avatar.png',
-    },
-    {
-      id: 'umar',
-      name: 'Umar Islam',
-      email: 'umar@gma...',
-      role: 'Viewer',
-      status: 'Active',
-      collabs: 0,
-      lastActive: '21 August 2025',
-      avatar: '/assets/dummy/avatar.png',
-    },
-  ]
+  const filteredMembers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return members.filter((m) => {
+      const matchesSearch =
+        !q ||
+        m.name.toLowerCase().includes(q) ||
+        m.email.toLowerCase().includes(q)
+      const matchesRole =
+        selectedRoleFilter === 'All roles' || m.role === selectedRoleFilter
+      const matchesStatus =
+        selectedStatusFilter === 'All statuses' || m.status === selectedStatusFilter
+      return matchesSearch && matchesRole && matchesStatus
+    })
+  }, [members, searchQuery, selectedRoleFilter, selectedStatusFilter])
+
+  const applyBulkRole = (role) => {
+    setBulkAssignRole(role)
+    setShowBulkRoleDropdown(false)
+    if (selectedUsers.length === 0) return
+    setMembers((prev) =>
+      prev.map((m) =>
+        selectedUsers.includes(m.id) && m.role !== 'Owner' ? { ...m, role } : m
+      )
+    )
+  }
 
   const toggleUserSelection = (userId) => {
     setSelectedUsers(prev =>
@@ -914,6 +944,9 @@ function TeamTabContent() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (bulkRoleDropdownRef.current && !bulkRoleDropdownRef.current.contains(event.target)) {
+        setShowBulkRoleDropdown(false)
+      }
       if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target)) {
         setShowRoleDropdown(false)
       }
@@ -1123,11 +1156,53 @@ function TeamTabContent() {
               <HelpCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#71717a]" />
             </div>
 
+            {/* Bulk assign role (selected rows) */}
+            {/* <div className="relative" ref={bulkRoleDropdownRef}>
+              <motion.button
+                type="button"
+                onClick={() => {
+                  setShowBulkRoleDropdown(!showBulkRoleDropdown)
+                  setShowRoleDropdown(false)
+                  setShowStatusDropdown(false)
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 hover:border-[#18181b] transition-colors"
+              >
+                <span className="text-[14px] leading-[20px] text-[#18181b]">{bulkAssignRole}</span>
+                <ChevronDown className={`w-4 h-4 text-[#71717a] transition-transform ${showBulkRoleDropdown ? 'rotate-180' : ''}`} />
+              </motion.button>
+              <AnimatePresence>
+                {showBulkRoleDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
+                  >
+                    {['Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
+                      <motion.button
+                        key={role}
+                        type="button"
+                        onClick={() => applyBulkRole(role)}
+                        whileHover={{ backgroundColor: '#f4f4f5' }}
+                        className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b]"
+                      >
+                        {role}
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div> */}
+
             {/* Role Filter */}
             <div className="relative" ref={roleDropdownRef}>
               <motion.button
+                type="button"
                 onClick={() => {
                   setShowRoleDropdown(!showRoleDropdown)
+                  setShowBulkRoleDropdown(false)
                   setShowStatusDropdown(false)
                 }}
                 whileHover={{ scale: 1.02 }}
@@ -1148,6 +1223,7 @@ function TeamTabContent() {
                     {['All roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
                       <motion.button
                         key={role}
+                        type="button"
                         onClick={() => {
                           setSelectedRoleFilter(role)
                           setShowRoleDropdown(false)
@@ -1166,8 +1242,10 @@ function TeamTabContent() {
             {/* Status Filter */}
             <div className="relative" ref={statusDropdownRef}>
               <motion.button
+                type="button"
                 onClick={() => {
                   setShowStatusDropdown(!showStatusDropdown)
+                  setShowBulkRoleDropdown(false)
                   setShowRoleDropdown(false)
                 }}
                 whileHover={{ scale: 1.02 }}
@@ -1185,9 +1263,10 @@ function TeamTabContent() {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
                   >
-                    {['All roles', 'Active', 'Pending'].map((status) => (
+                    {['Status', 'Active', 'Pending'].map((status) => (
                       <motion.button
                         key={status}
+                        type="button"
                         onClick={() => {
                           setSelectedStatusFilter(status)
                           setShowStatusDropdown(false)
@@ -1231,7 +1310,7 @@ function TeamTabContent() {
 
             {/* Table Rows */}
             <AnimatePresence>
-              {teamMembers.map((member, index) => {
+              {filteredMembers.map((member, index) => {
                 const isSelected = selectedUsers.includes(member.id)
                 return (
                   <motion.div
@@ -1364,6 +1443,11 @@ function TeamTabContent() {
                 )
               })}
             </AnimatePresence>
+            {filteredMembers.length === 0 && (
+              <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
+                No team members match your search or filters.
+              </div>
+            )}
           </div>
 
           {/* Selected Row Actions */}
@@ -4074,7 +4158,7 @@ function ProfileTabContent({
       >
         <div className="flex flex-col gap-4">
           {/* Avatar */}
-          <div className="flex justify-center">
+          <div className="flex justify-start">
             <div className="w-[80px] h-[80px] rounded-full border border-[rgba(0,0,0,0.08)] overflow-hidden bg-gray-100">
               {profileImageUrl ? (
                 <img
@@ -4100,7 +4184,7 @@ function ProfileTabContent({
               Upload your image
             </p>
             <p className="text-[12px] leading-[18px] text-[#5a5c66]">
-              formats allowed are *png, *jpg. up to 10 MB with a minimum size of 400px by 400px
+              formats allowed are *png, *jpg. up to 10 MB <br></br> with a minimum size of 400px by 400px
             </p>
           </div>
 
@@ -4115,8 +4199,8 @@ function ProfileTabContent({
 
           {/* Progress Bar */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-[12px] leading-[18px] text-[#5a5c66]">
-              <span>Completed</span>
+            <div className="flex items-center justify-between text-[14px] leading-[18px] text-[#5a5c66]">
+              <span> <b>Completed</b></span>
               <span>{percentage}%</span>
             </div>
             <div className="bg-[#e2e4e9] h-[6px] rounded-full overflow-hidden">
@@ -5158,6 +5242,8 @@ function SecurityTabContent() {
   const [activeSessions, setActiveSessions] = useState([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
+  /** Set only when Save fails because the new password matches recent/password-history rules */
+  const [passwordReuseError, setPasswordReuseError] = useState(null)
 
   // Load sessions on mount
   useEffect(() => {
@@ -5177,6 +5263,8 @@ function SecurityTabContent() {
   }
 
   const handleChangePassword = async () => {
+    setPasswordReuseError(null)
+
     if (!currentPassword || !newPassword || !confirmPassword) {
       showError('Please fill in all password fields')
       return
@@ -5195,13 +5283,26 @@ function SecurityTabContent() {
     try {
       setIsChangingPassword(true)
       await changePassword(currentPassword, newPassword)
+      setPasswordReuseError(null)
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       success('Password updated successfully!')
     } catch (error) {
       console.error('Failed to change password:', error)
-      showError(error.response?.data?.message || 'Failed to change password. Please try again.')
+      const msg =
+        error.response?.data?.message ||
+        'Failed to change password. Please try again.'
+      const looksLikePasswordHistory =
+        typeof msg === 'string' &&
+        /reuse|last\s*3|recent\s+password|password\s+history|cannot\s+(reuse|use)|old\s+password/i.test(
+          msg
+        )
+      if (looksLikePasswordHistory) {
+        setPasswordReuseError(msg)
+      } else {
+        showError(msg)
+      }
     } finally {
       setIsChangingPassword(false)
     }
@@ -5248,6 +5349,8 @@ function SecurityTabContent() {
     { id: 'number', text: 'One number', met: /[0-9]/.test(newPassword) },
     { id: 'special', text: 'One special character', met: /[^A-Za-z0-9]/.test(newPassword) },
   ]
+
+  const allPasswordRulesMet = requirements.every((r) => r.met)
 
   const socialConnections = [
     { id: 'google', name: 'Google', email: 'john.doe@gmail.com', connected: true, icon: Globe },
@@ -5301,22 +5404,27 @@ function SecurityTabContent() {
                 <input
                   type="password"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className={`w-full h-[40px] px-3 border rounded-md bg-white text-[14px] leading-[20px] text-[#18181b] focus:outline-none transition-colors ${newPassword.length > 0 && !requirements.every(r => r.met)
+                  onChange={(e) => {
+                    setNewPassword(e.target.value)
+                    setPasswordReuseError(null)
+                  }}
+                  className={`w-full h-[40px] px-3 border rounded-md bg-white text-[14px] leading-[20px] text-[#18181b] focus:outline-none transition-colors ${newPassword.length > 0 &&
+                    (!requirements.every((r) => r.met) || passwordReuseError)
                     ? 'border-[#ef4444] focus:border-[#ef4444]'
                     : 'border-[#e4e4e7] focus:border-[#18181b]'
                     }`}
                   placeholder="Enter new password"
                 />
-                {newPassword.length > 0 && !requirements.every(r => r.met) && (
+                {newPassword.length > 0 &&
+                  (!requirements.every((r) => r.met) || passwordReuseError) && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#ef4444]">
                     <AlertCircle className="w-4 h-4" />
                   </div>
                 )}
               </div>
-              {newPassword.length > 0 && !requirements.every(r => r.met) && (
+              {passwordReuseError && (
                 <p className="text-[12px] text-[#ef4444] leading-[16px]">
-                  You cannot reuse your last 3 passwords.
+                  {passwordReuseError}
                 </p>
               )}
             </div>
@@ -5373,10 +5481,10 @@ function SecurityTabContent() {
           {/* Save Button */}
           <div className="flex justify-end">
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={isChangingPassword || !allPasswordRulesMet ? {} : { scale: 1.02 }}
+              whileTap={isChangingPassword || !allPasswordRulesMet ? {} : { scale: 0.98 }}
               onClick={handleChangePassword}
-              disabled={isChangingPassword}
+              disabled={isChangingPassword || !allPasswordRulesMet}
               className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isChangingPassword ? 'Updating...' : 'Save'}
@@ -5472,7 +5580,7 @@ function SecurityTabContent() {
             />
           </div>
 
-          {activeSessionsEnabled && (
+          {activeSessionsEnabled && !isLoadingSessions && activeSessions.length > 0 && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -5486,7 +5594,9 @@ function SecurityTabContent() {
                     Active Sessions Detected
                   </h5>
                   <p className="text-[14px] leading-[20px] text-[#71717a]">
-                    You have 3 active sessions. Review them below to ensure they're all authorized.
+                    You have {activeSessions.length} active{' '}
+                    {activeSessions.length === 1 ? 'session' : 'sessions'}. Review them below to
+                    ensure they&apos;re all authorized.
                   </p>
                 </div>
               </div>
@@ -5530,8 +5640,9 @@ function SecurityTabContent() {
         </div>
       </div> */}
 
-      {/* Active Sessions Table */}
-      <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
+      {/* Active Sessions Table — hidden when session list UI is turned off */}
+      {activeSessionsEnabled && (
+        <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
         <div className="pt-6 px-6 pb-0">
           <div className="h-[52px] flex items-center justify-between">
             <div className="flex flex-col gap-1">
@@ -5619,7 +5730,8 @@ function SecurityTabContent() {
             )}
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Security Alerts Section */}
       <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">

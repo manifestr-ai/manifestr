@@ -54,7 +54,9 @@ export default function BuiltBySection() {
                 className="text-white text-[32px] leading-[40px] tracking-[-0.64px]"
                 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
               >
-                The Quality{'\u00A0'}MANIFESTR Delivers
+                The Quality
+                <br />
+                MANIFESTR Delivers
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, y: 16 }}

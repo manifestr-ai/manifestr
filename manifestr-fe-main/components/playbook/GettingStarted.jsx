@@ -21,33 +21,26 @@ export default function GettingStarted() {
     <>
       {/* ─── Breadcrumb ─── */}
       <div className="w-full bg-white border-t border-b border-[#e5e7eb] px-6 md:px-[80px]">
-        <div className="flex items-center gap-[8px] h-[54px]">
-          <Link
-            href="/playbook"
-            className="text-[14px] leading-[21px] text-[#52525b] hover:underline"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+        <div className="flex min-h-[54px] flex-wrap items-center gap-[8px] py-3 text-[16px] leading-[24px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <Link href="/playbook" className="text-[#52525b] hover:underline">
             Playbook
           </Link>
-          <svg className="w-[16px] h-[16px] text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 shrink-0 text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <Link
-            href="/playbook/knowledge-base"
-            className="text-[14px] leading-[21px] text-[#52525b] hover:underline"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
+          <Link href="/playbook/knowledge-base" className="text-[#52525b] hover:underline">
+            Knowledge Base
+          </Link>
+          <svg className="h-4 w-4 shrink-0 text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <Link href="/playbook/getting-started" className="text-[#52525b] hover:underline">
             Getting Started
           </Link>
-          <svg className="w-[16px] h-[16px] text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 shrink-0 text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <span
-            className="text-[14px] leading-[21px] font-medium text-[#18181b]"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            Getting Started with Your First Project
-          </span>
+          <span className="max-w-full font-medium text-[#18181b]">Getting Started with Your First Project</span>
         </div>
       </div>
 
@@ -57,8 +50,8 @@ export default function GettingStarted() {
           {/* Sidebar */}
           <aside className="hidden md:flex flex-col w-[321px] shrink-0">
             <p
-              className="text-[14px] leading-[20px] font-bold text-[#020617] tracking-[-0.084px] mb-[16px]"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              className="mb-[16px] text-[16px] font-semibold leading-[24px] text-[#1b1b1f]"
+              style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Getting Started
             </p>
@@ -67,17 +60,12 @@ export default function GettingStarted() {
                 <button
                   key={item}
                   onClick={() => setActiveArticle(i)}
-                  className={`text-left px-[16px] py-[12px] min-h-[48px] flex items-center border-l-2 transition-colors ${
+                  className={`flex min-h-[48px] items-center border-l-2 px-[16px] py-[12px] text-left text-[16px] leading-[24px] transition-colors ${
                     activeArticle === i
-                      ? 'border-[#020617] text-[#1e293b] font-semibold'
-                      : 'border-[#cbd5e1] text-[#475569] font-medium hover:text-[#1e293b]'
+                      ? 'border-[#020617] font-semibold text-[#1b1b1f]'
+                      : 'border-[#e4e4e7] font-medium text-[#71717a] hover:text-[#1b1b1f]'
                   }`}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '16px',
-                    lineHeight: '22px',
-                    letterSpacing: '-0.112px',
-                  }}
+                  style={{ fontFamily: 'Inter, sans-serif' }}
                 >
                   {item}
                 </button>
@@ -92,52 +80,47 @@ export default function GettingStarted() {
             transition={{ duration: 0.5 }}
             className="flex-1 min-w-0"
           >
-            <div className="flex flex-col gap-[32px]">
+            <div className="flex flex-col gap-[28px] md:gap-[32px]">
               {/* Title */}
               <h1
-                className="text-[24px] leading-[32px] text-[#18181b]"
+                className="text-[24px] leading-[32px] tracking-[-0.72px] text-[#1b1b1f] md:text-[36px] md:leading-[44px]"
                 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
               >
                 Getting Started with Your First Project
               </h1>
 
               {/* Meta */}
-              <div className="flex items-center gap-[10px] py-[16px] border-t border-b border-dashed border-[#e2e8f0]">
+              <div className="flex flex-wrap items-center gap-x-[10px] gap-y-2 border-t border-b border-dashed border-[#e2e8f0] py-[16px]">
                 <div className="flex items-center gap-[6px]">
-                  <svg className="w-[16px] h-[16px] text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-[14px] leading-[20px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <span className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Updated: January 15, 2025
                   </span>
                 </div>
-                <span className="w-[4px] h-[4px] rounded-full bg-[#52525b]" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-[#71717a]" aria-hidden />
                 <div className="flex items-center gap-[6px]">
-                  <svg className="w-[16px] h-[16px] text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6l4 2" />
                   </svg>
-                  <span className="text-[14px] leading-[20px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <span className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     5 min read
                   </span>
                 </div>
               </div>
 
-              {/* Article Body */}
-              <div className="flex flex-col gap-[64px]">
-                {/* Intro */}
-                <p
-                  className="text-[24px] leading-[1.6] text-[#475569]"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
+              {/* Article Body — body scale aligned with Cookie / Privacy policy pages (16px / 24px) */}
+              <div className="flex flex-col gap-[48px]">
+                <p className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                   Welcome to MANIFESTR! This guide will walk you through creating your first project and help you understand the core concepts of our platform.
                 </p>
 
-                {/* What you'll learn */}
-                <div className="flex flex-col gap-[24px]">
+                <div className="flex flex-col gap-[20px]">
                   <h2
-                    className="text-[30px] leading-[38px] tracking-[-0.39px] text-[#1e293b]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                    className="text-[24px] leading-[32px] text-[#1b1b1f] md:text-[30px] md:leading-[38px]"
+                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                   >
                     {"What you'll learn"}
                   </h2>
@@ -149,22 +132,21 @@ export default function GettingStarted() {
                       'Inviting team members',
                       'Basic navigation and shortcuts',
                     ].map((item) => (
-                      <p key={item} className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <p key={item} className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {item}
                       </p>
                     ))}
                   </div>
                 </div>
 
-                {/* Step 1 */}
-                <div className="flex flex-col gap-[24px]">
+                <div className="flex flex-col gap-[20px]">
                   <h2
-                    className="text-[30px] leading-[38px] tracking-[-0.39px] text-[#1e293b]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                    className="text-[24px] leading-[32px] text-[#1b1b1f] md:text-[30px] md:leading-[38px]"
+                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                   >
                     Step 1: Creating Your Project
                   </h2>
-                  <p className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {'To create your first project, navigate to your dashboard and click the "New Project" button in the top right corner. You\'ll be prompted to:'}
                   </p>
                   {[
@@ -172,34 +154,28 @@ export default function GettingStarted() {
                     { term: 'Select a template:', desc: 'Choose from our pre-built templates or start from scratch.' },
                     { term: 'Choose privacy settings:', desc: 'Decide whether your project will be private or shared with your team.' },
                   ].map((item) => (
-                    <div key={item.term} className="flex items-center gap-[7px] flex-wrap">
-                      <span className="text-[20px] leading-[32px] font-semibold text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {item.term}
-                      </span>
-                      <span className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {item.desc}
-                      </span>
-                    </div>
+                    <p key={item.term} className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <span className="font-semibold text-[#1b1b1f]">{item.term} </span>
+                      {item.desc}
+                    </p>
                   ))}
                 </div>
 
-                {/* Pro tip blockquote */}
-                <div className="bg-[#f4f4f4] border-l-4 border-[#09090b] pl-[32px] py-[19px]">
-                  <p className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    <span className="font-bold text-[#11171f]">Pro tip:</span>
-                    {' Use descriptive naming conventions from the start. This will help you and your team stay organized as your projects grow.'}
+                <div className="border-l-4 border-[#09090b] bg-[#f4f4f4] py-[19px] pl-[32px]">
+                  <p className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <span className="font-semibold text-[#1b1b1f]">Pro tip: </span>
+                    Use descriptive naming conventions from the start. This will help you and your team stay organized as your projects grow.
                   </p>
                 </div>
 
-                {/* Step 2 */}
-                <div className="flex flex-col gap-[24px]">
+                <div className="flex flex-col gap-[20px]">
                   <h2
-                    className="text-[30px] leading-[38px] tracking-[-0.39px] text-[#1e293b]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                    className="text-[24px] leading-[32px] text-[#1b1b1f] md:text-[30px] md:leading-[38px]"
+                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                   >
                     Step 2: Understanding Your Workspace
                   </h2>
-                  <p className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {"Once your project is created, you'll see the main workspace interface. Let's break down the key areas:"}
                   </p>
                   {[
@@ -208,65 +184,59 @@ export default function GettingStarted() {
                     { term: 'Properties Panel:', desc: 'Adjust settings and properties for selected items' },
                     { term: 'Asset Library:', desc: 'Browse and manage your project files' },
                   ].map((item) => (
-                    <div key={item.term} className="flex items-center gap-[7px] flex-wrap">
-                      <span className="text-[20px] leading-[32px] font-semibold text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {item.term}
-                      </span>
-                      <span className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {item.desc}
-                      </span>
-                    </div>
+                    <p key={item.term} className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <span className="font-semibold text-[#1b1b1f]">{item.term} </span>
+                      {item.desc}
+                    </p>
                   ))}
                 </div>
 
-                {/* Step 3 */}
-                <div className="flex flex-col gap-[24px]">
+                <div className="flex flex-col gap-[20px]">
                   <h2
-                    className="text-[30px] leading-[38px] tracking-[-0.39px] text-[#1e293b]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                    className="text-[24px] leading-[32px] text-[#1b1b1f] md:text-[30px] md:leading-[38px]"
+                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                   >
                     Step 3: Adding Your First Assets
                   </h2>
-                  <p className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     You can add assets to your project in several ways:
                   </p>
-                  <div className="flex flex-col gap-[16px]">
+                  <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[8px]">
                     {[
                       'Drag and drop files directly onto the canvas',
                       'Use the "Upload" button in the toolbar',
                       'Import from cloud storage services',
                       'Create new designs using our built-in Toolkit',
                     ].map((item) => (
-                      <p key={item} className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <li key={item} style={{ fontFamily: 'Inter, sans-serif' }}>
                         {item}
-                      </p>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
 
-                {/* Next Steps */}
-                <div className="flex flex-col gap-[24px]">
+                <div className="flex flex-col gap-[20px]">
                   <h2
-                    className="text-[30px] leading-[38px] tracking-[-0.39px] text-[#1e293b]"
-                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                    className="text-[24px] leading-[32px] text-[#1b1b1f] md:text-[30px] md:leading-[38px]"
+                    style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                   >
                     Next Steps
                   </h2>
-                  <p className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Congratulations on creating your first project! Here are some recommended next steps:
                   </p>
-                  <div className="flex flex-col gap-[16px]">
+                  <ul className="list-disc pl-[24px] text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[8px]">
                     {[
                       'Explore our design templates',
                       'Invite your team members',
                       'Set up your design system',
                       'Learn about keyboard shortcuts',
                     ].map((item) => (
-                      <p key={item} className="text-[18px] leading-[1.6] text-[#475569]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <li key={item} style={{ fontFamily: 'Inter, sans-serif' }}>
                         {item}
-                      </p>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -291,14 +261,14 @@ export default function GettingStarted() {
                 <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Help?</span>
               </h2>
               <p
-                className="text-[16px] leading-[24px] text-[#52525b] max-w-[603px]"
+                className="max-w-[603px] text-[16px] leading-[24px] text-[#71717a]"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 Our support team is here to assist you with any questions.
               </p>
             </div>
             <Link
-              href="/contact"
+              href="/playbook/submit-ticket"
               className="h-[44px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >

@@ -164,12 +164,29 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
 
       {/* Main Content */}
       <div className="pl-0 lg:pl-[240px]">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
-          <div className="mb-8 pt-[51px]">
-            <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.96px] text-[#18181b] mb-2">
-              CREATE A <span className="italic" style={{ fontFamily: "'Playfair Display', serif" }}>style guide</span>
-            </h1>
+        {/* Full-width banner header */}
+        <div>
+          <div className="relative w-full h-[160px] md:h-[199px] overflow-hidden">
+            <img
+              src="/assets/banners/Rectangle-1.png"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-white/55" />
+            <div className="relative z-10 h-full flex items-center px-4 md:px-[30px]">
+              <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.96px] text-[#18181b]">
+                CREATE A{' '}
+                <span className="italic" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  style guide
+                </span>
+              </h1>
+            </div>
           </div>
+          <div className="w-full h-px bg-[#e4e4e7]" />
+        </div>
+
+        {/* Content width container */}
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
 
           {/* Let's get started Section */}
           <div className="mb-12 mt-5 md:mt-14">
@@ -190,7 +207,7 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
-                  Continue <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
+                  Continue to Typography <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
                 </Button>
               </div>
             </div>

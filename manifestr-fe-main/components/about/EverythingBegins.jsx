@@ -20,12 +20,16 @@ export default function EverythingBegins() {
             Everything{' '}
           </span>
           <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
-            begins with an idea{' '}
+            begins with{' '}
+          </span>
+          <br className="md:hidden" aria-hidden />
+          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>
+            an idea{' '}
           </span>
         </motion.h2>
 
-        {/* ── Two-column body ── */}
-        <div className="flex flex-col md:flex-row pb-[48px] md:pb-[83px]">
+        {/* ── Two-column body — desktop: text vertically centred to portrait (724px) mid ── */}
+        <div className="flex flex-col md:flex-row md:items-stretch pb-[48px] md:pb-[83px]">
 
           {/* Left — tall rounded image */}
           <motion.div
@@ -51,7 +55,8 @@ export default function EverythingBegins() {
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.15 }}
             className="w-full md:w-[56%] px-6 md:px-0 md:pl-[67px] md:pr-[80px]
-                       pt-[24px] md:pt-[95px] flex flex-col gap-[16px] md:gap-[24px]"
+                       pt-[24px] md:pt-0 md:min-h-[724px] md:flex md:flex-col md:justify-center md:-translate-y-12
+                       flex flex-col gap-[26px] md:gap-[24px]"
           >
 
             {/* Mixed-font heading — matches Figma mid-word font switching exactly */}

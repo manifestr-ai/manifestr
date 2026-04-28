@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Mic, ChevronDown, LayoutGrid, List, Users } from 'lucide-react'
+import { Search, Mic, ChevronDown, LayoutGrid, List, Users, Clock, Plus } from 'lucide-react'
 
 export default function CollabsSearchBar({ placeholder = 'Search The Vault...', viewMode: controlledViewMode, setViewMode: controlledSetViewMode }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -56,6 +56,13 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
               whileTap={{ scale: 0.98 }}
               className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg h-[36px] px-3 flex items-center gap-2 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
             >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.9974 1.33594H3.9974C3.64377 1.33594 3.30464 1.47641 3.05459 1.72646C2.80454 1.97651 2.66406 2.31565 2.66406 2.66927V13.3359C2.66406 13.6896 2.80454 14.0287 3.05459 14.2787C3.30464 14.5288 3.64377 14.6693 3.9974 14.6693H11.9974C12.351 14.6693 12.6902 14.5288 12.9402 14.2787C13.1903 14.0287 13.3307 13.6896 13.3307 13.3359V4.66927L9.9974 1.33594Z" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9.33594 1.33594V4.0026C9.33594 4.35623 9.47641 4.69536 9.72646 4.94541C9.97651 5.19546 10.3156 5.33594 10.6693 5.33594H13.3359" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6.66927 6H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10.6693 8.66406H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10.6693 11.3359H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
               <span>{selectedTool}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showAllToolsDropdown ? 'rotate-180' : ''}`} />
             </motion.button>
@@ -141,6 +148,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
               whileTap={{ scale: 0.98 }}
               className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg h-[36px] px-3 flex items-center gap-2 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
             >
+              <Clock className="w-4 h-4 text-[#18181b]" />
               <span>{selectedSort}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showLastEditedDropdown ? 'rotate-180' : ''}`} />
             </motion.button>
@@ -182,7 +190,10 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
             whileTap={{ scale: 0.98 }}
             className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg h-[36px] px-3 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
           >
-            More Filters
+            <span className="inline-flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              More Filters
+            </span>
           </motion.button>
         </div>
 
