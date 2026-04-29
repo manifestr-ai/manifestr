@@ -11,15 +11,22 @@ interface ToolPanelProps {
   activeTool: string | null;
   store?: any;
   editor?: any;
+  setActiveTool?: (tool: any) => void;
 }
 
-export default function ToolPanel({ activeTool, store, editor }: ToolPanelProps) {
+export default function ToolPanel({ activeTool, store, editor, setActiveTool }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
     case "ai_prompter":
     case "ai-prompt":
-      return <AiPrompterPanel store={store} editorType="document" />;
+      return (
+        <AiPrompterPanel 
+          store={store} 
+          editorType="document"
+          onClose={() => setActiveTool?.(null)}
+        />
+      );
     case "format":
       return <FormatPanel store={store} editor={editor} />;
     case "insert":

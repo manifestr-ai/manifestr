@@ -4,6 +4,8 @@ import SupabaseDB from '../lib/supabase-db';
 import { supabaseAdmin } from '../lib/supabase';
 import axios from 'axios';
 import { generateJSON } from '../lib/claude';
+import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import { trackEvent, MixpanelEvents } from '../lib/mixpanel';
 
 interface ModifyImageRequest {
     prompt: string;
@@ -25,25 +27,36 @@ export class ImageModifierController extends BaseController {
                 verb: 'POST',
                 path: '/modify',
                 handler: this.modifyImage.bind(this),
+                middlewares: [authenticateToken],
             },
         ];
     }
 
-    private async modifyImage(req: Request, res: Response) {
+    private async modifyImage(req: AuthRequest, res: Response) {
         try {
-            const { prompt, imageUrl, userId, meta } = req.body as ModifyImageRequest;
+            const { prompt, imageUrl, meta } = req.body as ModifyImageRequest;
 
             if (!prompt || !imageUrl) {
                 return res.status(400).json({ error: 'Missing required fields: prompt and imageUrl' });
             }
 
-            // Extract userId from auth or body
-            const defaultUserId = 'dcbe9e7d-3aca-48c7-b3de-ba8d4e39ba0b';
-            const jobUserId = userId || (req as any).user?.userId || defaultUserId;
+            // Get userId from authenticated user
+            const jobUserId = req.user!.userId;
 
-            console.log(`🎨 Modifying image for user ${jobUserId}...`);
-            console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
+            console.log(`🎨 Editing image for user ${jobUserId}...`);
+            console.log(`📝 Edit Request: ${prompt.substring(0, 100)}...`);
             console.log(`🖼️  Source Image: ${imageUrl.substring(0, 50)}...`);
+
+            // Track edit started
+            const startTime = Date.now();
+            trackEvent(MixpanelEvents.AI_GENERATION_STARTED, jobUserId, {
+                content_type: 'image',
+                action: 'edit',
+                edit_mode: 'gemini-image-edit',
+                ai_model: 'gemini-2.5-flash-image',
+                prompt_length: prompt.length,
+                has_reference_image: true
+            });
 
             // 1. Create job in database
             const job = await SupabaseDB.createGenerationJob(jobUserId, {
@@ -52,99 +65,179 @@ export class ImageModifierController extends BaseController {
                     prompt: prompt,
                     imageUrl: imageUrl,
                     output: 'image',
+                    editMode: 'gemini-image-edit',
+                    model: 'gemini-2.5-flash-image',
                     meta: meta || {},
-                    title: `Modified: ${prompt.substring(0, 50)}`
+                    title: `Edit: ${prompt.substring(0, 50)}`
                 },
                 status: 'processing'
             });
 
             console.log(`📝 Job created: ${job.id}`);
 
-            // 2. Generate optimized prompt for image modification
+            // 2. Download the original image and convert to base64
+            console.log(`📥 Downloading original image...`);
+            const imageResponse = await axios.get(imageUrl, {
+                responseType: 'arraybuffer',
+                timeout: 30000
+            });
+            const originalImageBase64 = Buffer.from(imageResponse.data, 'binary').toString('base64');
+            console.log(`✅ Original image downloaded and converted to base64`);
+
+            // 3. Generate an intelligent editing prompt
             const promptRefiner = `
-            You are a MASTER IMAGE GENERATION SPECIALIST.
-            Your task is to take the user's modification request and create a highly detailed prompt for Google's Imagen 4 AI to generate a NEW image based on the modification.
+            You are an EXPERT IMAGE EDITING SPECIALIST.
+            The user has an existing image and wants to make a specific modification to it.
+            Your task is to create a clear, focused editing instruction for Google's Imagen 4 AI.
             
-            USER MODIFICATION REQUEST:
+            USER'S EDITING REQUEST:
             "${prompt}"
             
-            ### 🎯 IMAGE GENERATION REQUIREMENTS:
+            ### 🎯 IMAGE EDITING REQUIREMENTS:
             
-            ⚠️ **CRITICAL REQUIREMENTS**: 
-            - Generate a COMPLETE, photorealistic image incorporating the user's requested changes
-            - The image should be professional, high-quality, and realistic
-            - Focus on making the requested modifications the central feature
-            - Ensure natural lighting, perspective, and professional composition
+            ⚠️ **CRITICAL**: This is an EDITING task, NOT generation from scratch!
+            - The AI must PRESERVE the existing image context
+            - ONLY modify what the user specifically requests
+            - Keep the same composition, lighting, style, and perspective
+            - The edit should blend seamlessly with the original
             
-            1. **INTERPRET THE REQUEST**: Understand what the user wants to change or create
-               - If they mention specific objects or changes, make those the focus
-               - If they reference an existing image, infer the context and create a NEW version
-               - Be creative but stay true to the user's intent
+            1. **FOCUS ON THE CHANGE**: Be specific about what to add/modify/remove
+               - If adding objects: Specify where and how they should fit naturally
+               - If changing colors/style: Describe the exact modification
+               - If removing objects: Be clear about what should replace them
                
-            2. **MAINTAIN REALISM**: The image must look natural and photorealistic
-               - Use phrases like: "professional photography", "photorealistic", "natural lighting"
-               - Include: "8k resolution", "highly detailed", "realistic"
-               - Avoid: "cartoon", "illustration", "artificial"
+            2. **PRESERVE CONTEXT**: Instruct the AI to maintain the original
+               - "In the existing image, [describe the change]"
+               - "Keep everything else the same"
+               - "Blend naturally with the existing scene"
                
-            3. **FORMAT constraints**:
-               - Write a detailed, comprehensive image generation prompt (60-100 words)
-               - Describe the complete scene including the modifications
-               - Include technical details: lighting, camera angle, quality, style
-               - Add: "photorealistic, professional photography, highly detailed, natural"
+            3. **FORMAT**:
+               - Write a concise, focused editing instruction (30-50 words)
+               - Start with "In the existing image, " or "Edit this image to "
+               - Be specific but not overly prescriptive
+               - Focus on the change, not recreating the entire scene
                
-            Return JSON ONLY: { "optimizedPrompt": "[Your detailed image generation prompt here]" }
+            Return JSON ONLY: { "editPrompt": "[Your focused editing instruction here]" }
             `;
 
-            const imgResult = await generateJSON<any>(null, "You are an expert AI image editing prompt engineer.", promptRefiner);
-            const optimizedPrompt = imgResult?.optimizedPrompt || prompt;
+            const editResult = await generateJSON<any>(null, "You are an expert AI image editing specialist.", promptRefiner);
+            const editPrompt = editResult?.editPrompt || `In the existing image, ${prompt}`;
 
-            console.log(`🔍 Optimized Modification Prompt: "${optimizedPrompt}"`);
+            console.log(`🔍 Generated Edit Instruction: "${editPrompt}"`);
 
-            // 3. For now, generate a new image based on the modification prompt
-            // Note: Imagen 4 via Gemini API has limited editing capabilities
-            // We'll use text-to-image generation with the context
+            // 4. Use Google Gemini API for image editing (the current recommended approach)
+            // NOTE: Imagen 3 is deprecated as of 2026, Gemini 2.5 Flash Image is the replacement
+            // This uses generateContent with reference images to preserve original context
             const apiKey = process.env.GEMINI_API_KEY;
             if (!apiKey) {
                 throw new Error("GEMINI_API_KEY is not set in environment variables");
             }
 
-            console.log(`🎨 Generating modified image using text-to-image approach...`);
+            console.log(`✏️ Using Gemini 2.5 Flash Image API (current 2026 image editing API)...`);
+            console.log(`🎯 This will PRESERVE the original context and only apply the requested changes`);
+            console.log(`📸 Original image size (base64): ${originalImageBase64.length} chars`);
 
-            // Create a comprehensive prompt that includes modification context
-            const fullPrompt = `${optimizedPrompt}
-
-IMPORTANT: Generate a NEW image based on the modification request. Maintain photorealistic quality and ensure the result looks professional and natural.`;
-
-            const response = await axios.post(
-                `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`,
-                {
-                    instances: [
-                        { prompt: fullPrompt }
-                    ],
-                    parameters: {
-                        sampleCount: 1,
-                        aspectRatio: "1:1"
-                    }
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
+            // Use Gemini 2.5 Flash Image with generateContent - this is the current API for image editing
+            // The model takes a reference image and text prompt, and outputs an edited image
+            let response;
+            try {
+                response = await axios.post(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+                    {
+                        contents: [
+                            {
+                                parts: [
+                                    {
+                                        text: `${editPrompt}. Important: Keep the original scene, composition, and all existing objects exactly as they are. Only modify what is specifically requested.`
+                                    },
+                                    {
+                                        inline_data: {
+                                            mime_type: "image/png",
+                                            data: originalImageBase64
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            responseModalities: ["IMAGE"] // Request image output
+                        }
                     },
-                    timeout: 60000 // 60 second timeout for image processing
-                }
-            );
-
-            const base64ModifiedImage = response.data?.predictions?.[0]?.bytesBase64Encoded;
-
-            if (!base64ModifiedImage) {
-                await SupabaseDB.updateGenerationJob(job.id, jobUserId, {
-                    status: 'failed',
-                    error_message: 'No modified image data returned from Gemini API'
-                });
-                return res.status(500).json({ error: 'Failed to modify image' });
+                    {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 90000 // Image editing can take longer
+                    }
+                );
+            } catch (apiError: any) {
+                console.error('❌ Gemini API call failed:', apiError.response?.data || apiError.message);
+                throw new Error(`Gemini API error: ${apiError.response?.data?.error?.message || apiError.message}`);
             }
 
-            console.log(`✅ Image modified successfully via Gemini (Imagen 4)! Saving...`);
+            // Log the full response for debugging
+            console.log('🔍 Full Gemini API Response:', JSON.stringify(response.data, null, 2));
+            console.log('🔍 Candidates:', response.data?.candidates);
+            console.log('🔍 First candidate:', response.data?.candidates?.[0]);
+            console.log('🔍 Content:', response.data?.candidates?.[0]?.content);
+            console.log('🔍 Parts:', response.data?.candidates?.[0]?.content?.parts);
+            
+            // Extract the edited image from Gemini response
+            // Try multiple possible locations where the image might be
+            let base64ModifiedImage = null;
+            
+            // Try 1: candidates[0].content.parts[x].inline_data.data
+            if (!base64ModifiedImage && response.data?.candidates?.[0]?.content?.parts) {
+                const imagePart = response.data.candidates[0].content.parts.find(
+                    (part: any) => part.inline_data?.mime_type?.startsWith('image/')
+                );
+                base64ModifiedImage = imagePart?.inline_data?.data;
+                console.log('📍 Try 1 (parts.inline_data.data):', base64ModifiedImage ? 'FOUND' : 'not found');
+            }
+            
+            // Try 2: candidates[0].content.parts[x].inlineData.data (camelCase)
+            if (!base64ModifiedImage && response.data?.candidates?.[0]?.content?.parts) {
+                const imagePart = response.data.candidates[0].content.parts.find(
+                    (part: any) => part.inlineData?.mimeType?.startsWith('image/')
+                );
+                base64ModifiedImage = imagePart?.inlineData?.data;
+                console.log('📍 Try 2 (parts.inlineData.data):', base64ModifiedImage ? 'FOUND' : 'not found');
+            }
+            
+            // Try 3: predictions array (old Imagen format)
+            if (!base64ModifiedImage && response.data?.predictions?.[0]) {
+                base64ModifiedImage = response.data.predictions[0].bytesBase64Encoded;
+                console.log('📍 Try 3 (predictions):', base64ModifiedImage ? 'FOUND' : 'not found');
+            }
+            
+            // Try 4: images array
+            if (!base64ModifiedImage && response.data?.images?.[0]) {
+                base64ModifiedImage = response.data.images[0].data || response.data.images[0].bytesBase64Encoded;
+                console.log('📍 Try 4 (images):', base64ModifiedImage ? 'FOUND' : 'not found');
+            }
+
+            if (!base64ModifiedImage) {
+                console.error('❌ Failed to extract image from response');
+                console.error('Response structure:', JSON.stringify(response.data, null, 2));
+                
+                // Check for safety filters or errors
+                const safetyRatings = response.data?.candidates?.[0]?.safetyRatings;
+                const finishReason = response.data?.candidates?.[0]?.finishReason;
+                
+                await SupabaseDB.updateGenerationJob(job.id, jobUserId, {
+                    status: 'failed',
+                    error_message: `No edited image data returned. Finish reason: ${finishReason || 'unknown'}`
+                });
+                
+                return res.status(500).json({ 
+                    error: 'Failed to edit image - API returned no data',
+                    details: `Gemini 2.5 Flash Image did not return image data. Finish reason: ${finishReason || 'unknown'}. This may be due to safety filters or an unsupported image format.`,
+                    finishReason,
+                    safetyRatings
+                });
+            }
+
+            console.log(`✅ Image EDITED successfully via Gemini 2.5 Flash Image! Saving...`);
 
             // 5. Save modified image
             const imageFileName = `${job.id}.png`;
@@ -197,10 +290,12 @@ IMPORTANT: Generate a NEW image based on the modification request. Maintain phot
                 editorState: {
                     imageUrl: modifiedImageUrl,
                     originalImageUrl: imageUrl,
-                    prompt: optimizedPrompt,
+                    editPrompt: editPrompt,
                     userPrompt: prompt,
-                    model: 'imagen-4.0-generate-001',
-                    modificationType: 'edit',
+                    model: 'gemini-2.5-flash-image',
+                    modificationType: 'intelligent-edit',
+                    editMode: 'gemini-image-edit',
+                    preservedContext: true,
                     generatedAt: new Date().toISOString()
                 },
                 status: 'success',
@@ -246,22 +341,36 @@ IMPORTANT: Generate a NEW image based on the modification request. Maintain phot
 
             // 9. Create vault item
             await SupabaseDB.createVaultItem(jobUserId, {
-                title: `Modified: ${prompt.substring(0, 80)}` || 'AI Modified Image',
+                title: `Edited: ${prompt.substring(0, 80)}` || 'AI Edited Image',
                 type: 'file',
                 status: 'Final',
                 file_key: jsonPath,
                 thumbnail_url: modifiedImageUrl,
-                project: 'Modifications',
+                project: 'AI Edits',
                 size: Buffer.byteLength(jsonContent),
                 meta: {
                     generationJobId: job.id,
-                    outputType: 'image-modification',
+                    outputType: 'image-edit',
+                    editMode: 'gemini-image-edit',
+                    model: 'gemini-2.5-flash-image',
                     imageUrl: modifiedImageUrl,
-                    originalImageUrl: imageUrl
+                    originalImageUrl: imageUrl,
+                    preservedContext: true
                 }
             });
 
-            console.log(`💾 Modification job saved to database and vault!`);
+            console.log(`💾 Edit job saved to database and vault! Image context preserved ✅`);
+
+            // Track successful edit
+            const duration = Date.now() - startTime;
+            trackEvent(MixpanelEvents.IMAGE_MODIFIED, jobUserId, {
+                job_id: job.id,
+                edit_mode: 'gemini-image-edit',
+                context_preserved: true,
+                duration_ms: duration,
+                ai_model: 'gemini-2.5-flash-image',
+                prompt_length: prompt.length
+            });
 
             return res.json({
                 status: 'success',
@@ -269,18 +378,58 @@ IMPORTANT: Generate a NEW image based on the modification request. Maintain phot
                     jobId: job.id,
                     imageUrl: modifiedImageUrl,
                     originalImageUrl: imageUrl,
-                    prompt: prompt,
-                    optimizedPrompt: optimizedPrompt,
-                    model: 'imagen-4.0-generate-001',
+                    userPrompt: prompt,
+                    editPrompt: editPrompt,
+                    model: 'gemini-2.5-flash-image',
+                    editMode: 'gemini-image-edit',
+                    contextPreserved: true,
                     generatedAt: new Date().toISOString()
                 }
             });
 
         } catch (error: any) {
-            console.error('❌ Image modification failed:', error?.response?.data || error);
+            console.error('❌ Image editing failed:', error);
+            
+            // Track edit failure
+            trackEvent(MixpanelEvents.AI_GENERATION_FAILED, req.user?.userId, {
+                content_type: 'image',
+                action: 'edit',
+                edit_mode: 'gemini-image-edit',
+                ai_model: 'gemini-2.5-flash-image',
+                error: error?.response?.data?.error?.message || error?.message || 'Unknown error'
+            });
+            
+            // Log detailed error info for debugging
+            if (error?.response) {
+                console.error('API Response Error:', {
+                    status: error.response.status,
+                    statusText: error.response.statusText,
+                    data: error.response.data
+                });
+            }
+            
+            // Try to update job status to failed
+            try {
+                if (req.body.imageUrl) {
+                    const jobUserId = req.user!.userId;
+                    // Find the most recent job for this user
+                    const jobs = await SupabaseDB.getUserGenerationJobs(jobUserId);
+                    const latestJob = jobs?.[0];
+                    if (latestJob) {
+                        await SupabaseDB.updateGenerationJob(latestJob.id, jobUserId, {
+                            status: 'failed',
+                            error_message: error?.response?.data?.error?.message || error.message || 'Image editing failed'
+                        });
+                    }
+                }
+            } catch (updateError) {
+                console.error('Failed to update job status:', updateError);
+            }
+            
             return res.status(500).json({ 
-                error: 'Internal server error', 
-                details: error?.response?.data || (error instanceof Error ? error.message : String(error)) 
+                error: 'Image editing failed', 
+                details: error?.response?.data?.error?.message || error?.message || 'Unknown error occurred',
+                suggestion: 'The edit could not be applied. Try rephrasing your editing request or ensure the original image is accessible.'
             });
         }
     }

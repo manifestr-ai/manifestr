@@ -11,15 +11,17 @@ import {
   Search,
   Loader2,
   AlertCircle,
+  X,
 } from "lucide-react";
 import useAiPrompter, { PromptHistoryItem } from "../../../../hooks/useAiPrompter";
 
 interface AiPrompterPanelProps {
   store: any;
   editorType?: 'image' | 'document' | 'spreadsheet' | 'presentation' | 'chart';
+  onClose?: () => void;
 }
 
-export default function AiPrompterPanel({ store, editorType = 'image' }: AiPrompterPanelProps) {
+export default function AiPrompterPanel({ store, editorType = 'image', onClose }: AiPrompterPanelProps) {
   const [activeTab, setActiveTab] = useState("Freestyle");
   const [mode, setMode] = useState("Prompt Mode");
   const [isRecording, setIsRecording] = useState(false);
@@ -627,12 +629,23 @@ export default function AiPrompterPanel({ store, editorType = 'image' }: AiPromp
 
   return (
     <div
-      className="w-full border-t border-[#D1D5DB]/30"
+      className="w-full border-t border-[#D1D5DB]/30 relative"
       style={{
         background:
           "linear-gradient(135deg, #E2E8F0 0%, #F3F4F6 50%, #E4E4E7 100%)",
       }}
     >
+      {/* Close Button - Top Right */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white border border-[#E2E8F0] shadow-sm hover:shadow-md transition-all group"
+          title="Close AI Prompter"
+        >
+          <X className="w-4 h-4 text-[#6B7280] group-hover:text-[#1F2937]" />
+        </button>
+      )}
+      
       {/* Warning if editor not ready (for document editor) */}
       {editorType === 'document' && !store && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-6 mt-4">

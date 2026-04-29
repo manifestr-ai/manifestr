@@ -93,6 +93,7 @@ export default function ImageEditor() {
   }, [router.query]);
 
   const [store, setStore] = useState<any>(null);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
 
   const clampZoom = (value: number) => Math.min(3, Math.max(0.2, value));
 
@@ -145,9 +146,19 @@ export default function ImageEditor() {
               </div>
             </div>
           ) : imageUrl && imageUrl !== "/assets/dummy/dummy-trainer.jpg" ? (
-            <PhotoEditor key={imageUrl} imageSrc={imageUrl} onStoreReady={setStore} />
+            <PhotoEditor 
+              key={imageUrl} 
+              imageSrc={imageUrl} 
+              onStoreReady={setStore}
+              onActiveToolChange={setActiveTool}
+            />
           ) : imageUrl ? (
-            <PhotoEditor key="default" imageSrc={imageUrl} onStoreReady={setStore} />
+            <PhotoEditor 
+              key="default" 
+              imageSrc={imageUrl} 
+              onStoreReady={setStore}
+              onActiveToolChange={setActiveTool}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-center">
@@ -160,18 +171,21 @@ export default function ImageEditor() {
           )}
         </div>
 
-        {/* Right Sidebar (Floating over grid on the right) */}
-        <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
-          <div className="pointer-events-auto">
-            <RightSidebar
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onZoomReset={handleZoomReset}
-              documentId={actualImageId}
-              documentTitle="Image"
-            />
+        {/* Right Sidebar (Floating over grid on the right) - Hide when AI Prompter is active */}
+        {activeTool !== "ai_prompter" && (
+          <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
+            <div className="pointer-events-auto">
+              <RightSidebar
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                documentId={actualImageId}
+                documentTitle="Image"
+                documentType="image"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Floating Elements */}
         <FloatingSheetTab />

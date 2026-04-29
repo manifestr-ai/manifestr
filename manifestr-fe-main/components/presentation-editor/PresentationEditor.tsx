@@ -134,10 +134,12 @@ export default function PresentationEditor({
   data,
   generationId,
   onStoreReady,
+  onActiveToolChange,
 }: {
   data?: any;
   generationId?: string;
   onStoreReady?: (store: any) => void;
+  onActiveToolChange?: (tool: string | null) => void;
 }) {
   const [store] = useState(() => {
     const s = createStore({

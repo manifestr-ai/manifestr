@@ -3,6 +3,7 @@ import { BaseController } from './base.controller';
 import SupabaseDB from '../lib/supabase-db';
 import { supabaseAdmin } from '../lib/supabase';
 import { generateJSON } from '../lib/claude';
+import axios from 'axios';
 
 interface GeneratePresentationRequest {
     prompt: string;
@@ -288,44 +289,154 @@ Make it visually stunning, with modern design, proper typography, and engaging l
 
             console.log(`📝 Job ID: ${job.id}`);
 
-            // 2. Generate modification prompt
-            const systemPrompt = `
-You are a PRESENTATION MODIFICATION EXPERT.
-Your task is to take an existing Polotno presentation and modify it according to the user's request.
+            // 2. SMART MODIFICATION: Extract slide number from prompt if specified
+            // Match patterns: "slide 10", "10th slide", "slide #10", "page 10", etc.
+            const slideMatch = prompt.match(/(?:slide|page)\s*#?\s*(\d+)|(\d+)(?:st|nd|rd|th)?\s+(?:slide|page)/i);
+            const targetSlideIndex = slideMatch ? parseInt(slideMatch[1] || slideMatch[2]) - 1 : -1;
+            
+            console.log(`🔍 Prompt analysis: "${prompt}"`);
+            console.log(`🔍 Slide match found: ${slideMatch ? 'YES' : 'NO'}`);
+            if (slideMatch) {
+                console.log(`🎯 Target slide number: ${targetSlideIndex + 1} (index: ${targetSlideIndex})`);
+                console.log(`📊 Total slides available: ${presentationData.pages.length}`);
+            }
+
+            let modifiedPresentation: any;
+
+            if (targetSlideIndex >= 0 && presentationData.pages && targetSlideIndex < presentationData.pages.length) {
+                console.log(`✅ VALID SLIDE NUMBER: Will modify only slide ${targetSlideIndex + 1} of ${presentationData.pages.length}`);
+                
+                // Extract just the target slide
+                const targetSlide = presentationData.pages[targetSlideIndex];
+                
+                // Smart prompt that only processes ONE slide
+                const systemPrompt = `
+You are a SLIDE MODIFICATION EXPERT.
+Your task is to modify a SINGLE SLIDE from a presentation.
 
 CRITICAL RULES:
-- ONLY modify what the user specifically asks for
-- Keep the existing structure intact unless explicitly told to change it
-- Maintain the visual style and design consistency
-- If adding slides, follow the same design pattern
-- If modifying text, keep typography consistent
-- If changing images, use the same LoremFlickr format
-- Return the COMPLETE modified presentation in valid Polotno JSON format
+- ONLY modify what the user asks for in THIS SLIDE
+- Keep the slide dimensions: 1920x1080
+- Maintain proper layering: Background → Overlay → Content
+- Keep text in safe zones (100px from edges)
+- If changing images, use LoremFlickr: https://loremflickr.com/1920/1080/{keywords}
+- Return ONLY the modified slide as a valid Polotno page object
 
-IMPORTANT:
-- Maintain safe zones (text at least 100px from edges)
-- Keep proper layering (Background → Overlay → Content)
-- Ensure text is readable with proper contrast
-- Keep the same page dimensions (1920x1080)
+Return ONLY valid JSON for the slide. No markdown, no explanation.
 `;
 
-            const userPrompt = `
+                const userPrompt = `
+USER REQUEST: "${prompt}"
+
+CURRENT SLIDE DATA:
+${JSON.stringify(targetSlide, null, 2)}
+
+Modify this slide according to the request and return the COMPLETE modified slide.
+`;
+
+                console.log(`⏱️  Calling Claude for SINGLE slide modification...`);
+                const modifiedSlide = await generateJSON<any>(
+                    null,
+                    systemPrompt,
+                    userPrompt
+                );
+
+                console.log(`✅ Slide modified! Processing images...`);
+
+                // Find and replace LoremFlickr URLs with permanent Supabase URLs
+                const processedSlide = await this.replaceLoremFlickrImages(modifiedSlide, jobUserId, job.id);
+
+                // Replace only the modified slide
+                modifiedPresentation = {
+                    ...presentationData,
+                    pages: presentationData.pages.map((page: any, index: number) => 
+                        index === targetSlideIndex ? processedSlide : page
+                    )
+                };
+
+                console.log(`💾 Slide images made permanent!`);
+
+            } else if (targetSlideIndex >= 0) {
+                // Slide number was found but it's invalid
+                console.log(`⚠️  INVALID SLIDE NUMBER: User requested slide ${targetSlideIndex + 1} but presentation only has ${presentationData.pages.length} slides`);
+                console.log(`🔄 Falling back to full modification...`);
+                
+                // Fallback: Full modification for invalid slide numbers
+                const systemPrompt = `
+You are a PRESENTATION MODIFICATION EXPERT.
+ONLY modify what the user specifically asks for. Keep everything else IDENTICAL.
+
+RULES:
+- Maintain the same structure unless explicitly asked to change
+- Keep the same visual style and design
+- Maintain safe zones (text 100px from edges)
+- Keep proper layering (Background → Overlay → Content)
+- Return the COMPLETE modified presentation in valid Polotno JSON
+`;
+
+                const userPrompt = `
 USER MODIFICATION REQUEST: "${prompt}"
 
-CURRENT PRESENTATION DATA:
+CURRENT PRESENTATION (${presentationData.pages.length} slides):
 ${JSON.stringify(presentationData, null, 2)}
 
-Please modify the presentation according to the user's request and return the COMPLETE modified version.
-Return ONLY valid Polotno JSON. No markdown, no explanation.
+Modify according to the request. Return ONLY valid Polotno JSON.
 `;
 
-            const modifiedPresentation = await generateJSON<any>(
-                null,
-                systemPrompt,
-                userPrompt
-            );
+                modifiedPresentation = await generateJSON<any>(
+                    null,
+                    systemPrompt,
+                    userPrompt
+                );
+
+            } else {
+                console.log(`🔄 FULL MODIFICATION: No specific slide targeted, modifying entire presentation`);
+                
+                // Fallback: Full modification for complex changes
+                const systemPrompt = `
+You are a PRESENTATION MODIFICATION EXPERT.
+ONLY modify what the user specifically asks for. Keep everything else IDENTICAL.
+
+RULES:
+- Maintain the same structure unless explicitly asked to change
+- Keep the same visual style and design
+- Maintain safe zones (text 100px from edges)
+- Keep proper layering (Background → Overlay → Content)
+- Return the COMPLETE modified presentation in valid Polotno JSON
+`;
+
+                const userPrompt = `
+USER MODIFICATION REQUEST: "${prompt}"
+
+CURRENT PRESENTATION (${presentationData.pages.length} slides):
+${JSON.stringify(presentationData, null, 2)}
+
+Modify according to the request. Return ONLY valid Polotno JSON.
+`;
+
+                modifiedPresentation = await generateJSON<any>(
+                    null,
+                    systemPrompt,
+                    userPrompt
+                );
+            }
 
             console.log(`✅ Presentation modified successfully!`);
+
+            // 2.5. Process ALL LoremFlickr images in the presentation to make them permanent
+            if (modifiedPresentation && modifiedPresentation.pages && Array.isArray(modifiedPresentation.pages)) {
+                console.log(`🖼️  Processing images in all ${modifiedPresentation.pages.length} slides...`);
+                const processedPages = await Promise.all(
+                    modifiedPresentation.pages.map((page: any, index: number) => 
+                        this.replaceLoremFlickrImages(page, jobUserId, `${job.id}_page${index}`)
+                    )
+                );
+                modifiedPresentation = {
+                    ...modifiedPresentation,
+                    pages: processedPages
+                };
+                console.log(`💾 All images made permanent!`);
+            }
 
             // 3. Save result
             const result = {
@@ -407,6 +518,79 @@ Return ONLY valid Polotno JSON. No markdown, no explanation.
                 details: error instanceof Error ? error.message : String(error) 
             });
         }
+    }
+
+    // Helper method to replace LoremFlickr URLs with permanent Supabase URLs
+    private async replaceLoremFlickrImages(slideData: any, userId: string, jobId: string): Promise<any> {
+        // Recursively process the slide to find and replace LoremFlickr URLs
+        const processElement = async (element: any, elementIndex: number): Promise<any> => {
+            if (!element) return element;
+
+            // Check if this element has a LoremFlickr image URL
+            if (element.type === 'image' && element.src && element.src.includes('loremflickr.com')) {
+                console.log(`🖼️  Found LoremFlickr URL: ${element.src}`);
+                
+                try {
+                    // Download the image
+                    console.log(`⬇️  Downloading image...`);
+                    const response = await axios.get(element.src, { 
+                        responseType: 'arraybuffer',
+                        timeout: 10000 
+                    });
+                    const imageBuffer = Buffer.from(response.data, 'binary');
+                    
+                    // Upload to Supabase
+                    const imagePath = `${userId}/presentations/${jobId}/slide_${elementIndex}_${Date.now()}.jpg`;
+                    console.log(`⬆️  Uploading to Supabase: ${imagePath}`);
+                    
+                    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                        .from('generated-images')
+                        .upload(imagePath, imageBuffer, {
+                            contentType: 'image/jpeg',
+                            upsert: true
+                        });
+
+                    if (uploadError) {
+                        console.error(`❌ Upload failed:`, uploadError);
+                        return element; // Return original if upload fails
+                    }
+
+                    // Get permanent URL
+                    const { data: urlData } = supabaseAdmin.storage
+                        .from('generated-images')
+                        .getPublicUrl(imagePath);
+                    
+                    const permanentUrl = urlData.publicUrl;
+                    console.log(`✅ Permanent URL created: ${permanentUrl}`);
+
+                    // Return element with permanent URL
+                    return {
+                        ...element,
+                        src: permanentUrl
+                    };
+
+                } catch (error) {
+                    console.error(`❌ Failed to process LoremFlickr image:`, error);
+                    return element; // Return original if processing fails
+                }
+            }
+
+            return element;
+        };
+
+        // Process all children in the slide
+        if (slideData.children && Array.isArray(slideData.children)) {
+            const processedChildren = await Promise.all(
+                slideData.children.map((child: any, index: number) => processElement(child, index))
+            );
+
+            return {
+                ...slideData,
+                children: processedChildren
+            };
+        }
+
+        return slideData;
     }
 }
 

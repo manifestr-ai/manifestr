@@ -16,7 +16,8 @@ app.listen(() => {
     
     console.log('🔑 API KEY STATUS:');
     console.log('   ├─ CLAUDE_API_KEY:', process.env.CLAUDE_API_KEY ? `✅ Found (${process.env.CLAUDE_API_KEY.substring(0, 15)}...)` : ' ❌ MISSING');
-    console.log('   └─ GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? `✅ Found (${process.env.GEMINI_API_KEY.substring(0, 15)}...)` : ' ❌ MISSING');
+    console.log('   ├─ GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? `✅ Found (${process.env.GEMINI_API_KEY.substring(0, 15)}...)` : ' ❌ MISSING');
+    console.log('   └─ MIXPANEL_TOKEN:', process.env.MIXPANEL_TOKEN ? `✅ Found (${process.env.MIXPANEL_TOKEN.substring(0, 15)}...)` : ' ⚠️  Not configured (analytics disabled)');
     
     console.log('\n📋 DOCUMENT LOGIC FRAMEWORKS: Loaded (6 frameworks)');
     console.log('   ├─ Proposal Logic (Pitch Decks, Sales)');

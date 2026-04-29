@@ -18,6 +18,7 @@ import api from "../../lib/api";
 interface PhotoEditorProps {
   imageSrc?: string;
   onStoreReady?: (store: any) => void;
+  onActiveToolChange?: (tool: string | null) => void;
 }
 
 const sections = DEFAULT_SECTIONS.filter(
@@ -917,6 +918,7 @@ const EditorUI = observer(
 const PhotoEditor = observer(function PhotoEditor({
   imageSrc = "/assets/dummy/dummy-trainer.jpg",
   onStoreReady,
+  onActiveToolChange,
 }: PhotoEditorProps) {
   const [store] = useState(() =>
     createStore({
@@ -1066,7 +1068,11 @@ const PhotoEditor = observer(function PhotoEditor({
       setDrawing(null);
       setEffect(null);
     }
-  }, [activeTool]);
+    // Notify parent about activeTool changes
+    if (onActiveToolChange) {
+      onActiveToolChange(activeTool);
+    }
+  }, [activeTool, onActiveToolChange]);
 
   const page = store?.activePage;
   const pageChildren = Array.isArray(page?.children) ? page.children : [];

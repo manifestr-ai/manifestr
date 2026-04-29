@@ -4,6 +4,7 @@ import SupabaseDB from '../lib/supabase-db';
 import { supabaseAdmin } from '../lib/supabase';
 import axios from 'axios';
 import { generateJSON } from '../lib/claude';
+import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 
 interface GenerateImageRequest {
     prompt: string;
@@ -24,21 +25,21 @@ export class ImageGeneratorController extends BaseController {
                 verb: 'POST',
                 path: '/generate',
                 handler: this.generateImage.bind(this),
+                middlewares: [authenticateToken],
             },
         ];
     }
 
-    private async generateImage(req: Request, res: Response) {
+    private async generateImage(req: AuthRequest, res: Response) {
         try {
-            const { prompt, userId, meta } = req.body as GenerateImageRequest;
+            const { prompt, meta } = req.body as GenerateImageRequest;
 
             if (!prompt) {
                 return res.status(400).json({ error: 'Missing required field: prompt' });
             }
 
-            // Extract userId from auth or body - use default UUID if not available
-            const defaultUserId = 'dcbe9e7d-3aca-48c7-b3de-ba8d4e39ba0b'; // Default user for testing
-            const jobUserId = userId || (req as any).user?.id || defaultUserId;
+            // Get userId from authenticated user
+            const jobUserId = req.user!.userId;
 
             console.log(`🎨 Generating image for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);

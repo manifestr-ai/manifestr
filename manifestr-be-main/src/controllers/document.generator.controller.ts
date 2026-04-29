@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
 import OpenAI from 'openai';
+import { trackEvent, MixpanelEvents } from '../lib/mixpanel';
 
 interface GenerateDocumentRequest {
     tool: 'Strategist' | 'Briefcase' | 'analyser' | 'studio' | 'wordsmith' | 'deck' | 'huddle' | 'cost ctrl';
@@ -195,6 +196,7 @@ GENERATE THE JSON NOW.
     }
 
     private async modifyDocument(req: Request, res: Response) {
+        const startTime = Date.now();
         try {
             const { prompt, documentData, userId, meta } = req.body as ModifyDocumentRequest;
 
@@ -206,6 +208,13 @@ GENERATE THE JSON NOW.
 
             console.log('📝 Modifying document with prompt:', prompt);
             console.log('📄 Current document HTML length:', typeof documentData === 'string' ? documentData.length : 0);
+
+            // Track AI generation started
+            trackEvent(MixpanelEvents.AI_GENERATION_STARTED, userId, {
+                content_type: 'document',
+                action: 'modify',
+                prompt_length: prompt.length,
+            });
 
             // System prompt for HTML document modification
             const systemPrompt = `
@@ -260,6 +269,16 @@ Return only the HTML content, no additional formatting or code blocks.
             console.log('✅ Document modified successfully!');
             console.log('📄 Modified HTML length:', modifiedHTML.length);
 
+            // Track successful modification
+            const duration = Date.now() - startTime;
+            trackEvent(MixpanelEvents.DOCUMENT_MODIFIED, userId, {
+                content_type: 'document',
+                prompt_length: prompt.length,
+                output_length: modifiedHTML.length,
+                duration_ms: duration,
+                ai_model: 'gpt-4o',
+            });
+
             return res.json({
                 status: 'success',
                 data: {
@@ -270,6 +289,14 @@ Return only the HTML content, no additional formatting or code blocks.
 
         } catch (error: any) {
             console.error('❌ Document modification failed:', error);
+            
+            // Track generation failure
+            trackEvent(MixpanelEvents.AI_GENERATION_FAILED, req.body.userId, {
+                content_type: 'document',
+                action: 'modify',
+                error: error instanceof Error ? error.message : String(error),
+            });
+            
             return res.status(500).json({ 
                 error: 'Internal server error', 
                 details: error instanceof Error ? error.message : String(error) 

@@ -211,6 +211,7 @@ interface CollaborativePresentationEditorProps {
   data?: any;
   generationId: string;
   onStoreReady?: (store: any) => void;
+  onActiveToolChange?: (tool: string | null) => void;
 }
 // ================= MAIN COMPONENT =================
 
@@ -218,6 +219,7 @@ export default function CollaborativePresentationEditor({
   data,
   generationId,
   onStoreReady,
+  onActiveToolChange,
 }: CollaborativePresentationEditorProps) {
   const router = useRouter();
 
@@ -467,6 +469,13 @@ export default function CollaborativePresentationEditor({
     | "animation"
     | "slideshow"
   >("insert");
+
+  // Notify parent about activeTool changes
+  useEffect(() => {
+    if (onActiveToolChange) {
+      onActiveToolChange(activeTool);
+    }
+  }, [activeTool, onActiveToolChange]);
 
   // Handle style guide selection - REGENERATE with style guide
   const handleSelectStyleGuide = async (styleGuide: any) => {
@@ -1118,7 +1127,7 @@ export default function CollaborativePresentationEditor({
 
       {/* TOP PANELS (except AI Prompter) */}
       {activeTool !== "ai_prompter" && (
-        <ToolPanel activeTool={activeTool} store={store} />
+        <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
       )}
 
       <EditorBottomToolbar
@@ -1129,7 +1138,7 @@ export default function CollaborativePresentationEditor({
 
       {/* AI PROMPTER BELOW TOOLBAR */}
       {activeTool === "ai_prompter" && (
-        <ToolPanel activeTool={activeTool} store={store} />
+        <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
       )}
       
       {/* Style Guide Modal */}

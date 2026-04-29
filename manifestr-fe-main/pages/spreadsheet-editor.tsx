@@ -559,18 +559,21 @@ export default function SpreadsheetEditor() {
             </div> */}
           </div>
 
-          {/* Right Sidebar (Floating over grid on the right) */}
-          <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
-            <div className="pointer-events-auto">
-              <RightSidebar
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                onZoomReset={handleZoomReset}
-                documentId={actualGenerationId}
-                documentTitle={content?.title || "Untitled spreadsheet"}
-              />
+          {/* Right Sidebar (Floating over grid on the right) - Hide when AI Prompter is active */}
+          {activeTool !== "ai_prompter" && (
+            <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
+              <div className="pointer-events-auto">
+                <RightSidebar
+                  onZoomIn={handleZoomIn}
+                  onZoomOut={handleZoomOut}
+                  onZoomReset={handleZoomReset}
+                  documentId={actualGenerationId}
+                  documentTitle={content?.title || "Untitled spreadsheet"}
+                  documentType="spreadsheet"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Floating Elements */}
           <FloatingSheetTab />
@@ -579,7 +582,7 @@ export default function SpreadsheetEditor() {
 
         {/* TOP PANELS (except AI Prompter) */}
         {activeTool !== "ai_prompter" && (
-          <ToolPanel activeTool={activeTool} store={univerAPI} />
+          <ToolPanel activeTool={activeTool} store={univerAPI} setActiveTool={setActiveTool} />
         )}
 
         <EditorBottomToolbar
@@ -590,7 +593,7 @@ export default function SpreadsheetEditor() {
 
         {/* AI PROMPTER BELOW TOOLBAR */}
         {activeTool === "ai_prompter" && (
-          <ToolPanel activeTool={activeTool} store={univerAPI} />
+          <ToolPanel activeTool={activeTool} store={univerAPI} setActiveTool={setActiveTool} />
         )}
         
         {/* Style Guide Modal */}

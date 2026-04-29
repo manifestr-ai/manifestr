@@ -75,6 +75,7 @@ type ChartType =
 interface ChartEditorProps {
   generationId?: string;
   onStoreReady?: (store: any) => void;
+  onActiveToolChange?: (tool: string | null) => void;
 }
 
 type TextAlign = "left" | "center" | "right";
@@ -122,6 +123,7 @@ const getUserColor = (userId: string): string => {
 export default function ChartEditor({
   generationId,
   onStoreReady,
+  onActiveToolChange,
 }: ChartEditorProps) {
   const router = useRouter();
   const chartRef = useRef<any>(null);
@@ -265,6 +267,13 @@ export default function ChartEditor({
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [titleCaret, setTitleCaret] = useState<number | null>(null);
   const [legendCarets, setLegendCarets] = useState<Record<number, number>>({});
+
+  // Notify parent about activeTool changes
+  useEffect(() => {
+    if (onActiveToolChange) {
+      onActiveToolChange(activeTool);
+    }
+  }, [activeTool, onActiveToolChange]);
 
   // Style Guide Modal
   const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
@@ -2652,7 +2661,7 @@ export default function ChartEditor({
       </div>
 
       {/* Tool Panel */}
-      <ToolPanel activeTool={activeTool} store={store} />
+      <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
 
       {/* Bottom Toolbar */}
       <EditorBottomToolbar

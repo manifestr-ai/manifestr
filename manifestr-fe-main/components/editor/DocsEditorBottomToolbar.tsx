@@ -6,10 +6,16 @@ interface DocsEditorBottomToolbarProps {
   store?: any;
   editor?: any;
   onInsertTheme?: () => void;
+  activeTool?: string | null;
+  setActiveTool?: (tool: string | null) => void;
 }
 
-export default function DocsEditorBottomToolbar({ store, editor, onInsertTheme }: DocsEditorBottomToolbarProps) {
-  const [activeTool, setActiveTool] = useState<string | null>("format");
+export default function DocsEditorBottomToolbar({ store, editor, onInsertTheme, activeTool: externalActiveTool, setActiveTool: externalSetActiveTool }: DocsEditorBottomToolbarProps) {
+  const [internalActiveTool, setInternalActiveTool] = useState<string | null>("format");
+  
+  // Use external state if provided, otherwise use internal state
+  const activeTool = externalActiveTool !== undefined ? externalActiveTool : internalActiveTool;
+  const setActiveTool = externalSetActiveTool || setInternalActiveTool;
   
   // Log editor availability for debugging
   console.log('📋 DocsEditorBottomToolbar - editor available:', !!editor);

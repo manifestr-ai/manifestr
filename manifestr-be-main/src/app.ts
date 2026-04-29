@@ -19,6 +19,7 @@ import { StyleGuideController } from './controllers/style-guide.controller';
 import { EarlyAccessController } from './controllers/early-access.controller';
 import { CollaborationController } from './controllers/collaboration.controller';
 import { CollabProjectsController } from './controllers/collab-projects.controller';
+import { ThreadsController } from './controllers/threads.controller';
 
 class App {
     public app: Application;
@@ -126,8 +127,9 @@ class App {
             new VaultController(),
             new StyleGuideController(),
             new EarlyAccessController(),
-            new CollaborationController(), // NEW: Real-time collaboration
-            new CollabProjectsController(), // NEW: Collab projects/folders
+            new CollaborationController(), // Real-time collaboration
+            new CollabProjectsController(), // Collab projects/folders
+            new ThreadsController(), // NEW: Threaded commenting/feedback system
         ];
 
         controllers.forEach((controller) => {

@@ -39,6 +39,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
+    "mixpanel": "^0.21.0",
     "multer": "^2.0.2",
     "openai": "^6.15.0",
     "pg": "^8.16.3",
