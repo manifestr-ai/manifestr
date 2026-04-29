@@ -41,7 +41,7 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     if (isPolotnoPage) {
-      import("@blueprintjs/core/lib/css/blueprint.css");
+      // import("@blueprintjs/core/lib/css/blueprint.css");
     }
   }, [isPolotnoPage]);
 
