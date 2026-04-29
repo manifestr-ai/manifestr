@@ -12,14 +12,21 @@ import AiPrompterPanel from "../comman-panel/AiPrompterPanel";
 interface ToolPanelProps {
   activeTool: string;
   store: any;
+  setActiveTool?: (tool: any) => void;
 }
 
-export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
+export default function ToolPanel({ activeTool, store, setActiveTool }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
     case "ai_prompter":
-      return <AiPrompterPanel store={store} editorType="presentation" />;
+      return (
+        <AiPrompterPanel 
+          store={store} 
+          editorType="presentation"
+          onClose={() => setActiveTool?.(null)}
+        />
+      );
     case "insert":
       return <InsertPanel store={store} />;
 

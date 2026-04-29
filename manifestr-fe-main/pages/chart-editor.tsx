@@ -37,6 +37,7 @@ export default function ChartEditorPage() {
 
   const [store, setStore] = useState<any>(null);
   const [zoom, setZoom] = useState(1);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
 
   const clampZoom = (value: number) => Math.min(2, Math.max(0.5, value));
 
@@ -74,21 +75,25 @@ export default function ChartEditorPage() {
           <ChartEditor 
             generationId={actualGenerationId}
             onStoreReady={setStore}
+            onActiveToolChange={setActiveTool}
           />
         </div>
 
-        {/* Right Sidebar (Floating over grid on the right) */}
-        <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
-          <div className="pointer-events-auto">
-            <RightSidebar
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onZoomReset={handleZoomReset}
-              documentId={actualGenerationId}
-              documentTitle="Chart"
-            />
+        {/* Right Sidebar (Floating over grid on the right) - Hide when AI Prompter is active */}
+        {activeTool !== "ai_prompter" && (
+          <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
+            <div className="pointer-events-auto">
+              <RightSidebar
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                onZoomReset={handleZoomReset}
+                documentId={actualGenerationId}
+                documentTitle="Chart"
+                documentType="chart"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Floating Elements */}
         <FloatingSheetTab />

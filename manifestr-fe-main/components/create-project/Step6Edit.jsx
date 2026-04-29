@@ -30,7 +30,8 @@ const statusOrder = [
 export default function Step6Edit({ generationId, outputType }) {
     const router = useRouter()
     const [currentStatus, setCurrentStatus] = useState('QUEUED')
-    const progressPercent = 30
+    const [progressPercent, setProgressPercent] = useState(0)
+    const [currentStatusLabel, setCurrentStatusLabel] = useState('In queue...')
     const [tasks, setTasks] = useState([
         { id: 'intent', label: 'Extracting key themes ...', status: 'pending' },
         { id: 'layout', label: 'Optimizing structure...', status: 'pending' },
@@ -44,12 +45,14 @@ export default function Step6Edit({ generationId, outputType }) {
         const pollStatus = async () => {
             try {
                 const res = await api.get(`/ai/status/${generationId}`)
+                console.log('📊 Generation Status:', res.data)
 
                 if (res.data && res.data.status === 'success') {
                     const data = res.data.data
 
                     // Normalize status to UPPERCASE to match statusOrder array
                     const normalizedStatus = data.status?.toUpperCase() || 'QUEUED'
+                    console.log('✅ Current Status:', normalizedStatus)
                     setCurrentStatus(normalizedStatus)
 
                     if (normalizedStatus === 'COMPLETED') {
@@ -69,8 +72,11 @@ export default function Step6Edit({ generationId, outputType }) {
                             router.push(`/docs-editor?id=${generationId}`)
                         }
                     }
+                } else {
+                    console.error('❌ API Response Error:', res.data)
                 }
             } catch (e) {
+                console.error('❌ Failed to fetch generation status:', e)
             }
         }
 
@@ -87,6 +93,21 @@ export default function Step6Edit({ generationId, outputType }) {
         // Simple logic to mark tasks as done based on current status phase
         // Map status to task completion
         const statusIndex = statusOrder.indexOf(currentStatus)
+
+        // Calculate progress percentage based on status
+        const progressMap = {
+            'QUEUED': 10,
+            'PROCESSING_INTENT': 25,
+            'PROCESSING_LAYOUT': 40,
+            'PROCESSING_CONTENT': 60,
+            'CRITIQUING': 75,
+            'RENDERING': 90,
+            'COMPLETED': 100
+        }
+        setProgressPercent(progressMap[currentStatus] || 10)
+
+        // Update status label
+        setCurrentStatusLabel(STATUS_LABELS[currentStatus] || 'Processing...')
 
         setTasks(prev => prev.map(task => {
             let isCompleted = false
@@ -136,21 +157,21 @@ export default function Step6Edit({ generationId, outputType }) {
                     </p>
                 </div>
 
-                {/* Progress (hardcoded for now to match Figma) */}
+                {/* Progress Bar */}
                 <div className="w-full flex flex-col items-center gap-3">
                     <div className="w-[360px] flex items-center gap-3">
                         <div className="relative w-full h-[6px] bg-[#E5E7EB] rounded-full overflow-hidden">
                             <div
-                                className="absolute left-0 top-0 h-full bg-base-foreground rounded-full"
+                                className="absolute left-0 top-0 h-full bg-[#18181b] rounded-full transition-all duration-500 ease-out"
                                 style={{ width: `${progressPercent}%` }}
                             />
                         </div>
-                        <span className="text-[14px] leading-[20px] text-base-muted-foreground+ tabular-nums">
+                        <span className="text-[14px] leading-[20px] text-[#71717A] font-medium tabular-nums min-w-[38px] text-right">
                             {progressPercent}%
                         </span>
                     </div>
-                    <p className="text-[14px] leading-[20px] text-base-muted-foreground">
-                        Extracting key themes ...
+                    <p className="text-[14px] leading-[20px] text-[#71717A]">
+                        {currentStatusLabel}
                     </p>
                 </div>
 

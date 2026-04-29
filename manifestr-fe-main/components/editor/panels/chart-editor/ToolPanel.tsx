@@ -11,9 +11,10 @@ import StylePanel from "./StylePanel";
 interface ToolPanelProps {
   activeTool: string;
   store: any;
+  setActiveTool?: (tool: any) => void;
 }
 
-export default function ToolPanel({ activeTool, store }: ToolPanelProps) {
+export default function ToolPanel({ activeTool, store, setActiveTool }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {

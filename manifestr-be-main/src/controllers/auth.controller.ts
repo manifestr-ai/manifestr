@@ -4,6 +4,7 @@ import { supabaseAdmin, supabase } from "../lib/supabase";
 import SupabaseDB from "../lib/supabase-db";
 import { authenticateToken, AuthRequest } from "../middleware/auth.middleware";
 import { generateOTP, getExpiryTime, hashOTP } from "../utils/otp";
+import { trackEvent, setUserProfile, MixpanelEvents } from "../lib/mixpanel";
 
 
 interface ApiResponse {
@@ -328,6 +329,24 @@ export class AuthController extends BaseController {
         promotional_emails,
       });
 
+      // Track user signup in Mixpanel
+      trackEvent(MixpanelEvents.USER_SIGNED_UP, authData.user.id, {
+        email,
+        first_name,
+        last_name,
+        country,
+        promotional_emails,
+      });
+
+      // Set user profile in Mixpanel
+      setUserProfile(authData.user.id, {
+        $email: email,
+        $name: `${first_name} ${last_name}`,
+        $created: new Date().toISOString(),
+        country,
+        promotional_emails,
+      });
+
       // Now sign them in to get tokens
       const { data: sessionData, error: sessionError } =
         await supabaseAdmin.auth.signInWithPassword({
@@ -422,6 +441,12 @@ export class AuthController extends BaseController {
           email_verified: true,
         });
       }
+
+      // Track user login in Mixpanel
+      trackEvent(MixpanelEvents.USER_LOGGED_IN, data.user.id, {
+        email: data.user.email,
+        login_method: 'email_password',
+      });
 
       return this.sendResponse(res, 200, "success", "Login successful", {
         user: this.sanitizeUser(user),

@@ -46,6 +46,7 @@ export default function DocsEditor() {
   const { loading, error, status, content, id } = useGenerationLoader();
   const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
   const { showToast } = useToast();
+  const [activeTool, setActiveTool] = useState<string | null>("format");
 
   const extractHeadings = (html) => {
     // Store HTML for download
@@ -348,18 +349,21 @@ export default function DocsEditor() {
             )}
           </div>
 
-          {/* Right Sidebar (Floating over editor on the right) */}
-          <div className="hidden md:flex absolute right-[-12px] top-0 bottom-0 items-center z-20 pointer-events-none">
-            <div className="pointer-events-auto">
-              <RightSidebar
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                onZoomReset={handleZoomReset}
-                documentId={actualDocumentId}
-                documentTitle={content?.title || "Untitled document"}
-              />
+          {/* Right Sidebar (Floating over editor on the right) - Hide when AI Prompter is active */}
+          {activeTool !== "ai-prompt" && (
+            <div className="hidden md:flex absolute right-[-12px] top-0 bottom-0 items-center z-20 pointer-events-none">
+              <div className="pointer-events-auto">
+                <RightSidebar
+                  onZoomIn={handleZoomIn}
+                  onZoomOut={handleZoomOut}
+                  onZoomReset={handleZoomReset}
+                  documentId={actualDocumentId}
+                  documentTitle={content?.title || "Untitled document"}
+                  documentType="document"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Floating FAB */}
           <FloatingFAB />
@@ -370,6 +374,8 @@ export default function DocsEditor() {
           <DocsEditorBottomToolbar
             editor={editorInstance}
             onInsertTheme={() => setShowStyleGuideModal(true)}
+            activeTool={activeTool}
+            setActiveTool={setActiveTool}
           />
         </div>
 
