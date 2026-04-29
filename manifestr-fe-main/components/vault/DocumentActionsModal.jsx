@@ -26,6 +26,8 @@ export default function DocumentActionsModal({
   onClose,
   document,
   onUpdate,
+  initialPrimaryTab,
+  initialShareSubTab,
 }) {
   const modalRef = useRef(null);
   const [primaryTab, setPrimaryTab] = useState("Share"); // Share, Export, Save & Organize, Manage
@@ -300,11 +302,11 @@ export default function DocumentActionsModal({
   // Reset when modal opens
   useEffect(() => {
     if (isOpen) {
-      setPrimaryTab("Share");
-      setShareSubTab("Share Link");
+      setPrimaryTab(initialPrimaryTab || "Share");
+      setShareSubTab(initialShareSubTab || "Share Link");
       setCopied(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialPrimaryTab, initialShareSubTab]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://manifestr.app/share/abc123def");
