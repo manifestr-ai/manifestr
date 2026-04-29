@@ -171,7 +171,12 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     if (!editor || !commentText) return;
     
     // Wrap selection with comment mark using Tiptap highlight
-    editor.chain().focus().toggleHighlight({ color: '#fef3c7' }).run();
+    const sanitizedComment = commentText.trim().replace(/\s+/g, " ");
+    editor
+      .chain()
+      .focus()
+      .toggleHighlight({ color: "#fef3c7", comment: sanitizedComment })
+      .run();
     
     showToast('Comment added (hover over yellow text)');
     setShowCommentModal(false);
