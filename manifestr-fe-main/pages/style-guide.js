@@ -9,6 +9,7 @@ import StyleGuideCard from '../components/style-guide/StyleGuideCard'
 import RenameStyleGuideModal from '../components/ui/RenameStyleGuideModal'
 import DeleteStyleGuideModal from '../components/ui/DeleteStyleGuideModal'
 import { useToast } from '../components/ui/Toast'
+import { STYLE_GUIDE_HERO_BANNER_URL } from '../lib/styleGuideHeroBanner'
 
 export default function StyleGuide() {
   const router = useRouter()
@@ -254,39 +255,37 @@ export default function StyleGuide() {
         <AppHeader showRightActions={true} />
         <div className="h-[72px]" />
 
-        {/* Hero Section */}
-        <div className="relative w-full h-auto min-h-[280px] overflow-hidden">
-          {/* Background Image */}
+        {/* Hero — same Cloudinary banner as create Step 1 (restored from stash v4) */}
+        <div className="relative w-full min-h-[160px] overflow-hidden md:h-[199px]">
           <div className="absolute inset-0">
             <Image
-              src="/assets/banners/abstract-white-wave.png"
-              alt="Background"
+              src={STYLE_GUIDE_HERO_BANNER_URL}
+              alt=""
               fill
               className="object-cover object-top"
               priority
+              sizes="100vw"
             />
           </div>
 
-          {/* Content */}
-          <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 py-8 h-full flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0">
+          <div className="relative z-10 mx-auto flex h-full min-h-[160px] max-w-7xl flex-col items-center justify-between gap-6 px-6 py-6 md:min-h-0 md:h-[199px] md:flex-row md:px-8 md:py-0">
             <div className="text-center md:text-left">
-              <h1 className="flex items-center md:items-baseline gap-2 mb-4 justify-center md:justify-start">
-                <span className="text-[32px] md:text-[40px] font-hero font-bold tracking-[-0.04em] text-[#181818] leading-none">
-                  Style
-                </span>
-                <span className="text-[38px] md:text-[44px] font-ivy-presto italic font-semibold leading-[48px] tracking-[0.406px] text-[#181818]">
+              <h1 className="mb-2 text-[32px] font-bold leading-[40px] tracking-[-0.96px] text-[#18181b] md:mb-1 md:text-[48px] md:leading-[56px]">
+                Style{' '}
+                <span className="italic" style={{ fontFamily: "'Playfair Display', serif" }}>
                   Guide
                 </span>
               </h1>
-              <p className="text-[16px] md:text-[18px] leading-[28px] text-[#52525b]">
+              <p className="max-w-xl text-[14px] leading-[22px] text-[#52525b] md:text-[16px] md:leading-[24px]">
                 Manage and organize your brand style guides and design systems.
               </p>
             </div>
             <button
+              type="button"
               onClick={handleCreateNew}
-              className="flex items-center gap-2 px-6 py-3 bg-[#000000] rounded-xl text-[16px] font-semibold text-white hover:opacity-90 transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="flex shrink-0 items-center gap-2 rounded-xl bg-[#000000] px-6 py-3 text-[16px] font-semibold text-white shadow-md transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
-              <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
+              <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
               New Style Guide
             </button>
           </div>
