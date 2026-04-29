@@ -1,15 +1,32 @@
-import { motion } from 'framer-motion'
-import { Plus, Upload, Trash2 } from 'lucide-react'
+import { motion } from "framer-motion";
+import { Plus, Upload, Trash2 } from "lucide-react";
 
-export default function VaultHeader({ title = 'THE vault', description = 
-  <>Your secure workspace for every <br></br>project, deck & document.
-  </>
-  , isBlack = false, backgroundImage = null, customActionButton = null, showActionButtons = true, onNewCollabClick = null, onUploadClick = null }) {
-  const headerHeight = isBlack ? 'min-h-[199px]' : 'min-h-[199px]'
-  const paddingY = isBlack ? 'py-[30px] md:py-[45px]' : 'py-[30px] md:py-[45px]'
+export default function VaultHeader({
+  title = "THE vault",
+  description = (
+    <>
+      Your secure workspace for every <br></br>project, deck & document.
+    </>
+  ),
+  isBlack = false,
+  backgroundImage = null,
+  customActionButton = null,
+  showActionButtons = true,
+  onNewCollabClick = null,
+  onUploadClick = null,
+}) {
+  const headerHeight =
+    (title?.toLowerCase() === "the vault" || title?.toLowerCase().includes("deleted"))
+      ? "min-h-[199px]"
+      : "min-h-[140px]";
+  const paddingY = isBlack
+    ? "pt-[40px] md:pt-[55px] pb-2"
+    : "pt-[40px] md:pt-[55px] pb-2";
 
   return (
-    <div className={`relative w-full ${headerHeight} overflow-hidden ${isBlack ? 'bg-black' : ''}`}>
+    <div
+      className={`relative w-full ${headerHeight} overflow-hidden ${isBlack ? "bg-black" : ""}`}
+    >
       {/* Background with texture/image */}
       {backgroundImage ? (
         <div className="absolute inset-0">
@@ -32,54 +49,85 @@ export default function VaultHeader({ title = 'THE vault', description =
         <div className="absolute inset-0 bg-gradient-to-b from-[#f4f4f5] to-[#ffffff]" />
       ) : null}
 
-      <div className={`relative z-10 px-4 md:px-[30px] ${paddingY}`}>
+      <div className={`relative z-10  px-4 md:px-[30px] ${paddingY}`}>
         <div className="mx-auto">
           <div className="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-0">
             {/* Left Section */}
             <div className="flex flex-col gap-2 flex-1">
-              {typeof title === 'string' ? (
-                <h1 className={`tracking-[0.4063px] ${isBlack ? 'text-white' : 'text-[#18181b]'}`}>
+              {typeof title === "string" ? (
+                <h1
+                  className={`tracking-[0.4063px] ${isBlack ? "text-white" : "text-[#18181b]"}`}
+                >
                   {(() => {
-                    const words = title.split(' ')
-                    const first = words[0]
-                    const second = words[1]
-                    const rest = words.slice(2).join(' ')
+                    const words = title.split(" ");
+                    const first = words[0];
+                    const second = words[1];
+                    const rest = words.slice(2).join(" ");
                     return (
                       <>
                         {first && (
-                          <span className="font-bold uppercase font-sans text-[34px] leading-[48px]">
+                          <span
+                            className="text-[34px] leading-[48px] font-bold"
+                            style={{
+                              color: isBlack ? "#fff" : "#181818",
+                         
+                              fontFamily: "Inter",
+                              fontStyle: "normal",
+                              fontWeight: 700,
+                              letterSpacing: "0.406px",
+                            }}
+                          >
                             {first}
                           </span>
                         )}
                         {second && (
-                          <span className="italic lowercase font-accent text-[44px] leading-[48px]">
-                            {' '}{second}
+                          <span
+                            className="italic font-semibold leading-[48px] text-[44px] tracking-[0.406px]"
+                            style={{
+                             color: isBlack ? "#fff" : "#181818",
+                              fontFamily: '"IvyPresto Headline"',
+                              fontStyle: "italic",
+                              fontWeight: 600,
+                              letterSpacing: "0.406px",
+                            }}
+                          >
+                            {" "}
+                            {second}
                           </span>
                         )}
                         {rest && (
-                          <span className="font-light uppercase font-sans text-[34px] leading-[48px]">
-                            {' '}{rest}
+                          <span
+                            className="text-[30px] leading-[48px] font-light tracking-[0.406px] font-inter not-italic" style={{color: isBlack ? "#fff" : "#181818" }}                           
+                          >
+                            {" "}
+                            {rest}
                           </span>
+                     
+                     
                         )}
                       </>
-                    )
+                    );
                   })()}
                 </h1>
               ) : (
-                <h1 className={`text-[48px] leading-[48px] tracking-tight ${isBlack ? 'text-white' : 'text-[#18181b]'}`}>
+                <h1
+                  className={`text-[48px] leading-[48px] tracking-tight ${isBlack ? "text-white" : "text-[#18181b]"}`}
+                >
                   {title}
                 </h1>
               )}
               {description && (
-                <p className={`text-[16px] font-normal leading-[24px] tracking-[-0.312px] ${isBlack ? 'text-[#a1a1aa]' : 'text-[#181818]'}`} style={{ fontFamily: 'Inter' }}>
+                <p
+                  className={`font-normal leading-6 tracking-[-0.312px] font-sans text-base ${isBlack ? "text-[#a1a1aa]" : "text-[#181818]"}`}
+                >
                   {description}
                 </p>
               )}
             </div>
 
             {/* Right Section - Action Buttons */}
-            {showActionButtons && (
-              customActionButton ? (
+            {showActionButtons &&
+              (customActionButton ? (
                 customActionButton
               ) : (
                 <div className="flex flex-col md:flex-row items-center self-end gap-3 w-full md:w-auto">
@@ -103,11 +151,10 @@ export default function VaultHeader({ title = 'THE vault', description =
                     Upload new
                   </motion.button>
                 </div>
-              )
-            )}
+              ))}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

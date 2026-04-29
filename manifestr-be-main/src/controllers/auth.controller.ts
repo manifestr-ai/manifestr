@@ -5,6 +5,7 @@ import SupabaseDB from "../lib/supabase-db";
 import { authenticateToken, AuthRequest } from "../middleware/auth.middleware";
 import { generateOTP, getExpiryTime, hashOTP } from "../utils/otp";
 
+
 interface ApiResponse {
   status: "success" | "error";
   message: string;
@@ -1214,6 +1215,58 @@ export class AuthController extends BaseController {
 
       // TODO: send email (use your email service)
       console.log(`OTP for ${email}: ${code}`);
+
+      // Send the reset code in an email using your preferred email service.
+      // You can use nodemailer or another library, but here is an example using nodemailer:
+
+      const nodemailer = require("nodemailer");
+
+      // It's better to use environment variables for credentials in real apps!
+    
+      const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_SMTP_HOST || "smtp.gmail.com",
+        port: Number(process.env.EMAIL_SMTP_PORT) || 587,
+        secure: false, // ALWAYS false for 587
+        auth: {
+          user: process.env.EMAIL_SMTP_USER,
+          pass: process.env.EMAIL_SMTP_PASS,
+        },
+      });
+      // Email message details
+      const mailOptions = {
+        from:
+          process.env.EMAIL_FROM_ADDRESS ||
+          '"Manifestr" <no-reply@manifestr.xyz>',
+        to: email,
+        subject: "Your Manifestr Password Reset Code",
+        html: `
+          <div style="font-family: sans-serif;">
+            <h2>Password Reset Request</h2>
+            <p>
+              Hello,<br /><br />
+              You requested a password reset for your Manifestr account.<br /><br />
+              <b>Your reset code is:</b>
+            </p>
+            <p style="font-size:2em; letter-spacing: 0.1em; color: #1976d2;">
+              <strong>${code}</strong>
+            </p>
+            <p>
+              This code will expire in 15 minutes.<br /><br />
+              If you did not request a password reset, you can safely ignore this email.
+            </p>
+            <hr/>
+            <small>If you have any issues, contact us at support@manifestr.xyz</small>
+          </div>
+        `,
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log("✅ Email sent successfully");
+      } catch (emailErr) {
+        console.error("❌ Error sending reset email:", emailErr);
+      }
+
       return this.sendResponse(
         res,
         200,
@@ -1221,6 +1274,9 @@ export class AuthController extends BaseController {
         "If an account exists, a reset code has been sent",
       );
     } catch (err) {
+
+      console.error("Error in sendResetCode:", err);
+ 
       return this.sendResponse(res, 500, "error", "Internal server error");
     }
   };

@@ -6,14 +6,26 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
   const foldersToDisplay = folders
 
   return (
-    <div className="px-4 md:px-[38px] pb-6">
+    <div className="px-4 md:px-[38px]">
       <div className="mb-4">
-        <h2 className="text-[20px] font-semibold leading-[30px] text-[#18181b]">
+        <h2
+          className="text-[20px] font-bold leading-[30px] text-[var(--base-foreground,#18181B)] font-[Inter] not-italic"
+          style={{
+            color: "var(--base-foreground, #18181B)",
+            fontFamily: "Inter",
+            fontSize: "20px",
+            fontStyle: "normal",
+            fontWeight: 700,
+            lineHeight: "30px",
+          }}
+        >
           All Folders
         </h2>
+   
       </div>
 
-      <div className="flex items-center gap-3 overflow-x-auto pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="flex items-center gap-3 overflow-x-auto  -mx-4 px-4 md:mx-0 md:px-0" style={{ height: 130 }}>
+ 
         {foldersToDisplay.map((folder, index) => {
           const folderName = typeof folder === 'string' ? folder : folder.name
           const folderHref = typeof folder === 'string' ? null : folder.href
@@ -22,20 +34,32 @@ export default function VaultFolderGrid({ folders = [], onFolderClick = null }) 
           const documentCount = typeof folder === 'string' ? null : folder.documentCount
 
           const FolderContent = () => (
-            <div className="relative w-[125px] h-[80px]">
-              <div className="absolute inset-0 rounded-md overflow-hidden shadow-[0px_5px_4px_rgba(0,0,0,0.04)]">
+            <div className="relative w-[125px] h-[90px]">
+              <div className="absolute inset-0 rounded-md overflow-hidden ">
                 <img
                   src="/assets/icons/folder-icon.svg"
                   alt={folderName}
-                  className=""
+                  className="shadow-[0px_5px_4px_rgba(0,0,0,0.04)]"
                 />
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-2 z-10">
-                  <p className="text-white text-[12px] pt-2 font-medium leading-[18px] text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                  <p
+                    style={{
+                      color: "#FFF",
+                      textAlign: "center",
+                      fontFamily: "Inter",
+                      fontSize: "14px",
+                      fontStyle: "normal",
+                      fontWeight: 600,
+                      lineHeight: "18px",
+                    }}
+                    className="pt-2 line-clamp-2"
+                  >
                     {folderName.split(' ').map((word, i) => (
                       <span key={i} className="block">{word}</span>
                     ))}
                   </p>
+             
                   {/* {(memberCount !== null || documentCount !== null) && (
                     <p className="text-white/80 text-[10px] mt-1 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
                       {documentCount || 0} docs • {memberCount || 0} members
