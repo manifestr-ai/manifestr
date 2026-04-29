@@ -1,5 +1,6 @@
 import ShapesPanel from "../comman-panel/ShapesPanel";
 import { Popover, Position } from "@blueprintjs/core";
+import { useMemo, useState } from "react";
 import {
   buildChartSvg,
   createDefaultChartSpec,
@@ -15,10 +16,42 @@ interface InsertPanelProps {
 export default function InsertPanel({ store }: InsertPanelProps) {
   if (!store) return null;
 
+  const MAX_TABLE_PICKER_COLS = 10;
+  const MAX_TABLE_PICKER_ROWS = 8;
+
+  const tableDesigns = useMemo(
+    () =>
+      [
+        { id: "plain", label: "Plain", variant: "plain" as const },
+        { id: "header", label: "Header", variant: "header" as const },
+        { id: "striped", label: "Banded", variant: "striped" as const },
+        { id: "boxed", label: "Boxed", variant: "boxed" as const },
+        { id: "dark-header", label: "Dark header", variant: "dark-header" as const },
+        { id: "minimal", label: "Minimal", variant: "minimal" as const },
+      ] as const,
+    [],
+  );
+
+  const [tablePicker, setTablePicker] = useState<{
+    hoverRows: number;
+    hoverCols: number;
+    selectedVariant: (typeof tableDesigns)[number]["variant"];
+  }>({
+    hoverRows: 3,
+    hoverCols: 3,
+    selectedVariant: "header",
+  });
+
   const insertTable = (
     rows: number,
     cols: number,
-    variant: "plain" | "header" | "striped" = "plain",
+    variant:
+      | "plain"
+      | "header"
+      | "striped"
+      | "boxed"
+      | "dark-header"
+      | "minimal" = "plain",
   ) => {
     const page = store.activePage;
     if (!page) return;
@@ -33,89 +66,133 @@ export default function InsertPanel({ store }: InsertPanelProps) {
     const startY = Math.round((store.height - tableHeight) / 2);
 
     const createdElements: any[] = [];
-    const strokeColor = "#C4CAD6";
-    const headerFill = "#E7EEF9";
-    const stripedFill = "#F8FAFC";
+    const stylesByVariant = {
+      plain: {
+        strokeColor: "#C4CAD6",
+        outerStrokeColor: "#8A94A6",
+        outerStrokeWidth: 1.5,
+        innerStrokeWidth: 1.5,
+        headerFill: "#E7EEF9",
+        headerText: "#111827",
+        stripedFill: "#F8FAFC",
+        cellText: "#111827",
+      },
+      header: {
+        strokeColor: "#C4CAD6",
+        outerStrokeColor: "#8A94A6",
+        outerStrokeWidth: 1.5,
+        innerStrokeWidth: 1.5,
+        headerFill: "#E7EEF9",
+        headerText: "#111827",
+        stripedFill: "#F8FAFC",
+        cellText: "#111827",
+      },
+      striped: {
+        strokeColor: "#C4CAD6",
+        outerStrokeColor: "#8A94A6",
+        outerStrokeWidth: 1.5,
+        innerStrokeWidth: 1.5,
+        headerFill: "#E7EEF9",
+        headerText: "#111827",
+        stripedFill: "#F3F6FB",
+        cellText: "#111827",
+      },
+      boxed: {
+        strokeColor: "#B9C2D3",
+        outerStrokeColor: "#475569",
+        outerStrokeWidth: 2.5,
+        innerStrokeWidth: 1.5,
+        headerFill: "#F1F5F9",
+        headerText: "#0F172A",
+        stripedFill: "#F8FAFC",
+        cellText: "#0F172A",
+      },
+      "dark-header": {
+        strokeColor: "#D1D5DB",
+        outerStrokeColor: "#111827",
+        outerStrokeWidth: 1.5,
+        innerStrokeWidth: 1.5,
+        headerFill: "#111827",
+        headerText: "#FFFFFF",
+        stripedFill: "#F8FAFC",
+        cellText: "#111827",
+      },
+      minimal: {
+        strokeColor: "#E5E7EB",
+        outerStrokeColor: "#CBD5E1",
+        outerStrokeWidth: 1,
+        innerStrokeWidth: 1,
+        headerFill: "#FFFFFF",
+        headerText: "#111827",
+        stripedFill: "#FFFFFF",
+        cellText: "#111827",
+      },
+    } as const;
 
-    const background = page.addElement({
-      type: "shape",
-      shapeType: "rect",
+    const style = stylesByVariant[variant] ?? stylesByVariant.plain;
+
+    // Outer border/background
+    const tableFrame = page.addElement({
+      type: "figure",
+      subType: "rect",
       x: startX,
       y: startY,
       width: tableWidth,
       height: tableHeight,
-      stroke: "#8A94A6",
-      strokeWidth: 1.5,
       fill: "#FFFFFF",
+      stroke: style.outerStrokeColor,
+      strokeWidth: Math.max(1, Math.round(style.outerStrokeWidth)),
+      selectable: true,
+      draggable: true,
+      resizable: true,
+      removable: true,
+      visible: true,
+      opacity: 1,
     });
+    createdElements.push(tableFrame);
 
-    createdElements.push(background);
+    // Draw real cell rectangles so borders are always visible
+    const cellIds: string[] = [];
+    const textIds: string[] = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const isHeader =
+          (variant === "header" || variant === "dark-header") && r === 0;
+        const isStripedRow = variant === "striped" && r % 2 === 1;
+        const fill = isHeader
+          ? style.headerFill
+          : isStripedRow
+            ? style.stripedFill
+            : "#FFFFFF";
 
-    if (variant === "header") {
-      const headerBg = page.addElement({
-        type: "shape",
-        shapeType: "rect",
-        x: startX,
-        y: startY,
-        width: tableWidth,
-        height: cellHeight,
-        fill: headerFill,
-        strokeWidth: 0,
-      });
-      createdElements.push(headerBg);
-    }
-
-    if (variant === "striped") {
-      for (let r = 0; r < rows; r++) {
-        if (r % 2 === 1) {
-          const rowBg = page.addElement({
-            type: "shape",
-            shapeType: "rect",
-            x: startX,
-            y: startY + r * cellHeight,
-            width: tableWidth,
-            height: cellHeight,
-            fill: stripedFill,
-            strokeWidth: 0,
-          });
-          createdElements.push(rowBg);
-        }
+        const cell = page.addElement({
+          type: "figure",
+          subType: "rect",
+          x: startX + c * cellWidth,
+          y: startY + r * cellHeight,
+          width: cellWidth,
+          height: cellHeight,
+          fill,
+          stroke: style.strokeColor,
+          strokeWidth: Math.max(1, Math.round(style.innerStrokeWidth)),
+          selectable: true,
+          draggable: true,
+          resizable: true,
+          contentEditable: false,
+          styleEditable: true,
+          removable: true,
+          visible: true,
+          opacity: 1,
+        });
+        createdElements.push(cell);
+        if (cell?.id) cellIds.push(cell.id);
       }
-    }
-
-    for (let r = 1; r < rows; r++) {
-      const y = startY + r * cellHeight;
-      const line = page.addElement({
-        type: "shape",
-        shapeType: "rect",
-        x: startX,
-        y,
-        width: tableWidth,
-        height: 1.5,
-        fill: strokeColor,
-        strokeWidth: 0,
-      });
-      createdElements.push(line);
-    }
-
-    for (let c = 1; c < cols; c++) {
-      const x = startX + c * cellWidth;
-      const line = page.addElement({
-        type: "shape",
-        shapeType: "rect",
-        x,
-        y: startY,
-        width: 1.5,
-        height: tableHeight,
-        fill: strokeColor,
-        strokeWidth: 0,
-      });
-      createdElements.push(line);
     }
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const isHeader = variant === "header" && r === 0;
+        const isHeader =
+          (variant === "header" || variant === "dark-header") && r === 0;
         const x = startX + c * cellWidth;
         const y = startY + r * cellHeight;
 
@@ -128,40 +205,109 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           fontSize: isHeader ? 13 : 12,
           fontFamily: "Inter",
           fontWeight: isHeader ? "600" : "400",
-          fill: "#111827",
+          fill: isHeader ? style.headerText : style.cellText,
+          selectable: true,
+          draggable: true,
+          resizable: true,
+          contentEditable: false,
+          styleEditable: true,
+          removable: true,
+          visible: true,
+          opacity: 1,
         });
 
         createdElements.push(text);
+        if (text?.id) textIds.push(text.id);
       }
     }
 
-    store.selectElements(createdElements);
+    // Ensure z-order: texts on top.
+    // NOTE: Don't send the frame to absolute bottom because slides can have a
+    // non-removable background element at the bottom; pushing below it hides fills/borders.
     try {
-      if (typeof store.groupElements === "function") {
-        store.groupElements.length > 0
-          ? store.groupElements(createdElements)
+      if (textIds.length && typeof page.moveElementsTop === "function") {
+        page.moveElementsTop(textIds);
+      }
+    } catch {}
+
+    // Make the whole table behave like one object:
+    // group all elements into a single group so Delete removes everything.
+    const createdIds = createdElements.map((el) => el?.id).filter(Boolean);
+    try {
+      if (createdIds.length && typeof store.groupElements === "function") {
+        store.groupElements.length >= 1
+          ? store.groupElements(createdIds, { removable: true })
           : store.groupElements();
+      } else if (createdIds.length && typeof store.selectElements === "function") {
+        store.selectElements(createdIds);
       }
     } catch {}
   };
 
+  const renderTableDesignThumb = (
+    variant:
+      | "plain"
+      | "header"
+      | "striped"
+      | "boxed"
+      | "dark-header"
+      | "minimal",
+    isActive: boolean,
+  ) => {
+    const border =
+      variant === "boxed"
+        ? "2px solid #475569"
+        : variant === "minimal"
+          ? "1px solid #CBD5E1"
+          : "1px solid #8A94A6";
+
+    const headerBg =
+      variant === "dark-header"
+        ? "#111827"
+        : variant === "header" || variant === "boxed"
+          ? "#E7EEF9"
+          : "#FFFFFF";
+
+    const bandBg = variant === "striped" ? "#F3F6FB" : "#FFFFFF";
+    const line = variant === "minimal" ? "#E5E7EB" : "#C4CAD6";
+
+    return (
+      <div
+        className={`w-[68px] h-[46px] rounded overflow-hidden bg-white ${
+          isActive ? "ring-2 ring-blue-500" : "ring-1 ring-[#E5E7EB]"
+        }`}
+        style={{ border }}
+      >
+        <div className="h-[14px]" style={{ background: headerBg }} />
+        <div className="h-px" style={{ background: line }} />
+        <div className="h-[15px]" style={{ background: bandBg }} />
+        <div className="h-px" style={{ background: line }} />
+        <div className="h-[16px]" style={{ background: "#FFFFFF" }} />
+      </div>
+    );
+  };
+
   const insertChart = (chartType: PresentationChartType) => {
     const spec = createDefaultChartSpec(chartType);
-    const svg = buildChartSvg(spec);
-    const width = Math.round(Math.min(760, Math.max(520, store.width * 0.44)));
-    const height = Math.round(width * 0.62);
-    const el = store.activePage?.addElement?.({
-      type: "image",
-      name: serializeChartSpecToName(spec),
-      src: makeSvgDataUrl(svg),
-      x: Math.round((store.width - width) / 2),
-      y: Math.round((store.height - height) / 2),
-      width,
-      height,
-    });
-    if (el) {
-      store.selectElements([el]);
+    // Create editable charts as real Polotno elements for supported types.
+    // Pie/donut are kept as SVG images (Polotno figures don't support arcs).
+    if (chartType === "pie" || chartType === "donut") {
+      const svg = buildChartSvg(spec);
+      const width = Math.round(Math.min(760, Math.max(520, store.width * 0.44)));
+      const height = Math.round(width * 0.62);
+      const el = store.activePage?.addElement?.({
+        type: "image",
+        name: serializeChartSpecToName(spec),
+        src: makeSvgDataUrl(svg),
+        x: Math.round((store.width - width) / 2),
+        y: Math.round((store.height - height) / 2),
+        width,
+        height,
+      });
+      if (el) store.selectElements([el]);
+      return;
     }
+
   };
 
   return (
@@ -370,51 +516,92 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           <Popover
             position={Position.BOTTOM_LEFT}
             content={
-              <div className="w-[260px] p-3 bg-white border rounded-md shadow-lg">
+              <div className="w-[360px] p-3 bg-white border rounded-md shadow-lg">
                 <div className="text-xs text-gray-400 mb-2">Insert Table</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => insertTable(2, 2, "plain")}
-                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
-                  >
-                    2x2 Basic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertTable(3, 3, "plain")}
-                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
-                  >
-                    3x3 Basic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertTable(4, 4, "plain")}
-                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
-                  >
-                    4x4 Basic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertTable(3, 4, "header")}
-                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
-                  >
-                    3x4 Header
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertTable(5, 3, "striped")}
-                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
-                  >
-                    5x3 Striped
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertTable(6, 6, "plain")}
-                    className="px-2 py-2 text-xs rounded border border-[#E5E7EB] hover:bg-[#F8FAFC] text-left"
-                  >
-                    6x6 Matrix
-                  </button>
+
+                {/* Grid picker (PowerPoint-like) */}
+                <div className="flex items-start gap-4">
+                  <div>
+                    <div className="text-[11px] text-gray-500 mb-2">
+                      {tablePicker.hoverRows} x {tablePicker.hoverCols} Table
+                    </div>
+                    <div
+                      className="grid gap-[2px] p-2 rounded border border-[#E5E7EB] bg-white"
+                      style={{
+                        gridTemplateColumns: `repeat(${MAX_TABLE_PICKER_COLS}, 14px)`,
+                      }}
+                      onMouseLeave={() =>
+                        setTablePicker((s) => ({
+                          ...s,
+                          hoverRows: Math.max(1, s.hoverRows),
+                          hoverCols: Math.max(1, s.hoverCols),
+                        }))
+                      }
+                    >
+                      {Array.from({
+                        length: MAX_TABLE_PICKER_ROWS * MAX_TABLE_PICKER_COLS,
+                      }).map((_, idx) => {
+                        const r = Math.floor(idx / MAX_TABLE_PICKER_COLS) + 1;
+                        const c = (idx % MAX_TABLE_PICKER_COLS) + 1;
+                        const active = r <= tablePicker.hoverRows && c <= tablePicker.hoverCols;
+                        return (
+                          <button
+                            key={`${r}-${c}`}
+                            type="button"
+                            className={`w-[14px] h-[14px] border ${
+                              active
+                                ? "bg-[#FDE68A] border-[#F59E0B]"
+                                : "bg-white border-[#E5E7EB] hover:bg-[#F8FAFC]"
+                            }`}
+                            onMouseEnter={() =>
+                              setTablePicker((s) => ({
+                                ...s,
+                                hoverRows: r,
+                                hoverCols: c,
+                              }))
+                            }
+                            onClick={() =>
+                              insertTable(r, c, tablePicker.selectedVariant)
+                            }
+                            aria-label={`Insert ${r} by ${c} table`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Design chooser */}
+                  <div className="flex-1">
+                    <div className="text-[11px] text-gray-500 mb-2">
+                      Table styles
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {tableDesigns.map((d) => {
+                        const isActive = d.variant === tablePicker.selectedVariant;
+                        return (
+                          <button
+                            key={d.id}
+                            type="button"
+                            className="p-1 rounded hover:bg-[#F8FAFC] text-left"
+                            onClick={() =>
+                              setTablePicker((s) => ({
+                                ...s,
+                                selectedVariant: d.variant,
+                              }))
+                            }
+                          >
+                            {renderTableDesignThumb(d.variant, isActive)}
+                            <div className="mt-1 text-[10px] text-gray-600">
+                              {d.label}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-2 text-[10px] text-gray-400">
+                      Pick a size on the grid to insert.
+                    </div>
+                  </div>
                 </div>
               </div>
             }
@@ -484,7 +671,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             </button>
           </Popover>
           {/* Chart */}
-          <Popover
+          {/* <Popover
             position={Position.BOTTOM_LEFT}
             content={
               <div className="w-[280px] p-3 bg-white border rounded-md shadow-lg">
@@ -606,7 +793,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
                 Chart
               </span>
             </button>
-          </Popover>
+          </Popover> */}
         </div>
       </div>
     </div>

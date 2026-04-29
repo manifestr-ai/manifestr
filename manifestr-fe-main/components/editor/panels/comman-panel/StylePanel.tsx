@@ -177,15 +177,8 @@ export default observer(function StylePanel({ store }: StylePanelProps) {
   const hasSelection = selectedElements.length > 0;
   const page = store?.activePage;
   const backgroundFill = (() => {
-    const children: any[] = page?.children || [];
-    const bg = children.find(
-      (el) =>
-        el &&
-        el.name === "__slide_background__" &&
-        el.type === "shape" &&
-        el.shapeType === "rect",
-    );
-    return typeof bg?.fill === "string" ? bg.fill : "#FFFFFF";
+    const bg = page?.background;
+    return typeof bg === "string" ? bg : "#FFFFFF";
   })();
 
   const [themeId, setThemeId] = useState<ThemeId>("light");
@@ -232,7 +225,7 @@ export default observer(function StylePanel({ store }: StylePanelProps) {
   const applyFill = (fill: string) => {
     selectedElements.forEach((el) => {
       if (!el || !isFn(el.set)) return;
-      if (el.type === "shape" || el.type === "text") {
+      if (el.type === "figure" || el.type === "text") {
         el.set({ fill });
         return;
       }
@@ -242,7 +235,7 @@ export default observer(function StylePanel({ store }: StylePanelProps) {
   const applyOutline = (stroke: string, strokeWidth: number) => {
     selectedElements.forEach((el) => {
       if (!el || !isFn(el.set)) return;
-      if (el.type === "shape" || el.type === "text") {
+      if (el.type === "figure" || el.type === "text") {
         el.set({ stroke, strokeWidth });
         return;
       }
@@ -292,54 +285,15 @@ export default observer(function StylePanel({ store }: StylePanelProps) {
   };
 
   const ensureBackground = () => {
-    if (!page || !isFn(page.addElement)) return null;
-    const children: any[] = page?.children || [];
-    const existing = children.find(
-      (el) =>
-        el &&
-        el.name === "__slide_background__" &&
-        el.type === "shape" &&
-        el.shapeType === "rect",
-    );
-
-    if (existing && isFn(existing.set)) return existing;
-
-    const bg = page.addElement({
-      type: "shape",
-      name: "__slide_background__",
-      shapeType: "rect",
-      x: 0,
-      y: 0,
-      width: store?.width || 1920,
-      height: store?.height || 1080,
-      fill: "#FFFFFF",
-      strokeWidth: 0,
-      selectable: false,
-      removable: false,
-      draggable: false,
-      resizable: false,
-      contentEditable: false,
-    });
-
-    if (bg?.id && isFn(page.moveElementsBottom)) {
-      page.moveElementsBottom([bg.id]);
-    }
-    return bg;
+    if (!page) return null;
+    if (isFn(page.set)) return page;
+    return null;
   };
 
   const setBackgroundColor = (color: string) => {
     const bg = ensureBackground();
     if (!bg || !isFn(bg.set)) return;
-    bg.set({
-      fill: color,
-      x: 0,
-      y: 0,
-      width: store?.width || bg.width,
-      height: store?.height || bg.height,
-    });
-    if (bg?.id && isFn(page?.moveElementsBottom)) {
-      page.moveElementsBottom([bg.id]);
-    }
+    bg.set({ background: color });
   };
 
   const applyTheme = (nextThemeId: ThemeId) => {
@@ -374,7 +328,7 @@ export default observer(function StylePanel({ store }: StylePanelProps) {
           });
           return;
         }
-        if (el.type === "shape") {
+        if (el.type === "figure") {
           el.set({
             fill: "#FFFFFF",
             strokeWidth: 0,
