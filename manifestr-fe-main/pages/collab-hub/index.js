@@ -197,11 +197,8 @@ export default function CollabHub() {
         {!viewingMembers && (
           <>
             <VaultHeader
-              title={
-                <span className="text-[#181818] font-inter text-[34px] font-bold leading-[48px] tracking-[0.406px]">
-                  Collabs
-                </span>
-              }
+              title="Collabs"
+             
               description={(
                 <span className="text-[#71717b] font-inter text-[18px] leading-[28px]">
                   Collabs are shared workspaces to keep people <br></br> + documents together, all in one view.
