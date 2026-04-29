@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Head from 'next/head'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -8,6 +9,7 @@ import AppHeader from '../components/layout/AppHeader'
 import StyleGuideCard from '../components/style-guide/StyleGuideCard'
 import RenameStyleGuideModal from '../components/ui/RenameStyleGuideModal'
 import DeleteStyleGuideModal from '../components/ui/DeleteStyleGuideModal'
+import StyleGuideDropdown from '../components/ui/StyleGuideDropdown'
 import { useToast } from '../components/ui/Toast'
 
 export default function StyleGuide() {
@@ -29,6 +31,10 @@ export default function StyleGuide() {
   const [showRenameModal, setShowRenameModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedGuide, setSelectedGuide] = useState(null)
+
+  const [openDropdownGuideId, setOpenDropdownGuideId] = useState(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+  const listMenuButtonRefs = useRef({})
 
   useEffect(() => {
     const fetchStyleGuides = async () => {
@@ -220,6 +226,11 @@ export default function StyleGuide() {
     }
   }, [isLoading, styleGuides.length, router])
 
+  const activeDropdownGuide = useMemo(() => {
+    if (!openDropdownGuideId) return null
+    return styleGuides.find((g) => g.id === openDropdownGuideId) || null
+  }, [openDropdownGuideId, styleGuides])
+
   const displayedGuides = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
 
@@ -255,11 +266,11 @@ export default function StyleGuide() {
         <div className="h-[72px]" />
 
         {/* Hero Section */}
-        <div className="relative w-full h-auto min-h-[280px] overflow-hidden">
+        <div className="relative w-full h-auto min-h-[210px] overflow-hidden">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
-              src="/assets/banners/abstract-white-wave.png"
+              src="https://res.cloudinary.com/dlifgfg6m/image/upload/v1777410547/StyleGuide_f6cinb.png"
               alt="Background"
               fill
               className="object-cover object-top"
@@ -268,32 +279,28 @@ export default function StyleGuide() {
           </div>
 
           {/* Content */}
-          <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 py-8 h-full flex flex-col md:flex-row items-center justify-between gap-6 md:gap-0">
+          <div className="relative z-10 mx-auto w-full max-w-[1280px] px-6 md:px-[80px] pt-12 md:pt-[88px] pb-4 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 md:gap-0">
             <div className="text-center md:text-left">
-              <h1 className="flex items-center md:items-baseline gap-2 mb-4 justify-center md:justify-start">
-                <span className="text-[32px] md:text-[40px] font-hero font-bold tracking-[-0.04em] text-[#181818] leading-none">
-                  Style
-                </span>
-                <span className="text-[38px] md:text-[44px] font-ivy-presto italic font-semibold leading-[48px] tracking-[0.406px] text-[#181818]">
-                  Guide
-                </span>
+              <h1 className="text-[#181818] tracking-[0.4063px] whitespace-nowrap mb-4 flex items-baseline justify-center md:justify-start leading-[0]">
+                <span className="font-inter font-bold text-[34px] leading-[48px] mr-[6px]">STYLE</span>
+                <span className="font-ivy-presto italic font-semibold text-[44px] leading-[48px]">guide</span>
               </h1>
-              <p className="text-[16px] md:text-[18px] leading-[28px] text-[#52525b]">
-                Manage and organize your brand style guides and design systems.
+              <p className="text-[16px] leading-[24px] text-[#181818] font-['Inter'] font-normal not-italic tracking-[-0.312px]">
+                Manage and organize your brand style guides and design systems
               </p>
             </div>
             <button
               onClick={handleCreateNew}
-              className="flex items-center gap-2 px-6 py-3 bg-[#000000] rounded-xl text-[16px] font-semibold text-white hover:opacity-90 transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="flex items-center justify-center gap-2 bg-white h-[40px] px-4 py-2 rounded-[6px] text-[14px] font-medium leading-[20px] text-[#18181b] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:bg-[#f4f4f5] transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
-              <Plus className="w-5 h-5 text-white" strokeWidth={2.5} />
+              <Plus className="w-4 h-4 text-[#18181b]" strokeWidth={2} />
               New Style Guide
             </button>
           </div>
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="bg-white border-b border-[#e4e4e7]">
+        <div className="bg-[#f4f4f5]">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               {/* Search */}
@@ -481,7 +488,39 @@ export default function StyleGuide() {
                         </p>
                       </div>
                       <div className="text-[14px] leading-[20px] text-[#71717a]">
-                        {guide.projectCount} Projects
+                        <div className="flex items-center gap-2">
+                          <span>{guide.projectCount} Projects</span>
+                          <button
+                            ref={(el) => {
+                              listMenuButtonRefs.current[guide.id] = el
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+
+                              if (openDropdownGuideId === guide.id) {
+                                setOpenDropdownGuideId(null)
+                                return
+                              }
+
+                              const el = listMenuButtonRefs.current[guide.id]
+                              if (el) {
+                                const rect = el.getBoundingClientRect()
+                                const dropdownWidth = 200
+                                setDropdownPosition({
+                                  top: rect.bottom + 8,
+                                  left: rect.right - dropdownWidth,
+                                })
+                              }
+                              setOpenDropdownGuideId(guide.id)
+                            }}
+                            className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+                            type="button"
+                            aria-label="Style guide actions"
+                          >
+                            <MoreVertical className="w-4 h-4 text-[#18181b]" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     {/* Note: For list view, using a simpler button approach since StyleGuideCard handles grid view */}
@@ -525,6 +564,37 @@ export default function StyleGuide() {
         onConfirm={handleDeleteConfirm}
         styleGuideName={selectedGuide?.title || ''}
       />
+
+      {/* List view dropdown (portal) */}
+      {typeof document !== 'undefined' && openDropdownGuideId && activeDropdownGuide && createPortal(
+        <>
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpenDropdownGuideId(null)
+            }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              zIndex: 9998,
+              background: 'transparent',
+            }}
+          />
+          <StyleGuideDropdown
+            isOpen={true}
+            onClose={() => setOpenDropdownGuideId(null)}
+            onOpen={() => handleOpenGuide(activeDropdownGuide)}
+            onRename={() => handleRenameClick(activeDropdownGuide)}
+            onDownload={() => handleDownload(activeDropdownGuide)}
+            onDelete={() => handleDeleteClick(activeDropdownGuide)}
+            position={dropdownPosition}
+          />
+        </>,
+        document.body
+      )}
     </>
   )
 }

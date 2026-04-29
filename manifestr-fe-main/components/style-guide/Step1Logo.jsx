@@ -168,11 +168,10 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
         <div>
           <div className="relative w-full h-[160px] md:h-[199px] overflow-hidden">
             <img
-              src="/assets/banners/Rectangle-1.png"
+              src="https://res.cloudinary.com/dlifgfg6m/image/upload/v1777410547/StyleGuide_f6cinb.png"
               alt=""
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover object-top"
             />
-            <div className="absolute inset-0 bg-white/55" />
             <div className="relative z-10 h-full flex items-center px-4 md:px-[30px]">
               <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.96px] text-[#18181b]">
                 CREATE A{' '}
@@ -200,10 +199,20 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
                 </p>
               </div>
               <div className="flex items-center gap-3 w-full md:w-auto">
-                <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onBack}
+                  className="flex-1 md:flex-none justify-center bg-white text-black hover:bg-white border-[#e4e4e7]"
+                >
                   Skip
                 </Button>
-                <Button variant="secondary" size="md" onClick={onSaveExit} className="flex-1 md:flex-none justify-center">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onSaveExit}
+                  className="flex-1 md:flex-none justify-center bg-white text-black hover:bg-white border-[#e4e4e7]"
+                >
                   Save & Exit
                 </Button>
                 <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
