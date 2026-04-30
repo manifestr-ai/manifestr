@@ -39,8 +39,9 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     if (!editor || !findText) return;
     
     // Use browser's native find (works with contentEditable)
-    if (window.find) {
-      window.find(findText, false, false, false, false, true, false);
+    const win = window as any;
+    if (typeof win.find === 'function') {
+      win.find(findText, false, false, false, false, true, false);
       showToast(`Found: "${findText}"`);
     } else {
       // Fallback: highlight all instances
