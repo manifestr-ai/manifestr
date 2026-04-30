@@ -4,7 +4,7 @@ export const VAULT_FOLDERS = [
   {
     id: 'marketing-materials',
     name: 'Marketing Materials',
-    headerTitle: 'MARKETING material',
+    headerTitle: 'MARKETING materials',
   },
   {
     id: 'finance-reports',

@@ -1,43 +1,85 @@
-import Head from 'next/head'
-import { useMemo, useState } from 'react'
-import AppHeader from '../../components/layout/AppHeader'
-import SidebarLayout from '../../components/layout/SidebarLayout'
-import VaultHeader from '../../components/vault/VaultHeader'
-import VaultSearchBar from '../../components/vault/VaultSearchBar'
-import { motion } from 'framer-motion'
-import { Sparkles, Play } from 'lucide-react'
+import Head from "next/head";
+import { useMemo, useState } from "react";
+import AppHeader from "../../components/layout/AppHeader";
+import SidebarLayout from "../../components/layout/SidebarLayout";
+import VaultHeader from "../../components/vault/VaultHeader";
+import VaultSearchBar from "../../components/vault/VaultSearchBar";
+import { motion } from "framer-motion";
+import { Sparkles, Play } from "lucide-react";
 
 export default function VaultPromptsInProgress() {
-  const [viewMode, setViewMode] = useState('grid')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState("grid");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+  const headerBackgroundImage =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
+      : "http://localhost:3000/assets/banners/abstract-white-wave.png";
 
   const prompts = [
-    { id: 'p1', title: 'Brand Identity Guidelines for Tech Startup', tool: 'The Deck', edited: 'Edited 21h ago' },
-    { id: 'p2', title: 'Social Media Content Calendar Q4', tool: 'The Huddle', edited: 'Edited 21h ago' },
-    { id: 'p3', title: 'User Research Interview Questions', tool: 'The Strategist', edited: 'Edited 21h ago' },
-    { id: 'p4', title: 'User Research Interview Questions', tool: 'The Strategist', edited: 'Edited 21h ago' },
-    { id: 'p5', title: 'Brand Identity Guidelines for Tech Startup', tool: 'The Deck', edited: 'Edited 21h ago' },
-    { id: 'p6', title: 'Social Media Content Calendar Q4', tool: 'The Huddle', edited: 'Edited 21h ago' },
-    { id: 'p7', title: 'User Research Interview Questions', tool: 'The Strategist', edited: 'Edited 21h ago' },
-    { id: 'p8', title: 'User Research Interview Questions', tool: 'The Strategist', edited: 'Edited 21h ago' },
-  ]
+    {
+      id: "p1",
+      title: "Brand Identity Guidelines for Tech Startup",
+      tool: "The Deck",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p2",
+      title: "Social Media Content Calendar Q4",
+      tool: "The Huddle",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p3",
+      title: "User Research Interview Questions",
+      tool: "The Strategist",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p4",
+      title: "User Research Interview Questions",
+      tool: "The Strategist",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p5",
+      title: "Brand Identity Guidelines for Tech Startup",
+      tool: "The Deck",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p6",
+      title: "Social Media Content Calendar Q4",
+      tool: "The Huddle",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p7",
+      title: "User Research Interview Questions",
+      tool: "The Strategist",
+      edited: "Edited 21h ago",
+    },
+    {
+      id: "p8",
+      title: "User Research Interview Questions",
+      tool: "The Strategist",
+      edited: "Edited 21h ago",
+    },
+  ];
 
-  const normalizedQuery = searchQuery.trim().toLowerCase()
+  const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredPrompts = useMemo(() => {
-    if (!normalizedQuery) return prompts
+    if (!normalizedQuery) return prompts;
     return prompts.filter((p) => {
-      const haystack = `${p.title} ${p.tool} ${p.edited}`.toLowerCase()
-      return haystack.includes(normalizedQuery)
-    })
-  }, [normalizedQuery])
+      const haystack = `${p.title} ${p.tool} ${p.edited}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [normalizedQuery]);
 
-  const gridCols = viewMode === 'list'
-    ? 'grid-cols-1'
-    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+  const gridCols =
+    viewMode === "list"
+      ? "grid-cols-1"
+      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
 
   return (
     <>
@@ -46,14 +88,9 @@ export default function VaultPromptsInProgress() {
       </Head>
 
       <div className="flex-1 flex flex-col overflow-y-auto">
+    
         <VaultHeader
-          title={(
-            <span className="text-[34px] leading-[48px] tracking-[0.4063px] text-[#18181b]">
-              <span className="font-bold uppercase font-sans">THE</span>
-              <span className="italic lowercase font-accent"> vault</span>
-              <span className="uppercase font-sans font-medium"> PROMPTS IN PROGRESS</span>
-            </span>
-          )}
+          title="THE vault PROMPTS IN PROGRESS"
           description={null}
           isBlack={false}
           backgroundImage={headerBackgroundImage}
@@ -72,26 +109,28 @@ export default function VaultPromptsInProgress() {
           {filteredPrompts.length === 0 ? (
             <div className="py-12 w-full text-center">
               <p className="text-gray-500 text-lg mb-2">No results found.</p>
-              <p className="text-gray-400 text-sm">Try a different search term.</p>
+              <p className="text-gray-400 text-sm">
+                Try a different search term.
+              </p>
             </div>
-          ) : viewMode === 'list' ? (
-            <div className="flex flex-col gap-6">
+          ) : viewMode === "list" ? (
+            <div className="grid grid-cols-1  gap-6">
               {filteredPrompts.map((prompt, idx) => (
                 <motion.div
                   key={prompt.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, delay: idx * 0.02 }}
-                  className="bg-white border border-[#e4e4e7] rounded-xl shadow-[0px_10px_20px_rgba(0,0,0,0.06)] px-6 py-5 flex items-center justify-between gap-6"
+                  className="bg-white border border-[#e4e4e7] rounded-xl shadow-[0px_10px_20px_rgba(0,0,0,0.06)] px-6 py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-6"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 mb-4 md:mb-0">
                     <Sparkles className="w-5 h-5 text-[#18181b] shrink-0" />
                     <h3 className="text-[14px] font-semibold leading-[20px] text-[#18181b] truncate">
                       {prompt.title}
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-4 shrink-0">
                     <span className="inline-flex items-center px-3 py-1 rounded-md bg-[#f4f4f5] text-[#18181b] text-[12px] font-medium leading-[18px]">
                       {prompt.tool}
                     </span>
@@ -101,7 +140,7 @@ export default function VaultPromptsInProgress() {
                     <motion.button
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
-                      className="h-[40px] px-6 rounded-md bg-[#18181b] text-white flex items-center justify-center gap-2 text-[14px] font-medium"
+                      className="h-[40px] px-6 rounded-md bg-[#18181b] text-white flex items-center justify-center gap-2 text-[14px] font-medium mt-2 md:mt-0"
                       type="button"
                     >
                       <Play className="w-4 h-4" />
@@ -111,6 +150,7 @@ export default function VaultPromptsInProgress() {
                 </motion.div>
               ))}
             </div>
+       
           ) : (
             <div className={`grid ${gridCols} gap-6`}>
               {filteredPrompts.map((prompt, idx) => (
@@ -156,7 +196,7 @@ export default function VaultPromptsInProgress() {
         </div>
       </div>
     </>
-  )
+  );
 }
 
 VaultPromptsInProgress.getLayout = function getLayout(page) {
@@ -165,5 +205,5 @@ VaultPromptsInProgress.getLayout = function getLayout(page) {
       <AppHeader />
       <SidebarLayout>{page}</SidebarLayout>
     </div>
-  )
-}
+  );
+};
