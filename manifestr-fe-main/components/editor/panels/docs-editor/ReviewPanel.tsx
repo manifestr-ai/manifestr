@@ -38,17 +38,19 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   const executeFind = () => {
     if (!editor || !findText) return;
     
-    // Update the SearchHighlight extension options to highlight the search term
-    editor.extensionManager.extensions.forEach((ext: any) => {
-      if (ext.name === 'searchHighlight') {
-        ext.options.searchTerm = findText;
-      }
-    });
+    // Use browser's native find (works with contentEditable)
+    if (window.find) {
+      window.find(findText, false, false, false, false, true, false);
+      showToast(`Found: "${findText}"`);
+    } else {
+      // Fallback: highlight all instances
+      const content = editor.getHTML();
+      const regex = new RegExp(`(${findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const highlighted = content.replace(regex, '<mark style="background: yellow;">$1</mark>');
+      editor.setContent(highlighted);
+      showToast(`Highlighted: "${findText}"`);
+    }
     
-    // Force editor to re-render with new decorations
-    editor.view.updateState(editor.state);
-    
-    showToast(`Highlighting: "${findText}"`);
     setShowFindModal(false);
   };
 
@@ -91,21 +93,19 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   const handleSelectAll = () => {
     if (!editor) return;
     
-    // Select all text in the editor
-    const { tr } = editor.state;
-    const allSelection = {
-      from: 0,
-      to: editor.state.doc.content.size,
-    };
-    
-    editor.view.dispatch(
-      tr.setSelection(
-        editor.state.selection.constructor.create(editor.state.doc, allSelection.from, allSelection.to)
-      )
-    );
-    
-    editor.view.focus();
-    showToast('All text selected');
+    // Select all content in contentEditable div
+    const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
+    if (editorElement) {
+      const range = document.createRange();
+      range.selectNodeContents(editorElement);
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      editorElement.focus();
+      showToast('All text selected');
+    }
   };
 
   // Spell Check
@@ -123,8 +123,10 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   // Thesaurus - FIXED!
   const handleThesaurus = () => {
     if (!editor) return;
-    const { from, to } = editor.state.selection;
-    const selectedText = editor.state.doc.textBetween(from, to, ' ').trim();
+    
+    // Get selected text from window selection
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim() || "";
     
     if (!selectedText) {
       showToast('Select a word to find synonyms');
@@ -143,15 +145,14 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   const getWordCount = () => {
     if (!editor) return { words: 0, characters: 0, charactersNoSpaces: 0, paragraphs: 0 };
     
-    const text = editor.getText();
+    const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
+    if (!editorElement) return { words: 0, characters: 0, charactersNoSpaces: 0, paragraphs: 0 };
+    
+    const text = editorElement.textContent || "";
     const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
     const characters = text.length;
     const charactersNoSpaces = text.replace(/\s/g, '').length;
-    
-    let paragraphs = 0;
-    editor.state.doc.descendants((node) => {
-      if (node.type.name === 'paragraph') paragraphs++;
-    });
+    const paragraphs = editorElement.querySelectorAll('p').length || 1;
     
     return { words, characters, charactersNoSpaces, paragraphs };
   };
@@ -159,11 +160,14 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   // New Comment - FIXED!
   const handleNewComment = () => {
     if (!editor) return;
-    const { from, to } = editor.state.selection;
-    if (from === to) {
+    
+    // Check if text is selected
+    const selection = window.getSelection();
+    if (!selection || selection.toString().trim() === "") {
       showToast('Select text to add a comment');
       return;
     }
+    
     setShowCommentModal(true);
   };
 
