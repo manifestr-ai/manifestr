@@ -30,21 +30,32 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
   }
 
   return (
-    <div className="px-4 md:px-[38px] py-6 w-full">
+    <div className="px-4 md:px-[38px] pb-6 w-full">
       {showTitle && (
         <div className="mb-4">
-          <h2 className="text-[20px] font-semibold leading-[30px] text-[#18181b]">
+          <h2
+            className="text-[20px] font-bold leading-[30px] text-[var(--base-foreground,#18181B)] font-[Inter] not-italic"
+            style={{
+              color: "var(--base-foreground, #18181B)",
+              fontFamily: "Inter",
+              fontSize: "20px",
+              fontStyle: "normal",
+              fontWeight: 700,
+              lineHeight: "30px",
+            }}
+          >
             {title}
           </h2>
+     
         </div>
       )}
 
       <div className={
         viewMode === 'list'
-          ? "flex flex-col gap-0 mb-6 bg-white rounded-lg border border-[#e4e4e7] overflow-hidden"
+          ? "flex flex-col gap-0 mb-6 overflow-hidden"
           : `grid ${gridCols} gap-6 mb-6`
       }>
-        {viewMode === 'list' && (
+        {/* {viewMode === 'list' && (
           <div className="flex items-center px-4 py-3 border-b border-[#e4e4e7] bg-[#f4f4f5] text-[12px] font-medium text-[#71717a]">
             <div className="flex-1 pl-2">Name</div>
             <div className="w-[100px] text-center hidden md:block">Status</div>
@@ -52,7 +63,7 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
             <div className="w-[140px] text-right hidden lg:block pr-4">Last Edited</div>
             <div className="w-[40px]"></div>
           </div>
-        )}
+        )} */}
         {cards.map((card, index) => (
           <VaultCard
             key={index}

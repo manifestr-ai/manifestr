@@ -33,7 +33,13 @@ export default function ToolPanel({
 
   switch (activeTool) {
     case "ai_prompter":
-      return <AiPrompterPanel store={store} editorType="image" />;
+      return (
+        <AiPrompterPanel 
+          store={store} 
+          editorType="image"
+          onClose={() => setActiveTool?.(null)}
+        />
+      );
     case "insert":
       return <InsertPanel store={store} setActiveTool={setActiveTool} />;
 

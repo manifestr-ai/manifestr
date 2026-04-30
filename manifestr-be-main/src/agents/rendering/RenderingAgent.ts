@@ -3,6 +3,14 @@ import { ContentResponse, RenderResponse } from "../protocols/types";
 import SupabaseDB from "../../lib/supabase-db";
 import { s3Util } from "../../utils/s3.util";
 import { PresentationEngine } from "./engines/PresentationEngine";
+import { ProfessionalDocGenerator } from "../../generators/ProfessionalDocGenerator";
+import { Packer } from 'docx';
+import * as fs from 'fs';
+import * as path from 'path';
+import Anthropic from '@anthropic-ai/sdk';
+
+// @ts-ignore - mammoth doesn't have types
+const mammoth = require('mammoth');
 
 // Shared image fetcher used by Tiptap/Univer engines (not needed by Presentation which has its own)
 async function fetchImageUrl(query: string): Promise<string> {
@@ -75,6 +83,7 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
 
         const format = input.layout.intent.metadata.outputFormat;
         let editorState: any = {};
+        let docxDownloadUrl: string | undefined = undefined;
 
         if (format === 'presentation') {
             editorState = await this.convertToPolotno(input);
@@ -82,7 +91,23 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
             // Check if this is a semantic document
             const firstBlock = input.generatedContent?.[0];
             if (firstBlock?.content?.semanticDocument) {
-                editorState = await this.convertSemanticToTiptap(firstBlock.content);
+                console.log('\n🎨 Generating professional document...');
+                
+                // Generate BEAUTIFUL HTML (NO MORE TIPTAP!)
+                editorState = await this.convertSemanticToHTML(firstBlock.content);
+                
+                // ALSO generate beautiful Word document
+                try {
+                    const docxUrl = await this.generateAndUploadDocx(
+                        input,
+                        firstBlock.content,
+                        job
+                    );
+                    docxDownloadUrl = docxUrl;
+                    console.log('✅ Professional .docx generated:', docxUrl);
+                } catch (error) {
+                    console.error('❌ Failed to generate .docx (continuing with HTML only):', error);
+                }
             } else {
                 editorState = await this.convertToTiptap(input); // Legacy Tiptap JSON
             }
@@ -98,13 +123,16 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
         // In real life, we might upload this JSON to S3 if it's huge
         // For now, we return it.
 
-        return {
+        const response: RenderResponse = {
             jobId: input.jobId,
             outputFormat: format,
             editorState: editorState,
-            tokensUsed: 0, // Placeholder
+            docxUrl: docxDownloadUrl,
+            tokensUsed: 0,
             status: "success"
         };
+
+        return response;
     }
 
     protected async onJobCompleted(job: any): Promise<void> {
@@ -149,6 +177,52 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
     // Presentation output → delegated entirely to PresentationEngine
     private async convertToPolotno(input: ContentResponse) {
         return PresentationEngine.render(input);
+    }
+
+    /**
+     * Generate beautiful Word document and upload to S3
+     */
+    private async generateAndUploadDocx(
+        input: ContentResponse,
+        semanticContent: any,
+        job: any
+    ): Promise<string> {
+        console.log('\n📄 Generating professional Word document...');
+        
+        const docGenerator = new ProfessionalDocGenerator();
+        
+        // Extract document info with safe access
+        const metadata = input.layout.intent.metadata as any;
+        const documentType = metadata.type || 'Report';
+        const tool = metadata.selectedTool || 'Strategist';
+        const prompt = job.input_data?.brief || 'Professional document';
+        
+        // Generate the Word document using the semantic structure
+        const docxBuffer = await docGenerator.generateDocumentFromSemanticContent(
+            documentType,
+            tool,
+            semanticContent.semanticDocument
+        );
+        
+        console.log('✅ Word document generated:', Math.round(docxBuffer.length / 1024), 'KB');
+        
+        // Upload to S3
+        const timestamp = Date.now();
+        const filename = `${documentType}_${job.id}_${timestamp}.docx`;
+        const s3Key = `vaults/generations/${job.userId || 'anonymous'}/${filename}`;
+        
+        console.log('📤 Uploading to S3:', s3Key);
+        
+        await s3Util.uploadFile(
+            s3Key,
+            docxBuffer,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+        
+        const downloadUrl = s3Util.getFileUrl(s3Key);
+        console.log('✅ Upload complete! Download URL:', downloadUrl);
+        
+        return downloadUrl;
     }
 
     private async convertToTiptap(input: ContentResponse) {
@@ -436,33 +510,968 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
     /**
      * 🆕 NEW METHOD: Convert semantic document JSON to Tiptap format for display
      */
+    /**
+     * Load template DOCX and fill it with AI-generated content
+     */
+    private async fillTemplateWithContent(semanticDocument: any, documentType: string): Promise<string> {
+        console.log('\n📄 Loading template and filling with content...');
+        
+        // Path to the template in the frontend public folder
+        const templatePath = path.join(__dirname, '../../../manifestr-fe-main/public/Merchandise_Operations_Template.docx');
+        
+        try {
+            // Read the template file
+            const templateBuffer = fs.readFileSync(templatePath);
+            console.log('✅ Template loaded successfully');
+            
+            // Convert DOCX to HTML using mammoth
+            const result = await mammoth.convertToHtml(
+                { buffer: templateBuffer },
+                {
+                    styleMap: [
+                        "p[style-name='Heading 1'] => h1:fresh",
+                        "p[style-name='Heading 2'] => h2:fresh",
+                        "p[style-name='Heading 3'] => h3:fresh",
+                    ]
+                }
+            );
+            
+            const templateHtml = result.value;
+            console.log('✅ Template converted to HTML:', templateHtml.length, 'chars');
+            
+            // Initialize Anthropic client
+            const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
+            if (!apiKey) {
+                throw new Error('ANTHROPIC_API_KEY or CLAUDE_API_KEY not configured');
+            }
+            
+            const anthropic = new Anthropic({ apiKey });
+            
+            // Prepare the semantic content as JSON string
+            const contentJson = JSON.stringify(semanticDocument, null, 2);
+            
+            console.log('🤖 Calling Claude to fill template with content...');
+            
+            // Call Claude to fill the template
+            const response = await anthropic.messages.create({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 8000,
+                temperature: 0.7,
+                system: `You are an expert document editor specializing in filling professional templates with relevant content.
+
+CRITICAL INSTRUCTIONS:
+1. You will receive an HTML template document and structured content data
+2. Fill the template fields with appropriate content from the data
+3. Preserve ALL HTML structure, styles, and formatting EXACTLY
+4. Replace placeholder text (like "_______", "___", empty fields) with actual content from the data
+5. Keep the same sections and structure - only fill in the content
+6. Return ONLY the filled HTML, no explanations or markdown code blocks
+7. Ensure all content is relevant and properly formatted`,
+                messages: [{
+                    role: 'user',
+                    content: `Fill this HTML template document with the provided content data:
+
+TEMPLATE HTML:
+${templateHtml}
+
+CONTENT DATA (JSON):
+${contentJson}
+
+Instructions:
+- Map the content data to appropriate sections in the template
+- Fill in all placeholder fields with relevant data
+- Keep the same section headings and structure
+- Ensure tables are filled with appropriate data if available
+- Replace generic text with specific content from the data
+- Maintain the professional formatting and style
+
+Return the complete filled HTML document (raw HTML only, no code blocks):`
+                }]
+            });
+            
+            let filledHtml = response.content[0].type === 'text' 
+                ? response.content[0].text.trim() 
+                : templateHtml;
+            
+            // Clean up response - remove markdown code blocks if present
+            if (filledHtml.startsWith('```html')) {
+                filledHtml = filledHtml.replace(/^```html\n?/, '').replace(/\n?```$/, '').trim();
+            } else if (filledHtml.startsWith('```')) {
+                filledHtml = filledHtml.replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
+            }
+            
+            console.log('✅ Template filled successfully!');
+            console.log('📊 Tokens used:', response.usage.input_tokens + response.usage.output_tokens);
+            
+            return filledHtml;
+            
+        } catch (error) {
+            console.error('❌ Error filling template:', error);
+            console.error('Falling back to standard HTML generation...');
+            // Fallback to the original method if template loading fails
+            return this.generateHTMLFromScratch(documentType, semanticDocument);
+        }
+    }
+
+    /**
+     * Convert semantic document to BEAUTIFUL STYLED HTML (NO MORE TIPTAP!)
+     */
+    private async convertSemanticToHTML(content: any): Promise<string> {
+        const { documentType, semanticDocument } = content;
+
+        console.log('\n🎨 ═══════════════════════════════════════════════');
+        console.log('🎨 PROFESSIONAL HTML DOCUMENT GENERATION');
+        console.log('🎨 ═══════════════════════════════════════════════');
+        console.log('📄 Document Type:', documentType);
+
+        // Use template-based generation
+        return await this.fillTemplateWithContent(semanticDocument, documentType);
+    }
+
+    /**
+     * Fallback: Generate HTML from scratch (original method)
+     */
+    private async generateHTMLFromScratch(documentType: string, semanticDocument: any): Promise<string> {
+        const currentDate = new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+
+        const docTitle = this.extractDocumentTitle(semanticDocument, documentType);
+
+        // Professional CSS styling
+        const styles = `
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+                
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                
+                body {
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    color: #2C2C2C;
+                    background: #ffffff;
+                    padding: 60px 80px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                
+                .document-header {
+                    border-bottom: 3px solid #2E75B6;
+                    padding-bottom: 24px;
+                    margin-bottom: 48px;
+                }
+                
+                .document-title {
+                    font-size: 36px;
+                    font-weight: 700;
+                    color: #1F4E79;
+                    margin-bottom: 8px;
+                    letter-spacing: -0.5px;
+                }
+                
+                .document-subtitle {
+                    font-size: 18px;
+                    color: #666666;
+                    font-style: italic;
+                }
+                
+                .info-section {
+                    background: #F5F9FC;
+                    border-left: 4px solid #2E75B6;
+                    padding: 24px;
+                    margin: 32px 0;
+                    border-radius: 4px;
+                }
+                
+                .info-section h2 {
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: #1F4E79;
+                    margin-bottom: 16px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                
+                .info-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                
+                .info-table td {
+                    padding: 12px;
+                    border-bottom: 1px solid #E5E7EB;
+                }
+                
+                .info-table td:first-child {
+                    font-weight: 600;
+                    color: #1F4E79;
+                    width: 30%;
+                }
+                
+                .section {
+                    margin: 48px 0;
+                }
+                
+                .section-heading {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #1F4E79;
+                    margin-bottom: 16px;
+                    padding-bottom: 12px;
+                    border-bottom: 2px solid #D6E4F0;
+                }
+                
+                .section-note {
+                    font-size: 15px;
+                    color: #666666;
+                    font-style: italic;
+                    margin-bottom: 24px;
+                    padding-left: 20px;
+                    border-left: 3px solid #D6E4F0;
+                    padding: 12px 20px;
+                    background: #FAFBFC;
+                }
+                
+                .subsection-heading {
+                    font-size: 22px;
+                    font-weight: 600;
+                    color: #2E75B6;
+                    margin: 32px 0 16px 0;
+                }
+                
+                .content-text {
+                    margin: 16px 0;
+                    line-height: 1.8;
+                }
+                
+                .content-text strong {
+                    color: #1F4E79;
+                    font-weight: 600;
+                }
+                
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 24px 0;
+                    background: white;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    border-radius: 8px;
+                    overflow: hidden;
+                }
+                
+                thead {
+                    background: linear-gradient(135deg, #1F4E79 0%, #2E75B6 100%);
+                }
+                
+                th {
+                    padding: 16px;
+                    text-align: left;
+                    font-weight: 600;
+                    font-size: 14px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: white;
+                    border-right: 1px solid rgba(255,255,255,0.1);
+                }
+                
+                th:last-child {
+                    border-right: none;
+                }
+                
+                td {
+                    padding: 14px 16px;
+                    border-bottom: 1px solid #E5E7EB;
+                    font-size: 15px;
+                }
+                
+                tbody tr:hover {
+                    background: #F9FAFB;
+                }
+                
+                tbody tr:last-child td {
+                    border-bottom: none;
+                }
+                
+                ul {
+                    list-style: none;
+                    margin: 20px 0;
+                    padding: 0;
+                }
+                
+                li {
+                    padding: 10px 0 10px 32px;
+                    position: relative;
+                    line-height: 1.6;
+                }
+                
+                li:before {
+                    content: "•";
+                    position: absolute;
+                    left: 12px;
+                    color: #2E75B6;
+                    font-weight: bold;
+                    font-size: 20px;
+                }
+                
+                .checklist {
+                    list-style: none;
+                    margin: 20px 0;
+                }
+                
+                .checklist li {
+                    padding: 12px 0 12px 36px;
+                    position: relative;
+                }
+                
+                .checklist li:before {
+                    content: "☐";
+                    position: absolute;
+                    left: 0;
+                    color: #2E75B6;
+                    font-size: 18px;
+                }
+                
+                hr {
+                    border: none;
+                    border-top: 2px solid #D6E4F0;
+                    margin: 48px 0;
+                }
+                
+                .footer {
+                    margin-top: 64px;
+                    padding-top: 24px;
+                    border-top: 1px solid #E5E7EB;
+                    text-align: center;
+                    color: #999999;
+                    font-size: 14px;
+                    font-style: italic;
+                }
+                
+                @media print {
+                    body {
+                        padding: 40px;
+                    }
+                    
+                    .section {
+                        page-break-inside: avoid;
+                    }
+                    
+                    table {
+                        page-break-inside: avoid;
+                    }
+                }
+            </style>
+        `;
+
+        // Build HTML content
+        let htmlContent = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${docTitle}</title>
+                ${styles}
+            </head>
+            <body>
+                <div class="document-header">
+                    <h1 class="document-title">${docTitle}</h1>
+                    <p class="document-subtitle">Professional Business Document | ${currentDate}</p>
+                </div>
+                
+                <div class="info-section">
+                    <h2>📋 Document Information</h2>
+                    <table class="info-table">
+                        <tr>
+                            <td><strong>Prepared By:</strong></td>
+                            <td>___________________________________</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Date:</strong></td>
+                            <td>${currentDate}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Department:</strong></td>
+                            <td>___________________________________</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Version:</strong></td>
+                            <td>1.0</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <hr>
+        `;
+
+        // Convert semantic structure to HTML
+        htmlContent += this.convertObjectToHTML(semanticDocument, 1);
+
+        // Footer
+        htmlContent += `
+                <hr>
+                <div class="footer">
+                    <p>End of Document</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        console.log('✅ Professional HTML document generated!');
+        console.log('📄 Total HTML length:', htmlContent.length, 'characters');
+        console.log('🎨 ═══════════════════════════════════════════════\n');
+
+        return htmlContent;
+    }
+
+    /**
+     * Convert semantic object to HTML
+     */
+    private convertObjectToHTML(obj: any, sectionNumber: number): string {
+        if (!obj || typeof obj !== 'object') return '';
+
+        let html = '';
+        let currentSection = sectionNumber;
+
+        for (const [key, value] of Object.entries(obj)) {
+            // Skip internal fields
+            if (key === 'documentType' || key === 'id' || key === '_internal') continue;
+
+            const displayKey = this.formatKey(key);
+
+            if (Array.isArray(value)) {
+                // Array handling
+                html += `<div class="section">`;
+                html += `<h2 class="section-heading">${currentSection}. ${displayKey}</h2>`;
+
+                if (value.length > 0 && typeof value[0] === 'object') {
+                    // Array of objects → Table
+                    html += this.arrayToHTMLTable(value);
+                } else {
+                    // Simple array → List
+                    html += '<ul>';
+                    value.forEach(item => {
+                        html += `<li>${this.escapeHTML(String(item))}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                html += `</div>`;
+                currentSection++;
+
+            } else if (typeof value === 'object' && value !== null) {
+                // Nested object
+                html += `<div class="section">`;
+                html += `<h2 class="section-heading">${currentSection}. ${displayKey}</h2>`;
+                html += this.convertObjectToHTML(value, 1);
+                html += `</div>`;
+                currentSection++;
+
+            } else {
+                // Primitive value
+                const valueString = String(value);
+                
+                if (valueString.includes('<') && valueString.includes('>')) {
+                    // Has HTML tags - render as-is (but sanitize first)
+                    html += `<div class="content-text">${valueString}</div>`;
+                } else {
+                    html += `<div class="content-text"><strong>${displayKey}:</strong> ${this.escapeHTML(valueString)}</div>`;
+                }
+            }
+        }
+
+        return html;
+    }
+
+    /**
+     * Convert array of objects to HTML table
+     */
+    private arrayToHTMLTable(items: any[]): string {
+        if (!items || items.length === 0) return '';
+
+        // Get all unique keys
+        const allKeys = new Set<string>();
+        items.forEach(item => {
+            if (typeof item === 'object' && item !== null) {
+                Object.keys(item).forEach(k => {
+                    if (k !== 'id' && k !== '_internal') {
+                        allKeys.add(k);
+                    }
+                });
+            }
+        });
+
+        if (allKeys.size === 0) return '';
+
+        const keys = Array.from(allKeys);
+
+        let html = '<table><thead><tr>';
+        
+        // Headers
+        keys.forEach(key => {
+            html += `<th>${this.escapeHTML(this.formatKey(key))}</th>`;
+        });
+        
+        html += '</tr></thead><tbody>';
+
+        // Rows
+        items.forEach(item => {
+            html += '<tr>';
+            keys.forEach(key => {
+                const cellValue = this.formatCellValueForHTML(item[key]);
+                html += `<td>${cellValue}</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+
+        return html;
+    }
+
+    /**
+     * Format cell value for HTML display
+     */
+    private formatCellValueForHTML(value: any): string {
+        if (value === null || value === undefined) return '<span style="color: #999;">—</span>';
+        if (typeof value === 'boolean') return value ? '<span style="color: #10B981;">✓ Yes</span>' : '<span style="color: #EF4444;">✗ No</span>';
+        if (typeof value === 'number') return this.escapeHTML(value.toLocaleString('en-US'));
+
+        if (Array.isArray(value)) {
+            return value
+                .map(v => this.formatCellValueForHTML(v))
+                .filter(Boolean)
+                .join(' • ');
+        }
+
+        if (typeof value === 'object') {
+            // Extract meaningful field
+            const priorityKeys = ['name', 'title', 'label', 'description', 'value', 'finding', 'milestone'];
+            for (const key of priorityKeys) {
+                if (value[key] && typeof value[key] === 'string') {
+                    return this.escapeHTML(value[key].substring(0, 200));
+                }
+            }
+            return '<span style="color: #999;">—</span>';
+        }
+
+        const str = String(value).trim();
+        
+        // Try to parse JSON strings
+        if ((str.startsWith('[') && str.endsWith(']')) || (str.startsWith('{') && str.endsWith('}'))) {
+            try {
+                const parsed = JSON.parse(str);
+                return this.formatCellValueForHTML(parsed);
+            } catch {}
+        }
+
+        return this.escapeHTML(str.length > 300 ? str.substring(0, 300) + '...' : str);
+    }
+
+    /**
+     * Escape HTML special characters
+     */
+    private escapeHTML(str: string): string {
+        const div = { textContent: str } as any;
+        return div.textContent
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     private async convertSemanticToTiptap(content: any): Promise<any> {
         const { documentType, semanticDocument } = content;
         const contentNodes: any[] = [];
 
-        // Add document title/header
+        console.log('\n🎨 ═══════════════════════════════════════════════');
+        console.log('🎨 PROFESSIONAL DOCUMENT RENDERING');
+        console.log('🎨 ═══════════════════════════════════════════════');
+        console.log('📄 Document Type:', documentType);
+
+        // ========================================
+        // DOCUMENT HEADER SECTION
+        // ========================================
+        
+        // Add styled title
+        const docTitle = this.extractDocumentTitle(semanticDocument, documentType);
         contentNodes.push({
             type: "heading",
             attrs: { level: 1 },
-            content: [{ type: "text", text: this.extractDocumentTitle(semanticDocument, documentType) }]
+            content: [
+                { 
+                    type: "text", 
+                    text: docTitle,
+                    marks: [{ type: "bold" }]
+                }
+            ]
         });
 
-        // Add spacing
-        contentNodes.push({ type: "paragraph", content: [] });
+        // Add subtitle with document info
+        const currentDate = new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
         
-        // Add horizontal rule for visual separation
+        contentNodes.push({
+            type: "paragraph",
+            content: [
+                { type: "text", text: "Professional Business Document", marks: [{ type: "italic" }] },
+                { type: "text", text: " | " },
+                { type: "text", text: currentDate, marks: [{ type: "italic" }] }
+            ]
+        });
+
+        // Add horizontal rule separator
         contentNodes.push({ type: "horizontalRule" });
-        
-        // Add spacing
         contentNodes.push({ type: "paragraph", content: [] });
 
-        // Convert semantic structure to readable Tiptap format
-        this.convertObjectToTiptap(semanticDocument, contentNodes, 2);
+        // ========================================
+        // DOCUMENT INFORMATION SECTION
+        // ========================================
+        
+        contentNodes.push({
+            type: "heading",
+            attrs: { level: 2 },
+            content: [
+                { type: "text", text: "📋 DOCUMENT INFORMATION", marks: [{ type: "bold" }] }
+            ]
+        });
+
+        // Create info table
+        contentNodes.push(this.createInfoTable([
+            ["Prepared By:", "___________________________________"],
+            ["Date:", currentDate],
+            ["Department:", "___________________________________"],
+            ["Version:", "1.0"]
+        ]));
+
+        contentNodes.push({ type: "paragraph", content: [] });
+        contentNodes.push({ type: "horizontalRule" });
+        contentNodes.push({ type: "paragraph", content: [] });
+
+        // ========================================
+        // MAIN CONTENT SECTIONS
+        // ========================================
+
+        console.log('📊 Converting semantic document to professional format...');
+        this.convertObjectToTiptapProfessional(semanticDocument, contentNodes, 2, 1);
+
+        // ========================================
+        // FOOTER SECTION
+        // ========================================
+        
+        contentNodes.push({ type: "horizontalRule" });
+        contentNodes.push({
+            type: "paragraph",
+            content: [
+                { type: "text", text: "End of Document", marks: [{ type: "italic" }] }
+            ]
+        });
+
+        console.log('✅ Professional document rendering complete!');
+        console.log(`📄 Generated ${contentNodes.length} content nodes`);
+        console.log('🎨 ═══════════════════════════════════════════════\n');
 
         return {
             type: "doc",
             content: contentNodes
         };
+    }
+
+    /**
+     * Enhanced professional object-to-Tiptap conversion
+     */
+    private convertObjectToTiptapProfessional(
+        obj: any, 
+        nodes: any[], 
+        headingLevel: number = 2,
+        sectionNumber: number = 1
+    ): void {
+        if (!obj || typeof obj !== 'object') return;
+
+        let currentSection = sectionNumber;
+
+        for (const [key, value] of Object.entries(obj)) {
+            // Skip internal fields
+            if (key === 'documentType' || key === 'id' || key === '_internal') continue;
+
+            const displayKey = this.formatKey(key);
+
+            if (Array.isArray(value)) {
+                // ========================================
+                // ARRAY HANDLING (Tables, Lists)
+                // ========================================
+                
+                nodes.push({
+                    type: "heading",
+                    attrs: { level: Math.min(headingLevel, 3) },
+                    content: [
+                        { 
+                            type: "text", 
+                            text: `${currentSection}. ${displayKey}`, 
+                            marks: [{ type: "bold" }] 
+                        }
+                    ]
+                });
+
+                nodes.push({ type: "paragraph", content: [] });
+
+                // Convert array items to professional table if they're objects
+                if (value.length > 0 && typeof value[0] === 'object') {
+                    const table = this.arrayToTableProfessional(value);
+                    if (table) {
+                        nodes.push(table);
+                        nodes.push({ type: "paragraph", content: [] });
+                    } else {
+                        // Fallback: render as structured cards
+                        value.forEach((item, index) => {
+                            nodes.push({
+                                type: "heading",
+                                attrs: { level: Math.min(headingLevel + 1, 4) },
+                                content: [
+                                    { 
+                                        type: "text", 
+                                        text: `${currentSection}.${index + 1} ${displayKey.slice(0, -1)} ${index + 1}`,
+                                        marks: [{ type: "bold" }]
+                                    }
+                                ]
+                            });
+                            this.convertObjectToTiptapProfessional(item, nodes, headingLevel + 2, index + 1);
+                            nodes.push({ type: "paragraph", content: [] });
+                        });
+                    }
+                } else {
+                    // Simple array values - render as styled bullet list
+                    value.forEach(item => {
+                        nodes.push({
+                            type: "paragraph",
+                            content: [
+                                { type: "text", text: "• ", marks: [{ type: "bold" }] },
+                                { type: "text", text: String(item) }
+                            ]
+                        });
+                    });
+                    nodes.push({ type: "paragraph", content: [] });
+                }
+
+                currentSection++;
+
+            } else if (typeof value === 'object' && value !== null) {
+                // ========================================
+                // NESTED OBJECT HANDLING
+                // ========================================
+                
+                nodes.push({
+                    type: "heading",
+                    attrs: { level: Math.min(headingLevel, 3) },
+                    content: [
+                        { 
+                            type: "text", 
+                            text: `${currentSection}. ${displayKey}`, 
+                            marks: [{ type: "bold" }] 
+                        }
+                    ]
+                });
+                
+                nodes.push({ type: "paragraph", content: [] });
+                
+                this.convertObjectToTiptapProfessional(value, nodes, headingLevel + 1, 1);
+                
+                currentSection++;
+
+            } else {
+                // ========================================
+                // PRIMITIVE VALUE HANDLING
+                // ========================================
+                
+                const valueString = String(value);
+
+                // Check if content contains HTML tags
+                if (valueString.includes('<') && valueString.includes('>')) {
+                    this.parseHTMLToTiptap(valueString, nodes, displayKey, headingLevel);
+                } else {
+                    // Render as key-value pair with styling
+                    nodes.push({
+                        type: "paragraph",
+                        content: [
+                            { type: "text", text: `${displayKey}: `, marks: [{ type: "bold" }] },
+                            { type: "text", text: valueString }
+                        ]
+                    });
+                }
+
+                nodes.push({ type: "paragraph", content: [] });
+            }
+        }
+    }
+
+    /**
+     * Create a professional info table for document metadata
+     */
+    private createInfoTable(rows: string[][]): any {
+        const tableRows = rows.map(([label, value]) => ({
+            type: "tableRow",
+            content: [
+                {
+                    type: "tableCell",
+                    attrs: {},
+                    content: [
+                        {
+                            type: "paragraph",
+                            content: [
+                                { type: "text", text: label, marks: [{ type: "bold" }] }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: "tableCell",
+                    attrs: {},
+                    content: [
+                        {
+                            type: "paragraph",
+                            content: [
+                                { type: "text", text: value }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }));
+
+        return {
+            type: "table",
+            content: tableRows
+        };
+    }
+
+    /**
+     * Enhanced professional table generation from array of objects
+     */
+    private arrayToTableProfessional(items: any[]): any | null {
+        if (!items || items.length === 0) return null;
+
+        // Collect ALL unique keys across all items
+        const allKeys = new Set<string>();
+        items.forEach(item => {
+            if (typeof item === 'object' && item !== null) {
+                Object.keys(item).forEach(k => {
+                    if (k !== 'id' && k !== '_internal') {
+                        allKeys.add(k);
+                    }
+                });
+            }
+        });
+
+        if (allKeys.size === 0) return null;
+
+        const keys = Array.from(allKeys);
+
+        // Create header row with bold styling
+        const headerRow = {
+            type: "tableRow",
+            content: keys.map(key => ({
+                type: "tableHeader",
+                attrs: {},
+                content: [
+                    {
+                        type: "paragraph",
+                        content: [
+                            { 
+                                type: "text", 
+                                text: this.formatKey(key),
+                                marks: [{ type: "bold" }]
+                            }
+                        ]
+                    }
+                ]
+            }))
+        };
+
+        // Create data rows with improved cell formatting
+        const dataRows = items.map(item => ({
+            type: "tableRow",
+            content: keys.map(key => {
+                const cellValue = this.formatCellValueProfessional(item[key]);
+                return {
+                    type: "tableCell",
+                    attrs: {},
+                    content: [
+                        {
+                            type: "paragraph",
+                            content: [
+                                { type: "text", text: cellValue }
+                            ]
+                        }
+                    ]
+                };
+            })
+        }));
+
+        return {
+            type: "table",
+            content: [headerRow, ...dataRows]
+        };
+    }
+
+    /**
+     * Enhanced cell value formatting for professional appearance
+     */
+    private formatCellValueProfessional(value: any): string {
+        if (value === null || value === undefined) return '—';
+        if (typeof value === 'boolean') return value ? '✓ Yes' : '✗ No';
+        if (typeof value === 'number') {
+            // Format large numbers with commas
+            return value.toLocaleString('en-US');
+        }
+
+        if (Array.isArray(value)) {
+            return value
+                .map(v => this.formatCellValueProfessional(v))
+                .filter(Boolean)
+                .join(' • ');
+        }
+
+        if (typeof value === 'object') {
+            // Extract the most important field
+            const priorityKeys = ['name', 'title', 'label', 'description', 'value', 'finding', 'milestone'];
+            for (const key of priorityKeys) {
+                if (value[key] && typeof value[key] === 'string') {
+                    return value[key].substring(0, 200);
+                }
+            }
+            // Fallback: try to find any string field
+            for (const key of Object.keys(value)) {
+                if (typeof value[key] === 'string' && value[key].trim()) {
+                    return value[key].substring(0, 200);
+                }
+            }
+            return '—';
+        }
+
+        const str = String(value).trim();
+        
+        // Try to parse JSON strings
+        if ((str.startsWith('[') && str.endsWith(']')) || (str.startsWith('{') && str.endsWith('}'))) {
+            try {
+                const parsed = JSON.parse(str);
+                return this.formatCellValueProfessional(parsed);
+            } catch {}
+        }
+
+        // Limit length for readability
+        return str.length > 300 ? str.substring(0, 300) + '...' : str;
     }
 
     /**

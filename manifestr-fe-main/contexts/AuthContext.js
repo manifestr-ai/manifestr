@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import api from "../lib/api";
 import { supabase } from "../lib/supabase";
+import { loaderMsg } from "../utils/loaderMsg";
 
 const AuthContext = createContext();
 
@@ -150,8 +151,14 @@ export function AuthProvider({ children }) {
       if (user?.is_admin) {
         router.push("/admin/overview");
       } else {
-        router.push("/home");
+        router.push({
+          pathname: "/home",
+          query: { welcome: "1" },
+        });
       }
+      // First show loader, then navigate
+
+    
       return response.data;
     } catch (error) {
       throw error;

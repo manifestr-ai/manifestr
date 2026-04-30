@@ -70,3 +70,57 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
         });
     }
 };
+
+export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader) {
+            // No token provided - continue as anonymous user
+            req.user = {
+                userId: 'anonymous',
+                email: 'anonymous@manifestr.ai',
+            };
+            return next();
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        if (!token) {
+            // Invalid token format - continue as anonymous user
+            req.user = {
+                userId: 'anonymous',
+                email: 'anonymous@manifestr.ai',
+            };
+            return next();
+        }
+
+        // Try to verify token with Supabase
+        const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+        if (error || !user) {
+            // Invalid or expired token - continue as anonymous user
+            req.user = {
+                userId: 'anonymous',
+                email: 'anonymous@manifestr.ai',
+            };
+            return next();
+        }
+
+        // Valid token - attach user info to request
+        req.user = {
+            userId: user.id,
+            email: user.email!,
+            email_confirmed_at: user.email_confirmed_at
+        };
+
+        next();
+    } catch (error) {
+        // On any error, continue as anonymous user
+        req.user = {
+            userId: 'anonymous',
+            email: 'anonymous@manifestr.ai',
+        };
+        next();
+    }
+};

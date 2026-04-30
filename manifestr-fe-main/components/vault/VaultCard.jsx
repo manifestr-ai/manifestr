@@ -1,198 +1,172 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { FileText, Pencil, Share2, Download, MoreVertical, Pin } from 'lucide-react'
-import DocumentActionsModal from './DocumentActionsModal'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  Pencil,
+  Share2,
+  Download,
+  MoreVertical,
+  Pin,
+} from "lucide-react";
+import DocumentActionsModal from "./DocumentActionsModal";
 
 // Collaborator badge colors based on name
 const getCollaboratorBadgeColor = (name) => {
   const colors = {
-    'Jess': 'bg-[#d1fae5]', // light green
-    'Leah': 'bg-[#dbeafe]', // light blue
-    'Tom': 'bg-[#fed7aa]', // light orange
-    'Sarah': 'bg-[#e9d5ff]', // light purple
-    'M.': 'bg-[#18181b]', // dark gray/black
-  }
-  return colors[name] || 'bg-[#dbeafe]'
-}
+    Jess: "bg-[#d1fae5]", // light green
+    Leah: "bg-[#dbeafe]", // light blue
+    Tom: "bg-[#fed7aa]", // light orange
+    Sarah: "bg-[#e9d5ff]", // light purple
+    "M.": "bg-[#18181b]", // dark gray/black
+  };
+  return colors[name] || "bg-[#dbeafe]";
+};
 
 const getCollaboratorTextColor = (name) => {
   const colors = {
-    'Jess': 'text-[#065f46]', // dark green
-    'Leah': 'text-[#1e40af]', // dark blue
-    'Tom': 'text-[#9a3412]', // dark orange
-    'Sarah': 'text-[#6b21a8]', // dark purple
-    'M.': 'text-white', // white for dark background
-  }
-  return colors[name] || 'text-[#1e40af]'
-}
+    Jess: "text-[#065f46]", // dark green
+    Leah: "text-[#1e40af]", // dark blue
+    Tom: "text-[#9a3412]", // dark orange
+    Sarah: "text-[#6b21a8]", // dark purple
+    "M.": "text-white", // white for dark background
+  };
+  return colors[name] || "text-[#1e40af]";
+};
 
-export default function VaultCard({ card, index, viewMode = 'grid', onClick, onPin, onUpdate, onMemberCountClick }) {
-  const [imageError, setImageError] = useState(false)
-  const [showActionsModal, setShowActionsModal] = useState(false)
-  const [isPinning, setIsPinning] = useState(false)
+export default function VaultCard({
+  card,
+  index,
+  viewMode = "grid",
+  onClick,
+  onPin,
+  onUpdate,
+  onMemberCountClick,
+}) {
+  const [imageError, setImageError] = useState(false);
+  const [showActionsModal, setShowActionsModal] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
 
   // Handle pin button click
   const handlePinClick = async (e) => {
-    e.stopPropagation()
-    if (isPinning || !onPin) return
+    e.stopPropagation();
+    if (isPinning || !onPin) return;
 
-    setIsPinning(true)
+    setIsPinning(true);
     try {
-      await onPin(card)
+      await onPin(card);
     } finally {
-      setIsPinning(false)
+      setIsPinning(false);
     }
-  }
+  };
 
   // Handle updates from modal
   const handleModalUpdate = (updatedCard, action) => {
-    if (action === 'delete') {
+    if (action === "delete") {
       // Document was deleted, notify parent
-      if (onUpdate) onUpdate(card.id, 'delete')
+      if (onUpdate) onUpdate(card.id, "delete");
     } else if (updatedCard) {
       // Document was updated (pin/archive)
-      if (onUpdate) onUpdate(updatedCard)
+      if (onUpdate) onUpdate(updatedCard);
     }
-    setShowActionsModal(false)
-  }
+    setShowActionsModal(false);
+  };
 
   const statusBgColors = {
-    'In Progress': 'bg-[#dbeafe]',
-    'In Review': 'bg-[#fef3c7]',
-    'Final': 'bg-[#d1fae5]',
-    'Draft': 'bg-[#f4f4f5]',
-  }
+    "In Progress": "bg-[#dbeafe]",
+    "In Review": "bg-[#fef3c7]",
+    Final: "bg-[#d1fae5]",
+    Draft: "bg-[#f4f4f5]",
+  };
 
   const statusTextColors = {
-    'In Progress': 'text-[#1e40af]',
-    'In Review': 'text-[#92400e]',
-    'Final': 'text-[#065f46]',
-    'Draft': 'text-[#71717a]',
-  }
+    "In Progress": "text-[#1e40af]",
+    "In Review": "text-[#92400e]",
+    Final: "text-[#065f46]",
+    Draft: "text-[#71717a]",
+  };
 
   // Default image from the description - woman working on laptop
-  const defaultImage = 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop'
-  const cardImage = card.thumbnail || defaultImage
-
-  if (viewMode === 'list') {
+  const defaultImage =
+    "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop";
+  const cardImage = card.thumbnail || defaultImage;
+  const ActionBtn = ({ icon, onClick }) => (
+    <button
+      onClick={onClick}
+      className="w-10 h-10 rounded-xl bg-white border border-[#e4e4e7] flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition"
+    >
+      {icon}
+    </button>
+  );
+  if (viewMode === "list") {
     return (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2, delay: index * 0.03 }}
-        className="flex items-center px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 hover:bg-[#fafafa] transition-colors cursor-pointer group"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: index * 0.04 }}
         onClick={onClick}
+        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 rounded-2xl bg-[#ffffff] transition-all cursor-pointer mb-4 hover:shadow-lg w-full"
       >
-        {/* Name Column with Image */}
-        <div className="flex-1 pl-2 min-w-0 flex items-center gap-4">
-          <div className="relative w-[180px] h-[84px] rounded-lg overflow-hidden bg-[#f4f4f5] border border-[#e4e4e7] shrink-0">
-            {!imageError ? (
-              <img
-                src={cardImage}
-                alt={card.title}
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[#f4f4f5] to-[#e4e4e7]" />
-            )}
-            {card.isShared && (
-              <div className="absolute top-2 left-2">
-                <span className="px-2 py-1 rounded-md text-[10px] font-medium leading-[14px] bg-blue-500 text-white shadow-lg">
-                  Shared
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h3 className="text-[16px] font-semibold text-[#18181b] truncate leading-[22px]">
-              {card.title}
-            </h3>
-            <p className="text-[13px] text-[#71717a] truncate leading-[18px]">{card.project}</p>
-          </div>
-        </div>
-
-        {/* Status Column */}
-        <div className="w-[100px] text-center hidden md:flex justify-center items-center">
-          {card.status && (
-            <span className={`px-2 py-1 rounded-md text-[12px] font-medium ${statusBgColors[card.status] || 'bg-[#dbeafe]'
-              } ${statusTextColors[card.status] || 'text-[#1e40af]'
-              }`}>
-              {card.status}
-            </span>
-          )}
-        </div>
-
-        {/* Team Column */}
-        <div className="w-[120px] hidden md:flex pl-7">
-          {card.memberCount !== undefined ? (
-            <motion.button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                console.log('🔵 Member count clicked!', card.id)
-                if (onMemberCountClick && card.id) {
-                  onMemberCountClick(card.id)
-                }
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="text-[14px] text-[#18181b] font-medium hover:text-blue-600 transition-colors cursor-pointer underline decoration-dotted underline-offset-2"
-            >
-              {card.memberCount}
-            </motion.button>
-          ) : card.collaborators && card.collaborators.length > 0 ? (
-            <div className="flex items-center gap-1">
-              {card.collaborators.slice(0, 3).map((collab, idx) => (
-                <div
-                  key={idx}
-                  className="w-[24px] h-[24px] rounded-full bg-[#f4f4f5] border border-white flex items-center justify-center overflow-hidden shrink-0"
-                  title={collab.name}
-                >
-                  {collab.avatar ? (
-                    <img src={collab.avatar} alt={collab.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] font-medium text-[#18181b]">
-                      {collab.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-              ))}
-              {card.collaborators.length > 3 && (
-                <span className="text-[11px] text-[#71717a]">
-                  +{card.collaborators.length - 3}
-                </span>
-              )}
-            </div>
+        {/* IMAGE */}
+        <div className="relative w-full sm:w-[240px] h-[180px] sm:h-[120px] rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none overflow-hidden shrink-0">
+          {!imageError ? (
+            <img
+              src={cardImage}
+              alt={card.title}
+              className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
+            />
           ) : (
-            <span className="text-[14px] text-[#71717a]">-</span>
+            <div className="w-full h-full bg-gradient-to-br from-[#f4f4f5] to-[#e4e4e7]" />
+          )}
+
+          {/* STATUS BADGE */}
+          {card.status && (
+            <div className="absolute bottom-3 left-3">
+              <span
+                className={`px-3 py-1 rounded-full text-[12px] font-medium shadow-sm ${
+                  card.status === "Final"
+                    ? "bg-[#dcfce7] text-[#166534]"
+                    : "bg-[#e4e4e7] text-[#52525b]"
+                }`}
+              >
+                {card.status}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Last Edited Column */}
-        <div className="w-[140px] pr-4 hidden lg:flex items-center justify-end">
+        {/* CONTENT */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center px-3 py-2">
+          <h3 className="text-[16px] sm:text-[18px] font-semibold text-[#18181b] leading-[22px] sm:leading-[24px] mb-1 line-clamp-2 break-words mb-2">
+            {card.title}
+          </h3>
+
+          <p className="text-[13px] sm:text-[14px] text-[#3f3f46] mb-2 line-clamp-1 break-words mb-2">
+            Project: {card.project}
+          </p>
+
           {card.lastEdited && (
-            <span className="text-[12px] text-[#71717a]">
-              {card.lastEdited}
-            </span>
+            <p className="text-[12px] sm:text-[13px] text-[#a1a1aa] italic">
+              Last edited: {card.lastEdited}
+            </p>
           )}
         </div>
 
-        {/* Action Button */}
-        <div className="w-[40px] flex items-center justify-center">
-          <button
+        {/* ACTIONS */}
+        <div className="flex items-center gap-2 px-3 sm:pr-2 mt-2 mb-2 sm:mt-4 sm:mr-2 self-end sm:self-start">
+          <ActionBtn icon={<FileText className="w-4 h-4" />} />
+          <ActionBtn icon={<Pencil className="w-4 h-4" />} />
+          <ActionBtn icon={<Share2 className="w-4 h-4" />} />
+          <ActionBtn icon={<Download className="w-4 h-4" />} />
+          <ActionBtn
+            icon={<MoreVertical className="w-4 h-4" />}
             onClick={(e) => {
-              e.stopPropagation()
-              setShowActionsModal(true)
+              e.stopPropagation();
+              setShowActionsModal(true);
             }}
-            className="w-8 h-8 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-          >
-            <MoreVertical className="w-4 h-4 text-[#18181b]" />
-          </button>
+          />
         </div>
 
-        {/* Document Actions Modal */}
         <DocumentActionsModal
           isOpen={showActionsModal}
           onClose={() => setShowActionsModal(false)}
@@ -200,7 +174,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
           onUpdate={handleModalUpdate}
         />
       </motion.div>
-    )
+    );
   }
 
   return (
@@ -209,7 +183,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       onClick={onClick}
-      className="w-full max-w-[320px] flex flex-col bg-white rounded-lg overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.06)] border border-[#e4e4e7] group cursor-pointer hover:shadow-[0px_4px_6px_rgba(0,0,0,0.1),0px_2px_4px_rgba(0,0,0,0.06)] transition-shadow"
+      className="w-full max-w-[350px] flex flex-col bg-white rounded-xl overflow-hidden shadow-[0_8px_16px_0_rgba(22,34,51,0.08)] border border-[#e4e4e7] group cursor-pointer transition-shadow hover:shadow-[0_8px_16px_0_rgba(22,34,51,0.12)]"
     >
       {/* Header Section with Image */}
       <div className="relative w-full h-[180px] overflow-hidden">
@@ -238,7 +212,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
           >
             <FileText className="w-3.5 h-3.5 text-[#18181b]" />
           </motion.button>
-          <div className='flex gap-1'>
+          <div className="flex gap-1">
             <motion.button
               onClick={handlePinClick}
               whileHover={{ scale: 1.1 }}
@@ -248,10 +222,11 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
               disabled={isPinning}
             >
               <Pin
-                className={`w-3.5 h-3.5 transition-all ${card.isPinned
-                  ? 'text-blue-600 fill-blue-600'
-                  : 'text-[#18181b]'
-                  } ${isPinning ? 'opacity-50' : ''}`}
+                className={`w-3.5 h-3.5 transition-all ${
+                  card.isPinned
+                    ? "text-blue-600 fill-blue-600"
+                    : "text-[#18181b]"
+                } ${isPinning ? "opacity-50" : ""}`}
               />
             </motion.button>
             <motion.button
@@ -270,8 +245,8 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
             </motion.button>
             <motion.button
               onClick={(e) => {
-                e.stopPropagation()
-                setShowActionsModal(true)
+                e.stopPropagation();
+                setShowActionsModal(true);
               }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -285,13 +260,17 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
         {/* Status Badge - Bottom Left */}
         {(card.status || card.collaboratorName) && (
           <div className="absolute bottom-2 left-2">
-            <span className={`px-2 py-1 rounded-md text-[12px] font-medium leading-[18px] ${card.collaboratorName
-              ? getCollaboratorBadgeColor(card.collaboratorName)
-              : statusBgColors[card.status] || 'bg-[#dbeafe]'
-              } ${card.collaboratorName
-                ? getCollaboratorTextColor(card.collaboratorName)
-                : statusTextColors[card.status] || 'text-[#1e40af]'
-              }`}>
+            <span
+              className={`px-2 py-1 rounded-xl text-[12px] font-medium leading-[18px] ${
+                card.collaboratorName
+                  ? getCollaboratorBadgeColor(card.collaboratorName)
+                  : statusBgColors[card.status] || "bg-[#dbeafe]"
+              } ${
+                card.collaboratorName
+                  ? getCollaboratorTextColor(card.collaboratorName)
+                  : statusTextColors[card.status] || "text-[#1e40af]"
+              }`}
+            >
               {card.collaboratorName || card.status}
             </span>
           </div>
@@ -310,13 +289,16 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
       {/* Content Section */}
       <div className="w-full bg-white p-5 flex flex-col min-h-[180px]">
         {/* Project Title */}
-        <h3 className="text-[16px] font-bold leading-[24px] text-[#18181b] mb-1 line-clamp-2">
+        <h3 className="text-[15px] font-bold leading-[22.5px] text-[#09090B] mb-1 line-clamp-2 tracking-[-0.234px] font-inter not-italic">
           {card.title}
         </h3>
 
         {/* Project Subtitle */}
-        <p className="text-[14px] font-normal leading-[20px] text-[#18181b] mb-3">
-          {card.project}
+        <p
+          className="text-[12px] font-normal leading-[18px] text-[#18181B] mb-3 font-inter not-italic"
+          style={{ fontFamily: "Inter", fontStyle: "normal", fontWeight: 400 }}
+        >
+          Project: {card.project}
         </p>
 
         {/* Collaborators */}
@@ -325,12 +307,17 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
             {card.collaborators.slice(0, 6).map((collab, idx) => (
               <div
                 key={idx}
-                className={`w-[30px] h-[30px] rounded-full bg-[#f4f4f5] border-2 border-white flex items-center justify-center overflow-hidden shrink-0 ${idx > 0 ? '-ml-3' : ''
-                  }`}
+                className={`w-[25px] h-[25px] rounded-full bg-[#f4f4f5] border-2 border-white flex items-center justify-center overflow-hidden shrink-0 ${
+                  idx > 0 ? "-ml-3" : ""
+                }`}
                 style={{ zIndex: 10 - idx }}
               >
                 {collab.avatar ? (
-                  <img src={collab.avatar} alt={collab.name} className="w-full h-full object-cover" />
+                  <img
+                    src={collab.avatar}
+                    alt={collab.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <span className="text-[13px] font-medium text-[#18181b]">
                     {collab.name.charAt(0).toUpperCase()}
@@ -340,7 +327,7 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
             ))}
             {card.collaborators.length > 6 && (
               <div
-                className="w-[30px] h-[30px] rounded-full bg-[#e4e4e7] border-2 border-white flex items-center justify-center shrink-0 -ml-2.5"
+                className="w-[25px] h-[25px] rounded-full bg-[#e4e4e7] border-2 border-white flex items-center justify-center shrink-0 -ml-2.5"
                 style={{ zIndex: 4 }}
               >
                 <span className="text-[13px] font-medium text-[#52525b]">
@@ -353,8 +340,11 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
 
         {/* Last Edited */}
         {card.lastEdited && (
-          <p className="text-[12px] leading-[18px] text-[#71717a] mt-auto">
-            Last edited: <span className="text-[#18181b]">{card.lastEdited}</span>
+          <p
+            className="italic text-[10px] leading-[18px] font-normal tracking-[-0.076px] text-[#71717B] mt-auto font-inter"
+            style={{ fontFamily: "Inter, sans-serif" }}
+          >
+            Last edited: {card.lastEdited}
           </p>
         )}
       </div>
@@ -367,5 +357,5 @@ export default function VaultCard({ card, index, viewMode = 'grid', onClick, onP
         onUpdate={handleModalUpdate}
       />
     </motion.div>
-  )
+  );
 }

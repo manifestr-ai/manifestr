@@ -32,6 +32,10 @@ const ShareModal = dynamic(() => import("../collaboration/ShareModal"), {
   ssr: false,
 });
 
+const ThreadsPanel = dynamic(() => import("../threads/ThreadsPanel"), {
+  ssr: false,
+});
+
 // --- Types ---
 
 interface ThreadStat {
@@ -204,9 +208,6 @@ const Sidebar = ({
             stroke-linejoin="round"
           />
         </svg>
-        <span className="absolute top-1 right-1 bg-[#EB4D4B] text-white text-[9px] w-[15px] h-[15px] rounded-full flex items-center justify-center font-bold border-[2px] border-[#2D2D2D]">
-          1
-        </span>
       </button>
 
       <div
@@ -802,15 +803,18 @@ export const RightSidebar = ({
   onZoomReset,
   documentId,
   documentTitle = "Untitled document",
+  documentType = "document",
 }: {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onZoomReset?: () => void;
   documentId?: string;
   documentTitle?: string;
+  documentType?: 'image' | 'presentation' | 'spreadsheet' | 'document' | 'chart';
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [showThreads, setShowThreads] = useState(false);
 
   const handleShare = () => {
     if (!documentId) return;
@@ -833,13 +837,28 @@ export const RightSidebar = ({
     <>
       <Sidebar
         isOpen={isOpen}
-        onToggle={() => setIsOpen(!isOpen)}
+        onToggle={() => {
+          setShowThreads(!showThreads);
+          setIsOpen(!isOpen);
+        }}
         onShare={handleShare}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onZoomReset={handleZoomReset}
       />
-      <ThreadsPopup isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      
+      {/* UNIFIED THREADS PANEL - Works across all editors */}
+      {showThreads && documentId && (
+        <ThreadsPanel
+          documentId={documentId}
+          documentType={documentType}
+          onClose={() => {
+            setShowThreads(false);
+            setIsOpen(false);
+          }}
+        />
+      )}
+      
       {documentId && (
         <ShareModal
           isOpen={isShareModalOpen}

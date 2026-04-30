@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import AppHeader from '../../components/layout/AppHeader'
 import SidebarLayout from '../../components/layout/SidebarLayout'
@@ -20,6 +20,10 @@ export default function CollabHub() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedCollab, setSelectedCollab] = useState(null)
   const [viewingMembers, setViewingMembers] = useState(false)
+  const [query, setQuery] = useState('')
+  const [toolFilter, setToolFilter] = useState('All Tools')
+  const [collabFilter, setCollabFilter] = useState('All Active Collabs')
+  const [sortBy, setSortBy] = useState('Date Created')
 
   useEffect(() => {
     fetchCollabProjects()
@@ -81,11 +85,21 @@ export default function CollabHub() {
   const collabCards = collabProjects.map(project => ({
     id: project.id,
     title: project.name,
-    project: `${project.documentCount || 0} projects`,
+    project:
+      project.project_name ||
+      project.projectName ||
+      project.project ||
+      project.purpose ||
+      project.description ||
+      `${project.documentCount || 0} projects`,
     status: project.status === 'active' ? 'Active' : 'Archived',
     thumbnail: project.cover_image || 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop',
     collaborators: [], // Will be populated from members if needed
     memberCount: project.memberCount || 0,
+    size: project.documentCount || 0,
+    createdAt: project.created_at ? new Date(project.created_at).getTime() : 0,
+    updatedAt: project.updated_at ? new Date(project.updated_at).getTime() : 0,
+    rawData: project,
     lastEdited: project.updated_at ? new Date(project.updated_at).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
@@ -93,10 +107,86 @@ export default function CollabHub() {
     }) : 'Just now',
   }))
 
+  const filteredCollabCards = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    let next = collabCards
+
+    if (q) {
+      next = next.filter((c) => {
+        const haystack = [
+          c.title,
+          c.status,
+          c.project,
+          c.lastEdited,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(q)
+      })
+    }
+
+    // Collab status / ownership filters (best-effort; uses fields if present)
+    if (collabFilter === 'Archived') {
+      next = next.filter((c) => c.status === 'Archived')
+    } else if (collabFilter === 'All Active Collabs') {
+      next = next.filter((c) => c.status === 'Active')
+    } else if (collabFilter === 'My Collabs') {
+      const myId = (() => {
+        try {
+          const u = JSON.parse(localStorage.getItem('user'))
+          return u?.id
+        } catch {
+          return null
+        }
+      })()
+      next = next.filter((c) => {
+        const ownerId = c.rawData?.owner_id ?? c.rawData?.created_by ?? c.rawData?.user_id
+        if (!myId || !ownerId) return true
+        return String(ownerId) === String(myId)
+      })
+    } else if (collabFilter === 'Shared with Me') {
+      next = next.filter((c) => {
+        const isShared = c.rawData?.is_shared ?? c.rawData?.isShared
+        return typeof isShared === 'boolean' ? isShared : true
+      })
+    }
+
+    // Tool filter (best-effort; only applies if backend provides a tool/type field)
+    if (toolFilter && toolFilter !== 'All Tools') {
+      next = next.filter((c) => {
+        const tool = c.rawData?.tool ?? c.rawData?.type ?? c.rawData?.source_tool ?? c.rawData?.source
+        if (!tool) return true
+        return String(tool).toLowerCase().includes(String(toolFilter).toLowerCase())
+      })
+    }
+
+    const byTime = (c) => (c.updatedAt || c.createdAt || 0)
+    const byName = (c) => (c.title || '').toLowerCase()
+    const bySize = (c) => Number(c.size || 0)
+
+    next = [...next].sort((a, b) => {
+      if (sortBy === 'Name') return byName(a).localeCompare(byName(b))
+      if (sortBy === 'Size') return bySize(b) - bySize(a)
+      if (sortBy === 'Last Edited') return byTime(b) - byTime(a)
+      // Date Created (default)
+      return (b.createdAt || 0) - (a.createdAt || 0)
+    })
+
+    return next
+  }, [collabCards, collabFilter, query, sortBy, toolFilter])
+
+  const handleResetFilters = () => {
+    setQuery('')
+    setToolFilter('All Tools')
+    setCollabFilter('All Active Collabs')
+    setSortBy('Date Created')
+  }
+
   const headerBackgroundImage =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-      : 'http://localhost:3000/assets/banners/abstract-white-wave.png'
+      ? `https://res.cloudinary.com/dlifgfg6m/image/upload/v1777381205/Rectangle_8_mbdw84.png`
+      : 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777381205/Rectangle_8_mbdw84.png'
 
   return (
     <>
@@ -107,15 +197,19 @@ export default function CollabHub() {
         {!viewingMembers && (
           <>
             <VaultHeader
-              title={<span className="text-[#18181b] font-bold">Collabs</span>}
+              title="Collabs"
+             
               description={(
-                <span className="text-[#71717b] text-[18px]">
-                  Collabs are shared workspaces to keep people
-                  <br />
-                  + documents together, all in one view.
+                <span className="text-[#71717b] font-inter text-[18px] leading-[28px]">
+                  Collabs are shared workspaces to keep people <br></br> + documents together, all in one view.
                 </span>
               )}
               isBlack={false}
+              align="end"
+              contentClassName="md:px-[40px] md:pt-[65px] md:pb-[56px]"
+              backgroundClassName="bg-[#dddcdd]"
+              backgroundImageClassName="opacity-[0.99]"
+              overlayClassName="!hidden"
               backgroundImage={headerBackgroundImage}
               showActionButtons={true}
               customActionButton={
@@ -123,7 +217,7 @@ export default function CollabHub() {
                   onClick={() => setShowCreateModal(true)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white text-black border border-[#e4e4e7] rounded-md h-[40px] px-4 flex items-center justify-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#f4f4f5] transition-colors w-full md:w-auto shadow-sm whitespace-nowrap"
+                  className="flex shrink-0 w-[132.344px] items-center justify-center gap-2 rounded-[6px] bg-white px-[16px] py-[10px] text-[14px] font-medium leading-[20px] text-black whitespace-nowrap border border-[#e4e4e7] shadow-sm hover:bg-[#f4f4f5] transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   New Collab
@@ -132,9 +226,18 @@ export default function CollabHub() {
             />
 
             <CollabsSearchBar
-              placeholder="Search style guides..."
+              placeholder="Search collabs..."
               viewMode={viewMode}
               setViewMode={setViewMode}
+              query={query}
+              onQueryChange={setQuery}
+              selectedTool={toolFilter}
+              onToolChange={setToolFilter}
+              selectedCollab={collabFilter}
+              onCollabChange={setCollabFilter}
+              selectedSort={sortBy}
+              onSortChange={setSortBy}
+              onResetFilters={handleResetFilters}
             />
           </>
         )}
@@ -159,9 +262,11 @@ export default function CollabHub() {
               </div>
             ) : (
               <VaultGrid
-                cards={collabCards}
+                cards={filteredCollabCards}
                 showTitle={false}
                 viewMode={viewMode}
+                listVariant="collab"
+                showListHeader={false}
                 onCardClick={handleCollabClick}
                 onMemberCountClick={handleViewMembers}
               />
