@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import api from "../lib/api";
 import { supabase } from "../lib/supabase";
+import { loaderMsg } from "../utils/loaderMsg";
 
 const AuthContext = createContext();
 
@@ -127,7 +128,7 @@ export function AuthProvider({ children }) {
     }
   };
 
- const login = async (email, password, rememberMe = true) => {
+  const login = async (email, password, rememberMe = true) => {
     try {
       const response = await api.post("/auth/login", { email, password });
 
@@ -145,8 +146,12 @@ export function AuthProvider({ children }) {
       localStorage.setItem("rememberMe", rememberMe ? "1" : "0");
       setUser(user);
 
-      // Redirect to home or previous page
-      router.push("/home");
+      // First show loader, then navigate
+
+      router.push({
+        pathname: "/home",
+        query: { welcome: "1" },
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -211,27 +216,27 @@ export function AuthProvider({ children }) {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-  
+
     if (error) throw error;
   };
 
   return (
     <AuthContext.Provider
-    value={{
-      user,
-      loading,
-      signup,
-      login,
-      loginWithGoogle, // ✅ ADD THIS
-      logout,
-      forceLogout,
-      verifyEmail,
-      resendVerification,
-      setUser,
-      refreshProfile,
-      isAuthenticated: !!user,
-    }}
-  >
+      value={{
+        user,
+        loading,
+        signup,
+        login,
+        loginWithGoogle, // ✅ ADD THIS
+        logout,
+        forceLogout,
+        verifyEmail,
+        resendVerification,
+        setUser,
+        refreshProfile,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

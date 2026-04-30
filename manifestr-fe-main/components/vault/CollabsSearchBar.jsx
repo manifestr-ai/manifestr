@@ -1,19 +1,53 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Mic, ChevronDown, LayoutGrid, List, Users, Clock, Plus } from 'lucide-react'
+import { Search, Mic, ChevronDown, Users, Clock, Plus } from 'lucide-react'
 
-export default function CollabsSearchBar({ placeholder = 'Search The Vault...', viewMode: controlledViewMode, setViewMode: controlledSetViewMode }) {
+export default function CollabsSearchBar({
+  placeholder = 'Search The Vault...',
+  viewMode: controlledViewMode,
+  setViewMode: controlledSetViewMode,
+  query,
+  onQueryChange,
+  selectedTool,
+  onToolChange,
+  selectedCollab,
+  onCollabChange,
+  selectedSort,
+  onSortChange,
+  onResetFilters,
+}) {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAllToolsDropdown, setShowAllToolsDropdown] = useState(false)
   const [showAllActiveCollabsDropdown, setShowAllActiveCollabsDropdown] = useState(false)
   const [showLastEditedDropdown, setShowLastEditedDropdown] = useState(false)
   const [showMoreFiltersDropdown, setShowMoreFiltersDropdown] = useState(false)
-  const [selectedTool, setSelectedTool] = useState('All Tools')
-  const [selectedCollab, setSelectedCollab] = useState('All Active Collabs')
-  const [selectedSort, setSelectedSort] = useState('Last Edited')
+  const [localSelectedTool, setLocalSelectedTool] = useState('All Tools')
+  const [localSelectedCollab, setLocalSelectedCollab] = useState('All Active Collabs')
+  const [localSelectedSort, setLocalSelectedSort] = useState('Last Edited')
   const [localViewMode, setLocalViewMode] = useState('grid')
   const viewMode = controlledViewMode ?? localViewMode
   const setViewMode = controlledSetViewMode ?? setLocalViewMode
+  const effectiveQuery = query ?? searchQuery
+  const effectiveSelectedTool = selectedTool ?? localSelectedTool
+  const effectiveSelectedCollab = selectedCollab ?? localSelectedCollab
+  const effectiveSelectedSort = selectedSort ?? localSelectedSort
+
+  const setEffectiveQuery = (next) => {
+    if (onQueryChange) onQueryChange(next)
+    else setSearchQuery(next)
+  }
+  const setEffectiveTool = (next) => {
+    if (onToolChange) onToolChange(next)
+    else setLocalSelectedTool(next)
+  }
+  const setEffectiveCollab = (next) => {
+    if (onCollabChange) onCollabChange(next)
+    else setLocalSelectedCollab(next)
+  }
+  const setEffectiveSort = (next) => {
+    if (onSortChange) onSortChange(next)
+    else setLocalSelectedSort(next)
+  }
 
   const tools = ['All Tools', 'The Deck', 'The Briefcase', 'The Strategist', 'The Analyzer']
   const collabOptions = ['All Active Collabs', 'My Collabs', 'Shared with Me', 'Archived']
@@ -29,8 +63,8 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
           </div>
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={effectiveQuery}
+            onChange={(e) => setEffectiveQuery(e.target.value)}
             placeholder={placeholder}
             className="w-full h-full pl-10 pr-12 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none"
           />
@@ -63,7 +97,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
                 <path d="M10.6693 8.66406H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M10.6693 11.3359H5.33594" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span>{selectedTool}</span>
+              <span>{effectiveSelectedTool}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showAllToolsDropdown ? 'rotate-180' : ''}`} />
             </motion.button>
             <AnimatePresence>
@@ -78,7 +112,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
                     <motion.button
                       key={tool}
                       onClick={() => {
-                        setSelectedTool(tool)
+                        setEffectiveTool(tool)
                         setShowAllToolsDropdown(false)
                       }}
                       whileHover={{ backgroundColor: '#f4f4f5' }}
@@ -106,7 +140,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
               className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg h-[36px] px-3 flex items-center gap-2 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
             >
               <Users className="w-4 h-4" />
-              <span>{selectedCollab}</span>
+              <span>{effectiveSelectedCollab}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showAllActiveCollabsDropdown ? 'rotate-180' : ''}`} />
             </motion.button>
             <AnimatePresence>
@@ -121,7 +155,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
                     <motion.button
                       key={option}
                       onClick={() => {
-                        setSelectedCollab(option)
+                        setEffectiveCollab(option)
                         setShowAllActiveCollabsDropdown(false)
                       }}
                       whileHover={{ backgroundColor: '#f4f4f5' }}
@@ -149,7 +183,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
               className="bg-white border border-[rgba(0,0,0,0.1)] rounded-lg h-[36px] px-3 flex items-center gap-2 text-[14px] font-medium leading-[21px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors"
             >
               <Clock className="w-4 h-4 text-[#18181b]" />
-              <span>{selectedSort}</span>
+              <span>{effectiveSelectedSort}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${showLastEditedDropdown ? 'rotate-180' : ''}`} />
             </motion.button>
             <AnimatePresence>
@@ -164,7 +198,7 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
                     <motion.button
                       key={option}
                       onClick={() => {
-                        setSelectedSort(option)
+                        setEffectiveSort(option)
                         setShowLastEditedDropdown(false)
                       }}
                       whileHover={{ backgroundColor: '#f4f4f5' }}
@@ -202,7 +236,9 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => onResetFilters?.()}
             className="text-[13px] font-medium leading-[19.5px] text-[#71717b] hover:text-[#18181b] transition-colors"
+            type="button"
           >
             Reset Filters
           </motion.button>
@@ -210,24 +246,59 @@ export default function CollabsSearchBar({ placeholder = 'Search The Vault...', 
           {/* View Toggle */}
           <div className="flex items-center gap-0 bg-white border border-[#e4e4e7] rounded-lg p-1">
             <motion.button
-              onClick={() => setViewMode('grid')}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
-                viewMode === 'grid' ? 'bg-[#18181b]' : 'bg-transparent'
-              }`}
-            >
-              <LayoutGrid className={`w-4 h-4 ${viewMode === 'grid' ? 'text-white' : 'text-[#18181b]'}`} />
-            </motion.button>
-            <motion.button
               onClick={() => setViewMode('list')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
                 viewMode === 'list' ? 'bg-[#18181b]' : 'bg-transparent'
               }`}
+              type="button"
             >
-              <List className={`w-4 h-4 ${viewMode === 'list' ? 'text-white' : 'text-[#18181b]'}`} />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                className={`w-4 h-4 shrink-0 ${viewMode === 'list' ? 'text-white' : 'text-[#0A0A0A]'}`}
+              >
+                <path
+                  d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z"
+                  stroke="currentColor"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M2 6H14" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2 10H14" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M6 2V14" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 2V14" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </motion.button>
+            <motion.button
+              onClick={() => setViewMode('grid')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
+                viewMode === 'grid' ? 'bg-[#18181b]' : 'bg-transparent'
+              }`}
+              type="button"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                className={`w-4 h-4 shrink-0 ${viewMode === 'grid' ? 'text-white' : 'text-[#0A0A0A]'}`}
+              >
+                <path d="M2 3.33594H2.00667" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2 8H2.00667" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M2 12.6641H2.00667" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5.33398 3.33594H14.0007" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5.33398 8H14.0007" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5.33398 12.6641H14.0007" stroke="currentColor" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </motion.button>
           </div>
         </div>

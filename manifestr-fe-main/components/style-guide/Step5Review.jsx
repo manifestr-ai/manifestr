@@ -981,18 +981,18 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <input
                           type="text"
                           disabled
                           value={brandPersonality}
-                          className="flex-1 px-3 py-2 rounded-lg bg-[#f4f4f5] border border-[#e4e4e7] text-[13px] leading-[18px] text-[#71717a] cursor-not-allowed"
+                          className="w-full sm:flex-1 min-w-0 px-3 py-2 rounded-lg bg-[#f4f4f5] border border-[#e4e4e7] text-[13px] leading-[18px] text-[#71717a] cursor-not-allowed"
                           placeholder="Add brand voice"
                         />
                         <button
                           type="button"
                           disabled
-                          className="h-10 px-4 rounded-lg bg-white border border-[#e4e4e7] text-[#18181b] text-[13px] font-semibold opacity-70 cursor-not-allowed shadow-sm flex-shrink-0 flex items-center justify-center min-w-[60px]"
+                          className="w-full sm:w-auto h-10 px-4 rounded-lg bg-white border border-[#e4e4e7] text-[#18181b] text-[13px] font-semibold opacity-70 cursor-not-allowed shadow-sm flex-shrink-0 flex items-center justify-center min-w-[60px]"
                         >
                           Add
                         </button>
