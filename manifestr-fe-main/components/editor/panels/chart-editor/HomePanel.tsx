@@ -1,5 +1,5 @@
 import React from "react";
-import { FileSpreadsheet, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import { FileSpreadsheet, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, RotateCcw } from "lucide-react";
 
 interface HomePanelProps {
   store: any;
@@ -175,6 +175,36 @@ export default function HomePanel({ store }: HomePanelProps) {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Section Divider */}
+      <div className="bg-[#d1d5dc] h-16 w-px shrink-0" />
+
+      {/* Reset Section */}
+      <div className="h-[88px] w-[92.125px] shrink-0">
+        <div className="flex flex-col gap-2 items-start size-full">
+          <div className="h-4 w-[92.125px] shrink-0">
+            <p className="font-inter font-normal leading-4 text-[#6a7282] text-xs text-center">
+              Reset
+            </p>
+          </div>
+          <button
+            onClick={() => store?.resetChart?.()}
+            className="flex-1 w-[92.125px] border border-transparent rounded-[14px] hover:bg-gray-50 transition-colors"
+            type="button"
+          >
+            <div className="flex flex-col gap-1.5 items-center justify-center p-px size-full">
+              <div className="shrink-0 size-5">
+                <RotateCcw className="size-full" stroke="#364153" strokeWidth={1.5} />
+              </div>
+              <div className="h-4 shrink-0">
+                <p className="font-inter font-normal leading-4 text-[#364153] text-xs whitespace-nowrap">
+                  Reset
+                </p>
+              </div>
+            </div>
+          </button>
         </div>
       </div>
     </div>

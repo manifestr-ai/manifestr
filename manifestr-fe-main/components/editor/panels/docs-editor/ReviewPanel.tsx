@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Search, Replace, MousePointerClick, CheckCircle, BookOpen, Hash, MessageSquarePlus, Eye, FileEdit } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Search, Replace, MousePointerClick, CheckCircle, BookOpen, Hash, MessageSquarePlus, Eye, FileEdit, ChevronUp, ChevronDown, X } from "lucide-react";
 
 interface ReviewPanelProps {
   store?: any;
@@ -23,6 +23,11 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   const [replaceFindText, setReplaceFindText] = useState("");
   const [commentText, setCommentText] = useState("");
   const [selectedWordForThesaurus, setSelectedWordForThesaurus] = useState("");
+  const [findBarOpen, setFindBarOpen] = useState(false);
+  const [findActiveIndex, setFindActiveIndex] = useState(0);
+  const [findMatchCount, setFindMatchCount] = useState(0);
+  const findInputRef = useRef<HTMLInputElement | null>(null);
+  const tiptapMatchesRef = useRef<Array<{ from: number; to: number }>>([]);
 
   // Toast notification helper
   const showToast = (message: string) => {
@@ -32,41 +37,250 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
 
   // Find functionality with highlighting
   const handleFind = () => {
-    setShowFindModal(true);
+    setFindBarOpen(true);
+    setTimeout(() => {
+      findInputRef.current?.focus();
+      findInputRef.current?.select();
+    }, 0);
+  };
+
+  const clearHighlightsOnly = () => {
+    if (!editor) return;
+    if (typeof editor?.commands?.clearSearchTerm === "function") {
+      editor.commands.clearSearchTerm();
+      tiptapMatchesRef.current = [];
+      return;
+    }
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return;
+    const marks = Array.from(
+      root.querySelectorAll('mark[data-type="search-highlight"]'),
+    ) as HTMLElement[];
+    marks.forEach((m) => {
+      const parent = m.parentNode;
+      if (!parent) return;
+      while (m.firstChild) parent.insertBefore(m.firstChild, m);
+      parent.removeChild(m);
+    });
+    root.querySelectorAll('[data-search-active="true"]').forEach((el) => {
+      try {
+        (el as HTMLElement).removeAttribute("data-search-active");
+        (el as HTMLElement).classList.remove("search-highlight--active");
+      } catch {}
+    });
+    root.normalize();
+  };
+
+  const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const rebuildMatches = useMemo(() => {
+    return (term: string) => {
+      if (!editor) return { count: 0 };
+      const value = (term || "").trim();
+      if (!value) {
+        clearHighlightsOnly();
+        setFindMatchCount(0);
+        setFindActiveIndex(0);
+        return { count: 0 };
+      }
+
+      if (typeof editor?.commands?.setSearchTerm === "function" && editor?.state?.doc) {
+        editor.commands.setSearchTerm(value);
+        const regex = new RegExp(escapeRegex(value), "gi");
+        const matches: Array<{ from: number; to: number }> = [];
+        editor.state.doc.descendants((node: any, pos: number) => {
+          if (!node.isText || !node.text) return;
+          const all = Array.from(String(node.text).matchAll(regex));
+          all.forEach((m: any) => {
+            if (m.index == null) return;
+            const from = pos + m.index;
+            const to = from + String(m[0]).length;
+            matches.push({ from, to });
+          });
+        });
+        tiptapMatchesRef.current = matches;
+        setFindMatchCount(matches.length);
+        setFindActiveIndex(matches.length ? 0 : 0);
+        return { count: matches.length };
+      }
+
+      const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+      if (!root) return { count: 0 };
+
+      const clearDomHighlights = () => {
+        const marks = Array.from(
+          root.querySelectorAll('mark[data-type="search-highlight"]'),
+        ) as HTMLElement[];
+        marks.forEach((m) => {
+          const parent = m.parentNode;
+          if (!parent) return;
+          while (m.firstChild) parent.insertBefore(m.firstChild, m);
+          parent.removeChild(m);
+        });
+        root.querySelectorAll('[data-search-active="true"]').forEach((el) => {
+          try {
+            (el as HTMLElement).removeAttribute("data-search-active");
+            (el as HTMLElement).classList.remove("search-highlight--active");
+          } catch {}
+        });
+        root.normalize();
+      };
+
+      const highlightDom = (t: string) => {
+        clearDomHighlights();
+        const escaped = escapeRegex(t);
+        if (!escaped) return 0;
+        const regex = new RegExp(escaped, "gi");
+
+        const nodes: Text[] = [];
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode: (node: any) => {
+            const text = node?.nodeValue || "";
+            if (!text || !text.trim()) return NodeFilter.FILTER_REJECT;
+            const el = node.parentElement as HTMLElement | null;
+            if (!el) return NodeFilter.FILTER_REJECT;
+            if (el.closest('mark[data-type="search-highlight"]')) return NodeFilter.FILTER_REJECT;
+            if (el.closest("script, style")) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          },
+        } as any);
+
+        let current: any;
+        while ((current = walker.nextNode())) nodes.push(current as Text);
+
+        let count = 0;
+        nodes.forEach((textNode) => {
+          const text = textNode.nodeValue || "";
+          regex.lastIndex = 0;
+          const matches = Array.from(text.matchAll(regex));
+          if (matches.length === 0) return;
+
+          const frag = document.createDocumentFragment();
+          let last = 0;
+          matches.forEach((m) => {
+            const idx = m.index ?? -1;
+            if (idx < 0) return;
+            const before = text.slice(last, idx);
+            if (before) frag.appendChild(document.createTextNode(before));
+            const mark = document.createElement("mark");
+            mark.setAttribute("data-type", "search-highlight");
+            mark.className = "search-highlight";
+            mark.textContent = m[0];
+            frag.appendChild(mark);
+            count += 1;
+            last = idx + m[0].length;
+          });
+          const after = text.slice(last);
+          if (after) frag.appendChild(document.createTextNode(after));
+          try {
+            textNode.parentNode?.replaceChild(frag, textNode);
+          } catch {}
+        });
+        return count;
+      };
+
+      const count = highlightDom(value);
+      setFindMatchCount(count);
+      setFindActiveIndex(count ? 0 : 0);
+      return { count };
+    };
+  }, [editor]);
+
+  const gotoMatch = (index: number) => {
+    if (!editor) return;
+    if (findMatchCount <= 0) return;
+    const nextIndex = ((index % findMatchCount) + findMatchCount) % findMatchCount;
+    setFindActiveIndex(nextIndex);
+
+    if (typeof editor?.commands?.setSearchTerm === "function" && tiptapMatchesRef.current.length) {
+      const match = tiptapMatchesRef.current[nextIndex];
+      if (!match) return;
+      try {
+        editor.chain().focus().setTextSelection({ from: match.from, to: match.to }).run();
+      } catch {
+        try {
+          editor.commands.setTextSelection({ from: match.from, to: match.to });
+        } catch {}
+      }
+      try {
+        const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+        const coords = editor.view.coordsAtPos(match.from);
+        if (root) {
+          const rect = root.getBoundingClientRect();
+          const delta = coords.top - rect.top;
+          root.scrollTop += delta - root.clientHeight / 3;
+        }
+      } catch {}
+      return;
+    }
+
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return;
+    const marks = Array.from(
+      root.querySelectorAll('mark[data-type="search-highlight"]'),
+    ) as HTMLElement[];
+    marks.forEach((m) => {
+      m.removeAttribute("data-search-active");
+      m.classList.remove("search-highlight--active");
+    });
+    const el = marks[nextIndex] || null;
+    if (!el) return;
+    el.setAttribute("data-search-active", "true");
+    el.classList.add("search-highlight--active");
+    try {
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    } catch {}
+  };
+
+  const closeFindBar = () => {
+    clearHighlightsOnly();
+    setFindBarOpen(false);
+    setFindMatchCount(0);
+    setFindActiveIndex(0);
   };
 
   const executeFind = () => {
     if (!editor || !findText) return;
-    
-    // Use browser's native find (works with contentEditable)
-    const win = window as any;
-    if (typeof win.find === 'function') {
-      win.find(findText, false, false, false, false, true, false);
-      showToast(`Found: "${findText}"`);
-    } else {
-      // Fallback: highlight all instances
-      const content = editor.getHTML();
-      const regex = new RegExp(`(${findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-      const highlighted = content.replace(regex, '<mark style="background: yellow;">$1</mark>');
-      editor.setContent(highlighted);
-      showToast(`Highlighted: "${findText}"`);
-    }
-    
+    setFindBarOpen(true);
+    const { count } = rebuildMatches(findText);
+    if (count > 0) gotoMatch(0);
+    showToast(count > 0 ? `Found ${count} match(es)` : `No matches for "${findText}"`);
     setShowFindModal(false);
   };
 
   const clearFind = () => {
     if (!editor) return;
-    
-    editor.extensionManager.extensions.forEach((ext: any) => {
-      if (ext.name === 'searchHighlight') {
-        ext.options.searchTerm = '';
-      }
-    });
-    
-    editor.view.updateState(editor.state);
+
+    clearHighlightsOnly();
     setFindText("");
   };
+
+  useEffect(() => {
+    if (!findBarOpen) return;
+    const { count } = rebuildMatches(findText);
+    if (count > 0) gotoMatch(findActiveIndex);
+  }, [findBarOpen]);
+
+  useEffect(() => {
+    if (!findBarOpen) return;
+    const id = setTimeout(() => {
+      const { count } = rebuildMatches(findText);
+      if (count > 0) gotoMatch(0);
+    }, 120);
+    return () => clearTimeout(id);
+  }, [findText, findBarOpen]);
+
+  useEffect(() => {
+    if (!findBarOpen) return;
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return;
+    const handler = () => {
+      const { count } = rebuildMatches(findText);
+      if (count > 0) gotoMatch(Math.min(findActiveIndex, count - 1));
+    };
+    root.addEventListener("input", handler, true);
+    return () => root.removeEventListener("input", handler, true);
+  }, [findBarOpen, findText, findActiveIndex, rebuildMatches]);
 
   // Replace functionality
   const handleReplace = () => {
@@ -114,10 +328,14 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     if (!editor) return;
     const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
     if (editorElement) {
-      const currentSpellcheck = editorElement.getAttribute('spellcheck');
-      const newSpellcheck = currentSpellcheck === 'true' ? 'false' : 'true';
-      editorElement.setAttribute('spellcheck', newSpellcheck);
-      showToast(newSpellcheck === 'true' ? 'Spell check enabled' : 'Spell check disabled');
+      const next = !editorElement.spellcheck;
+      editorElement.spellcheck = next;
+      editorElement.setAttribute('spellcheck', next ? 'true' : 'false');
+      if (!editorElement.getAttribute('lang')) {
+        editorElement.setAttribute('lang', 'en');
+      }
+      editorElement.focus();
+      showToast(next ? 'Spell check enabled' : 'Spell check disabled');
     }
   };
 
@@ -176,7 +394,12 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     if (!editor || !commentText) return;
     
     // Wrap selection with comment mark using Tiptap highlight
-    editor.chain().focus().toggleHighlight({ color: '#fef3c7' }).run();
+    const sanitizedComment = commentText.trim().replace(/\s+/g, " ");
+    editor
+      .chain()
+      .focus()
+      .toggleHighlight({ color: "#fef3c7", comment: sanitizedComment })
+      .run();
     
     showToast('Comment added (hover over yellow text)');
     setShowCommentModal(false);
@@ -213,6 +436,54 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
 
   return (
     <div className="bg-white border-t border-[#e4e4e7] flex items-center gap-3 h-[79px] overflow-x-auto px-6 relative">
+      {findBarOpen && (
+        <div className="fixed top-31 right-6 z-50 bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2 flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Search className="size-4" stroke="#364153" strokeWidth={1.5} />
+            <input
+              ref={findInputRef}
+              value={findText}
+              onChange={(e) => setFindText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  gotoMatch(findActiveIndex + (e.shiftKey ? -1 : 1));
+                }
+                if (e.key === "Escape") {
+                  closeFindBar();
+                }
+              }}
+              placeholder="Find"
+              className="w-[220px] px-2 py-1 text-sm border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div className="text-xs text-gray-600 w-[64px] text-center">
+            {findMatchCount ? `${findActiveIndex + 1}/${findMatchCount}` : "0/0"}
+          </div>
+          <button
+            type="button"
+            onClick={() => gotoMatch(findActiveIndex - 1)}
+            disabled={findMatchCount === 0}
+            className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+          >
+            <ChevronUp className="size-4" stroke="#364153" strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            onClick={() => gotoMatch(findActiveIndex + 1)}
+            disabled={findMatchCount === 0}
+            className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+          >
+            <ChevronDown className="size-4" stroke="#364153" strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            onClick={closeFindBar}
+            className="p-1 rounded-lg hover:bg-gray-100"
+          >
+            <X className="size-4" stroke="#364153" strokeWidth={1.5} />
+          </button>
+        </div>
+      )}
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-20 right-6 bg-black text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
