@@ -1,18 +1,69 @@
-import Head from 'next/head'
-import AdminHeader from '../../components/admin/AdminHeader'
-import AdminSidebar from '../../components/admin/AdminSidebar'
-import RetentionHeader from '../../components/admin/retention/RetentionHeader'
-import OverviewFilters from '../../components/admin/overview/OverviewFilters'
-import StatCard from '../../components/admin/overview/StatCard'
-import CohortRetentionTable from '../../components/admin/retention/CohortRetentionTable'
-import TrendLineChart from '../../components/admin/retention/TrendLineChart'
-import RevenueRetentionStats from '../../components/admin/retention/RevenueRetentionStats'
-import ChurnAnalysisBreakdown from '../../components/admin/retention/ChurnAnalysisBreakdown'
-import ChurnBreakdownChart from '../../components/admin/retention/ChurnBreakdownChart'
-import { getAdminRetentionData } from '../../services/admin/retention'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "../../contexts/AuthContext";
+import Head from "next/head";
 
-export default function AdminRetention({ retentionData }) {
-  const stats = retentionData?.stats || []
+import AdminHeader from "../../components/admin/AdminHeader";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import RetentionHeader from "../../components/admin/retention/RetentionHeader";
+import OverviewFilters from "../../components/admin/overview/OverviewFilters";
+import StatCard from "../../components/admin/overview/StatCard";
+import CohortRetentionTable from "../../components/admin/retention/CohortRetentionTable";
+import TrendLineChart from "../../components/admin/retention/TrendLineChart";
+import RevenueRetentionStats from "../../components/admin/retention/RevenueRetentionStats";
+import ChurnAnalysisBreakdown from "../../components/admin/retention/ChurnAnalysisBreakdown";
+import ChurnBreakdownChart from "../../components/admin/retention/ChurnBreakdownChart";
+
+import { getAdminRetentionData } from "../../services/admin/retention";
+
+export default function AdminRetention() {
+  const [filters, setFilters] = useState({
+    timeframe: "Last 30d",
+    search: "",
+  });
+  const handleFiltersChange = ({ search, filters: selected }) => {
+    setFilters({
+      timeframe: selected?.Timeframe || "Last 30d",
+      search: search || "",
+    });
+  };
+  const [retentionData, setRetentionData] = useState(null);
+  const [error, setError] = useState(false);
+
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // 🔐 Admin protection
+  useEffect(() => {
+    if (!loading && (!user || !user.is_admin)) {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
+
+  // 📡 Fetch data (client-side → token works)
+  useEffect(() => {
+    if (user?.is_admin) {
+      fetchRetention();
+    }
+  }, [user?.is_admin, filters]);
+
+  const fetchRetention = async () => {
+    try {
+      const data = await getAdminRetentionData(filters);
+      if (!data) {
+        setError(true);
+      } else {
+        setRetentionData(data);
+      }
+    } catch {
+      setError(true);
+    }
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>
+  if (error) return <div className="p-6 text-red-500">Failed to load data</div>
+
+  const stats = retentionData?.stats || [];
 
   return (
     <>
@@ -36,7 +87,9 @@ export default function AdminRetention({ retentionData }) {
               <OverviewFilters
                 filters={retentionData?.filters?.options}
                 searchPlaceholder={retentionData?.filters?.searchPlaceholder}
+                onFiltersChange={handleFiltersChange}
               />
+        
 
               {/* KPI — 2×2 mobile, one row on lg */}
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">
@@ -58,10 +111,16 @@ export default function AdminRetention({ retentionData }) {
               {/* Retention Curve + Churn Trend */}
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-[18px]">
                 <div className="w-full min-w-0 lg:flex-1">
-                  <TrendLineChart key="retention-curve" data={retentionData?.retentionCurve} />
+                  <TrendLineChart
+                    key="retention-curve"
+                    data={retentionData?.retentionCurve}
+                  />
                 </div>
                 <div className="w-full min-w-0 lg:flex-1">
-                  <TrendLineChart key="churn-trend" data={retentionData?.churnRateTrend} />
+                  <TrendLineChart
+                    key="churn-trend"
+                    data={retentionData?.churnRateTrend}
+                  />
                 </div>
               </div>
 
@@ -71,7 +130,10 @@ export default function AdminRetention({ retentionData }) {
               {/* NRR / GRR Trend + Churn Reasons */}
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-[18px]">
                 <div className="w-full min-w-0 lg:flex-1">
-                  <TrendLineChart key="nrr-grr-trend" data={retentionData?.nrrGrrTrend} />
+                  <TrendLineChart
+                    key="nrr-grr-trend"
+                    data={retentionData?.nrrGrrTrend}
+                  />
                 </div>
                 <div className="w-full min-w-0 lg:flex-1">
                   <ChurnBreakdownChart data={retentionData?.churnReasons} />
@@ -85,15 +147,7 @@ export default function AdminRetention({ retentionData }) {
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export async function getServerSideProps({ query }) {
-  const retentionData = await getAdminRetentionData(query)
 
-  return {
-    props: {
-      retentionData,
-    },
-  }
-}

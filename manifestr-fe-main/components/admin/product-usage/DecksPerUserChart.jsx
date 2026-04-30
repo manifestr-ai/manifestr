@@ -113,7 +113,8 @@ export default function DecksPerUserChart({ data }) {
                   <div className="bg-[#f8fafc] border border-[#e4e4e7] rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-[#18181b]" />
                     <span className="text-[12px] font-medium text-[#18181b]">
-                      {months[hoverIdx]}: {series[hoverIdx].toFixed(1)}
+                      {months[hoverIdx]}: {series[hoverIdx] !== undefined && series[hoverIdx] !== null ? series[hoverIdx].toFixed(1) : "--"}
+                 
                     </span>
                   </div>
                 </div>

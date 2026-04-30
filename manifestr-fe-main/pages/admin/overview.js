@@ -1,22 +1,84 @@
-import Head from 'next/head'
-import AdminHeader from '../../components/admin/AdminHeader'
-import AdminSidebar from '../../components/admin/AdminSidebar'
-import OverviewHeader from '../../components/admin/overview/OverviewHeader'
-import OverviewFilters from '../../components/admin/overview/OverviewFilters'
-import StatCard from '../../components/admin/overview/StatCard'
-import DauMauTrend from '../../components/admin/overview/DauMauTrend'
-import MrrArrTrend from '../../components/admin/overview/MrrArrTrend'
-import ConversionFunnel from '../../components/admin/overview/ConversionFunnel'
-import RecentActivityFeed from '../../components/admin/overview/RecentActivityFeed'
-import AlertsFeed from '../../components/admin/overview/AlertsFeed'
-import { getAdminOverviewData } from '../../services/admin/overview'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "../../contexts/AuthContext";
+import Head from "next/head";
 
-export default function AdminOverview({ overviewData }) {
-  const statCards = [
-    ...(overviewData?.statRows?.[0] || []),
-    ...(overviewData?.statRows?.[1] || []),
-  ]
+import AdminHeader from "../../components/admin/AdminHeader";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import OverviewHeader from "../../components/admin/overview/OverviewHeader";
+import OverviewFilters from "../../components/admin/overview/OverviewFilters";
+import StatCard from "../../components/admin/overview/StatCard";
+import DauMauTrend from "../../components/admin/overview/DauMauTrend";
+import MrrArrTrend from "../../components/admin/overview/MrrArrTrend";
+import ConversionFunnel from "../../components/admin/overview/ConversionFunnel";
+import RecentActivityFeed from "../../components/admin/overview/RecentActivityFeed";
+import AlertsFeed from "../../components/admin/overview/AlertsFeed";
 
+import { getAdminOverviewData } from "../../services/admin/overview";
+
+export default function AdminOverview() {
+  const [filters, setFilters] = useState({
+    timeframe: "Last 30d",
+    search: "",
+  });
+
+  const handleFiltersChange = ({ search, filters: selected }) => {
+    setFilters({
+      timeframe: selected?.Timeframe || "Last 30d",
+      search: search || "",
+    });
+  };
+  const [overviewData, setOverviewData] = useState(null);
+  const [error, setError] = useState(false);
+
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  // 🔐 Protect route (admin only)
+  useEffect(() => {
+    if (!loading && (!user || !user.is_admin)) {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
+
+  // 📡 Fetch data
+  useEffect(() => {
+    if (user?.is_admin) {
+      fetchOverview()
+    }
+  }, [user?.is_admin, filters])
+
+  const fetchOverview = async () => {
+    try {
+      const data = await getAdminOverviewData(filters)
+  
+      if (!data) {
+        setError(true)
+      } else {
+        setOverviewData(data)
+      }
+    } catch {
+      setError(true)
+    }
+  }
+
+  // UI States
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-500">Failed to load data</div>;
+  }
+
+  // if (!overviewData) {
+  //   return <div className="p-6">No data available</div>
+  // }
+
+  // Safe flatten
+  const statCards = Array.isArray(overviewData?.statRows)
+    ? overviewData.statRows.flat()
+    : [];
   return (
     <>
       <Head>
@@ -39,6 +101,7 @@ export default function AdminOverview({ overviewData }) {
               <OverviewFilters
                 filters={overviewData?.filters?.options}
                 searchPlaceholder={overviewData?.filters?.searchPlaceholder}
+                onFiltersChange={handleFiltersChange}
               />
 
               {/* KPI metrics — 2 per row mobile, 3 per row desktop */}
@@ -67,15 +130,5 @@ export default function AdminOverview({ overviewData }) {
         </div>
       </div>
     </>
-  )
-}
-
-export async function getServerSideProps({ query }) {
-  const overviewData = await getAdminOverviewData(query)
-
-  return {
-    props: {
-      overviewData,
-    },
-  }
+  );
 }

@@ -146,12 +146,19 @@ export function AuthProvider({ children }) {
       localStorage.setItem("rememberMe", rememberMe ? "1" : "0");
       setUser(user);
 
+      // Redirect to home or previous page
+      // Redirect to home or previous page
+      if (user?.is_admin) {
+        router.push("/admin/overview");
+      } else {
+        router.push({
+          pathname: "/home",
+          query: { welcome: "1" },
+        });
+      }
       // First show loader, then navigate
 
-      router.push({
-        pathname: "/home",
-        query: { welcome: "1" },
-      });
+    
       return response.data;
     } catch (error) {
       throw error;
@@ -209,6 +216,7 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // google login
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -227,7 +235,7 @@ export function AuthProvider({ children }) {
         loading,
         signup,
         login,
-        loginWithGoogle, // ✅ ADD THIS
+        loginWithGoogle,
         logout,
         forceLogout,
         verifyEmail,
