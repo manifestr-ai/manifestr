@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   List,
   RefreshCw,
@@ -31,12 +31,64 @@ export default function ReferencesPanel({
   const [showCitationModal, setShowCitationModal] = useState(false);
   const [showCaptionModal, setShowCaptionModal] = useState(false);
   const [showCrossRefModal, setShowCrossRefModal] = useState(false);
+  const [showSourcesModal, setShowSourcesModal] = useState(false);
 
   // Form states
+  const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [citationAuthor, setCitationAuthor] = useState("");
   const [citationYear, setCitationYear] = useState("");
   const [captionText, setCaptionText] = useState("");
   const [crossRefText, setCrossRefText] = useState("");
+  const [sources, setSources] = useState<
+    Array<{ id: string; author: string; title: string; year: string; url: string }>
+  >([]);
+
+  const getStoredSources = () => {
+    if (typeof (editor as any)?.getSources === "function") {
+      try {
+        const raw = (editor as any).getSources();
+        if (Array.isArray(raw)) {
+          return raw
+            .map((s: any) => ({
+              id: typeof s?.id === "string" ? s.id : `src-${Math.random().toString(16).slice(2)}`,
+              author: typeof s?.author === "string" ? s.author : "",
+              title: typeof s?.title === "string" ? s.title : "",
+              year: typeof s?.year === "string" ? s.year : "",
+              url: typeof s?.url === "string" ? s.url : "",
+            }))
+            .filter((s: any) => typeof s.id === "string");
+        }
+      } catch {}
+    }
+    const raw = (editor as any)?.__sources;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((s: any) => ({
+        id: typeof s?.id === "string" ? s.id : `src-${Math.random().toString(16).slice(2)}`,
+        author: typeof s?.author === "string" ? s.author : "",
+        title: typeof s?.title === "string" ? s.title : "",
+        year: typeof s?.year === "string" ? s.year : "",
+        url: typeof s?.url === "string" ? s.url : "",
+      }))
+      .filter((s: any) => typeof s.id === "string");
+  };
+
+  const setStoredSources = (next: any[]) => {
+    if (typeof (editor as any)?.setSources === "function") {
+      try {
+        (editor as any).setSources(next);
+      } catch {}
+    }
+    try {
+      (editor as any).__sources = next;
+    } catch {}
+  };
+
+  const sourcesById = useMemo(() => {
+    const map = new Map<string, { id: string; author: string; title: string; year: string; url: string }>();
+    sources.forEach((s) => map.set(s.id, s));
+    return map;
+  }, [sources]);
 
   // Toast notification helper
   const showToast = (message: string) => {
@@ -96,6 +148,8 @@ export default function ReferencesPanel({
   // Insert Citation
   const handleInsertCitation = () => {
     if (!editor) return;
+    setSources(getStoredSources());
+    setSelectedSourceId("");
     setShowCitationModal(true);
   };
 
@@ -129,16 +183,60 @@ export default function ReferencesPanel({
   // Manage Sources
   const handleManageSources = () => {
     if (!editor) return;
-    showToast("Sources manager opened");
+    const nextSources = getStoredSources();
+    setSources(nextSources);
+    setShowSourcesModal(true);
   };
 
   // Insert Bibliography
   const handleInsertBibliography = () => {
     if (!editor) return;
+    const stored = getStoredSources();
+    const formatEntry = (s: { author: string; title: string; year: string; url: string }) => {
+      const author = (s.author || "").trim();
+      const title = (s.title || "").trim();
+      const year = (s.year || "").trim();
+      const url = (s.url || "").trim();
+      const parts: string[] = [];
+      if (citationStyle === "APA") {
+        if (author) parts.push(`${author}.`);
+        if (year) parts.push(`(${year}).`);
+        if (title) parts.push(`${title}.`);
+        if (url) parts.push(url);
+        return parts.join(" ");
+      }
+      if (citationStyle === "MLA") {
+        if (author) parts.push(`${author}.`);
+        if (title) parts.push(`${title}.`);
+        if (year) parts.push(year + ".");
+        if (url) parts.push(url);
+        return parts.join(" ");
+      }
+      if (citationStyle === "Chicago") {
+        if (author) parts.push(`${author}.`);
+        if (title) parts.push(`${title}.`);
+        if (year) parts.push(`(${year}).`);
+        if (url) parts.push(url);
+        return parts.join(" ");
+      }
+      if (author) parts.push(`${author}.`);
+      if (year) parts.push(`(${year}).`);
+      if (title) parts.push(`${title}.`);
+      if (url) parts.push(`Available at: ${url}.`);
+      return parts.join(" ");
+    };
+
+    const items =
+      stored.length > 0
+        ? `<ol style="margin: 0; padding-left: 20px;">${stored
+            .map((s) => `<li style="margin: 8px 0; color: #111827;">${formatEntry(s)}</li>`)
+            .join("")}</ol>`
+        : `<p style="color: #6b7280; font-style: italic;">Add your references here in ${citationStyle} format.</p>`;
+
     const bibliography = `
-      <div style="margin-top: 2rem; border-top: 2px solid #e5e7eb; padding-top: 1rem;">
+      <div data-type="bibliography" style="margin-top: 2rem; border-top: 2px solid #e5e7eb; padding-top: 1rem;">
         <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Bibliography</h2>
-        <p style="color: #6b7280; font-style: italic;">Add your references here in ${citationStyle} format.</p>
+        ${items}
       </div>
     `;
     editor.chain().focus().insertContent(bibliography).run();
@@ -219,6 +317,31 @@ export default function ReferencesPanel({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Source (optional)
+                </label>
+                <select
+                  value={selectedSourceId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelectedSourceId(id);
+                    const src = sourcesById.get(id);
+                    if (src) {
+                      setCitationAuthor(src.author || "");
+                      setCitationYear(src.year || "");
+                    }
+                  }}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">Select a source</option>
+                  {getStoredSources().map((s: any) => (
+                    <option key={s.id} value={s.id}>
+                      {(s.author || "Unknown").slice(0, 40)}{s.year ? ` (${s.year})` : ""}{s.title ? ` - ${String(s.title).slice(0, 40)}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Author Name
                 </label>
                 <input
@@ -259,6 +382,138 @@ export default function ReferencesPanel({
                 className="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
               >
                 Insert
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSourcesModal && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50"
+          onClick={() => setShowSourcesModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full mx-4 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Manage Sources</h3>
+            <div className="space-y-4 max-h-[60vh] overflow-auto pr-2">
+              {sources.length === 0 && (
+                <div className="text-sm text-gray-600">
+                  No sources yet. Click Add Source to create one.
+                </div>
+              )}
+              {sources.map((s) => (
+                <div key={s.id} className="border border-gray-200 rounded-xl p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Author</label>
+                      <input
+                        value={s.author}
+                        onChange={(e) =>
+                          setSources((prev) =>
+                            prev.map((x) => (x.id === s.id ? { ...x, author: e.target.value } : x)),
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Year</label>
+                      <input
+                        value={s.year}
+                        onChange={(e) =>
+                          setSources((prev) =>
+                            prev.map((x) => (x.id === s.id ? { ...x, year: e.target.value } : x)),
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Title</label>
+                      <input
+                        value={s.title}
+                        onChange={(e) =>
+                          setSources((prev) =>
+                            prev.map((x) => (x.id === s.id ? { ...x, title: e.target.value } : x)),
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">URL</label>
+                      <input
+                        value={s.url}
+                        onChange={(e) =>
+                          setSources((prev) =>
+                            prev.map((x) => (x.id === s.id ? { ...x, url: e.target.value } : x)),
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setSources((prev) => prev.filter((x) => x.id !== s.id))}
+                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() =>
+                  setSources((prev) => [
+                    ...prev,
+                    {
+                      id: `src-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                      author: "",
+                      title: "",
+                      year: "",
+                      url: "",
+                    },
+                  ])
+                }
+                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+              >
+                Add Source
+              </button>
+              <div className="flex-1" />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSourcesModal(false);
+                }}
+                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const cleaned = sources.map((s) => ({
+                    id: s.id,
+                    author: (s.author || "").trim(),
+                    title: (s.title || "").trim(),
+                    year: (s.year || "").trim(),
+                    url: (s.url || "").trim(),
+                  }));
+                  setStoredSources(cleaned);
+                  setShowSourcesModal(false);
+                  showToast("Sources saved");
+                }}
+                className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-colors"
+              >
+                Save
               </button>
             </div>
           </div>

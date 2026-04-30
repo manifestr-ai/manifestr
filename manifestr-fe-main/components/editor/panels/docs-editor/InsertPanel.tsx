@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image as ImageIcon,
   Table2,
@@ -23,6 +23,21 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
   const [linkText, setLinkText] = useState("");
   const [showPageNumbersModal, setShowPageNumbersModal] = useState(false);
   
+  useEffect(() => {
+    if (!editor || typeof (editor as any)?.on !== "function") return;
+    const handler = (payload: any) => {
+      setLinkUrl(typeof payload?.href === "string" ? payload.href : "");
+      setLinkText(typeof payload?.text === "string" ? payload.text : "");
+      setShowLinkModal(true);
+    };
+    (editor as any).on("linkClick", handler);
+    return () => {
+      try {
+        (editor as any).off?.("linkClick", handler);
+      } catch {}
+    };
+  }, [editor]);
+
 
   // Image Upload Handler
   const handleImageUpload = () => {
@@ -83,18 +98,48 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
   // Link Insert Handler (for future implementation)
   const handleInsertLink = () => {
     if (!editor) return;
+    if (typeof (editor as any)?.saveSelection === "function") {
+      try {
+        (editor as any).saveSelection();
+      } catch {}
+    }
     setShowLinkModal(true);
   };
 
   const submitLink = () => {
     if (!editor || !linkUrl) return;
     
+    if (typeof (editor as any)?.applyLink === "function") {
+      (editor as any).applyLink({ href: linkUrl, text: linkText || undefined });
+      setShowLinkModal(false);
+      setLinkUrl("");
+      setLinkText("");
+      return;
+    }
+
     if (linkText) {
       // Insert text with link
       editor.chain().focus().insertContent(`<a href="${linkUrl}" style="color: #3b82f6; text-decoration: underline;">${linkText}</a>`).run();
     } else {
       // Just apply link to selected text
-      editor.chain().focus().setLink({ href: linkUrl }).run();
+      try {
+        if (typeof editor?.chain === "function") {
+          const chain = editor.chain();
+          const focused = typeof chain?.focus === "function" ? chain.focus() : chain;
+          const maybeSetLink = (focused as any)?.setLink;
+          if (typeof maybeSetLink === "function") {
+            (focused as any).setLink({ href: linkUrl }).run();
+          } else {
+            document.execCommand("createLink", false, linkUrl);
+          }
+        } else {
+          document.execCommand("createLink", false, linkUrl);
+        }
+      } catch {
+        try {
+          document.execCommand("createLink", false, linkUrl);
+        } catch {}
+      }
     }
     
     setShowLinkModal(false);
@@ -123,10 +168,37 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
   const applyPageNumbers = (position: string | null) => {
     if (!editor) return;
 
-    editor
-      .chain()
-      .focus()
-      .command(({ tr, state, dispatch }) => {
+    if (typeof (editor as any)?.setPageNumbers === "function") {
+      (editor as any).setPageNumbers(position);
+      return;
+    }
+    if (typeof (editor as any)?.commands?.setPageNumbers === "function") {
+      (editor as any).commands.setPageNumbers(position);
+      return;
+    }
+
+    try {
+      if (typeof editor?.chain === "function") {
+        const chain = editor.chain();
+        const maybeFocused = typeof chain?.focus === "function" ? chain.focus() : null;
+        if (maybeFocused && typeof maybeFocused.run === "function") {
+          maybeFocused.run();
+        }
+      } else if (typeof editor?.view?.focus === "function") {
+        editor.view.focus();
+      }
+    } catch {}
+
+    const runner =
+      typeof editor?.commands?.command === "function"
+        ? "commands"
+        : typeof editor?.command === "function"
+          ? "direct"
+          : null;
+
+    if (!runner) return;
+
+    const command = ({ tr, state, dispatch }: any) => {
         const configType = state.schema.nodes.pageNumberConfig;
         const pageNumberType = state.schema.nodes.pageNumber;
         if (!configType || !pageNumberType) return false;
@@ -167,8 +239,13 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
 
         if (dispatch) dispatch(tr);
         return true;
-      })
-      .run();
+      };
+
+    if (runner === "commands") {
+      editor.commands.command(command);
+    } else {
+      editor.command(command);
+    }
   };
 
   return (
@@ -293,6 +370,7 @@ export default function InsertPanel({ store, editor }: InsertPanelProps) {
         </p>
         <div className="flex gap-2">
           <button 
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleInsertLink}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >

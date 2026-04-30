@@ -836,6 +836,11 @@ footer > .univer-box-border{
   box-shadow: 0 0 0 2px #fef08a;
 }
 
+.search-highlight--active {
+  background-color: #fdba74 !important;
+  box-shadow: 0 0 0 2px #fb923c;
+}
+
 /* Comment Highlight */
 .comment-highlight {
   background-color: #fef3c7 !important;

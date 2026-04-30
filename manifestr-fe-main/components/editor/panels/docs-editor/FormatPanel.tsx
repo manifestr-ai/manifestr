@@ -17,6 +17,10 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
   const [fontSize, setFontSize] = useState("12pt");
   const [textColor, setTextColor] = useState("#000000");
   const textColorInputRef = useRef<HTMLInputElement | null>(null);
+  const [showHighlightMenu, setShowHighlightMenu] = useState(false);
+  const highlightMenuAnchorRef = useRef<HTMLButtonElement | null>(null);
+  const highlightMenuRef = useRef<HTMLDivElement | null>(null);
+  const [highlightMenuPos, setHighlightMenuPos] = useState<{ top: number; right: number } | null>(null);
 
   const focusEditor = () => {
     if (!editor) return;
@@ -58,6 +62,23 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
       editor.off("update", updateStates);
     };
   }, [editor]);
+
+  useEffect(() => {
+    if (!showHighlightMenu) return;
+
+    const close = (e: MouseEvent) => {
+      const anchor = highlightMenuAnchorRef.current;
+      const menu = highlightMenuRef.current;
+      if (e.target instanceof Node) {
+        if (anchor && anchor.contains(e.target)) return;
+        if (menu && menu.contains(e.target)) return;
+      }
+      setShowHighlightMenu(false);
+    };
+
+    window.addEventListener("mousedown", close, true);
+    return () => window.removeEventListener("mousedown", close, true);
+  }, [showHighlightMenu]);
 
   useEffect(() => {
     if (!editor) return;
@@ -103,6 +124,72 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
       return;
     }
     editor.chain().focus().setMark("textStyle", { color }).run();
+  };
+
+  const applyHighlight = (color: string | null) => {
+    if (!editor) return;
+    focusEditor();
+
+    const isTiptapLike = typeof editor?.commands?.focus === "function";
+
+    if (color == null) {
+      if (isTiptapLike) {
+        if (typeof editor.chain?.().focus?.().unsetHighlight === "function") {
+          editor.chain().focus().unsetHighlight().run();
+          return;
+        }
+        if (typeof editor.chain?.().focus?.().unsetMark === "function") {
+          editor.chain().focus().unsetMark("highlight").run();
+          return;
+        }
+        return;
+      }
+
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const getHighlightedAncestor = (node: Node | null): HTMLElement | null => {
+        const el =
+          (node &&
+            (node.nodeType === Node.ELEMENT_NODE
+              ? (node as HTMLElement)
+              : (node as any).parentElement)) ||
+          null;
+        if (!el) return null;
+        const highlighted = el.closest?.('[style*="background-color"]') as HTMLElement | null;
+        if (highlighted?.style?.backgroundColor) return highlighted;
+        if (el?.style?.backgroundColor) return el;
+        return null;
+      };
+      const isSelectionHighlighted = () => {
+        const a = getHighlightedAncestor(selection.anchorNode);
+        const f = getHighlightedAncestor(selection.focusNode);
+        return !!(a || f);
+      };
+
+      if (!isSelectionHighlighted()) return;
+      if (typeof editor.chain?.().focus?.().toggleHighlight === "function") {
+        editor.chain().focus().toggleHighlight({ color: "#fef08a" }).run();
+      }
+      return;
+    }
+
+    if (isTiptapLike) {
+      if (typeof editor.chain?.().focus?.().setHighlight === "function") {
+        editor.chain().focus().setHighlight({ color }).run();
+        return;
+      }
+      editor.chain().focus().toggleHighlight({ color }).run();
+      return;
+    }
+
+    if (typeof editor.chain?.().focus?.().setHighlight === "function") {
+      editor.chain().focus().setHighlight(color).run();
+      return;
+    }
+
+    if (typeof editor.chain?.().focus?.().toggleHighlight === "function") {
+      editor.chain().focus().toggleHighlight({ color }).run();
+    }
   };
 
   // Quick Actions
@@ -395,17 +482,76 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             aria-hidden="true"
           />
         </div>
-        <button 
-          onClick={() => editor?.chain().focus().toggleHighlight({ color: '#fef08a' }).run()}
-          className={`border border-transparent h-[65px] w-[47px] rounded-[14px] hover:bg-gray-50 transition-colors flex flex-col items-center justify-start pt-2 gap-1 ${
-            editor?.isActive('highlight') ? 'bg-gray-100' : ''
-          }`}
-          type="button"
-        >
-          <Highlighter className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
-          <div className="bg-yellow-400 h-1.5 w-8 rounded"></div>
-          <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">Highlight</p>
-        </button>
+        <div className="relative">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => applyHighlight("#fef08a")}
+            className={`border border-transparent h-[65px] w-[47px] rounded-[14px] hover:bg-gray-50 transition-colors flex flex-col items-center justify-start pt-2 gap-1 ${
+              editor?.isActive("highlight") ? "bg-gray-100" : ""
+            }`}
+            type="button"
+          >
+            <Highlighter className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+            <div className="bg-yellow-400 h-1.5 w-8 rounded" />
+            <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
+              Highlight
+            </p>
+          </button>
+
+          <button
+            ref={highlightMenuAnchorRef}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const rect = highlightMenuAnchorRef.current?.getBoundingClientRect();
+              if (rect) {
+                setHighlightMenuPos({
+                  top: rect.bottom + 8,
+                  right: Math.max(8, window.innerWidth - rect.right),
+                });
+              } else {
+                setHighlightMenuPos({ top: 96, right: 24 });
+              }
+              setShowHighlightMenu((v) => !v);
+            }}
+            className="absolute -right-1 -top-1 rounded-md hover:bg-gray-100 p-0.5"
+            aria-label="Highlight options"
+          >
+            <ChevronDown className="size-3" stroke="#364153" strokeWidth={1.5} />
+          </button>
+
+          {showHighlightMenu && highlightMenuPos && (
+            <div
+              ref={highlightMenuRef}
+              className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-1 w-[160px]"
+              style={{ top: highlightMenuPos.top, right: highlightMenuPos.right }}
+            >
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  applyHighlight("#ffffff00");
+                  setShowHighlightMenu(false);
+                }}
+                className="w-full text-left px-2 py-1.5 rounded-md hover:bg-gray-50 text-sm text-[#0a0a0a]"
+              >
+                No color
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  applyHighlight("#fef08a");
+                  setShowHighlightMenu(false);
+                }}
+                className="w-full text-left px-2 py-1.5 rounded-md hover:bg-gray-50 text-sm text-[#0a0a0a] flex items-center gap-2"
+              >
+                <span className="inline-block h-3 w-3 rounded bg-yellow-300" />
+                Yellow
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Divider */}
