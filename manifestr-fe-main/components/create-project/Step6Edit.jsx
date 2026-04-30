@@ -140,6 +140,25 @@ export default function Step6Edit({ generationId, outputType }) {
 
     return (
         <div className="w-full flex flex-col items-center justify-center min-h-[600px] py-20 -mt-12">
+            <style jsx>{`
+                @keyframes spin-subtle {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+                    100% {
+                        transform: rotate(360deg);
+                    }
+                }
+                
+                .circle-rotating {
+                    animation: spin-subtle 2s linear infinite;
+                }
+                
+                .circle-rotating-current {
+                    animation: spin-subtle 1.5s linear infinite;
+                }
+            `}</style>
+            
             {/* Manifestr Logo - At the top */}
             <div className="flex items-center justify-center shrink-0 mb-8">
                 <Logo size="md" />
@@ -187,9 +206,16 @@ export default function Step6Edit({ generationId, outputType }) {
                                     <Check className="w-3 h-3 text-white" strokeWidth={3} />
                                 </div>
                             ) : (
-                                <div className={`w-4 h-4 rounded-full border shrink-0 ${
-                                    task.status === 'current' ? 'border-[#A1A1AA]' : 'border-[#D4D4D8]'
-                                }`} />
+                                <div className={`w-4 h-4 rounded-full border shrink-0 relative ${
+                                    task.status === 'current' 
+                                        ? 'border-[#A1A1AA] border-t-[#18181b] border-t-2 circle-rotating-current' 
+                                        : 'border-[#D4D4D8] border-t-[#71717A] circle-rotating'
+                                }`}>
+                                    {/* Optional: Add a subtle gradient indicator */}
+                                    <div className={`absolute inset-0 rounded-full ${
+                                        task.status === 'current' ? 'opacity-20' : 'opacity-0'
+                                    }`} />
+                                </div>
                             )}
                             <p className="text-[16px] leading-[24px] text-base-muted-foreground+">
                                 {task.label}

@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface HomePanelProps {
   store: any; // Univer FacadeAPI
 }
 
 export default function HomePanel({ store }: HomePanelProps) {
+  const [showTemplates, setShowTemplates] = useState(false);
+
   if (!store) return null;
 
-  // Helper to get selected range
-  const getActiveRange = () => {
+  // Helper to get active sheet and range
+  const getSheetAndRange = () => {
     try {
       const workbook = store.getActiveWorkbook();
       if (!workbook) return null;
@@ -16,24 +18,53 @@ export default function HomePanel({ store }: HomePanelProps) {
       const sheet = workbook.getActiveSheet();
       if (!sheet) return null;
       
-      const selection = sheet.getSelection();
-      if (!selection) return null;
-      
-      const range = selection.getActiveRange();
-      return range;
+      return { workbook, sheet };
     } catch (error) {
-      console.error("Failed to get active range:", error);
+      console.error("Failed to get sheet:", error);
       return null;
     }
   };
 
-  // Format handlers using Facade API Range methods
+  // Format handlers - BULLETPROOF implementations
   const handleBold = () => {
     try {
-      const range = getActiveRange();
-      if (range) {
+      const info = getSheetAndRange();
+      if (!info) {
+        console.warn('⚠️ Please select cells first');
+        return;
+      }
+
+      const { sheet } = info;
+      const range = sheet.getActiveRange();
+      
+      if (!range) {
+        console.warn('⚠️ No cells selected');
+        return;
+      }
+
+      // Try multiple methods
+      try {
         range.setFontWeight('bold');
-        console.log('✅ Applied bold formatting');
+        console.log('✅ Applied bold formatting via setFontWeight');
+      } catch (e1) {
+        try {
+          store.executeCommand('sheet.command.set-range-bold');
+          console.log('✅ Applied bold formatting via command');
+        } catch (e2) {
+          // Fallback: set via style
+          const startRow = range.getStartRow();
+          const startCol = range.getStartColumn();
+          const numRows = range.getNumRows();
+          const numCols = range.getNumColumns();
+          
+          for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c < numCols; c++) {
+              const cell = sheet.getRange(startRow + r, startCol + c, 1, 1);
+              cell.setFontWeight('bold');
+            }
+          }
+          console.log('✅ Applied bold formatting via fallback');
+        }
       }
     } catch (error) {
       console.error('❌ Bold failed:', error);
@@ -42,10 +73,43 @@ export default function HomePanel({ store }: HomePanelProps) {
 
   const handleItalic = () => {
     try {
-      const range = getActiveRange();
-      if (range) {
+      const info = getSheetAndRange();
+      if (!info) {
+        console.warn('⚠️ Please select cells first');
+        return;
+      }
+
+      const { sheet } = info;
+      const range = sheet.getActiveRange();
+      
+      if (!range) {
+        console.warn('⚠️ No cells selected');
+        return;
+      }
+
+      // Try multiple methods
+      try {
         range.setFontStyle('italic');
-        console.log('✅ Applied italic formatting');
+        console.log('✅ Applied italic formatting via setFontStyle');
+      } catch (e1) {
+        try {
+          store.executeCommand('sheet.command.set-range-italic');
+          console.log('✅ Applied italic formatting via command');
+        } catch (e2) {
+          // Fallback
+          const startRow = range.getStartRow();
+          const startCol = range.getStartColumn();
+          const numRows = range.getNumRows();
+          const numCols = range.getNumColumns();
+          
+          for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c < numCols; c++) {
+              const cell = sheet.getRange(startRow + r, startCol + c, 1, 1);
+              cell.setFontStyle('italic');
+            }
+          }
+          console.log('✅ Applied italic formatting via fallback');
+        }
       }
     } catch (error) {
       console.error('❌ Italic failed:', error);
@@ -54,9 +118,44 @@ export default function HomePanel({ store }: HomePanelProps) {
 
   const handleUnderline = () => {
     try {
-      // Use the correct command ID for underline
-      store.executeCommand('sheet.command.set-range-underline');
-      console.log('✅ Applied underline');
+      const info = getSheetAndRange();
+      if (!info) {
+        console.warn('⚠️ Please select cells first');
+        return;
+      }
+
+      const { sheet } = info;
+      const range = sheet.getActiveRange();
+      
+      if (!range) {
+        console.warn('⚠️ No cells selected');
+        return;
+      }
+
+      // Try multiple methods
+      try {
+        range.setFontLine('underline');
+        console.log('✅ Applied underline via setFontLine');
+      } catch (e1) {
+        try {
+          store.executeCommand('sheet.command.set-range-underline');
+          console.log('✅ Applied underline via command');
+        } catch (e2) {
+          // Fallback
+          const startRow = range.getStartRow();
+          const startCol = range.getStartColumn();
+          const numRows = range.getNumRows();
+          const numCols = range.getNumColumns();
+          
+          for (let r = 0; r < numRows; r++) {
+            for (let c = 0; c < numCols; c++) {
+              const cell = sheet.getRange(startRow + r, startCol + c, 1, 1);
+              cell.setFontLine('underline');
+            }
+          }
+          console.log('✅ Applied underline via fallback');
+        }
+      }
     } catch (error) {
       console.error('❌ Underline failed:', error);
     }
@@ -97,10 +196,147 @@ export default function HomePanel({ store }: HomePanelProps) {
   };
 
   const handleTemplates = () => {
-    alert("Templates feature coming soon!");
+    setShowTemplates(true);
+  };
+
+  const applyTemplate = (templateType: string) => {
+    try {
+      const info = getSheetAndRange();
+      if (!info) return;
+
+      const { sheet } = info;
+      
+      switch (templateType) {
+        case 'budget':
+          createBudgetTemplate(sheet);
+          break;
+        case 'invoice':
+          createInvoiceTemplate(sheet);
+          break;
+        case 'expenses':
+          createExpensesTemplate(sheet);
+          break;
+        case 'schedule':
+          createScheduleTemplate(sheet);
+          break;
+        case 'inventory':
+          createInventoryTemplate(sheet);
+          break;
+        case 'sales':
+          createSalesTemplate(sheet);
+          break;
+        default:
+          break;
+      }
+      
+      setShowTemplates(false);
+      console.log('✅ Applied template:', templateType);
+    } catch (error) {
+      console.error('❌ Template failed:', error);
+    }
+  };
+
+  // Template creators
+  const createBudgetTemplate = (sheet: any) => {
+    const headers = ['Category', 'Budgeted', 'Actual', 'Difference', '% Used'];
+    const categories = ['Housing', 'Transportation', 'Food', 'Utilities', 'Entertainment', 'Healthcare', 'Savings'];
+    
+    // Headers
+    for (let c = 0; c < headers.length; c++) {
+      const cell = sheet.getRange(0, c, 1, 1);
+      cell.setValue(headers[c]);
+      cell.setFontWeight('bold');
+      cell.setBackground('#4F46E5');
+      cell.setFontColor('#FFFFFF');
+    }
+    
+    // Categories
+    for (let r = 0; r < categories.length; r++) {
+      sheet.getRange(r + 1, 0, 1, 1).setValue(categories[r]);
+      sheet.getRange(r + 1, 1, 1, 1).setValue(0);
+      sheet.getRange(r + 1, 2, 1, 1).setValue(0);
+      if (r % 2 === 0) {
+        for (let c = 0; c < 5; c++) {
+          sheet.getRange(r + 1, c, 1, 1).setBackground('#F3F4F6');
+        }
+      }
+    }
+  };
+
+  const createInvoiceTemplate = (sheet: any) => {
+    sheet.getRange(0, 0, 1, 1).setValue('INVOICE');
+    sheet.getRange(0, 0, 1, 1).setFontWeight('bold');
+    sheet.getRange(0, 0, 1, 1).setFontSize(20);
+    
+    sheet.getRange(2, 0, 1, 1).setValue('Bill To:');
+    sheet.getRange(3, 0, 1, 1).setValue('Company Name');
+    
+    const headers = ['Item', 'Quantity', 'Price', 'Total'];
+    for (let c = 0; c < headers.length; c++) {
+      const cell = sheet.getRange(5, c, 1, 1);
+      cell.setValue(headers[c]);
+      cell.setFontWeight('bold');
+      cell.setBackground('#3B82F6');
+      cell.setFontColor('#FFFFFF');
+    }
+    
+    sheet.getRange(11, 2, 1, 1).setValue('Subtotal:');
+    sheet.getRange(12, 2, 1, 1).setValue('Tax:');
+    sheet.getRange(13, 2, 1, 1).setValue('TOTAL:');
+    sheet.getRange(13, 2, 1, 1).setFontWeight('bold');
+  };
+
+  const createExpensesTemplate = (sheet: any) => {
+    const headers = ['Date', 'Description', 'Category', 'Amount', 'Payment Method'];
+    for (let c = 0; c < headers.length; c++) {
+      const cell = sheet.getRange(0, c, 1, 1);
+      cell.setValue(headers[c]);
+      cell.setFontWeight('bold');
+      cell.setBackground('#10B981');
+      cell.setFontColor('#FFFFFF');
+    }
+  };
+
+  const createScheduleTemplate = (sheet: any) => {
+    const days = ['Time', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    for (let c = 0; c < days.length; c++) {
+      const cell = sheet.getRange(0, c, 1, 1);
+      cell.setValue(days[c]);
+      cell.setFontWeight('bold');
+      cell.setBackground('#8B5CF6');
+      cell.setFontColor('#FFFFFF');
+    }
+    
+    const times = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'];
+    for (let r = 0; r < times.length; r++) {
+      sheet.getRange(r + 1, 0, 1, 1).setValue(times[r]);
+    }
+  };
+
+  const createInventoryTemplate = (sheet: any) => {
+    const headers = ['Item ID', 'Item Name', 'Category', 'Quantity', 'Unit Price', 'Total Value', 'Reorder Level'];
+    for (let c = 0; c < headers.length; c++) {
+      const cell = sheet.getRange(0, c, 1, 1);
+      cell.setValue(headers[c]);
+      cell.setFontWeight('bold');
+      cell.setBackground('#F59E0B');
+      cell.setFontColor('#FFFFFF');
+    }
+  };
+
+  const createSalesTemplate = (sheet: any) => {
+    const headers = ['Date', 'Product', 'Customer', 'Quantity', 'Unit Price', 'Total', 'Status'];
+    for (let c = 0; c < headers.length; c++) {
+      const cell = sheet.getRange(0, c, 1, 1);
+      cell.setValue(headers[c]);
+      cell.setFontWeight('bold');
+      cell.setBackground('#EF4444');
+      cell.setFontColor('#FFFFFF');
+    }
   };
 
   return (
+    <>
     <div className="h-[102px] bg-white border-b flex items-center px-6 gap-4 overflow-x-auto">
       <div className="flex flex-col items-center  min-w-[100px]">
         <span className="text-xs text-gray-500 mb-3">File</span>
@@ -400,5 +636,96 @@ export default function HomePanel({ store }: HomePanelProps) {
         </div>
       </div>
     </div>
+
+    {/* Templates Modal */}
+    {showTemplates && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowTemplates(false)}>
+        <div className="bg-white rounded-lg p-6 w-[600px] max-h-[80vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <h3 className="text-2xl font-bold mb-6 text-gray-900">Choose a Template</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            {/* Budget Template */}
+            <button
+              onClick={() => applyTemplate('budget')}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            >
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
+                <span className="text-3xl">💰</span>
+              </div>
+              <h4 className="font-semibold text-lg mb-1">Budget Planner</h4>
+              <p className="text-sm text-gray-500 text-center">Track income and expenses</p>
+            </button>
+
+            {/* Invoice Template */}
+            <button
+              onClick={() => applyTemplate('invoice')}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            >
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                <span className="text-3xl">🧾</span>
+              </div>
+              <h4 className="font-semibold text-lg mb-1">Invoice</h4>
+              <p className="text-sm text-gray-500 text-center">Professional billing document</p>
+            </button>
+
+            {/* Expenses Template */}
+            <button
+              onClick={() => applyTemplate('expenses')}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            >
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h4 className="font-semibold text-lg mb-1">Expense Tracker</h4>
+              <p className="text-sm text-gray-500 text-center">Log daily expenses</p>
+            </button>
+
+            {/* Schedule Template */}
+            <button
+              onClick={() => applyTemplate('schedule')}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            >
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+                <span className="text-3xl">📅</span>
+              </div>
+              <h4 className="font-semibold text-lg mb-1">Weekly Schedule</h4>
+              <p className="text-sm text-gray-500 text-center">Plan your week</p>
+            </button>
+
+            {/* Inventory Template */}
+            <button
+              onClick={() => applyTemplate('inventory')}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            >
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-3">
+                <span className="text-3xl">📦</span>
+              </div>
+              <h4 className="font-semibold text-lg mb-1">Inventory</h4>
+              <p className="text-sm text-gray-500 text-center">Track stock levels</p>
+            </button>
+
+            {/* Sales Template */}
+            <button
+              onClick={() => applyTemplate('sales')}
+              className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            >
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-3">
+                <span className="text-3xl">📈</span>
+              </div>
+              <h4 className="font-semibold text-lg mb-1">Sales Tracker</h4>
+              <p className="text-sm text-gray-500 text-center">Monitor sales data</p>
+            </button>
+          </div>
+
+          <button
+            onClick={() => setShowTemplates(false)}
+            className="mt-6 w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

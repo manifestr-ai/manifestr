@@ -20,6 +20,7 @@ import { EarlyAccessController } from './controllers/early-access.controller';
 import { CollaborationController } from './controllers/collaboration.controller';
 import { CollabProjectsController } from './controllers/collab-projects.controller';
 import { ThreadsController } from './controllers/threads.controller';
+import { UserStatsController } from './controllers/user.stats.controller';
 
 class App {
     public app: Application;
@@ -130,6 +131,7 @@ class App {
             new CollaborationController(), // Real-time collaboration
             new CollabProjectsController(), // Collab projects/folders
             new ThreadsController(), // NEW: Threaded commenting/feedback system
+            new UserStatsController(), // User statistics and achievements
         ];
 
         controllers.forEach((controller) => {

@@ -1,0 +1,821 @@
+{
+  "templates": [
+    {
+      "name": "Ambassador Brief",
+      "template_type": "ambassador_brief",
+      "industry": "Events & Hospitality",
+      "use_cases": [
+        "Ambassador Briefs",
+        "Staff Briefing Documents",
+        "Supplier Briefs",
+        "Event Run Sheets",
+        "Onsite Crew Briefs",
+        "Talent/Host Briefing Docs",
+        "VIP Handling Guides",
+        "Vendor Briefing Packets"
+      ],
+      "example": {
+        "template_type": "ambassador_brief",
+        "brand": {
+          "logo_text": "JACK MORTON",
+          "brand_color": "#FF6B35"
+        },
+        "document_title": "AMBASSADOR BRIEF",
+        "brief_date": "lorem_ipsum",
+        "fields": [
+          {
+            "label": "Event Date",
+            "value": "lorem_ipsum"
+          },
+          {
+            "label": "Event Name",
+            "value": "lorem_ipsum"
+          },
+          {
+            "label": "Event Summary",
+            "value": "lorem_ipsum"
+          },
+          {
+            "label": "Agenda",
+            "value": {
+              "groups": [
+                {
+                  "group_name": "lorem_ipsum",
+                  "note": "lorem_ipsum",
+                  "schedule": [
+                    {
+                      "time": "lorem_ipsum",
+                      "activity": "lorem_ipsum"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "label": "Venue",
+            "value": ["lorem_ipsum"]
+          },
+          {
+            "label": "Onsite Time",
+            "value": {
+              "locations": [
+                {
+                  "location": "lorem_ipsum",
+                  "onsite_time": "lorem_ipsum",
+                  "briefing_wardrobe_change": "lorem_ipsum",
+                  "departure_time": "lorem_ipsum",
+                  "note": "lorem_ipsum"
+                }
+              ]
+            }
+          },
+          {
+            "label": "Brief",
+            "value": "lorem_ipsum"
+          }
+        ],
+        "requirements": [
+          "lorem_ipsum",
+          "lorem_ipsum",
+          "lorem_ipsum"
+        ],
+        "footer": {
+          "left": "Supplier Brief",
+          "right": "Page 1 of 2"
+        }
+      }
+    },
+    {
+      "name": "Merchandise Operations",
+      "template_type": "merchandise_operations",
+      "industry": "Operations & Logistics",
+      "use_cases": [
+        "Merchandise Operations Plans",
+        "Event Outlet Checklists",
+        "Stadium / Venue Operations Forms",
+        "Retail Pop-up Planning Docs",
+        "Concession Stand Setup Forms",
+        "Inventory Pre-Event Confirmation Sheets",
+        "Vendor/Supplier Operations Briefs",
+        "Stock Deployment Forms"
+      ],
+      "example": {
+        "template_type": "merchandise_operations",
+        "document_title": "MERCHANDISE OPERATIONS – MAJOR EVENTS",
+        "sections": [
+          {
+            "section_title": "SCOPE",
+            "content": "lorem_ipsum"
+          },
+          {
+            "section_title": "PRE EVENT INFORMATION",
+            "subsections": [
+              {
+                "label": "Confirm outlets in use:",
+                "table": {
+                  "columns": [
+                    "Outlet (aisle reference / location)",
+                    "Home & Away Team Product Available?",
+                    "Sunscreen & Ponchos Available?",
+                    "Outlets Open",
+                    "Outlets Close",
+                    "Number of Tills Operational?",
+                    "Number of Staff in Outlet?"
+                  ],
+                  "rows": [
+                    {
+                      "outlet": "",
+                      "home_away": "",
+                      "sunscreen_ponchos": "",
+                      "outlets_open": "",
+                      "outlets_close": "",
+                      "num_tills": "",
+                      "num_staff": ""
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Event Run Sheet",
+      "template_type": "event_run_sheet",
+      "industry": "Events & Production",
+      "use_cases": [
+        "Event Run of Show",
+        "Production Timelines",
+        "Show Flow Documents",
+        "Technical Run Sheets",
+        "Crew Call Sheets"
+      ],
+      "example": {
+        "template_type": "event_run_sheet",
+        "brand": {
+          "logo_text": "lorem_ipsum",
+          "brand_color": "#000000"
+        },
+        "document_title": "EVENT RUN SHEET",
+        "event_details": {
+          "event_name": "lorem_ipsum",
+          "event_date": "lorem_ipsum",
+          "venue": "lorem_ipsum",
+          "client": "lorem_ipsum",
+          "event_manager": "lorem_ipsum"
+        },
+        "key_contacts": {
+          "table": {
+            "columns": ["Role", "Name", "Phone", "Email"],
+            "rows": [
+              {
+                "role": "Event Director",
+                "name": "lorem_ipsum",
+                "phone": "lorem_ipsum",
+                "email": "lorem_ipsum"
+              },
+              {
+                "role": "Production Manager",
+                "name": "lorem_ipsum",
+                "phone": "lorem_ipsum",
+                "email": "lorem_ipsum"
+              },
+              {
+                "role": "Technical Director",
+                "name": "lorem_ipsum",
+                "phone": "lorem_ipsum",
+                "email": "lorem_ipsum"
+              }
+            ]
+          }
+        },
+        "timeline": {
+          "table": {
+            "columns": ["Time", "Activity", "Location", "Responsible Party", "Notes"],
+            "rows": [
+              {
+                "time": "lorem_ipsum",
+                "activity": "lorem_ipsum",
+                "location": "lorem_ipsum",
+                "responsible": "lorem_ipsum",
+                "notes": "lorem_ipsum"
+              }
+            ]
+          }
+        },
+        "emergency_procedures": "lorem_ipsum",
+        "footer": {
+          "confidentiality": "CONFIDENTIAL - FOR INTERNAL USE ONLY",
+          "version": "Version 1.0"
+        }
+      }
+    },
+    {
+      "name": "Safety Briefing",
+      "template_type": "safety_briefing",
+      "industry": "Health & Safety",
+      "use_cases": [
+        "Site Safety Briefs",
+        "Event Safety Documents",
+        "COVID-19 Safety Plans",
+        "Risk Assessment Summaries",
+        "Emergency Response Plans"
+      ],
+      "example": {
+        "template_type": "safety_briefing",
+        "document_title": "SITE SAFETY BRIEFING",
+        "site_details": {
+          "site_name": "lorem_ipsum",
+          "date": "lorem_ipsum",
+          "project_manager": "lorem_ipsum",
+          "safety_officer": "lorem_ipsum"
+        },
+        "sections": [
+          {
+            "section_number": "1",
+            "section_title": "HAZARD IDENTIFICATION",
+            "content": "lorem_ipsum",
+            "hazards_table": {
+              "columns": ["Hazard", "Risk Level", "Control Measures", "Responsible Person"],
+              "rows": [
+                {
+                  "hazard": "lorem_ipsum",
+                  "risk_level": "lorem_ipsum",
+                  "control_measures": "lorem_ipsum",
+                  "responsible": "lorem_ipsum"
+                }
+              ]
+            }
+          },
+          {
+            "section_number": "2",
+            "section_title": "EMERGENCY PROCEDURES",
+            "subsections": [
+              {
+                "subtitle": "Emergency Exits",
+                "content": "lorem_ipsum"
+              },
+              {
+                "subtitle": "Assembly Point",
+                "content": "lorem_ipsum"
+              },
+              {
+                "subtitle": "First Aid",
+                "content": "lorem_ipsum"
+              }
+            ]
+          },
+          {
+            "section_number": "3",
+            "section_title": "PPE REQUIREMENTS",
+            "requirements": [
+              "lorem_ipsum",
+              "lorem_ipsum",
+              "lorem_ipsum"
+            ]
+          }
+        ],
+        "acknowledgment": {
+          "statement": "I have read and understood this safety briefing",
+          "signature_fields": [
+            {
+              "label": "Name",
+              "line": true
+            },
+            {
+              "label": "Signature",
+              "line": true
+            },
+            {
+              "label": "Date",
+              "line": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Budget Breakdown",
+      "template_type": "budget_breakdown",
+      "industry": "Finance & Planning",
+      "use_cases": [
+        "Event Budget Breakdowns",
+        "Project Cost Estimates",
+        "Department Budgets",
+        "Cost Proposals",
+        "Financial Planning Docs"
+      ],
+      "example": {
+        "template_type": "budget_breakdown",
+        "brand": {
+          "logo_text": "lorem_ipsum",
+          "brand_color": "#000000"
+        },
+        "document_title": "BUDGET BREAKDOWN",
+        "project_details": {
+          "project_name": "lorem_ipsum",
+          "client": "lorem_ipsum",
+          "date": "lorem_ipsum",
+          "prepared_by": "lorem_ipsum",
+          "budget_period": "lorem_ipsum"
+        },
+        "budget_categories": [
+          {
+            "category_name": "VENUE & FACILITIES",
+            "category_color": "#4A90E2",
+            "line_items": {
+              "table": {
+                "columns": ["Item Description", "Quantity", "Unit Cost", "Total Cost", "Notes"],
+                "rows": [
+                  {
+                    "description": "lorem_ipsum",
+                    "quantity": "lorem_ipsum",
+                    "unit_cost": "lorem_ipsum",
+                    "total": "lorem_ipsum",
+                    "notes": "lorem_ipsum"
+                  }
+                ]
+              }
+            },
+            "subtotal": "lorem_ipsum"
+          },
+          {
+            "category_name": "PRODUCTION & AV",
+            "category_color": "#E24A4A",
+            "line_items": {
+              "table": {
+                "columns": ["Item Description", "Quantity", "Unit Cost", "Total Cost", "Notes"],
+                "rows": [
+                  {
+                    "description": "lorem_ipsum",
+                    "quantity": "lorem_ipsum",
+                    "unit_cost": "lorem_ipsum",
+                    "total": "lorem_ipsum",
+                    "notes": "lorem_ipsum"
+                  }
+                ]
+              }
+            },
+            "subtotal": "lorem_ipsum"
+          },
+          {
+            "category_name": "STAFFING",
+            "category_color": "#4AE2A8",
+            "line_items": {
+              "table": {
+                "columns": ["Item Description", "Quantity", "Unit Cost", "Total Cost", "Notes"],
+                "rows": [
+                  {
+                    "description": "lorem_ipsum",
+                    "quantity": "lorem_ipsum",
+                    "unit_cost": "lorem_ipsum",
+                    "total": "lorem_ipsum",
+                    "notes": "lorem_ipsum"
+                  }
+                ]
+              }
+            },
+            "subtotal": "lorem_ipsum"
+          }
+        ],
+        "summary": {
+          "total_budget": "lorem_ipsum",
+          "contingency": "lorem_ipsum",
+          "grand_total": "lorem_ipsum"
+        },
+        "payment_terms": "lorem_ipsum",
+        "notes": "lorem_ipsum"
+      }
+    },
+    {
+      "name": "Staff Schedule",
+      "template_type": "staff_schedule",
+      "industry": "HR & Operations",
+      "use_cases": [
+        "Event Staff Rosters",
+        "Crew Schedules",
+        "Shift Planning Docs",
+        "Team Assignment Sheets",
+        "Daily Staff Allocations"
+      ],
+      "example": {
+        "template_type": "staff_schedule",
+        "document_title": "STAFF SCHEDULE",
+        "schedule_details": {
+          "event_name": "lorem_ipsum",
+          "date": "lorem_ipsum",
+          "venue": "lorem_ipsum",
+          "shift_manager": "lorem_ipsum"
+        },
+        "staff_roster": {
+          "table": {
+            "columns": [
+              "Staff Name",
+              "Role",
+              "Shift Time",
+              "Break Time",
+              "Location/Station",
+              "Uniform",
+              "Contact Number"
+            ],
+            "rows": [
+              {
+                "name": "lorem_ipsum",
+                "role": "lorem_ipsum",
+                "shift_time": "lorem_ipsum",
+                "break_time": "lorem_ipsum",
+                "location": "lorem_ipsum",
+                "uniform": "lorem_ipsum",
+                "contact": "lorem_ipsum"
+              }
+            ]
+          }
+        },
+        "break_schedule": {
+          "table": {
+            "columns": ["Time", "Staff Member", "Duration", "Relief Staff"],
+            "rows": [
+              {
+                "time": "lorem_ipsum",
+                "staff": "lorem_ipsum",
+                "duration": "lorem_ipsum",
+                "relief": "lorem_ipsum"
+              }
+            ]
+          }
+        },
+        "notes": [
+          "lorem_ipsum",
+          "lorem_ipsum"
+        ]
+      }
+    },
+    {
+      "name": "Venue Specification",
+      "template_type": "venue_spec",
+      "industry": "Venues & Technical",
+      "use_cases": [
+        "Venue Spec Sheets",
+        "Technical Specifications",
+        "Space Planning Docs",
+        "Load-in/Load-out Plans",
+        "Facility Information Sheets"
+      ],
+      "example": {
+        "template_type": "venue_spec",
+        "document_title": "VENUE SPECIFICATIONS",
+        "venue_details": {
+          "venue_name": "lorem_ipsum",
+          "address": "lorem_ipsum",
+          "venue_contact": "lorem_ipsum",
+          "phone": "lorem_ipsum",
+          "email": "lorem_ipsum"
+        },
+        "spaces": [
+          {
+            "space_name": "lorem_ipsum",
+            "specifications": {
+              "table": {
+                "columns": ["Specification", "Details"],
+                "rows": [
+                  {
+                    "spec": "Dimensions (L x W x H)",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Floor Load Capacity",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Ceiling Height",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Maximum Capacity",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Power Outlets",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Internet/WiFi",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Climate Control",
+                    "details": "lorem_ipsum"
+                  },
+                  {
+                    "spec": "Accessibility",
+                    "details": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "load_in_out": {
+          "loading_dock_dimensions": "lorem_ipsum",
+          "dock_height": "lorem_ipsum",
+          "vehicle_access": "lorem_ipsum",
+          "lift_availability": "lorem_ipsum",
+          "load_in_time": "lorem_ipsum",
+          "load_out_time": "lorem_ipsum"
+        },
+        "restrictions": [
+          "lorem_ipsum",
+          "lorem_ipsum"
+        ]
+      }
+    },
+    {
+      "name": "Client Proposal",
+      "template_type": "client_proposal",
+      "industry": "Business Development",
+      "use_cases": [
+        "Project Proposals",
+        "Service Proposals",
+        "Partnership Proposals",
+        "Event Concept Docs",
+        "Pitch Documents"
+      ],
+      "example": {
+        "template_type": "client_proposal",
+        "brand": {
+          "logo_text": "lorem_ipsum",
+          "brand_color": "#000000"
+        },
+        "document_title": "PROPOSAL",
+        "proposal_details": {
+          "client_name": "lorem_ipsum",
+          "project_name": "lorem_ipsum",
+          "proposal_date": "lorem_ipsum",
+          "valid_until": "lorem_ipsum",
+          "prepared_by": "lorem_ipsum"
+        },
+        "sections": [
+          {
+            "section_title": "EXECUTIVE SUMMARY",
+            "content": "lorem_ipsum"
+          },
+          {
+            "section_title": "PROJECT OBJECTIVES",
+            "objectives": [
+              "lorem_ipsum",
+              "lorem_ipsum",
+              "lorem_ipsum"
+            ]
+          },
+          {
+            "section_title": "PROPOSED SOLUTION",
+            "content": "lorem_ipsum"
+          },
+          {
+            "section_title": "SCOPE OF WORK",
+            "deliverables": {
+              "table": {
+                "columns": ["Deliverable", "Description", "Timeline"],
+                "rows": [
+                  {
+                    "deliverable": "lorem_ipsum",
+                    "description": "lorem_ipsum",
+                    "timeline": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "section_title": "INVESTMENT",
+            "pricing": {
+              "table": {
+                "columns": ["Service", "Cost"],
+                "rows": [
+                  {
+                    "service": "lorem_ipsum",
+                    "cost": "lorem_ipsum"
+                  }
+                ]
+              }
+            },
+            "total": "lorem_ipsum"
+          },
+          {
+            "section_title": "TIMELINE",
+            "milestones": {
+              "table": {
+                "columns": ["Milestone", "Date", "Dependencies"],
+                "rows": [
+                  {
+                    "milestone": "lorem_ipsum",
+                    "date": "lorem_ipsum",
+                    "dependencies": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "terms_conditions": "lorem_ipsum",
+        "next_steps": [
+          "lorem_ipsum",
+          "lorem_ipsum"
+        ]
+      }
+    },
+    {
+      "name": "Post-Event Report",
+      "template_type": "post_event_report",
+      "industry": "Events & Analytics",
+      "use_cases": [
+        "Event Debrief Reports",
+        "Performance Analysis",
+        "Success Metrics Reports",
+        "Client Recap Documents",
+        "Lessons Learned Reports"
+      ],
+      "example": {
+        "template_type": "post_event_report",
+        "brand": {
+          "logo_text": "lorem_ipsum",
+          "brand_color": "#000000"
+        },
+        "document_title": "POST-EVENT REPORT",
+        "event_details": {
+          "event_name": "lorem_ipsum",
+          "event_date": "lorem_ipsum",
+          "venue": "lorem_ipsum",
+          "client": "lorem_ipsum",
+          "attendees": "lorem_ipsum"
+        },
+        "sections": [
+          {
+            "section_title": "EXECUTIVE SUMMARY",
+            "content": "lorem_ipsum"
+          },
+          {
+            "section_title": "KEY METRICS",
+            "metrics": {
+              "table": {
+                "columns": ["Metric", "Target", "Actual", "Variance", "Status"],
+                "rows": [
+                  {
+                    "metric": "Attendance",
+                    "target": "lorem_ipsum",
+                    "actual": "lorem_ipsum",
+                    "variance": "lorem_ipsum",
+                    "status": "lorem_ipsum"
+                  },
+                  {
+                    "metric": "Budget",
+                    "target": "lorem_ipsum",
+                    "actual": "lorem_ipsum",
+                    "variance": "lorem_ipsum",
+                    "status": "lorem_ipsum"
+                  },
+                  {
+                    "metric": "Satisfaction Score",
+                    "target": "lorem_ipsum",
+                    "actual": "lorem_ipsum",
+                    "variance": "lorem_ipsum",
+                    "status": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "section_title": "HIGHLIGHTS & SUCCESSES",
+            "highlights": [
+              "lorem_ipsum",
+              "lorem_ipsum",
+              "lorem_ipsum"
+            ]
+          },
+          {
+            "section_title": "CHALLENGES & ISSUES",
+            "issues": {
+              "table": {
+                "columns": ["Issue", "Impact", "Resolution", "Lessons Learned"],
+                "rows": [
+                  {
+                    "issue": "lorem_ipsum",
+                    "impact": "lorem_ipsum",
+                    "resolution": "lorem_ipsum",
+                    "lessons": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "section_title": "ATTENDEE FEEDBACK",
+            "feedback_summary": "lorem_ipsum",
+            "key_quotes": [
+              "lorem_ipsum",
+              "lorem_ipsum"
+            ]
+          },
+          {
+            "section_title": "RECOMMENDATIONS",
+            "recommendations": [
+              "lorem_ipsum",
+              "lorem_ipsum",
+              "lorem_ipsum"
+            ]
+          }
+        ],
+        "conclusion": "lorem_ipsum"
+      }
+    },
+    {
+      "name": "Equipment Inventory",
+      "template_type": "equipment_inventory",
+      "industry": "Operations & Asset Management",
+      "use_cases": [
+        "Equipment Check-out Forms",
+        "Asset Inventory Lists",
+        "Kit Lists",
+        "Load-in Manifests",
+        "Technical Gear Lists"
+      ],
+      "example": {
+        "template_type": "equipment_inventory",
+        "document_title": "EQUIPMENT INVENTORY",
+        "inventory_details": {
+          "project_name": "lorem_ipsum",
+          "date": "lorem_ipsum",
+          "location": "lorem_ipsum",
+          "custodian": "lorem_ipsum"
+        },
+        "categories": [
+          {
+            "category_name": "AUDIO EQUIPMENT",
+            "items": {
+              "table": {
+                "columns": [
+                  "Item Description",
+                  "Model/Brand",
+                  "Quantity",
+                  "Serial Number",
+                  "Condition",
+                  "Notes"
+                ],
+                "rows": [
+                  {
+                    "description": "lorem_ipsum",
+                    "model": "lorem_ipsum",
+                    "quantity": "lorem_ipsum",
+                    "serial": "lorem_ipsum",
+                    "condition": "lorem_ipsum",
+                    "notes": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "category_name": "LIGHTING EQUIPMENT",
+            "items": {
+              "table": {
+                "columns": [
+                  "Item Description",
+                  "Model/Brand",
+                  "Quantity",
+                  "Serial Number",
+                  "Condition",
+                  "Notes"
+                ],
+                "rows": [
+                  {
+                    "description": "lorem_ipsum",
+                    "model": "lorem_ipsum",
+                    "quantity": "lorem_ipsum",
+                    "serial": "lorem_ipsum",
+                    "condition": "lorem_ipsum",
+                    "notes": "lorem_ipsum"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "sign_off": {
+          "checked_out_by": {
+            "name": "________________",
+            "date": "________________",
+            "signature": "________________"
+          },
+          "returned_by": {
+            "name": "________________",
+            "date": "________________",
+            "signature": "________________"
+          }
+        }
+      }
+    }
+  ]
+}

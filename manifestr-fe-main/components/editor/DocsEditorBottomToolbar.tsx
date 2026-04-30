@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import ToolPanel from "./panels/docs-editor/ToolPanel";
-import { Sparkles, Type, Plus, PanelBottomOpen, Link2, MessageSquare, Wand2, Palette } from "lucide-react";
+import {
+  Sparkles,
+  Type,
+  Plus,
+  PanelBottomOpen,
+  Link2,
+  MessageSquare,
+  Wand2,
+  Palette,
+} from "lucide-react";
 
 interface DocsEditorBottomToolbarProps {
   store?: any;
@@ -10,16 +19,25 @@ interface DocsEditorBottomToolbarProps {
   setActiveTool?: (tool: string | null) => void;
 }
 
-export default function DocsEditorBottomToolbar({ store, editor, onInsertTheme, activeTool: externalActiveTool, setActiveTool: externalSetActiveTool }: DocsEditorBottomToolbarProps) {
-  const [internalActiveTool, setInternalActiveTool] = useState<string | null>("format");
-  
+export default function DocsEditorBottomToolbar({
+  store,
+  editor,
+  onInsertTheme,
+  activeTool: externalActiveTool,
+  setActiveTool: externalSetActiveTool,
+}: DocsEditorBottomToolbarProps) {
+  const [internalActiveTool, setInternalActiveTool] = useState<string | null>(
+    "format",
+  );
+
   // Use external state if provided, otherwise use internal state
-  const activeTool = externalActiveTool !== undefined ? externalActiveTool : internalActiveTool;
+  const activeTool =
+    externalActiveTool !== undefined ? externalActiveTool : internalActiveTool;
   const setActiveTool = externalSetActiveTool || setInternalActiveTool;
-  
+
   // Log editor availability for debugging
-  console.log('📋 DocsEditorBottomToolbar - editor available:', !!editor);
-  console.log('📋 DocsEditorBottomToolbar - editor type:', typeof editor);
+  console.log("📋 DocsEditorBottomToolbar - editor available:", !!editor);
+  console.log("📋 DocsEditorBottomToolbar - editor type:", typeof editor);
 
   const tools = [
     {
@@ -78,12 +96,23 @@ export default function DocsEditorBottomToolbar({ store, editor, onInsertTheme, 
       {activeTool && (
         <>
           {!editor && activeTool === "ai-prompt" && (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+            <div
+              className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
+              role="alert"
+            >
               <p className="font-bold">Editor Loading...</p>
-              <p>Please wait for the editor to fully load before using AI Prompter.</p>
+              <p>
+                Please wait for the editor to fully load before using AI
+                Prompter.
+              </p>
             </div>
           )}
-          <ToolPanel activeTool={activeTool} store={editor} editor={editor} />
+          <ToolPanel 
+            activeTool={activeTool} 
+            store={editor} 
+            editor={editor} 
+            setActiveTool={setActiveTool}
+          />
         </>
       )}
 
@@ -91,25 +120,25 @@ export default function DocsEditorBottomToolbar({ store, editor, onInsertTheme, 
       <div className="bg-[#3a3a3a] flex items-center gap-2 pl-6 h-[60px]">
         {tools.map((tool) => {
           const isActive = activeTool === tool.id;
-          
+
           return (
             <button
               key={tool.id}
               onClick={() => handleToolClick(tool.id)}
               className={`flex items-center gap-2 h-9 px-4 rounded-md transition-all ${
-                isActive
-                  ? "bg-white shadow-sm"
-                  : "hover:bg-[#4a4a4a]"
+                isActive ? "bg-white shadow-sm" : "hover:bg-[#4a4a4a]"
               }`}
             >
               <tool.icon
-                className="size-4" 
+                className="size-4"
                 stroke={isActive ? "#101828" : "#d1d5dc"}
-                strokeWidth={1.5} 
+                strokeWidth={1.5}
               />
-              <p className={`font-inter font-normal text-sm leading-5 tracking-[-0.15px] whitespace-nowrap ${
-                isActive ? "text-[#101828]" : "text-[#d1d5dc]"
-              }`}>
+              <p
+                className={`font-inter font-normal text-sm leading-5 tracking-[-0.15px] whitespace-nowrap ${
+                  isActive ? "text-[#101828]" : "text-[#d1d5dc]"
+                }`}
+              >
                 {tool.label}
               </p>
             </button>

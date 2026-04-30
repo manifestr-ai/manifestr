@@ -1,23 +1,37 @@
 import React, { useState } from "react";
-import { List, RefreshCw, FileDown, FileUp, ChevronDown, Quote, BookMarked, Book, FileText, Link, ListOrdered } from "lucide-react";
+import {
+  List,
+  RefreshCw,
+  FileDown,
+  FileUp,
+  ChevronDown,
+  Quote,
+  BookMarked,
+  Book,
+  FileText,
+  Link,
+  ListOrdered,
+} from "lucide-react";
 
 interface ReferencesPanelProps {
   store?: any;
   editor?: any;
 }
 
-export default function ReferencesPanel({ store, editor }: ReferencesPanelProps) {
-
+export default function ReferencesPanel({
+  store,
+  editor,
+}: ReferencesPanelProps) {
   const [citationStyle, setCitationStyle] = useState("APA");
   const [toast, setToast] = useState<string | null>(null);
   const [footnoteCount, setFootnoteCount] = useState(1);
   const [endnoteCount, setEndnoteCount] = useState(1);
-  
+
   // Modal states
   const [showCitationModal, setShowCitationModal] = useState(false);
   const [showCaptionModal, setShowCaptionModal] = useState(false);
   const [showCrossRefModal, setShowCrossRefModal] = useState(false);
-  
+
   // Form states
   const [citationAuthor, setCitationAuthor] = useState("");
   const [citationYear, setCitationYear] = useState("");
@@ -33,29 +47,32 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
   // Generate Table of Contents
   const handleInsertTOC = () => {
     if (!editor) return;
-    
-    const doc = editor.state.doc;
-    let tocContent = '<div style="border: 2px solid #e5e7eb; padding: 16px; border-radius: 8px; margin: 16px 0;"><h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">Table of Contents</h2><ul style="list-style: none; padding: 0; margin: 0;">';
-    
-    doc.descendants((node, pos) => {
-      if (node.type.name === 'heading') {
-        const level = node.attrs.level || 1;
-        const text = node.textContent;
-        const indent = (level - 1) * 20;
-        tocContent += `<li style="margin-left: ${indent}px; padding: 4px 0;"><a href="#" style="color: #3b82f6; text-decoration: none;">${text}</a></li>`;
-      }
+
+    // Find all headings in the document
+    const editorElement = document.querySelector(".ProseMirror") as HTMLElement;
+    if (!editorElement) return;
+
+    const headings = editorElement.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    let tocContent =
+      '<div style="border: 2px solid #e5e7eb; padding: 16px; border-radius: 8px; margin: 16px 0;"><h2 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700;">Table of Contents</h2><ul style="list-style: none; padding: 0; margin: 0;">';
+
+    headings.forEach((heading) => {
+      const level = parseInt(heading.tagName.substring(1));
+      const text = heading.textContent || "";
+      const indent = (level - 1) * 20;
+      tocContent += `<li style="margin-left: ${indent}px; padding: 4px 0;"><a href="#" style="color: #3b82f6; text-decoration: none;">${text}</a></li>`;
     });
-    
-    tocContent += '</ul></div>';
-    
+
+    tocContent += "</ul></div>";
+
     editor.chain().focus().insertContent(tocContent).run();
-    showToast('Table of Contents inserted');
+    showToast("Table of Contents inserted");
   };
 
   // Update TOC
   const handleUpdateTOC = () => {
     if (!editor) return;
-    showToast('Table of Contents updated');
+    showToast("Table of Contents updated");
   };
 
   // Insert Footnote
@@ -84,19 +101,19 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
 
   const submitCitation = () => {
     if (!editor || !citationAuthor || !citationYear) return;
-    
-    let citation = '';
-    switch(citationStyle) {
-      case 'APA':
+
+    let citation = "";
+    switch (citationStyle) {
+      case "APA":
         citation = `(${citationAuthor}, ${citationYear})`;
         break;
-      case 'MLA':
+      case "MLA":
         citation = `(${citationAuthor})`;
         break;
-      case 'Chicago':
+      case "Chicago":
         citation = `${citationAuthor}, ${citationYear}`;
         break;
-      case 'Harvard':
+      case "Harvard":
         citation = `(${citationAuthor} ${citationYear})`;
         break;
       default:
@@ -112,7 +129,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
   // Manage Sources
   const handleManageSources = () => {
     if (!editor) return;
-    showToast('Sources manager opened');
+    showToast("Sources manager opened");
   };
 
   // Insert Bibliography
@@ -125,7 +142,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
       </div>
     `;
     editor.chain().focus().insertContent(bibliography).run();
-    showToast('Bibliography section inserted');
+    showToast("Bibliography section inserted");
   };
 
   // Insert Caption
@@ -138,7 +155,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
     if (!editor || !captionText) return;
     const captionHTML = `<p style="font-style: italic; color: #6b7280; font-size: 14px; margin-top: 8px;">Figure: ${captionText}</p>`;
     editor.chain().focus().insertContent(captionHTML).run();
-    showToast('Caption inserted');
+    showToast("Caption inserted");
     setShowCaptionModal(false);
     setCaptionText("");
   };
@@ -153,7 +170,7 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
     if (!editor || !crossRefText) return;
     const crossRef = `<span style="color: #3b82f6; font-weight: 500;">${crossRefText}</span>`;
     editor.chain().focus().insertContent(crossRef).run();
-    showToast('Cross-reference inserted');
+    showToast("Cross-reference inserted");
     setShowCrossRefModal(false);
     setCrossRefText("");
   };
@@ -168,13 +185,13 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
       </div>
     `;
     editor.chain().focus().insertContent(index).run();
-    showToast('Index section inserted');
+    showToast("Index section inserted");
   };
 
   // Update Index
   const handleUpdateIndex = () => {
     if (!editor) return;
-    showToast('Index updated');
+    showToast("Index updated");
   };
 
   return (
@@ -188,12 +205,22 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
 
       {/* Citation Modal */}
       {showCitationModal && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50" onClick={() => setShowCitationModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Insert Citation ({citationStyle})</h3>
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50"
+          onClick={() => setShowCitationModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              Insert Citation ({citationStyle})
+            </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Author Name</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Author Name
+                </label>
                 <input
                   type="text"
                   value={citationAuthor}
@@ -204,7 +231,9 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Year</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Year
+                </label>
                 <input
                   type="text"
                   value={citationYear}
@@ -238,11 +267,21 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
 
       {/* Caption Modal */}
       {showCaptionModal && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50" onClick={() => setShowCaptionModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Insert Caption</h3>
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50"
+          onClick={() => setShowCaptionModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              Insert Caption
+            </h3>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Caption Text</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Caption Text
+              </label>
               <input
                 type="text"
                 value={captionText}
@@ -275,11 +314,21 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
 
       {/* Cross Reference Modal */}
       {showCrossRefModal && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50" onClick={() => setShowCrossRefModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Insert Cross Reference</h3>
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50"
+          onClick={() => setShowCrossRefModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              Insert Cross Reference
+            </h3>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Reference Text</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Reference Text
+              </label>
               <input
                 type="text"
                 value={crossRefText}
@@ -316,23 +365,31 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
           Table of Contents
         </p>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleInsertTOC}
             className="border border-transparent h-[55px] w-[78px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <List className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <List
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Insert TOC
               </p>
             </div>
           </button>
-          <button 
+          <button
             onClick={handleUpdateTOC}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <RefreshCw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <RefreshCw
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Update
               </p>
@@ -350,23 +407,31 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
           Notes
         </p>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleInsertFootnote}
             className="border border-transparent h-[55px] w-[75px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <FileDown className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <FileDown
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Footnote
               </p>
             </div>
           </button>
-          <button 
+          <button
             onClick={handleInsertEndnote}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <FileUp className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <FileUp
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Endnote
               </p>
@@ -398,36 +463,52 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
               <option>Chicago</option>
               <option>Harvard</option>
             </select>
-            <ChevronDown className="absolute right-3 top-[11px] size-3 pointer-events-none" stroke="#364153" strokeWidth={1.5} />
+            <ChevronDown
+              className="absolute right-3 top-[11px] size-3 pointer-events-none"
+              stroke="#364153"
+              strokeWidth={1.5}
+            />
           </div>
-          <button 
+          <button
             onClick={handleInsertCitation}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <Quote className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <Quote
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Citation
               </p>
             </div>
           </button>
-          <button 
+          <button
             onClick={handleManageSources}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <BookMarked className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <BookMarked
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Sources
               </p>
             </div>
           </button>
-          <button 
+          <button
             onClick={handleInsertBibliography}
             className="border border-transparent h-[55px] w-[86px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <Book className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <Book
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Bibliography
               </p>
@@ -445,23 +526,31 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
           Captions & References
         </p>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleInsertCaption}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <FileText className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <FileText
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Caption
               </p>
             </div>
           </button>
-          <button 
+          <button
             onClick={handleInsertCrossRef}
             className="border border-transparent h-[55px] w-[78px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <Link className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <Link
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Cross-ref
               </p>
@@ -479,23 +568,31 @@ export default function ReferencesPanel({ store, editor }: ReferencesPanelProps)
           Index
         </p>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleInsertIndex}
             className="border border-transparent h-[55px] w-[82px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <ListOrdered className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <ListOrdered
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Insert Index
               </p>
             </div>
           </button>
-          <button 
+          <button
             onClick={handleUpdateIndex}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
             <div className="flex flex-col gap-1 items-center justify-center h-full">
-              <RefreshCw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <RefreshCw
+                className="size-[18px]"
+                stroke="#364153"
+                strokeWidth={1.5}
+              />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Update
               </p>

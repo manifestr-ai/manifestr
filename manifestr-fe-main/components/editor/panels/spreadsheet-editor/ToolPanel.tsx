@@ -12,9 +12,10 @@ interface ToolPanelProps {
   activeTool: string;
   store: any;
   setActiveTool?: (tool: any) => void;
+  generationId?: string;
 }
 
-export default function ToolPanel({ activeTool, store, setActiveTool }: ToolPanelProps) {
+export default function ToolPanel({ activeTool, store, setActiveTool, generationId }: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
@@ -24,6 +25,7 @@ export default function ToolPanel({ activeTool, store, setActiveTool }: ToolPane
           store={store} 
           editorType="spreadsheet"
           onClose={() => setActiveTool?.(null)}
+          generationId={generationId}
         />
       );
 
