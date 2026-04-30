@@ -216,6 +216,7 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // google login
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
