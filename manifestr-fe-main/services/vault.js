@@ -1,5 +1,5 @@
-import api from '../lib/api';
-import { API_BASE_URL, ENDPOINTS } from './config';
+import api from "../lib/api";
+import { API_BASE_URL, ENDPOINTS } from "./config";
 
 /**
  * List Vault items (files and folders)
@@ -9,11 +9,11 @@ import { API_BASE_URL, ENDPOINTS } from './config';
  * @returns {Promise<{data: Array, meta: Object}>}
  */
 export const listVaultItems = async (params = {}) => {
-    const response = await api.get(ENDPOINTS.VAULTS.LIST, {
-        params,
-        baseURL: API_BASE_URL,
-    });
-    return response.data;
+  const response = await api.get(ENDPOINTS.VAULTS.LIST, {
+    params,
+    baseURL: API_BASE_URL,
+  });
+  return response.data;
 };
 
 /**
@@ -25,10 +25,10 @@ export const listVaultItems = async (params = {}) => {
  * @returns {Promise<Object>} Created folder object
  */
 export const createFolder = async (data) => {
-    const response = await api.post(ENDPOINTS.VAULTS.CREATE_FOLDER, data, {
-        baseURL: API_BASE_URL,
-    });
-    return response.data;
+  const response = await api.post(ENDPOINTS.VAULTS.CREATE_FOLDER, data, {
+    baseURL: API_BASE_URL,
+  });
+  return response.data;
 };
 
 /**
@@ -44,10 +44,10 @@ export const createFolder = async (data) => {
  * @returns {Promise<Object>} Created file item object
  */
 export const createFileItem = async (data) => {
-    const response = await api.post(ENDPOINTS.VAULTS.CREATE_FILE, data, {
-        baseURL: API_BASE_URL,
-    });
-    return response.data;
+  const response = await api.post(ENDPOINTS.VAULTS.CREATE_FILE, data, {
+    baseURL: API_BASE_URL,
+  });
+  return response.data;
 };
 
 /**
@@ -57,10 +57,10 @@ export const createFileItem = async (data) => {
  * @returns {Promise<Object>} Updated item object
  */
 export const updateVaultItem = async (id, data) => {
-    const response = await api.patch(ENDPOINTS.VAULTS.UPDATE(id), data, {
-        baseURL: API_BASE_URL,
-    });
-    return response.data;
+  const response = await api.patch(ENDPOINTS.VAULTS.UPDATE(id), data, {
+    baseURL: API_BASE_URL,
+  });
+  return response.data;
 };
 
 /**
@@ -69,7 +69,44 @@ export const updateVaultItem = async (id, data) => {
  * @returns {Promise<void>}
  */
 export const deleteVaultItem = async (id) => {
-    await api.delete(ENDPOINTS.VAULTS.DELETE(id), {
-        baseURL: API_BASE_URL,
-    });
+  await api.delete(ENDPOINTS.VAULTS.DELETE(id), {
+    baseURL: API_BASE_URL,
+  });
 };
+
+/**
+ * Create a new folder in the Vault
+ */
+export const createVaultFolder = async (data) => {
+  const response = await api.post(ENDPOINTS.VAULTS.CREATE_FOLDER, data, {
+    baseURL: API_BASE_URL,
+  });
+  return response.data;
+};
+
+/**
+ * Get all folders
+ */
+export const listFolders = async () => {
+  const response = await api.get(ENDPOINTS.VAULTS.LIST_FOLDERS, {
+    baseURL: API_BASE_URL,
+  });
+  return response.data;
+};
+
+/**
+ * Get only folders from vault
+ */
+// export const listVaultFolders = async (params = {}) => {
+//   const response = await api.get(ENDPOINTS.VAULTS.LIST, {
+//     params,
+//     baseURL: API_BASE_URL,
+//   });
+
+//   // filter folders only
+//   const folders = (response.data.data || []).filter(
+//     (item) => item.type === "folder",
+//   );
+
+//   return folders;
+// };
