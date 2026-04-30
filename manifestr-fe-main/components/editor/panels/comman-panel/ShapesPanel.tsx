@@ -4,7 +4,7 @@ interface ShapesPanelProps {
   store: any;
 }
 
-type ShapeConfig = {
+export type ShapeConfig = {
   name: string;
   width: number;
   height: number;
@@ -24,7 +24,7 @@ type ShapeConfig = {
   cornerRadius?: number;
 };
 
-const shapeConfigs: ShapeConfig[] = [
+export const shapeConfigs: ShapeConfig[] = [
   {
     name: "Rectangle",
     width: 220,
