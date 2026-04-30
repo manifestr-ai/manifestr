@@ -118,7 +118,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
   }
 
   return (
-    <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}>
+    <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: '#F4F4F5' }}>
       {/* Left sidebar — Figma 9509:11698 (MCP): 256px wide, px-16 pt-32, item gap 8px, 40px rows, 16/Semibold/24 */}
       <div className="hidden lg:flex lg:flex-col lg:items-start fixed top-[72px] left-0 w-[256px] h-[calc(100vh-72px)] box-border bg-[var(--base-background,#FFF)] border-r border-[color:var(--base-border,#E4E4E7)] z-40">
         <div className="w-full flex flex-col items-start px-4 pt-8 pb-8 shrink-0">
@@ -498,7 +498,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
       {/* Footer */}
       <div
         className="fixed bottom-0 left-0 lg:left-[256px] right-0 px-4 md:px-8 py-4 z-50"
-        style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}
+        style={{ backgroundColor: '#F4F4F5' }}
       >
         <div className="max-w-[1280px] mx-auto">
           <div className="h-px bg-[#e4e4e7] mx-[5px] mb-4" />
