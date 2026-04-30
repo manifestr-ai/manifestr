@@ -14,14 +14,16 @@ import {
   X,
 } from "lucide-react";
 import useAiPrompter, { PromptHistoryItem } from "../../../../hooks/useAiPrompter";
+import api from "../../../../lib/api";
 
 interface AiPrompterPanelProps {
   store: any;
   editorType?: 'image' | 'document' | 'spreadsheet' | 'presentation' | 'chart';
   onClose?: () => void;
+  generationId?: string;
 }
 
-export default function AiPrompterPanel({ store, editorType = 'image', onClose }: AiPrompterPanelProps) {
+export default function AiPrompterPanel({ store, editorType = 'image', onClose, generationId }: AiPrompterPanelProps) {
   const [activeTab, setActiveTab] = useState("Freestyle");
   const [mode, setMode] = useState("Prompt Mode");
   const [isRecording, setIsRecording] = useState(false);
@@ -311,11 +313,14 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose }
         try {
           // The store is the univerAPI object
           if (store.getActiveWorkbook && store.disposeUnit && store.createWorkbook) {
-            // Get current workbook to get its ID
+            console.log('🔄 Updating spreadsheet with AI-generated data...');
+            
+            // Get current workbook
             const currentWorkbook = store.getActiveWorkbook();
             
-            if (currentWorkbook) {
-              const workbookId = currentWorkbook.getUnitId();
+            if (currentWorkbook && typeof currentWorkbook.getId === 'function') {
+              // Get workbook ID using the correct method
+              const workbookId = currentWorkbook.getId();
               console.log('📋 Current workbook ID:', workbookId);
               console.log('📋 Disposing current workbook...');
               
@@ -324,42 +329,84 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose }
               console.log('✅ Workbook disposed');
               
               // Small delay to ensure disposal is complete
-              await new Promise(resolve => setTimeout(resolve, 100));
+              await new Promise(resolve => setTimeout(resolve, 50));
               
-              // Create new workbook with updated data
-              console.log('📋 Creating new workbook with AI-modified data...');
-              const newWorkbook = store.createWorkbook(result.spreadsheetData);
+              // Create new workbook with AI-generated data
+              console.log('📋 Creating new workbook with AI-generated data...');
+              console.log('📋 Data keys:', Object.keys(result.spreadsheetData || {}));
+              
+              store.createWorkbook(result.spreadsheetData);
               
               // Verify new workbook was created
-              await new Promise(resolve => setTimeout(resolve, 200));
+              await new Promise(resolve => setTimeout(resolve, 100));
               const verifyWorkbook = store.getActiveWorkbook();
               
               if (verifyWorkbook) {
                 console.log('✅ New workbook created successfully!');
-                console.log('✅ New workbook ID:', verifyWorkbook.getUnitId());
-                console.log('✅ Spreadsheet updated! Changes should be visible now.');
+                console.log('✅ New workbook ID:', verifyWorkbook.getId ? verifyWorkbook.getId() : 'Unknown');
+                console.log('✅ Spreadsheet updated immediately! Changes are now visible.');
+                
+                // Show success message
+                console.log('🎉 AI-generated spreadsheet is now displayed!');
+                
+                // Auto-save to database if generationId is available
+                if (generationId) {
+                  console.log('💾 Auto-saving AI-generated spreadsheet to database...');
+                  try {
+                    const saveData = typeof verifyWorkbook.save === 'function' 
+                      ? verifyWorkbook.save() 
+                      : result.spreadsheetData;
+                    
+                    await api.patch(`/ai/generation/${generationId}`, {
+                      content: saveData
+                    });
+                    
+                    console.log('✅ AI-generated spreadsheet saved to database!');
+                    console.log('🎉 Your changes are now persisted and will be available on reload!');
+                  } catch (saveError) {
+                    console.error('❌ Error saving to database:', saveError);
+                    console.log('💡 Spreadsheet is displayed but not saved. Try manual save or refresh.');
+                  }
+                } else {
+                  console.log('ℹ️ No generation ID available, skipping database save');
+                  console.log('💡 Create a saved document to enable persistence');
+                }
               } else {
                 console.error('❌ Failed to create new workbook');
+                console.warn('💡 Refresh the page to see the updated spreadsheet');
               }
             } else {
-              console.warn('⚠️ No active workbook to replace');
+              console.warn('⚠️ No active workbook found or getId() method not available');
+              console.log('💡 Trying direct creation...');
+              
+              // Try direct creation without disposal
+              try {
+                store.createWorkbook(result.spreadsheetData);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                console.log('✅ Spreadsheet created directly');
+              } catch (directError) {
+                console.error('❌ Direct creation failed:', directError);
+              }
             }
           } else if (store.setData) {
-            // Fallback 1
+            // Fallback 1: setData method
+            console.log('📋 Using setData() method...');
             store.setData(result.spreadsheetData);
             console.log('✅ Spreadsheet updated via setData()');
           } else if (store.loadData) {
-            // Fallback 2
+            // Fallback 2: loadData method
+            console.log('📋 Using loadData() method...');
             store.loadData(result.spreadsheetData);
             console.log('✅ Spreadsheet updated via loadData()');
           } else {
             console.warn('⚠️ Could not find method to update spreadsheet data');
-            console.log('💡 Available methods:', Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 20));
-            console.log('💡 Consider refreshing the page to see updated spreadsheet');
+            console.log('💡 Available methods:', Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 30));
+            console.log('💡 Refresh the page to see the AI-generated spreadsheet');
           }
         } catch (updateError) {
           console.error('❌ Error updating spreadsheet:', updateError);
-          console.log('💡 Consider refreshing the page to see updated spreadsheet');
+          console.error('❌ Error details:', updateError.message || updateError);
+          console.log('💡 Refresh the page to see the AI-generated spreadsheet');
         }
       }
     } catch (error) {

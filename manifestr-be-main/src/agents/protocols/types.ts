@@ -127,6 +127,7 @@ export const RenderResponseSchema = z.object({
     outputFormat: z.enum(["presentation", "document", "spreadsheet", "image"]),
     finalUrl: z.string().url().optional(), // S3 URL
     editorState: z.any(), // The huge JSON for Polotno/Tiptap/Univer
+    docxUrl: z.string().url().optional(), // Download link for Word document
     tokensUsed: z.number(),
     status: z.enum(["success", "failed"]),
 });

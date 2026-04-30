@@ -6,7 +6,7 @@ import { supabaseAdmin } from '../lib/supabase';
 import { AIOrchestrator } from '../services/ai-orchestrator.service';
 import { UserPromptSchema } from '../agents/protocols/types';
 import { v4 as uuidv4 } from 'uuid';
-import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import { authenticateToken, optionalAuth, AuthRequest } from '../middleware/auth.middleware';
 
 export class AIController extends BaseController {
     public basePath = '/ai';
@@ -41,8 +41,8 @@ export class AIController extends BaseController {
             { verb: 'DELETE', path: '/generation/:id', handler: this.deleteGeneration, middlewares: [authenticateToken] },
             { verb: 'POST', path: '/restore/:documentId', handler: this.restoreDocument, middlewares: [authenticateToken] },
             { verb: 'GET', path: '/deleted', handler: this.getDeletedDocuments, middlewares: [authenticateToken] },
-            { verb: 'GET', path: '/generation/:id', handler: this.getGenerationDetails, middlewares: [authenticateToken] },
-            { verb: 'PATCH', path: '/generation/:id', handler: this.updateGeneration, middlewares: [authenticateToken] },
+            { verb: 'GET', path: '/generation/:id', handler: this.getGenerationDetails, middlewares: [optionalAuth] },
+            { verb: 'PATCH', path: '/generation/:id', handler: this.updateGeneration, middlewares: [optionalAuth] },
         ];
     }
 
