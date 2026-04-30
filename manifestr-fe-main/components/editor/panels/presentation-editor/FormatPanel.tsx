@@ -36,6 +36,17 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
   );
   const isChart = selected?.type === "image" && !!chartSpec;
 
+  const setSelected = (payload: Record<string, any>) => {
+    if (!selected || typeof selected.set !== "function") return;
+    selected.set(payload);
+  };
+
+  const setSelectedText = (payload: Record<string, any>) => {
+    if (!selected || selected.type !== "text" || typeof selected.set !== "function")
+      return;
+    selected.set(payload);
+  };
+
   const [draftChartSpec, setDraftChartSpec] = useState<PresentationChartSpec | null>(
     null,
   );
@@ -521,7 +532,7 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
               </button>
               <select
                 value={fontFamily}
-                onChange={(e) => selected.set({ fontFamily: e.target.value })}
+                onChange={(e) => setSelectedText({ fontFamily: e.target.value })}
                 className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                 style={{ fontFamily }}
               >
@@ -584,7 +595,7 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
               <select
                 value={fontSize}
                 onChange={(e) =>
-                  selected.set({ fontSize: Number(e.target.value) })
+                  setSelectedText({ fontSize: Number(e.target.value) })
                 }
                 className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                 style={{ fontFamily: "Inter" }}
@@ -608,7 +619,7 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
           {/* Bold */}
           <button
             onClick={() =>
-              selected.set({
+              setSelectedText({
                 fontWeight: fontWeight === "bold" ? "normal" : "bold",
               })
             }
@@ -639,7 +650,7 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
           {/* Italic */}
           <button
             onClick={() =>
-              selected.set({
+              setSelectedText({
                 fontStyle: fontStyle === "italic" ? "normal" : "italic",
               })
             }
@@ -686,7 +697,7 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
           {/* Underline */}
           <button
             onClick={() =>
-              selected.set({
+              setSelectedText({
                 textDecoration:
                   textDecorLine === "underline" ? "none" : "underline",
               })
@@ -768,7 +779,7 @@ export default observer(function FormatPanel({ store }: FormatPanelProps) {
               <input
                 type="color"
                 value={fill}
-                onChange={(e) => selected.set({ fill: e.target.value })}
+                onChange={(e) => setSelected({ fill: e.target.value })}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
             </div>

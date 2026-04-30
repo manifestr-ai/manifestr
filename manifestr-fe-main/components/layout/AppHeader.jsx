@@ -63,7 +63,7 @@ export default function AppHeader({ showRightActions = true }) {
 
   return (
     <>
-      <header className="bg-white border-b border-transparent fixed top-0 left-0 right-0 z-[100] h-[72px]">
+      <header className="bg-[var(--base-background,#FFF)] border-b border-[color:var(--base-border,#E4E4E7)] fixed top-0 left-0 right-0 z-[100] h-[72px]">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 h-full">
           <div className="flex items-center justify-between h-full">
             {/* Left Section: Logo + Navigation */}

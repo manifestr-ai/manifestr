@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FileText, Palette, Droplet, Grid3x3, Layers, Square, Sparkles, Droplets } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { FileText, Palette, Droplet, Grid3x3, Layers, Square, Sparkles, Droplets, RotateCcw, X } from "lucide-react";
 
 interface StylePanelProps {
   store?: any;
@@ -16,6 +16,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
   const [showPatternModal, setShowPatternModal] = useState(false);
   const [bgColor, setBgColor] = useState("#ffffff");
   const [currentTheme, setCurrentTheme] = useState("default");
+  const [activeEffectPicker, setActiveEffectPicker] = useState<null | "shadow" | "outline" | "glow" | "gradient">(null);
 
   // Toast notification helper
   const showToast = (message: string) => {
@@ -162,68 +163,424 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
     }
   };
 
-  // Text Effects - Shadow
-  const handleShadow = () => {
+  type EffectKind = "shadow" | "outline" | "glow" | "gradient";
+  type EffectPreset = string;
+
+  const focusEditor = () => {
     if (!editor) return;
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      showToast('Select text to apply shadow');
+    try {
+      if (typeof editor?.chain === "function") {
+        const chain = editor.chain();
+        if (typeof chain?.focus === "function") {
+          const maybe = chain.focus();
+          if (maybe && typeof maybe.run === "function") maybe.run();
+          return;
+        }
+      }
+    } catch {}
+
+    const el = document.querySelector(".ProseMirror") as HTMLElement | null;
+    el?.focus?.();
+  };
+
+  const getOutlineParts = (p: string) => {
+    const parsed = String(p || "").toLowerCase();
+    const color =
+      parsed.includes("white") ? "#ffffff" : parsed.includes("blue") ? "#2563eb" : "#000000";
+    const w = parsed.includes("thick") ? 3 : parsed.includes("medium") ? 2 : 1;
+    return { w, color };
+  };
+
+  const getGlowColor = (p: string) => {
+    const parsed = String(p || "").toLowerCase();
+    if (parsed.includes("cyan")) return "#06b6d4";
+    if (parsed.includes("green")) return "#22c55e";
+    if (parsed.includes("pink")) return "#ec4899";
+    if (parsed.includes("purple")) return "#8b5cf6";
+    if (parsed.includes("orange")) return "#f97316";
+    return "#3b82f6";
+  };
+
+  const getGradient = (p: string) => {
+    const parsed = String(p || "").toLowerCase();
+    if (parsed.includes("ocean")) return "linear-gradient(to right, #06b6d4, #2563eb)";
+    if (parsed.includes("purple")) return "linear-gradient(to right, #ec4899, #8b5cf6)";
+    if (parsed.includes("lime")) return "linear-gradient(to right, #a3e635, #22c55e)";
+    if (parsed.includes("fire")) return "linear-gradient(to right, #f97316, #dc2626)";
+    if (parsed.includes("neon")) return "linear-gradient(to right, #22c55e, #06b6d4, #2563eb)";
+    return "linear-gradient(to right, #f97316, #dc2626)";
+  };
+
+  const getShadow = (p: string) => {
+    const parsed = String(p || "").toLowerCase();
+    if (parsed.includes("subtle")) return "0 1px 1px rgba(0,0,0,0.18)";
+    if (parsed.includes("medium")) return "2px 4px 8px rgba(0,0,0,0.28)";
+    if (parsed.includes("hard")) return "3px 3px 0 rgba(0,0,0,0.35)";
+    if (parsed.includes("long")) return "0 10px 14px rgba(0,0,0,0.28)";
+    if (parsed.includes("dramatic")) return "0 18px 24px rgba(0,0,0,0.35)";
+    return "1px 2px 4px rgba(0,0,0,0.25)";
+  };
+
+  const applyTextEffectDOM = (kind: EffectKind, preset: EffectPreset) => {
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return false;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    const range = selection.getRangeAt(0);
+    if (range.collapsed) return false;
+
+    const anchorEl =
+      (selection.anchorNode &&
+        (selection.anchorNode.nodeType === Node.ELEMENT_NODE
+          ? (selection.anchorNode as HTMLElement)
+          : (selection.anchorNode as any).parentElement)) ||
+      null;
+    if (!anchorEl || !root.contains(anchorEl)) return false;
+
+    const existing = anchorEl.closest?.(`span[data-doc-effect="${kind}"]`) as HTMLElement | null;
+    const wrapper = existing && root.contains(existing) ? existing : document.createElement("span");
+    wrapper.setAttribute("data-doc-effect", kind);
+    wrapper.setAttribute("data-doc-effect-preset", preset);
+
+    const applyStyles = () => {
+      wrapper.style.textShadow = "";
+      wrapper.style.fontWeight = "";
+      wrapper.style.color = "";
+      wrapper.style.background = "";
+      (wrapper.style as any).webkitBackgroundClip = "";
+      wrapper.style.backgroundClip = "";
+      (wrapper.style as any).webkitTextFillColor = "";
+
+      if (kind === "shadow") {
+        wrapper.style.textShadow = getShadow(preset);
+      } else if (kind === "outline") {
+        const { w, color } = getOutlineParts(preset);
+        wrapper.style.textShadow = [
+          `-${w}px -${w}px 0 ${color}`,
+          `${w}px -${w}px 0 ${color}`,
+          `-${w}px ${w}px 0 ${color}`,
+          `${w}px ${w}px 0 ${color}`,
+        ].join(", ");
+        wrapper.style.fontWeight = "700";
+      } else if (kind === "glow") {
+        const color = getGlowColor(preset);
+        wrapper.style.textShadow = `0 0 8px ${color}, 0 0 18px ${color}`;
+        wrapper.style.color = color;
+        wrapper.style.fontWeight = "600";
+      } else if (kind === "gradient") {
+        const gradient = getGradient(preset);
+        wrapper.style.background = gradient;
+        (wrapper.style as any).webkitBackgroundClip = "text";
+        wrapper.style.backgroundClip = "text";
+        (wrapper.style as any).webkitTextFillColor = "transparent";
+        wrapper.style.color = "transparent";
+        wrapper.style.fontWeight = "700";
+      }
+    };
+
+    applyStyles();
+
+    if (existing && root.contains(existing)) {
+      return true;
+    }
+
+    const frag = range.extractContents();
+    wrapper.appendChild(frag);
+    range.insertNode(wrapper);
+    selection.removeAllRanges();
+    const nextRange = document.createRange();
+    nextRange.selectNodeContents(wrapper);
+    nextRange.collapse(false);
+    selection.addRange(nextRange);
+    return true;
+  };
+
+  const removeEffectDOM = (kind: EffectKind) => {
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return false;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    const range = selection.getRangeAt(0);
+
+    const anchorEl =
+      (selection.anchorNode &&
+        (selection.anchorNode.nodeType === Node.ELEMENT_NODE
+          ? (selection.anchorNode as HTMLElement)
+          : (selection.anchorNode as any).parentElement)) ||
+      null;
+    if (!anchorEl || !root.contains(anchorEl)) return false;
+
+    const direct = anchorEl.closest?.(`span[data-doc-effect="${kind}"]`) as HTMLElement | null;
+    if (direct && root.contains(direct)) {
+      const parent = direct.parentNode;
+      if (!parent) return true;
+      while (direct.firstChild) parent.insertBefore(direct.firstChild, direct);
+      parent.removeChild(direct);
+      root.normalize();
+      return true;
+    }
+
+    if (range.collapsed) return false;
+
+    const container =
+      (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+        ? (range.commonAncestorContainer as HTMLElement)
+        : range.commonAncestorContainer.parentElement) || root;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+      acceptNode: (n: Node) => {
+        const el = n as HTMLElement;
+        if (el.tagName !== "SPAN") return NodeFilter.FILTER_SKIP;
+        if (el.getAttribute("data-doc-effect") !== kind) return NodeFilter.FILTER_SKIP;
+        try {
+          const elRange = document.createRange();
+          elRange.selectNodeContents(el);
+          const intersects =
+            range.compareBoundaryPoints(Range.END_TO_START, elRange) < 0 &&
+            range.compareBoundaryPoints(Range.START_TO_END, elRange) > 0;
+          return intersects ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        } catch {
+          return NodeFilter.FILTER_SKIP;
+        }
+      },
+    } as any);
+
+    const toUnwrap: HTMLElement[] = [];
+    while (walker.nextNode()) toUnwrap.push(walker.currentNode as HTMLElement);
+    if (!toUnwrap.length) return false;
+
+    toUnwrap.forEach((el) => {
+      const parent = el.parentNode;
+      if (!parent) return;
+      while (el.firstChild) parent.insertBefore(el.firstChild, el);
+      parent.removeChild(el);
+    });
+    root.normalize();
+    return true;
+  };
+
+  const resetEffectsDOM = () => {
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return false;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return false;
+    const range = selection.getRangeAt(0);
+
+    const anchorEl =
+      (selection.anchorNode &&
+        (selection.anchorNode.nodeType === Node.ELEMENT_NODE
+          ? (selection.anchorNode as HTMLElement)
+          : (selection.anchorNode as any).parentElement)) ||
+      null;
+    if (!anchorEl || !root.contains(anchorEl)) return false;
+
+    const direct = anchorEl.closest?.(`span[data-doc-effect]`) as HTMLElement | null;
+    if (direct && root.contains(direct)) {
+      const parent = direct.parentNode;
+      if (!parent) return true;
+      while (direct.firstChild) parent.insertBefore(direct.firstChild, direct);
+      parent.removeChild(direct);
+      root.normalize();
+      return true;
+    }
+
+    if (range.collapsed) return false;
+
+    const container =
+      (range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+        ? (range.commonAncestorContainer as HTMLElement)
+        : range.commonAncestorContainer.parentElement) || root;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+      acceptNode: (n: Node) => {
+        const el = n as HTMLElement;
+        if (el.tagName !== "SPAN") return NodeFilter.FILTER_SKIP;
+        if (!el.getAttribute("data-doc-effect")) return NodeFilter.FILTER_SKIP;
+        try {
+          const elRange = document.createRange();
+          elRange.selectNodeContents(el);
+          const intersects =
+            range.compareBoundaryPoints(Range.END_TO_START, elRange) < 0 &&
+            range.compareBoundaryPoints(Range.START_TO_END, elRange) > 0;
+          return intersects ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        } catch {
+          return NodeFilter.FILTER_SKIP;
+        }
+      },
+    } as any);
+
+    const toUnwrap: HTMLElement[] = [];
+    while (walker.nextNode()) toUnwrap.push(walker.currentNode as HTMLElement);
+    if (!toUnwrap.length) return false;
+
+    toUnwrap.forEach((el) => {
+      const parent = el.parentNode;
+      if (!parent) return;
+      while (el.firstChild) parent.insertBefore(el.firstChild, el);
+      parent.removeChild(el);
+    });
+    root.normalize();
+    return true;
+  };
+
+  const applyTextEffect = (kind: EffectKind, preset: EffectPreset) => {
+    if (!editor) return;
+    focusEditor();
+
+    const isTiptap =
+      typeof editor?.commands?.focus === "function" &&
+      !!editor?.state?.selection &&
+      !!editor?.state?.doc;
+
+    if (isTiptap) {
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        showToast("Select text to apply effect");
+        return;
+      }
+
+      const text = editor.state.doc.textBetween(from, to, " ");
+      const shadowCss = getShadow(preset);
+      const outline = getOutlineParts(preset);
+      const glowColor = getGlowColor(preset);
+      const gradientCss = getGradient(preset);
+
+      const style =
+        kind === "shadow"
+          ? `text-shadow: ${shadowCss};`
+          : kind === "outline"
+            ? `text-shadow: -${outline.w}px -${outline.w}px 0 ${outline.color}, ${outline.w}px -${outline.w}px 0 ${outline.color}, -${outline.w}px ${outline.w}px 0 ${outline.color}, ${outline.w}px ${outline.w}px 0 ${outline.color}; font-weight: 700;`
+            : kind === "glow"
+              ? `text-shadow: 0 0 8px ${glowColor}, 0 0 18px ${glowColor}; color: ${glowColor}; font-weight: 600;`
+              : `background: ${gradientCss}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;`;
+
+      const styledText = `<span data-doc-effect="${kind}" data-doc-effect-preset="${preset}" style="${style}">${text}</span>`;
+      editor.chain().focus().deleteSelection().insertContent(styledText).run();
+      showToast(`Text ${kind} applied`);
       return;
     }
 
-    const shadowHTML = editor.state.doc.textBetween(from, to, ' ');
-    const styledText = `<span style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">${shadowHTML}</span>`;
-    
-    editor.chain().focus().deleteSelection().insertContent(styledText).run();
-    showToast('Text shadow applied');
+    const ok = applyTextEffectDOM(kind, preset);
+    if (!ok) {
+      showToast("Select text to apply effect");
+      return;
+    }
+    showToast(`Text ${kind} applied`);
   };
 
   // Text Effects - Outline
   const handleOutline = () => {
-    if (!editor) return;
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      showToast('Select text to apply outline');
-      return;
-    }
-
-    const outlineHTML = editor.state.doc.textBetween(from, to, ' ');
-    const styledText = `<span style="-webkit-text-stroke: 1px #000000; font-weight: 700;">${outlineHTML}</span>`;
-    
-    editor.chain().focus().deleteSelection().insertContent(styledText).run();
-    showToast('Text outline applied');
+    setActiveEffectPicker("outline");
   };
 
   // Text Effects - Glow
   const handleGlow = () => {
-    if (!editor) return;
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      showToast('Select text to apply glow');
-      return;
-    }
-
-    const glowHTML = editor.state.doc.textBetween(from, to, ' ');
-    const styledText = `<span style="text-shadow: 0 0 10px #3b82f6, 0 0 20px #3b82f6; color: #3b82f6; font-weight: 600;">${glowHTML}</span>`;
-    
-    editor.chain().focus().deleteSelection().insertContent(styledText).run();
-    showToast('Text glow applied');
+    setActiveEffectPicker("glow");
   };
 
   // Text Effects - Gradient
   const handleGradient = () => {
+    setActiveEffectPicker("gradient");
+  };
+
+  const handleShadow = () => {
+    setActiveEffectPicker("shadow");
+  };
+
+  const handleResetEffects = () => {
     if (!editor) return;
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      showToast('Select text to apply gradient');
+    focusEditor();
+
+    const isTiptap =
+      typeof editor?.commands?.focus === "function" &&
+      !!editor?.state?.selection &&
+      !!editor?.state?.doc;
+
+    if (isTiptap) {
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        showToast("Select text to reset effects");
+        return;
+      }
+      const text = editor.state.doc.textBetween(from, to, " ");
+      editor.chain().focus().deleteSelection().insertContent(text).run();
+      showToast("Effects reset");
       return;
     }
 
-    const gradientHTML = editor.state.doc.textBetween(from, to, ' ');
-    const styledText = `<span style="background: linear-gradient(to right, #f97316, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 1.2em;">${gradientHTML}</span>`;
-    
-    editor.chain().focus().deleteSelection().insertContent(styledText).run();
-    showToast('Text gradient applied');
+    const ok = resetEffectsDOM();
+    if (!ok) {
+      showToast("Select text to reset effects");
+      return;
+    }
+    showToast("Effects reset");
+  };
+
+  const effectOptions = useMemo(() => {
+    const base = {
+      shadow: [
+        { preset: "subtle" as const, label: "Subtle" },
+        { preset: "soft" as const, label: "Soft" },
+        { preset: "medium" as const, label: "Medium" },
+        { preset: "hard" as const, label: "Hard" },
+        { preset: "long" as const, label: "Long" },
+        { preset: "dramatic" as const, label: "Dramatic" },
+      ],
+      outline: [
+        { preset: "thin-black" as const, label: "Thin Black" },
+        { preset: "medium-black" as const, label: "Med Black" },
+        { preset: "thick-black" as const, label: "Thick Black" },
+        { preset: "thin-white" as const, label: "Thin White" },
+        { preset: "medium-white" as const, label: "Med White" },
+        { preset: "thick-white" as const, label: "Thick White" },
+      ],
+      glow: [
+        { preset: "blue" as const, label: "Blue" },
+        { preset: "cyan" as const, label: "Cyan" },
+        { preset: "purple" as const, label: "Purple" },
+        { preset: "pink" as const, label: "Pink" },
+        { preset: "green" as const, label: "Green" },
+        { preset: "orange" as const, label: "Orange" },
+      ],
+      gradient: [
+        { preset: "sunset" as const, label: "Sunset" },
+        { preset: "ocean" as const, label: "Ocean" },
+        { preset: "purple" as const, label: "Purple" },
+        { preset: "lime" as const, label: "Lime" },
+        { preset: "fire" as const, label: "Fire" },
+        { preset: "neon" as const, label: "Neon" },
+      ],
+    };
+    return base;
+  }, []);
+
+  const removeEffect = (kind: EffectKind) => {
+    if (!editor) return;
+    focusEditor();
+
+    const isTiptap =
+      typeof editor?.commands?.focus === "function" &&
+      !!editor?.state?.selection &&
+      !!editor?.state?.doc;
+
+    if (isTiptap) {
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        showToast("Select text to remove effect");
+        return;
+      }
+      const text = editor.state.doc.textBetween(from, to, " ");
+      editor.chain().focus().deleteSelection().insertContent(text).run();
+      showToast(`${kind} removed`);
+      return;
+    }
+
+    const ok = removeEffectDOM(kind);
+    if (!ok) {
+      showToast("Select text to remove effect");
+      return;
+    }
+    showToast(`${kind} removed`);
   };
 
   return (
@@ -232,6 +589,72 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
       {toast && (
         <div className="fixed top-20 right-6 bg-black text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
           <p className="font-inter text-sm font-medium">{toast}</p>
+        </div>
+      )}
+
+      {activeEffectPicker && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50"
+          onClick={() => setActiveEffectPicker(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-6 w-[420px] max-w-[calc(100vw-32px)] animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 capitalize">{activeEffectPicker}</h3>
+              <button
+                type="button"
+                onClick={() => setActiveEffectPicker(null)}
+                className="p-2 rounded-lg hover:bg-gray-100"
+              >
+                <X className="size-4" stroke="#364153" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {effectOptions[activeEffectPicker].map((opt: { preset: EffectPreset; label: string }) => (
+                <button
+                  key={opt.preset}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    applyTextEffect(activeEffectPicker, opt.preset);
+                    setActiveEffectPicker(null);
+                  }}
+                  className="border border-gray-200 rounded-xl px-3 py-3 hover:bg-gray-50 transition-colors text-sm"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-4">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  removeEffect(activeEffectPicker);
+                  setActiveEffectPicker(null);
+                }}
+                className="border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors text-sm"
+              >
+                Remove
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  handleResetEffects();
+                  setActiveEffectPicker(null);
+                }}
+                className="border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2"
+              >
+                <RotateCcw className="size-4" stroke="#364153" strokeWidth={1.5} />
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -540,6 +963,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
         </p>
         <div className="flex gap-2">
           <button 
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleShadow}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
@@ -551,6 +975,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             </div>
           </button>
           <button 
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleOutline}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
@@ -562,6 +987,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             </div>
           </button>
           <button 
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleGlow}
             className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
@@ -573,6 +999,7 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
             </div>
           </button>
           <button 
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleGradient}
             className="border border-transparent h-[55px] w-[73px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
           >
@@ -580,6 +1007,19 @@ export default function StylePanel({ store, editor }: StylePanelProps) {
               <Droplets className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
               <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
                 Gradient
+              </p>
+            </div>
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleResetEffects}
+            className="border border-transparent h-[55px] w-[68px] shrink-0 rounded-[14px] hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex flex-col gap-1 items-center justify-center h-full">
+              <RotateCcw className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+              <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
+                Reset
               </p>
             </div>
           </button>

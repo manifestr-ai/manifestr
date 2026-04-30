@@ -36,6 +36,9 @@ const ICON_MAP = {
 }
 
 function AdminAvatar({ user, size = 'lg' }) {
+  const { logout } = useAuth() // ✅ get logout
+  const [showDropdown, setShowDropdown] = useState(false) // ✅ add state
+
   const profileImageUrl = normalizeUrl(user?.profile_image_url)
   const initials =
     user?.firstName && user?.lastName
@@ -44,17 +47,52 @@ function AdminAvatar({ user, size = 'lg' }) {
 
   const dim = size === 'sm' ? 'w-6 h-6 text-[10px]' : 'w-10 h-10 text-[14px]'
 
+  const handleLogout = () => {
+    logout()
+    setShowDropdown(false)
+  }
+  useEffect(() => {
+    const handleClickOutside = () => setShowDropdown(false)
+    window.addEventListener('click', handleClickOutside)
+    return () => window.removeEventListener('click', handleClickOutside)
+  }, [])
+
   return (
-    <div className={`relative shrink-0 ${dim} rounded-full border border-black/8 overflow-hidden bg-[#e4e4e7] flex items-center justify-center`}>
-      {profileImageUrl ? (
-        <Image src={profileImageUrl} alt="User avatar" fill className="object-cover" />
-      ) : (
-        <span className={`font-semibold text-[#18181b] leading-none`}>{initials}</span>
+    <div className={`relative shrink-0 ${dim}`}>
+      <button
+        type="button"
+        className="w-full h-full rounded-full border border-black/8 overflow-hidden bg-[#e4e4e7] flex items-center justify-center focus:outline-none"
+        onClick={(e) => {
+          e.stopPropagation()
+          setShowDropdown((v) => !v)
+        }}
+        aria-haspopup="true"
+        aria-expanded={showDropdown ? "true" : "false"}
+      >
+        {profileImageUrl ? (
+          <Image src={profileImageUrl} alt="User avatar" fill className="object-cover" />
+        ) : (
+          <span className="font-semibold text-[#18181b] leading-none">{initials}</span>
+        )}
+      </button>
+
+      {/* Dropdown */}
+      {showDropdown && (
+        <div
+          className="absolute top-full mt-2 right-0 z-50 w-44 rounded-[8px] bg-white shadow-lg border border-[#e4e4e7] py-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2 text-[#dc2626] hover:bg-[#f4f4f5] text-[15px]"
+          >
+            Log out
+          </button>
+        </div>
       )}
     </div>
   )
 }
-
 /* ── Mobile drawer nav item ─────────────────────────────────── */
 function DrawerNavItem({ item, active, onClose }) {
   const Icon = ICON_MAP[item.icon] || LayoutDashboard

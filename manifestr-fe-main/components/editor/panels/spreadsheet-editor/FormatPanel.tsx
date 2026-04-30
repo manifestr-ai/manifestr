@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BorderStyleTypes, BorderType } from "@univerjs/core";
 
 interface FormatPanelProps {
   store: any; // Univer FacadeAPI
@@ -7,6 +8,14 @@ interface FormatPanelProps {
 export default function FormatPanel({ store }: FormatPanelProps) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBorderOptions, setShowBorderOptions] = useState(false);
+  const [borderStyle, setBorderStyle] = useState<BorderStyleTypes>(
+    BorderStyleTypes.THIN,
+  );
+  const [borderColor, setBorderColor] = useState("#000000");
+  const [frozenRows, setFrozenRows] = useState(0);
+  const [frozenCols, setFrozenCols] = useState(0);
+  const [freezeRowsRuleId, setFreezeRowsRuleId] = useState<string | null>(null);
+  const [freezeColsRuleId, setFreezeColsRuleId] = useState<string | null>(null);
   
   if (!store) return null;
 
@@ -32,24 +41,46 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     let row = 0, col = 0, numRows = 1, numCols = 1;
     
     try {
-      const range = sheet.getActiveRange();
-      if (range) {
-        if (typeof range.getRow === 'function') {
-          row = range.getRow();
-          col = range.getColumn();
-          numRows = range.getNumRows ? range.getNumRows() : 1;
-          numCols = range.getNumColumns ? range.getNumColumns() : 1;
-        } else if (typeof range.getStartRow === 'function') {
-          row = range.getStartRow();
-          col = range.getStartColumn();
-          numRows = range.getNumRows ? range.getNumRows() : 1;
-          numCols = range.getNumColumns ? range.getNumColumns() : 1;
+      const activeRange =
+        selection && typeof selection.getActiveRange === "function"
+          ? selection.getActiveRange()
+          : typeof sheet.getActiveRange === "function"
+            ? sheet.getActiveRange()
+            : null;
+
+      if (activeRange) {
+        if (typeof activeRange.getRange === "function") {
+          const r = activeRange.getRange();
+          row = r?.startRow ?? 0;
+          col = r?.startColumn ?? 0;
+          const endRow = r?.endRow ?? row;
+          const endCol = r?.endColumn ?? col;
+          numRows = endRow - row + 1;
+          numCols = endCol - col + 1;
+        } else if (
+          typeof activeRange.getRow === "function" &&
+          typeof activeRange.getColumn === "function"
+        ) {
+          row = activeRange.getRow();
+          col = activeRange.getColumn();
+          if (typeof activeRange.getHeight === "function") {
+            numRows = activeRange.getHeight();
+          }
+          if (typeof activeRange.getWidth === "function") {
+            numCols = activeRange.getWidth();
+          }
+          if (typeof activeRange.getLastRow === "function") {
+            numRows = activeRange.getLastRow() - row + 1;
+          }
+          if (typeof activeRange.getLastColumn === "function") {
+            numCols = activeRange.getLastColumn() - col + 1;
+          }
         }
-      } else if (selection) {
-        const activeCell = selection.getActiveCell();
+      } else if (selection && typeof selection.getCurrentCell === "function") {
+        const activeCell = selection.getCurrentCell();
         if (activeCell) {
-          row = activeCell.row || 0;
-          col = activeCell.column || 0;
+          row = activeCell.actualRow ?? activeCell.row ?? 0;
+          col = activeCell.actualColumn ?? activeCell.column ?? 0;
         }
       }
     } catch (e) {
@@ -57,6 +88,105 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     }
     
     return { row, col, numRows, numCols };
+  };
+
+  const removeFreezeProtection = async (sheet: any, axis: "rows" | "cols") => {
+    try {
+      if (!sheet || typeof sheet.getWorksheetPermission !== "function") return;
+      const permission = sheet.getWorksheetPermission();
+      if (!permission) return;
+
+      const rules = await permission.listRangeProtectionRules();
+      const name = axis === "rows" ? "Frozen rows" : "Frozen columns";
+
+      const ids = new Set<string>();
+
+      const fromState =
+        axis === "rows" ? freezeRowsRuleId : freezeColsRuleId;
+      if (fromState) ids.add(fromState);
+
+      for (const r of rules) {
+        if (r?.options?.name === name) ids.add(r.id);
+        if (
+          r?.options?.metadata?.source === "formatPanel" &&
+          r?.options?.metadata?.type === "freeze" &&
+          r?.options?.metadata?.axis === axis
+        ) {
+          ids.add(r.id);
+        }
+      }
+
+      if (ids.size > 0) {
+        await permission.unprotectRules(Array.from(ids));
+      }
+
+      if (typeof permission.setEditable === "function") {
+        await permission.setEditable();
+      }
+
+      if (axis === "rows") setFreezeRowsRuleId(null);
+      else setFreezeColsRuleId(null);
+    } catch (e) {}
+  };
+
+  const addFreezeProtection = async (
+    sheet: any,
+    axis: "rows" | "cols",
+    count: number,
+  ) => {
+    try {
+      if (count <= 0) return null;
+      if (!sheet || typeof sheet.getWorksheetPermission !== "function") return null;
+
+      const permission = sheet.getWorksheetPermission();
+      if (!permission) return null;
+
+      const maxRows =
+        typeof sheet.getMaxRows === "function" ? sheet.getMaxRows() : 1000;
+      const maxCols =
+        typeof sheet.getMaxColumns === "function" ? sheet.getMaxColumns() : 26;
+
+      const range =
+        axis === "rows"
+          ? sheet.getRange(0, 0, count, maxCols)
+          : sheet.getRange(0, 0, maxRows, count);
+
+      const created = await permission.protectRanges([
+        {
+          ranges: [range],
+          options: {
+            name: axis === "rows" ? "Frozen rows" : "Frozen columns",
+            allowEdit: false,
+            allowViewByOthers: true,
+            metadata: {
+              source: "formatPanel",
+              type: "freeze",
+              axis,
+            },
+          },
+        },
+      ]);
+
+      const id = created?.[0]?.id ?? null;
+      if (axis === "rows") setFreezeRowsRuleId(id);
+      else setFreezeColsRuleId(id);
+
+      return id;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const getFreezeCounts = (sheet: any) => {
+    try {
+      const freeze = typeof sheet?.getFreeze === "function" ? sheet.getFreeze() : null;
+      return {
+        rows: freeze?.ySplit ?? 0,
+        cols: freeze?.xSplit ?? 0,
+      };
+    } catch (e) {
+      return { rows: 0, cols: 0 };
+    }
   };
 
   // Conditional Formatting - Rules
@@ -103,13 +233,46 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     const { row, col, numRows, numCols } = getPosition(sheet, selection);
     
     try {
-      // Apply border styling via Univer commands
-      const range = { startRow: row, startColumn: col, endRow: row + numRows - 1, endColumn: col + numCols - 1 };
+      const range = {
+        startRow: row,
+        startColumn: col,
+        endRow: row + numRows - 1,
+        endColumn: col + numCols - 1,
+      };
       
       try {
-        store.executeCommand('sheet.command.set-range-border', {
-          range,
-          borderType: borderType
+        const mappedType =
+          borderType === "all"
+            ? BorderType.ALL
+            : borderType === "outer"
+              ? BorderType.OUTSIDE
+              : borderType === "inner"
+                ? BorderType.INSIDE
+                : borderType === "horizontal"
+                  ? BorderType.HORIZONTAL
+                  : borderType === "vertical"
+                    ? BorderType.VERTICAL
+                    : borderType === "top"
+                      ? BorderType.TOP
+                      : borderType === "bottom"
+                        ? BorderType.BOTTOM
+                        : borderType === "left"
+                          ? BorderType.LEFT
+                          : borderType === "right"
+                            ? BorderType.RIGHT
+                            : BorderType.NONE;
+
+        store.executeCommand("sheet.command.set-border-basic", {
+          ranges: [range],
+          value: {
+            type: mappedType,
+            color: mappedType === BorderType.NONE ? undefined : borderColor,
+            style:
+              mappedType === BorderType.NONE
+                ? BorderStyleTypes.NONE
+                : borderStyle,
+            activeBorderType: true,
+          },
         });
         console.log(`✅ Applied ${borderType} border`);
       } catch (e) {
@@ -191,7 +354,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   };
 
   // Freeze Rows
-  const handleFreezeRows = () => {
+  const handleFreezeRows = async () => {
     console.log('🔵 Freeze Rows clicked!');
     const info = getActiveInfo();
     if (!info) return;
@@ -200,16 +363,62 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     const { row } = getPosition(sheet, selection);
     
     try {
-      // Freeze rows up to current row
+      const current = getFreezeCounts(sheet);
+
+      if (current.rows > 0) {
+        try {
+          if (typeof sheet.setFrozenRows === "function") {
+            sheet.setFrozenRows(0);
+          } else {
+            store.executeCommand("sheet.command.set-frozen", {
+              startRow: 0,
+              startColumn: current.cols,
+              ySplit: 0,
+              xSplit: current.cols,
+            });
+          }
+
+          await removeFreezeProtection(sheet, "rows");
+          setFrozenRows(0);
+          setFrozenCols(current.cols);
+          console.log("✅ Unfroze rows");
+        } catch (e) {
+          console.log("⚠️ Unfreeze rows not supported");
+        }
+        return;
+      }
+
       const freezeRow = row + 1;
       
       try {
-        store.executeCommand('sheet.command.set-frozen-rows', { count: freezeRow });
-        console.log(`✅ Froze ${freezeRow} rows`);
-      } catch (e) {
-        try {
+        await removeFreezeProtection(sheet, "rows");
+        if (typeof sheet.setFrozenRows === "function") {
           sheet.setFrozenRows(freezeRow);
           console.log(`✅ Froze ${freezeRow} rows`);
+        } else {
+          const xSplit = current.cols;
+          store.executeCommand("sheet.command.set-frozen", {
+            startRow: freezeRow,
+            startColumn: xSplit,
+            ySplit: freezeRow,
+            xSplit,
+          });
+          console.log(`✅ Froze ${freezeRow} rows`);
+        }
+
+        await addFreezeProtection(sheet, "rows", freezeRow);
+        setFrozenRows(freezeRow);
+        setFrozenCols(current.cols);
+      } catch (e) {
+        try {
+          await removeFreezeProtection(sheet, "rows");
+          if (typeof sheet.setFrozenRows === "function") {
+            sheet.setFrozenRows(freezeRow);
+          }
+          console.log(`✅ Froze ${freezeRow} rows`);
+          await addFreezeProtection(sheet, "rows", freezeRow);
+          setFrozenRows(freezeRow);
+          setFrozenCols(current.cols);
         } catch (e2) {
           console.log(`⚠️ Freeze rows not supported`);
         }
@@ -220,7 +429,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   };
 
   // Freeze Columns
-  const handleFreezeCols = () => {
+  const handleFreezeCols = async () => {
     console.log('🔵 Freeze Columns clicked!');
     const info = getActiveInfo();
     if (!info) return;
@@ -229,16 +438,62 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     const { col } = getPosition(sheet, selection);
     
     try {
-      // Freeze columns up to current column
+      const current = getFreezeCounts(sheet);
+
+      if (current.cols > 0) {
+        try {
+          if (typeof sheet.setFrozenColumns === "function") {
+            sheet.setFrozenColumns(0);
+          } else {
+            store.executeCommand("sheet.command.set-frozen", {
+              startRow: current.rows,
+              startColumn: 0,
+              ySplit: current.rows,
+              xSplit: 0,
+            });
+          }
+
+          await removeFreezeProtection(sheet, "cols");
+          setFrozenCols(0);
+          setFrozenRows(current.rows);
+          console.log("✅ Unfroze columns");
+        } catch (e) {
+          console.log("⚠️ Unfreeze columns not supported");
+        }
+        return;
+      }
+
       const freezeCol = col + 1;
       
       try {
-        store.executeCommand('sheet.command.set-frozen-columns', { count: freezeCol });
-        console.log(`✅ Froze ${freezeCol} columns`);
-      } catch (e) {
-        try {
+        await removeFreezeProtection(sheet, "cols");
+        if (typeof sheet.setFrozenColumns === "function") {
           sheet.setFrozenColumns(freezeCol);
           console.log(`✅ Froze ${freezeCol} columns`);
+        } else {
+          const ySplit = current.rows;
+          store.executeCommand("sheet.command.set-frozen", {
+            startRow: ySplit,
+            startColumn: freezeCol,
+            ySplit,
+            xSplit: freezeCol,
+          });
+          console.log(`✅ Froze ${freezeCol} columns`);
+        }
+
+        await addFreezeProtection(sheet, "cols", freezeCol);
+        setFrozenCols(freezeCol);
+        setFrozenRows(current.rows);
+      } catch (e) {
+        try {
+          await removeFreezeProtection(sheet, "cols");
+          if (typeof sheet.setFrozenColumns === "function") {
+            sheet.setFrozenColumns(freezeCol);
+          }
+          console.log(`✅ Froze ${freezeCol} columns`);
+          await addFreezeProtection(sheet, "cols", freezeCol);
+          setFrozenCols(freezeCol);
+          setFrozenRows(current.rows);
         } catch (e2) {
           console.log(`⚠️ Freeze columns not supported`);
         }
@@ -249,12 +504,12 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   };
 
   // Merge Cells
-  const handleMerge = () => {
+  const handleMerge = async () => {
     console.log('🔵 Merge Cells clicked!');
     const info = getActiveInfo();
     if (!info) return;
     
-    const { sheet, selection } = info;
+    const { workbook, sheet, selection } = info;
     const { row, col, numRows, numCols } = getPosition(sheet, selection);
     
     if (numRows <= 1 && numCols <= 1) {
@@ -263,23 +518,48 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     }
     
     try {
-      // Merge cells
       try {
-        store.executeCommand('sheet.command.merge-cells', {
-          startRow: row,
-          startColumn: col,
-          endRow: row + numRows - 1,
-          endColumn: col + numCols - 1
+        const activeRange =
+          selection && typeof selection.getActiveRange === "function"
+            ? selection.getActiveRange()
+            : typeof sheet.getActiveRange === "function"
+              ? sheet.getActiveRange()
+              : null;
+        const range =
+          activeRange || sheet.getRange(row, col, numRows, numCols);
+
+        if (range && typeof range.merge === "function") {
+          range.merge(true);
+          console.log(`✅ Merged cells (${numRows}x${numCols})`);
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        const unitId = typeof workbook?.getId === "function" ? workbook.getId() : undefined;
+        const subUnitId =
+          typeof sheet?.getSheetId === "function" ? sheet.getSheetId() : undefined;
+
+        if (!unitId || !subUnitId) {
+          console.log("⚠️ Merge not supported");
+          return;
+        }
+
+        await store.executeCommand("sheet.command.add-worksheet-merge", {
+          unitId,
+          subUnitId,
+          selections: [
+            {
+              startRow: row,
+              startColumn: col,
+              endRow: row + numRows - 1,
+              endColumn: col + numCols - 1,
+            },
+          ],
         });
         console.log(`✅ Merged cells (${numRows}x${numCols})`);
       } catch (e) {
-        try {
-          const range = sheet.getRange(row, col, numRows, numCols);
-          range.merge();
-          console.log(`✅ Merged cells (${numRows}x${numCols})`);
-        } catch (e2) {
-          console.log(`⚠️ Merge not supported`);
-        }
+        console.log(`⚠️ Merge not supported`);
       }
     } catch (error) {
       console.error('❌ Merge failed:', error);
@@ -287,7 +567,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   };
 
   // Split/Unmerge Cells
-  const handleSplit = () => {
+  const handleSplit = async () => {
     console.log('🔵 Unmerge Cells clicked!');
     const info = getActiveInfo();
     if (!info) return;
@@ -296,23 +576,37 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     const { row, col, numRows, numCols } = getPosition(sheet, selection);
     
     try {
-      // Unmerge cells
       try {
-        store.executeCommand('sheet.command.unmerge-cells', {
-          startRow: row,
-          startColumn: col,
-          endRow: row + numRows - 1,
-          endColumn: col + numCols - 1
+        const activeRange =
+          selection && typeof selection.getActiveRange === "function"
+            ? selection.getActiveRange()
+            : typeof sheet.getActiveRange === "function"
+              ? sheet.getActiveRange()
+              : null;
+        const range =
+          activeRange || sheet.getRange(row, col, numRows, numCols);
+
+        if (range && typeof range.breakApart === "function") {
+          range.breakApart();
+          console.log('✅ Unmerged cells');
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        await store.executeCommand("sheet.command.remove-worksheet-merge", {
+          ranges: [
+            {
+              startRow: row,
+              startColumn: col,
+              endRow: row + numRows - 1,
+              endColumn: col + numCols - 1,
+            },
+          ],
         });
         console.log('✅ Unmerged cells');
       } catch (e) {
-        try {
-          const range = sheet.getRange(row, col, numRows, numCols);
-          range.breakApart();
-          console.log('✅ Unmerged cells');
-        } catch (e2) {
-          console.log('⚠️ Unmerge not supported');
-        }
+        console.log('⚠️ Unmerge not supported');
       }
     } catch (error) {
       console.error('❌ Unmerge failed:', error);
@@ -483,7 +777,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
               <path d="M5.83203 9.16406V5.83073C5.83203 4.72566 6.27102 3.66585 7.05242 2.88445C7.83382 2.10305 8.89363 1.66406 9.9987 1.66406C11.1038 1.66406 12.1636 2.10305 12.945 2.88445C13.7264 3.66585 14.1654 4.72566 14.1654 5.83073V9.16406" stroke="#364153" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-[9px] font-inter font-normal not-italic leading-[11.25px] tracking-[0.167px] text-[#4A5565] mt-0.5">
-              Freeze Rows
+              {frozenRows > 0 ? "Unfreeze Rows" : "Freeze Rows"}
             </span>
           </button>
 
@@ -493,7 +787,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
               <path d="M5.83203 9.16406V5.83073C5.83203 4.72566 6.27102 3.66585 7.05242 2.88445C7.83382 2.10305 8.89363 1.66406 9.9987 1.66406C11.1038 1.66406 12.1636 2.10305 12.945 2.88445C13.7264 3.66585 14.1654 4.72566 14.1654 5.83073V9.16406" stroke="#364153" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-[9px] font-inter font-normal not-italic leading-[11.25px] tracking-[0.167px] text-[#4A5565] mt-0.5">
-              Freeze Cols
+              {frozenCols > 0 ? "Unfreeze Cols" : "Freeze Cols"}
             </span>
           </button>
         </div>
@@ -602,16 +896,111 @@ export default function FormatPanel({ store }: FormatPanelProps) {
     {/* Border Options Modal */}
     {showBorderOptions && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowBorderOptions(false)}>
-        <div className="bg-white rounded-lg p-6 w-[300px] shadow-xl" onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-lg font-semibold mb-4">Choose Border Style</h3>
-          <div className="space-y-2">
-            <button onClick={() => applyBorder('all')} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+        <div className="bg-white rounded-lg p-6 max-w-[400px] w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <h3 className="text-lg font-semibold mb-4">Borders</h3>
+
+          <div className="mb-4">
+            <div className="text-sm font-medium text-gray-700 mb-2">Line Style</div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => setBorderStyle(BorderStyleTypes.THIN)}
+                className={`px-3 py-2 rounded-md text-sm transition border ${
+                  borderStyle === BorderStyleTypes.THIN ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                Thin
+              </button>
+              <button
+                onClick={() => setBorderStyle(BorderStyleTypes.MEDIUM)}
+                className={`px-3 py-2 rounded-md text-sm transition border ${
+                  borderStyle === BorderStyleTypes.MEDIUM ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                Medium
+              </button>
+              <button
+                onClick={() => setBorderStyle(BorderStyleTypes.THICK)}
+                className={`px-3 py-2 rounded-md text-sm transition border ${
+                  borderStyle === BorderStyleTypes.THICK ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                Thick
+              </button>
+              <button
+                onClick={() => setBorderStyle(BorderStyleTypes.DASHED)}
+                className={`px-3 py-2 rounded-md text-sm transition border ${
+                  borderStyle === BorderStyleTypes.DASHED ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                Dashed
+              </button>
+              <button
+                onClick={() => setBorderStyle(BorderStyleTypes.DOTTED)}
+                className={`px-3 py-2 rounded-md text-sm transition border ${
+                  borderStyle === BorderStyleTypes.DOTTED ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                Dotted
+              </button>
+              <button
+                onClick={() => setBorderStyle(BorderStyleTypes.DOUBLE)}
+                className={`px-3 py-2 rounded-md text-sm transition border ${
+                  borderStyle === BorderStyleTypes.DOUBLE ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100"
+                }`}
+              >
+                Double
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <div className="text-sm font-medium text-gray-700 mb-2">Line Color</div>
+            <div className="grid grid-cols-6 gap-2">
+              {["#000000", "#6B7280", "#D1D5DB", "#EF4444", "#2563EB", "#10B981"].map(
+                (c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setBorderColor(c)}
+                    className={`w-9 h-9 rounded-md border transition ${
+                      borderColor === c ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="gap-2 grid grid-cols-2">
+            <button onClick={() => applyBorder("all")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
               All Borders
             </button>
-            <button onClick={() => applyBorder('outer')} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+            <button onClick={() => applyBorder("outer")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
               Outer Border
             </button>
-            <button onClick={() => applyBorder('none')} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+            <button onClick={() => applyBorder("inner")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Inner Border
+            </button>
+            <button onClick={() => applyBorder("horizontal")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Horizontal Lines
+            </button>
+            <button onClick={() => applyBorder("vertical")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Vertical Lines
+            </button>
+            <button onClick={() => applyBorder("top")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Top Border
+            </button>
+            <button onClick={() => applyBorder("bottom")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Bottom Border
+            </button>
+            <button onClick={() => applyBorder("left")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Left Border
+            </button>
+            <button onClick={() => applyBorder("right")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
+              Right Border
+            </button>
+            <button onClick={() => applyBorder("none")} className="w-full px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-md text-left transition">
               No Border
             </button>
           </div>

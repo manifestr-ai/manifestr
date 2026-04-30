@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Folder, Type, Palette, Grid, FileText, Plus, ArrowRight, Check, ChevronDown, X } from 'lucide-react'
 import Button from '../ui/Button'
@@ -6,6 +6,7 @@ import Card from '../ui/Card'
 import Select from '../forms/Select'
 import LogoUploadZone from './LogoUploadZone'
 import { useToast } from '../ui/Toast'
+import { STYLE_GUIDE_HERO_BANNER_URL } from '../../lib/styleGuideHeroBanner'
 
 export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, onSaveExit }) {
   const { error: showError } = useToast()
@@ -27,10 +28,11 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
 
   const [isAddingColor, setIsAddingColor] = useState(false)
   const [customColor, setCustomColor] = useState('#18181b')
+  const logoUploadZoneRef = useRef(null)
 
   const steps = [
     {
-      id: 5,
+      id: 1,
       label: 'Logo',
       icon: (props) => (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -38,7 +40,7 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
           <path d="M10 10.8333C10.4602 10.8333 10.8333 10.4602 10.8333 10C10.8333 9.53976 10.4602 9.16667 10 9.16667C9.53976 9.16667 9.16667 9.53976 9.16667 10C9.16667 10.4602 9.53976 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
-      active: false
+      active: true
     },
     { id: 2, label: 'Typography', icon: Type, active: false },
     { id: 3, label: 'Color', icon: Palette, active: false },
@@ -86,7 +88,10 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
       }
 
       // Update parent state
-      updateData({ logos: [...uploadedFiles, ...newFiles] })
+      updateData((prev) => ({
+        ...prev,
+        logos: [...(prev.logos ?? []), ...newFiles],
+      }))
 
     } catch (err) {
       // Fallback: just store local preview/file if upload fails, or show error
@@ -132,10 +137,10 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
 
   return (
     <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}>
-      {/* Left Sidebar - Fixed */}
-      <div className="hidden lg:block fixed top-[72px] left-0 w-[240px] h-[calc(100vh-72px)] bg-white border-r border-[#e4e4e7] py-8 z-40">
-        <div className="px-8">
-          <div className="space-y-2">
+      {/* Left sidebar — Figma 9509:11698 (MCP): 256px wide, px-16 pt-32, item gap 8px, 40px rows, 16/Semibold/24 */}
+      <div className="hidden lg:flex lg:flex-col lg:items-start fixed top-[72px] left-0 w-[256px] h-[calc(100vh-72px)] box-border bg-[var(--base-background,#FFF)] border-r border-[color:var(--base-border,#E4E4E7)] z-40">
+        <div className="w-full flex flex-col items-start px-4 pt-8 pb-8 shrink-0">
+          <div className="flex flex-col gap-2 w-full min-w-0">
             {steps.map((step) => {
               const Icon = step.icon
               return (
@@ -143,15 +148,16 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
                   key={step.id}
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors ${step.active
-                    ? 'bg-[#f4f4f5] border border-[#e4e4e7]'
-                    : 'hover:bg-[#f4f4f5]'
+                  className={`flex w-full items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors border border-solid ${step.active
+                    ? 'bg-[var(--base-muted,#f4f4f5)] border-[color:var(--base-border,#E4E4E7)]'
+                    : 'bg-[var(--base-background,#FFF)] border-transparent hover:bg-[var(--base-muted,#f4f4f5)]'
                     }`}
                 >
-                  <Icon className={`w-5 h-5 ${step.active ? 'text-[#18181b]' : 'text-[#71717a]'}`} />
+                  <Icon
+                    className={`w-5 h-5 shrink-0 ${step.active ? 'text-[color:var(--base-foreground,#18181b)]' : 'text-[color:var(--base-muted-foreground-plus,#52525b)]'}`}
+                  />
                   <span
-                    className={`text-[14px] leading-[20px] font-medium ${step.active ? 'text-[#18181b]' : 'text-[#71717a]'
-                      }`}
+                    className={`text-base font-semibold leading-6 whitespace-nowrap ${step.active ? 'text-[color:var(--base-foreground,#18181b)]' : 'text-[color:var(--base-muted-foreground-plus,#52525b)]'}`}
                   >
                     {step.label}
                   </span>
@@ -163,16 +169,16 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
       </div>
 
       {/* Main Content */}
-      <div className="pl-0 lg:pl-[240px]">
+      <div className="pl-0 lg:pl-[256px]">
         {/* Full-width banner header */}
         <div>
           <div className="relative w-full h-[160px] md:h-[199px] overflow-hidden">
             <img
-              src="https://res.cloudinary.com/dlifgfg6m/image/upload/v1777410547/StyleGuide_f6cinb.png"
+              src={STYLE_GUIDE_HERO_BANNER_URL}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover object-top"
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
-            <div className="relative z-10 h-full flex items-center px-4 md:px-[30px]">
+            <div className="relative z-10 flex h-full items-center px-4 md:px-[30px]">
               <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.96px] text-[#18181b]">
                 CREATE A{' '}
                 <span className="italic" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -203,7 +209,7 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
                   variant="secondary"
                   size="md"
                   onClick={onBack}
-                  className="flex-1 md:flex-none justify-center bg-white text-black hover:bg-white border-[#e4e4e7]"
+                  className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
                 >
                   Skip
                 </Button>
@@ -211,7 +217,7 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
                   variant="secondary"
                   size="md"
                   onClick={onSaveExit}
-                  className="flex-1 md:flex-none justify-center bg-white text-black hover:bg-white border-[#e4e4e7]"
+                  className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
                 >
                   Save & Exit
                 </Button>
@@ -250,7 +256,12 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
                   Upload your logo files, including all variations and formats, to keep them organized by type.
                 </p>
               </div>
-              <Button variant="primary" size="md">
+              <Button
+                variant="primary"
+                size="md"
+                type="button"
+                onClick={() => logoUploadZoneRef.current?.openFilePicker()}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Add new
               </Button>
@@ -258,196 +269,205 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
 
             {/* Upload Zone */}
             <div className="mt-6">
-              <LogoUploadZone onFilesChange={handleFilesChange} />
+              <LogoUploadZone
+                ref={logoUploadZoneRef}
+                logos={uploadedFiles}
+                onFilesAdded={handleFilesChange}
+                onLogosChange={(next) => updateData({ logos: next })}
+              />
             </div>
           </Card>
 
-          {/* Approved Background Colors Section */}
-          <Card className="bg-white">
-            <h3 className="text-[18px] md:text-[20px] font-semibold leading-[28px] text-[#18181b] mb-2">
-              Approved Background Colors
-            </h3>
-            <p className="text-[14px] leading-[20px] text-[#71717a] mb-6">
-              Select or upload color swatches that your logo can be used against.
-            </p>
+          {/* Approved Background Colors — Figma 9874:368896 */}
+          <Card className="bg-white !p-6">
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-[6px]">
+                <h3 className="text-[20px] font-semibold leading-[30px] text-[#18181b]">
+                  Approved Background Colors
+                </h3>
+                <p className="text-[18px] font-normal leading-[28px] text-[#71717a]">
+                  Select or upload color swatches that your logo can be used against.
+                </p>
+              </div>
 
-            {/* Color Swatches */}
-            <div className="flex items-start gap-4 flex-wrap">
-              {/* White */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  updateColors(
-                    selectedColors.includes('white')
-                      ? selectedColors.filter((c) => c !== 'white')
-                      : [...selectedColors, 'white']
-                  )
-                }}
-              >
-                <div className="relative w-16 h-16 rounded-lg bg-white border-2 border-[#e4e4e7] flex items-center justify-center">
-                  {selectedColors.includes('white') && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-6 h-6 bg-[#18181b] rounded-full flex items-center justify-center"
-                    >
-                      <Check className="w-4 h-4 text-white" />
-                    </motion.div>
-                  )}
-                </div>
-                <span className="text-[12px] leading-[16px] text-[#71717a]">White</span>
-              </motion.div>
-
-              {/* Light Gray */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  updateColors(
-                    selectedColors.includes('light-gray')
-                      ? selectedColors.filter((c) => c !== 'light-gray')
-                      : [...selectedColors, 'light-gray']
-                  )
-                }}
-              >
-                <div className="relative w-16 h-16 rounded-lg bg-[#f4f4f5] border-2 border-[#e4e4e7] flex items-center justify-center">
-                  {selectedColors.includes('light-gray') && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-6 h-6 bg-[#18181b] rounded-full flex items-center justify-center"
-                    >
-                      <Check className="w-4 h-4 text-white" />
-                    </motion.div>
-                  )}
-                </div>
-                <span className="text-[12px] leading-[16px] text-[#71717a]">Light Gray</span>
-              </motion.div>
-
-              {/* Gray */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  updateColors(
-                    selectedColors.includes('gray')
-                      ? selectedColors.filter((c) => c !== 'gray')
-                      : [...selectedColors, 'gray']
-                  )
-                }}
-              >
-                <div className="relative w-16 h-16 rounded-lg bg-[#71717a] border-2 border-[#e4e4e7] flex items-center justify-center">
-                  {selectedColors.includes('gray') && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-6 h-6 bg-white rounded-full flex items-center justify-center"
-                    >
-                      <Check className="w-4 h-4 text-[#18181b]" />
-                    </motion.div>
-                  )}
-                </div>
-                <span className="text-[12px] leading-[16px] text-[#71717a]">Gray</span>
-              </motion.div>
-
-              {/* Black */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  updateColors(
-                    selectedColors.includes('black')
-                      ? selectedColors.filter((c) => c !== 'black')
-                      : [...selectedColors, 'black']
-                  )
-                }}
-              >
-                <div className="relative w-16 h-16 rounded-lg bg-[#18181b] border-2 border-[#e4e4e7] flex items-center justify-center">
-                  {selectedColors.includes('black') && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-6 h-6 bg-white rounded-full flex items-center justify-center"
-                    >
-                      <Check className="w-4 h-4 text-[#18181b]" />
-                    </motion.div>
-                  )}
-                </div>
-                <span className="text-[12px] leading-[16px] text-[#71717a]">Black</span>
-              </motion.div>
-
-              {/* Custom Hex Colors */}
-              {customColors.map((color) => (
+              {/* Color swatches: 80×80 tiles, 16px gap (Figma x-offset 96 − 80) */}
+              <div className="flex items-start gap-4 flex-wrap min-h-[108px]">
+                {/* White */}
                 <motion.div
-                  key={color}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex flex-col items-center gap-2 cursor-pointer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex w-20 flex-col items-center gap-3 cursor-pointer"
                   onClick={() => {
-                    const isSelected = selectedColors.includes(color)
-                    const newSelected = isSelected
-                      ? selectedColors.filter((c) => c !== color)
-                      : [...selectedColors, color]
-                    updateColors(newSelected)
+                    updateColors(
+                      selectedColors.includes('white')
+                        ? selectedColors.filter((c) => c !== 'white')
+                        : [...selectedColors, 'white']
+                    )
                   }}
                 >
-                  <div
-                    className="relative w-16 h-16 rounded-lg border-2 border-[#e4e4e7] flex items-center justify-center"
-                    style={{ backgroundColor: color }}
-                  >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        const newCustom = customColors.filter((c) => c !== color)
-                        const newSelected = selectedColors.filter((c) => c !== color)
-                        updateData({
-                          colors: {
-                            ...(data?.colors || {}),
-                            selected: newSelected,
-                            custom: newCustom,
-                          },
-                        })
-                      }}
-                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white border border-[#e4e4e7] flex items-center justify-center text-[#71717a] hover:bg-[#f4f4f5] hover:text-[#18181b]"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    {selectedColors.includes(color) && (
+                  <div className="relative size-20 shrink-0 rounded-[12px] bg-white border border-black/10 flex items-center justify-center shadow-none">
+                    {selectedColors.includes('white') && (
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-6 h-6 bg-white rounded-full flex items-center justify-center"
+                        className="size-6 bg-[#030213] rounded-full flex items-center justify-center"
                       >
-                        <Check className="w-4 h-4 text-[#18181b]" />
+                        <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
                       </motion.div>
                     )}
                   </div>
-                  <span className="text-[12px] leading-[16px] text-[#71717a]">
-                    {color}
-                  </span>
+                  <span className="text-[12px] font-normal leading-4 text-[#717182]">White</span>
                 </motion.div>
-              ))}
 
-              {/* Add Color */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  setIsAddingColor(true)
-                }}
-              >
-                <div className="relative w-16 h-16 rounded-lg bg-white border-2 border-dashed border-[#e4e4e7] flex items-center justify-center hover:border-[#18181b] transition-colors">
-                  <Plus className="w-6 h-6 text-[#71717a]" />
-                </div>
-                <span className="text-[12px] font-bold leading-[16px] text-[#71717a]">Add Color</span>
-              </motion.div>
+                {/* Light Gray */}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex w-20 flex-col items-center gap-3 cursor-pointer"
+                  onClick={() => {
+                    updateColors(
+                      selectedColors.includes('light-gray')
+                        ? selectedColors.filter((c) => c !== 'light-gray')
+                        : [...selectedColors, 'light-gray']
+                    )
+                  }}
+                >
+                  <div className="relative size-20 shrink-0 rounded-[14px] bg-[#f5f5f5] border border-black/10 flex items-center justify-center">
+                    {selectedColors.includes('light-gray') && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="size-6 bg-[#030213] rounded-full flex items-center justify-center"
+                      >
+                        <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
+                      </motion.div>
+                    )}
+                  </div>
+                  <span className="text-[12px] font-normal leading-4 text-[#717182]">Light Gray</span>
+                </motion.div>
+
+                {/* Gray */}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex w-20 flex-col items-center gap-3 cursor-pointer"
+                  onClick={() => {
+                    updateColors(
+                      selectedColors.includes('gray')
+                        ? selectedColors.filter((c) => c !== 'gray')
+                        : [...selectedColors, 'gray']
+                    )
+                  }}
+                >
+                  <div className="relative size-20 shrink-0 rounded-[12px] bg-[#e0e0e0] border border-transparent flex items-center justify-center">
+                    {selectedColors.includes('gray') && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="size-6 bg-white rounded-full flex items-center justify-center"
+                      >
+                        <Check className="w-4 h-4 text-[#030213]" strokeWidth={2.5} />
+                      </motion.div>
+                    )}
+                  </div>
+                  <span className="text-[12px] font-normal leading-4 text-[#717182]">Gray</span>
+                </motion.div>
+
+                {/* Black */}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex w-20 flex-col items-center gap-3 cursor-pointer"
+                  onClick={() => {
+                    updateColors(
+                      selectedColors.includes('black')
+                        ? selectedColors.filter((c) => c !== 'black')
+                        : [...selectedColors, 'black']
+                    )
+                  }}
+                >
+                  <div className="relative size-20 shrink-0 rounded-[12px] bg-[#030213] border border-transparent flex items-center justify-center">
+                    {selectedColors.includes('black') && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="size-6 bg-white rounded-full flex items-center justify-center"
+                      >
+                        <Check className="w-4 h-4 text-[#030213]" strokeWidth={2.5} />
+                      </motion.div>
+                    )}
+                  </div>
+                  <span className="text-[12px] font-normal leading-4 text-[#717182]">Black</span>
+                </motion.div>
+
+                {/* Custom Hex Colors */}
+                {customColors.map((color) => (
+                  <motion.div
+                    key={color}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex w-20 flex-col items-center gap-3 cursor-pointer"
+                    onClick={() => {
+                      const isSelected = selectedColors.includes(color)
+                      const newSelected = isSelected
+                        ? selectedColors.filter((c) => c !== color)
+                        : [...selectedColors, color]
+                      updateColors(newSelected)
+                    }}
+                  >
+                    <div
+                      className="relative size-20 shrink-0 rounded-[12px] border border-black/10 flex items-center justify-center"
+                      style={{ backgroundColor: color }}
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const newCustom = customColors.filter((c) => c !== color)
+                          const newSelected = selectedColors.filter((c) => c !== color)
+                          updateData({
+                            colors: {
+                              ...(data?.colors || {}),
+                              selected: newSelected,
+                              custom: newCustom,
+                            },
+                          })
+                        }}
+                        className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-white border border-black/10 flex items-center justify-center text-[#71717a] hover:bg-[#f4f4f5] hover:text-[#18181b]"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      {selectedColors.includes(color) && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="size-6 bg-white rounded-full flex items-center justify-center"
+                        >
+                          <Check className="w-4 h-4 text-[#030213]" strokeWidth={2.5} />
+                        </motion.div>
+                      )}
+                    </div>
+                    <span className="text-[12px] font-normal leading-4 text-[#717182] max-w-[80px] truncate text-center">
+                      {color}
+                    </span>
+                  </motion.div>
+                ))}
+
+                {/* Add Color */}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex w-20 flex-col items-center gap-3 cursor-pointer"
+                  onClick={() => {
+                    setIsAddingColor(true)
+                  }}
+                >
+                  <div className="relative size-20 shrink-0 rounded-[12px] bg-white border border-black/10 flex items-center justify-center">
+                    <Plus className="w-6 h-6 text-[#717182]" strokeWidth={2} />
+                  </div>
+                  <span className="text-[12px] font-normal leading-4 text-[#717182]">Add Color</span>
+                </motion.div>
+              </div>
             </div>
 
             {isAddingColor && (
@@ -694,21 +714,37 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
       </div>
 
       {/* Footer */}
-      <div className="fixed bottom-0 left-0 lg:left-[240px] right-0 bg-white border-t border-[#e4e4e7] px-4 md:px-8 py-4 z-50">
-        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
-          <div className="text-[14px] leading-[20px] text-[#71717a]">
-            Step 1 of 6 — Next up: Typography
-          </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
-              Skip
-            </Button>
-            <Button variant="secondary" size="md" onClick={onBack} className="flex-1 md:flex-none justify-center">
-              Back
-            </Button>
-            <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
-              Continue <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+      <div
+        className="fixed bottom-0 left-0 lg:left-[256px] right-0 px-4 md:px-8 py-4 z-50"
+        style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}
+      >
+        <div className="max-w-[1280px] mx-auto">
+          <div className="h-px bg-[#e4e4e7] mx-[5px] mb-4" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
+            <div className="text-[14px] leading-[20px] text-[#71717a]">
+              Step 1 of 6 — Next up: Typography
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={onBack}
+                className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
+              >
+                Skip
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={onBack}
+                className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
+              >
+                Back
+              </Button>
+              <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
+                Continue <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

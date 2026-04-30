@@ -13,6 +13,9 @@ import StyleGuideStep5Review from '../components/style-guide/Step5Review'
 import CompletionModal from '../components/style-guide/CompletionModal'
 import { useToast } from '../components/ui/Toast'
 
+const DEFAULT_BRAND_PERSONALITY =
+  "We're an ambitious technology partner delivering web confidence business with impeccable craft."
+
 // Marquee Line Component - copied from onboarding
 const MarqueeLine = memo(function MarqueeLine({ lineIndex, topPosition, shuffledPhrases, getFontFamily }) {
   const containerRef = useRef(null)
@@ -172,14 +175,16 @@ export default function CreateStyleGuide() {
     style: {
       toneDescriptors: ['Professional', 'Bold'],
       audience: ['B2B (Business)'],
-      personality: "We're an ambitious technology partner...",
+      personality: DEFAULT_BRAND_PERSONALITY,
       examplePhrases: [{ id: 1, weSay: 'Transform your workflow', weDontSay: 'Disrupt the industry' }],
       personas: [{ id: 1, title: 'CTO', summary: '' }]
     }
   })
 
   const updateStyleGuideData = (updates) => {
-    setStyleGuideData(prev => ({ ...prev, ...updates }))
+    setStyleGuideData((prev) =>
+      typeof updates === 'function' ? updates(prev) : { ...prev, ...updates }
+    )
   }
 
   // Load existing style guide if in edit mode
@@ -206,7 +211,18 @@ export default function CreateStyleGuide() {
             logoRules: logoData.logoRules || { enabled: true, minSize: '24px', maxSize: '96px', clearSpace: '4', scaling: 'maintain-aspect-ratio', placement: 'Top-left', allowAlternate: false },
             colors: guide.colors || { selected: ['white', 'black'], custom: [] },
             typography: guide.typography || { headings: { family: 'Inter', weight: 'Bold' }, body: { family: 'Inter', weight: 'Regular' } },
-            style: guide.style || { toneDescriptors: ["Professional", "Bold"], audience: ["B2B (Business)"], personality: "We're an ambitious technology partner...", personas: [{ id: 1, title: 'CTO', summary: '' }], examplePhrases: [{ id: 1, weSay: 'Transform your workflow', weDontSay: 'Disrupt the industry' }] }
+            style: {
+              toneDescriptors: ['Professional', 'Bold'],
+              audience: ['B2B (Business)'],
+              personality: DEFAULT_BRAND_PERSONALITY,
+              personas: [{ id: 1, title: 'CTO', summary: '' }],
+              examplePhrases: [{ id: 1, weSay: 'Transform your workflow', weDontSay: 'Disrupt the industry' }],
+              ...guide.style,
+              personality:
+                guide.style?.personality != null && String(guide.style.personality).trim() !== ''
+                  ? guide.style.personality
+                  : DEFAULT_BRAND_PERSONALITY
+            }
           }
           
           setStyleGuideData(loadedData)

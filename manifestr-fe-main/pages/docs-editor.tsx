@@ -288,6 +288,28 @@ function DocxViewer({
   const saveTimeoutRef = React.useRef(null);
   const lastSavedContentRef = React.useRef('');
 
+  const sanitizeTransientMarkup = React.useCallback((raw: string) => {
+    if (typeof raw !== "string") return "";
+    const div = document.createElement("div");
+    div.innerHTML = raw;
+    const marks = Array.from(
+      div.querySelectorAll('mark[data-type="search-highlight"]'),
+    ) as HTMLElement[];
+    marks.forEach((m) => {
+      const parent = m.parentNode;
+      if (!parent) return;
+      while (m.firstChild) parent.insertBefore(m.firstChild, m);
+      parent.removeChild(m);
+    });
+    div.querySelectorAll('[data-search-active="true"]').forEach((el) => {
+      try {
+        (el as HTMLElement).removeAttribute("data-search-active");
+        (el as HTMLElement).classList.remove("search-highlight--active");
+      } catch {}
+    });
+    return div.innerHTML;
+  }, []);
+
   // Auto-save function
   const autoSave = React.useCallback(async (content: string) => {
     if (!documentId) return;
@@ -314,7 +336,7 @@ function DocxViewer({
   const handleContentChange = React.useCallback(() => {
     if (!contentRef.current) return;
     
-    const currentContent = contentRef.current.innerHTML;
+    const currentContent = sanitizeTransientMarkup(contentRef.current.innerHTML);
     
     // Mark as unsaved when content changes
     if (currentContent !== lastSavedContentRef.current) {
@@ -330,7 +352,7 @@ function DocxViewer({
     saveTimeoutRef.current = setTimeout(() => {
       autoSave(currentContent);
     }, 2000);
-  }, [autoSave, onSaveStatusChange]);
+  }, [autoSave, onSaveStatusChange, sanitizeTransientMarkup]);
 
   React.useEffect(() => {
     const loadDoc = async () => {
@@ -339,7 +361,7 @@ function DocxViewer({
         if (savedContent) {
           console.log('📄 Loading saved document content');
           setHtml(savedContent);
-          lastSavedContentRef.current = savedContent;
+          lastSavedContentRef.current = sanitizeTransientMarkup(savedContent);
           return;
         }
 
@@ -548,7 +570,7 @@ function DocxViewer({
   React.useEffect(() => {
     const handleBeforeUnload = () => {
       if (contentRef.current && documentId) {
-        const currentContent = contentRef.current.innerHTML;
+        const currentContent = sanitizeTransientMarkup(contentRef.current.innerHTML);
         if (currentContent !== lastSavedContentRef.current) {
           // Synchronous save on unload
           navigator.sendBeacon(
@@ -565,13 +587,13 @@ function DocxViewer({
       window.removeEventListener('beforeunload', handleBeforeUnload);
       // Final save when component unmounts
       if (contentRef.current && documentId) {
-        const currentContent = contentRef.current.innerHTML;
+        const currentContent = sanitizeTransientMarkup(contentRef.current.innerHTML);
         if (currentContent !== lastSavedContentRef.current) {
           autoSave(currentContent);
         }
       }
     };
-  }, [documentId, autoSave]);
+  }, [documentId, autoSave, sanitizeTransientMarkup]);
 
   // Extract headings from the rendered HTML and add IDs
   React.useEffect(() => {
@@ -659,10 +681,17 @@ function DocxViewer({
     let savedSelection = null;
 
     const saveSelection = () => {
+      const root = contentRef.current as HTMLElement | null;
+      if (!root) return;
       const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        savedSelection = sel.getRangeAt(0).cloneRange();
-      }
+      if (!sel || sel.rangeCount <= 0) return;
+      const range = sel.getRangeAt(0);
+      const container =
+        range.commonAncestorContainer.nodeType === 1
+          ? (range.commonAncestorContainer as HTMLElement)
+          : (range.commonAncestorContainer.parentElement as HTMLElement | null);
+      if (!container || !root.contains(container)) return;
+      savedSelection = range.cloneRange();
     };
 
     const restoreSelection = () => {
@@ -673,7 +702,108 @@ function DocxViewer({
       }
     };
 
+    const listeners = new Map<string, Set<Function>>();
+    const emit = (event: string, payload?: any) => {
+      const set = listeners.get(event);
+      if (!set) return;
+      Array.from(set).forEach((cb) => {
+        try {
+          cb(payload);
+        } catch {}
+      });
+    };
+
     const fakeEditor = {
+      getSources: () => {
+        const root = contentRef.current as HTMLElement | null;
+        if (!root) return [];
+        const el = root.querySelector('div[data-type="sources-store"]') as HTMLElement | null;
+        if (!el) return [];
+        const raw = (el.textContent || "").trim();
+        if (!raw) return [];
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      },
+      setSources: (sources: any[]) => {
+        const root = contentRef.current as HTMLElement | null;
+        if (!root) return false;
+        let el = root.querySelector('div[data-type="sources-store"]') as HTMLElement | null;
+        if (!el) {
+          el = document.createElement("div");
+          el.setAttribute("data-type", "sources-store");
+          el.setAttribute("contenteditable", "false");
+          (el.style as any).display = "none";
+          root.insertBefore(el, root.firstChild);
+        }
+        try {
+          el.textContent = JSON.stringify(Array.isArray(sources) ? sources : []);
+        } catch {
+          el.textContent = "[]";
+        }
+        return true;
+      },
+      applyLink: ({ href, text }: { href: string; text?: string }) => {
+        const root = contentRef.current as HTMLElement | null;
+        if (!root) return false;
+        root.focus();
+        restoreSelection();
+        const range: Range | null = savedSelection ? savedSelection.cloneRange() : null;
+        if (!range) return false;
+        const container =
+          range.commonAncestorContainer.nodeType === 1
+            ? (range.commonAncestorContainer as HTMLElement)
+            : (range.commonAncestorContainer.parentElement as HTMLElement | null);
+        const existingAnchor = container?.closest?.("a[href]") as HTMLAnchorElement | null;
+        if (existingAnchor && root.contains(existingAnchor)) {
+          existingAnchor.setAttribute("href", href);
+          existingAnchor.href = href;
+          existingAnchor.style.color = "#3b82f6";
+          existingAnchor.style.textDecoration = "underline";
+          existingAnchor.rel = "noreferrer noopener";
+          existingAnchor.target = "_blank";
+          if (typeof text === "string" && text.length > 0) {
+            existingAnchor.textContent = text;
+          }
+          const next = document.createRange();
+          next.selectNodeContents(existingAnchor);
+          next.collapse(false);
+          savedSelection = next.cloneRange();
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(next);
+          return true;
+        }
+        const a = document.createElement("a");
+        a.href = href;
+        a.style.color = "#3b82f6";
+        a.style.textDecoration = "underline";
+        a.rel = "noreferrer noopener";
+        a.target = "_blank";
+        if (typeof text === "string" && text.length > 0) {
+          a.textContent = text;
+          range.deleteContents();
+          range.insertNode(a);
+        } else if (range.collapsed) {
+          a.textContent = href;
+          range.insertNode(a);
+        } else {
+          const frag = range.extractContents();
+          a.appendChild(frag);
+          range.insertNode(a);
+        }
+        const next = document.createRange();
+        next.setStartAfter(a);
+        next.collapse(true);
+        savedSelection = next.cloneRange();
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(next);
+        return true;
+      },
       // Tiptap-like chainable API
       chain: () => ({
         focus: () => {
@@ -786,7 +916,96 @@ function DocxViewer({
             }),
             toggleHighlight: ({ color }: { color?: string }) => ({
               run: () => {
-                document.execCommand("backColor", false, color || "#fef08a");
+                const highlightColor = color || "#fef08a";
+                const selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0) return false;
+                const range = selection.getRangeAt(0);
+
+                const root = contentRef.current as HTMLElement | null;
+                if (!root) return false;
+
+                const getHighlightedAncestor = (node: Node | null): HTMLElement | null => {
+                  const el =
+                    (node && (node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement)) ||
+                    null;
+                  if (!el) return null;
+                  const highlighted = el.closest?.('[style*="background-color"]') as HTMLElement | null;
+                  if (highlighted?.style?.backgroundColor) return highlighted;
+                  if (el?.style?.backgroundColor) return el;
+                  return null;
+                };
+
+                const isSelectionHighlighted = () => {
+                  const a = getHighlightedAncestor(selection.anchorNode);
+                  const f = getHighlightedAncestor(selection.focusNode);
+                  return !!(a || f);
+                };
+
+                const clearBackgroundInRange = (r: Range) => {
+                  const container =
+                    (r.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                      ? (r.commonAncestorContainer as HTMLElement)
+                      : r.commonAncestorContainer.parentElement) || root;
+
+                  const walker = document.createTreeWalker(
+                    container,
+                    NodeFilter.SHOW_ELEMENT,
+                    {
+                      acceptNode: (n) => {
+                        const el = n as HTMLElement;
+                        if (!el?.style) return NodeFilter.FILTER_SKIP;
+                        if (!el.style.backgroundColor) return NodeFilter.FILTER_SKIP;
+                        // Only touch elements that intersect the selection
+                        try {
+                          const elRange = document.createRange();
+                          elRange.selectNodeContents(el);
+                          const intersects =
+                            r.compareBoundaryPoints(Range.END_TO_START, elRange) < 0 &&
+                            r.compareBoundaryPoints(Range.START_TO_END, elRange) > 0;
+                          return intersects ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                        } catch {
+                          return NodeFilter.FILTER_SKIP;
+                        }
+                      },
+                    } as any,
+                  );
+
+                  const toClean: HTMLElement[] = [];
+                  while (walker.nextNode()) {
+                    toClean.push(walker.currentNode as HTMLElement);
+                  }
+
+                  toClean.forEach((el) => {
+                    el.style.backgroundColor = "";
+                    // If this was a pure highlight wrapper, unwrap it
+                    const style = (el.getAttribute("style") || "").trim();
+                    const hasOnlyEmptyStyle =
+                      style === "" ||
+                      style === "background-color:" ||
+                      style === "background-color: ;" ||
+                      style === "background-color:;";
+                    const isWrapper =
+                      el.tagName === "SPAN" || el.tagName === "FONT" || el.tagName === "MARK";
+                    if (isWrapper && hasOnlyEmptyStyle) {
+                      const parent = el.parentNode;
+                      if (!parent) return;
+                      while (el.firstChild) parent.insertBefore(el.firstChild, el);
+                      parent.removeChild(el);
+                    } else {
+                      // also remove now-empty style attribute
+                      if (!el.getAttribute("style")?.trim()) el.removeAttribute("style");
+                    }
+                  });
+                };
+
+                // Toggle off
+                if (isSelectionHighlighted()) {
+                  clearBackgroundInRange(range);
+                  return true;
+                }
+
+                // Toggle on
+                document.execCommand("backColor", false, highlightColor);
                 return true;
               },
             }),
@@ -895,7 +1114,8 @@ function DocxViewer({
             setPageBreak: () => ({
               run: () => {
                 // Insert a page break (using a div with page-break-after)
-                const pageBreak = '<div style="page-break-after: always;"></div>';
+                const pageBreak =
+                  '<div data-type="page-break" class="page-break" style="page-break-after: always;"></div>';
                 document.execCommand("insertHTML", false, pageBreak);
                 return true;
               },
@@ -1099,11 +1319,86 @@ function DocxViewer({
         }
         return false;
       },
-      // Event emitter (fake - for compatibility)
-      on: () => {},
-      off: () => {},
+      on: (event: string, cb: Function) => {
+        const set = listeners.get(event) || new Set<Function>();
+        set.add(cb);
+        listeners.set(event, set);
+      },
+      off: (event: string, cb: Function) => {
+        const set = listeners.get(event);
+        if (!set) return;
+        set.delete(cb);
+        if (set.size === 0) listeners.delete(event);
+      },
       getHTML: () => contentRef.current?.innerHTML || "",
       getText: () => contentRef.current?.textContent || "",
+      setPageNumbers: (position: string | null) => {
+        const root = contentRef.current as HTMLElement | null;
+        if (!root) return false;
+
+        const removeAll = (selector: string) => {
+          root.querySelectorAll(selector).forEach((n) => {
+            try {
+              n.parentNode?.removeChild(n);
+            } catch {}
+          });
+        };
+
+        removeAll('[data-type="page-number"]');
+        removeAll('[data-type="page-number-config"]');
+
+        if (!position) return true;
+
+        const config = document.createElement("div");
+        config.setAttribute("data-type", "page-number-config");
+        config.setAttribute("data-position", position);
+        config.setAttribute("contenteditable", "false");
+        (config as any).style.display = "none";
+        root.insertBefore(config, root.firstChild);
+
+        const breaks = Array.from(
+          root.querySelectorAll(
+            'div[data-type="page-break"], .page-break, div[style*="page-break-after"]',
+          ),
+        ) as HTMLElement[];
+
+        const insertAtStart =
+          position.startsWith("top") || position.startsWith("middle");
+
+        const makePageEl = (num: number) => {
+          const el = document.createElement("div");
+          el.setAttribute("data-type", "page-number");
+          el.setAttribute("data-position", position);
+          el.setAttribute("contenteditable", "false");
+          el.className = `page-number page-number--${position}`;
+          el.textContent = `Page ${num}`;
+          return el;
+        };
+
+        if (insertAtStart) {
+          const first = makePageEl(1);
+          const ref = config.nextSibling;
+          if (ref) root.insertBefore(first, ref);
+          else root.appendChild(first);
+
+          breaks.forEach((br, idx) => {
+            const el = makePageEl(idx + 2);
+            const parent = br.parentNode;
+            if (!parent) return;
+            parent.insertBefore(el, br.nextSibling);
+          });
+        } else {
+          breaks.forEach((br, idx) => {
+            const el = makePageEl(idx + 1);
+            const parent = br.parentNode;
+            if (!parent) return;
+            parent.insertBefore(el, br);
+          });
+          root.appendChild(makePageEl(breaks.length + 1));
+        }
+
+        return true;
+      },
       setContent: (content: string) => {
         if (contentRef.current) contentRef.current.innerHTML = content;
       },
@@ -1159,11 +1454,35 @@ function DocxViewer({
     };
 
     document.addEventListener("selectionchange", handleSelectionChange);
+    const handleClick = (e: any) => {
+      const root = contentRef.current as HTMLElement | null;
+      if (!root) return;
+      const target = e?.target as Element | null;
+      if (!target) return;
+      const anchor = (target as any).closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor || !root.contains(anchor)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      saveSelection();
+      try {
+        const r = document.createRange();
+        r.selectNodeContents(anchor);
+        savedSelection = r.cloneRange();
+      } catch {}
+      emit("linkClick", {
+        href: anchor.getAttribute("href") || anchor.href,
+        text: anchor.textContent || "",
+      });
+    };
+    contentRef.current.addEventListener("click", handleClick);
 
     onEditorReady(fakeEditor);
 
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange);
+      if (contentRef.current) {
+        contentRef.current.removeEventListener("click", handleClick);
+      }
     };
   }, [onEditorReady]);
 
@@ -1171,6 +1490,10 @@ function DocxViewer({
     <div
       ref={contentRef}
       contentEditable={true}
+      spellCheck={true}
+      lang="en"
+      autoCorrect="on"
+      autoCapitalize="sentences"
       suppressContentEditableWarning={true}
       className="ProseMirror w-full h-full overflow-auto bg-gray-100 focus:outline-none"
       style={{
