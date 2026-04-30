@@ -135,7 +135,7 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
 
   const steps = [
     {
-      id: 5,
+      id: 1,
       label: 'Logo',
       icon: (props) => (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -221,10 +221,10 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
 
   return (
     <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}>
-      {/* Left Sidebar - Fixed */}
-      <div className="hidden lg:block fixed top-[72px] left-0 w-[240px] h-[calc(100vh-72px)] bg-white border-r border-[#e4e4e7] py-8 z-40">
-        <div className="px-8">
-          <div className="space-y-2">
+      {/* Left sidebar — Figma 9509:11698 (MCP): 256px wide, px-16 pt-32, item gap 8px, 40px rows, 16/Semibold/24 */}
+      <div className="hidden lg:flex lg:flex-col lg:items-start fixed top-[72px] left-0 w-[256px] h-[calc(100vh-72px)] box-border bg-[var(--base-background,#FFF)] border-r border-[color:var(--base-border,#E4E4E7)] z-40">
+        <div className="w-full flex flex-col items-start px-4 pt-8 pb-8 shrink-0">
+          <div className="flex flex-col gap-2 w-full min-w-0">
             {steps.map((step) => {
               const Icon = step.icon
               return (
@@ -232,15 +232,16 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
                   key={step.id}
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors ${step.active
-                    ? 'bg-[#f4f4f5] border border-[#e4e4e7]'
-                    : 'hover:bg-[#f4f4f5]'
+                  className={`flex w-full items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors border border-solid ${step.active
+                    ? 'bg-[var(--base-muted,#f4f4f5)] border-[color:var(--base-border,#E4E4E7)]'
+                    : 'bg-[var(--base-background,#FFF)] border-transparent hover:bg-[var(--base-muted,#f4f4f5)]'
                     }`}
                 >
-                  <Icon className={`w-5 h-5 ${step.active ? 'text-[#18181b]' : 'text-[#71717a]'}`} />
+                  <Icon
+                    className={`w-5 h-5 shrink-0 ${step.active ? 'text-[color:var(--base-foreground,#18181b)]' : 'text-[color:var(--base-muted-foreground-plus,#52525b)]'}`}
+                  />
                   <span
-                    className={`text-[14px] leading-[20px] font-medium ${step.active ? 'text-[#18181b]' : 'text-[#71717a]'
-                      }`}
+                    className={`text-base font-semibold leading-6 whitespace-nowrap ${step.active ? 'text-[color:var(--base-foreground,#18181b)]' : 'text-[color:var(--base-muted-foreground-plus,#52525b)]'}`}
                   >
                     {step.label}
                   </span>
@@ -252,7 +253,7 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
       </div>
 
       {/* Main Content */}
-      <div className="pl-0 lg:pl-[240px] pr-0">
+      <div className="pl-0 lg:pl-[256px] pr-0">
         <div className="w-full mx-auto px-4 md:px-8 pb-8">
           <div className="mb-8 pt-[51px]">
             <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-0">
@@ -791,7 +792,7 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
                       value={brandPersonality}
                       onChange={(e) => updateStyleInfo({ personality: e.target.value })}
                       rows={4}
-                      className="w-full px-4 py-3 bg-white border border-[#e4e4e7] rounded-lg text-[15px] leading-[22px] text-[#18181b] min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-[#18181b] focus:border-transparent"
+                      className="box-border min-h-[120px] w-full resize-y whitespace-pre-wrap break-words rounded-lg border border-[#CBD5E1] bg-white px-4 py-3 font-[Inter,sans-serif] text-[16px] font-normal not-italic leading-[24px] tracking-[-0.312px] text-[rgba(10,10,10,0.5)] placeholder:text-[rgba(10,10,10,0.5)] focus:border-[#18181b] focus:outline-none focus:ring-2 focus:ring-[#18181b]/20"
                       placeholder="Describe your brand's personality in 1–2 sentences."
                     />
                   </div>
@@ -1106,18 +1107,30 @@ export default function StyleGuideStep5Review({ data, updateData, onBack, onNext
 
 
       {/* Footer */}
-      <div className="fixed bottom-0 left-0 lg:left-[240px] right-0 bg-white border-t border-[#e4e4e7] px-4 md:px-8 py-4 z-50">
-        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
-          <div className="text-[14px] leading-[20px] text-[#71717a]">
-            Step 5 of 5 - Review
-          </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <Button variant="secondary" size="md" onClick={onBack} disabled={isSubmitting} className="flex-1 md:flex-none justify-center">
-              Back
-            </Button>
-            <Button variant="primary" size="md" onClick={onNext} disabled={isSubmitting} className="flex-1 md:flex-none justify-center">
-              {isSubmitting ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Brand Kit')} <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+      <div
+        className="fixed bottom-0 left-0 lg:left-[256px] right-0 px-4 md:px-8 py-4 z-50"
+        style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}
+      >
+        <div className="max-w-[1280px] mx-auto">
+          <div className="h-px bg-[#e4e4e7] mx-[5px] mb-4" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
+            <div className="text-[14px] leading-[20px] text-[#71717a]">
+              Step 5 of 5 - Review
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={onBack}
+                disabled={isSubmitting}
+                className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Back
+              </Button>
+              <Button variant="primary" size="md" onClick={onNext} disabled={isSubmitting} className="flex-1 md:flex-none justify-center">
+                {isSubmitting ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Brand Kit')} <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

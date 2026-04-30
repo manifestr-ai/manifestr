@@ -11,6 +11,7 @@ import RenameStyleGuideModal from '../components/ui/RenameStyleGuideModal'
 import DeleteStyleGuideModal from '../components/ui/DeleteStyleGuideModal'
 import StyleGuideDropdown from '../components/ui/StyleGuideDropdown'
 import { useToast } from '../components/ui/Toast'
+import { STYLE_GUIDE_HERO_BANNER_URL } from '../lib/styleGuideHeroBanner'
 
 export default function StyleGuide() {
   const router = useRouter()
@@ -275,6 +276,7 @@ export default function StyleGuide() {
               fill
               className="object-cover object-top"
               priority
+              sizes="100vw"
             />
           </div>
 
@@ -290,6 +292,7 @@ export default function StyleGuide() {
               </p>
             </div>
             <button
+              type="button"
               onClick={handleCreateNew}
               className="flex items-center justify-center gap-2 bg-white h-[40px] px-4 py-2 rounded-[6px] text-[14px] font-medium leading-[20px] text-[#18181b] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:bg-[#f4f4f5] transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
