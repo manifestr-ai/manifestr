@@ -38,6 +38,14 @@ class App {
 
     public listen(cb?: () => void) {
         const server = this.app.listen(this.port, cb);
+        
+        // 🔥 Set server timeout to 10 minutes for long-running AI requests
+        server.timeout = 600000; // 10 minutes in milliseconds
+        server.keepAliveTimeout = 605000; // Slightly longer than timeout
+        server.headersTimeout = 610000; // Slightly longer than keepAliveTimeout
+        
+        console.log(`⏱️  Server timeout set to ${server.timeout / 1000} seconds`);
+        
         return server;
     }
 
