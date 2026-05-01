@@ -22,6 +22,8 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
 
   // Handle card click - use custom handler if provided, otherwise open modal
   const handleCardClick = (card) => {
+
+    console.log(onCardClick);
     if (onCardClick) {
       onCardClick(card)
     } else {

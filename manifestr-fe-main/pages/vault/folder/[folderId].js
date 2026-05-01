@@ -308,7 +308,8 @@ export default function VaultFolderDetailPage() {
                 cards={filteredCards}
                 showTitle={true}
                 viewMode={viewMode}
-                onCardClick={handleProjectClick}
+                onCardClick={undefined
+                }
                 title="Documents"
               />
             )}

@@ -605,6 +605,7 @@ export default function Vault() {
   // Handle project click - route to appropriate editor
   const handleProjectClick = (card) => {
     if (card?.isDummy) return;
+
     const project = card.rawData;
     const type = project?.type ? project.type.toLowerCase() : "document";
 
@@ -1201,10 +1202,17 @@ export default function Vault() {
             <VaultGrid
               cards={documentCards}
               viewMode={viewMode}
-              onCardClick={handleProjectClick}
+              onCardClick={
+                documentCards.length > 0 &&
+                documentCards[0].hasOwnProperty('isVault') &&
+                documentCards[0].isVault === true
+                  ? undefined
+                  : handleProjectClick
+              }
               onPin={handlePin}
               onUpdate={handleUpdate}
             />
+      
 
             {/* Pagination */}
             {totalPages > 1 && (
