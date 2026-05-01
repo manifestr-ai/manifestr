@@ -4,6 +4,8 @@ import SupabaseDB from "../../lib/supabase-db";
 import { s3Util } from "../../utils/s3.util";
 import { PresentationEngine } from "./engines/PresentationEngine";
 import { ProfessionalDocGenerator } from "../../generators/ProfessionalDocGenerator";
+import { AnalyzerGenerator } from "../../services/AnalyzerGenerator";
+import { AnalyzerCatalogService } from "../../services/AnalyzerCatalogService";
 import { Packer } from 'docx';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -56,6 +58,20 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
         // Defensive checks
         if (!input || !input.layout) {
             throw new Error("Invalid input: missing layout data");
+        }
+
+        // 🆕 ANALYZER CHECK (Feature flag protected)
+        const ENABLE_ANALYZER = process.env.ENABLE_ANALYZER === 'true';
+        const isAnalyzerRequest = input.layout.intent.metadata?.isAnalyzer === true;
+
+        if (ENABLE_ANALYZER && isAnalyzerRequest) {
+            console.log('🔍 Analyzer request detected - routing to analyzer generation');
+            try {
+                return await this.handleAnalyzerGeneration(input, job);
+            } catch (error) {
+                console.error('❌ Analyzer generation failed, falling back to standard flow:', error);
+                // Fall through to existing logic if analyzer fails
+            }
         }
 
         // Check if this is a semantic document (skip block validation)
@@ -2007,6 +2023,64 @@ Return the complete filled HTML document (raw HTML only, no code blocks):`
         }
         
         return cells.length > 0 ? { type: "tableRow", content: cells } : null;
+    }
+
+    /**
+     * Handle Analyzer chart generation
+     */
+    private async handleAnalyzerGeneration(input: any, job: any): Promise<RenderResponse> {
+        console.log('\n🔍 === ANALYZER GENERATION START ===');
+
+        const metadata = input.layout.intent.metadata;
+        const templateId = metadata.analyzerTemplateId;
+        const prompt = input.layout.intent.originalPrompt;
+
+        // Get template from catalog
+        const catalogService = AnalyzerCatalogService.getInstance();
+        let template = null;
+
+        if (templateId) {
+            template = await catalogService.getTemplateById(templateId);
+        } else {
+            // Try to find best match
+            template = await catalogService.findBestMatch(prompt);
+        }
+
+        if (!template) {
+            throw new Error('No analyzer template found for request');
+        }
+
+        console.log(`📊 Using template: ${template.template_name} (${template.chart_type})`);
+
+        // Generate chart data using AI
+        const generator = new AnalyzerGenerator();
+        const result = await generator.generateChartData(prompt, template);
+
+        console.log('✅ Chart data generated successfully');
+
+        // Format for Univer (chart-editor compatible)
+        const editorState = {
+            type: 'analyzer',
+            chartType: result.chartType,
+            title: result.title,
+            description: result.description,
+            data: result.data,
+            config: result.config,
+            template: {
+                id: result.templateId,
+                name: result.templateName
+            }
+        };
+
+        console.log('🔍 === ANALYZER GENERATION COMPLETE ===\n');
+
+        return {
+            jobId: input.jobId,
+            outputFormat: 'chart',
+            editorState: editorState,
+            tokensUsed: 0,
+            status: 'success'
+        };
     }
 
     /**

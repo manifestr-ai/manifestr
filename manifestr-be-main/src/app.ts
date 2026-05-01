@@ -37,7 +37,8 @@ class App {
     }
 
     public listen(cb?: () => void) {
-        this.app.listen(this.port, cb);
+        const server = this.app.listen(this.port, cb);
+        return server;
     }
 
     private initializeMiddlewares() {

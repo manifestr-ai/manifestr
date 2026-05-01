@@ -14,6 +14,7 @@ import { BaseController } from './base.controller';
 import { supabaseAdmin } from '../lib/supabase';
 import { authenticateToken } from '../middleware/auth.middleware';
 import crypto from 'crypto';
+import postmarkService from '../services/PostmarkService';
 
 export class CollaborationController extends BaseController {
     public basePath = '/collaborations';
@@ -206,7 +207,7 @@ export class CollaborationController extends BaseController {
             // STEP 1: Check if invitee email already has access (registered user)
             let { data: existingUser } = await supabaseAdmin
                 .from('users')
-                .select('id')
+                .select('id, first_name, last_name')
                 .eq('email', email.toLowerCase().trim())
                 .single();
 
@@ -385,10 +386,7 @@ export class CollaborationController extends BaseController {
                 console.log('⚠️ Invite record not created (not critical):', inviteError.message);
             }
 
-            // TODO: Send email notification here (when email service is integrated)
-            console.log(`📧 Email notification would be sent to ${email} (email service not configured yet)`);
-
-            // Get inviter name for logging
+            // Get inviter name for email
             const { data: inviter } = await supabaseAdmin
                 .from('users')
                 .select('first_name, last_name, email')
@@ -396,12 +394,46 @@ export class CollaborationController extends BaseController {
                 .single();
             const inviterName = inviter ? `${inviter.first_name} ${inviter.last_name}`.trim() || inviter.email : 'Someone';
 
+            // Get document title
+            const { data: document } = await supabaseAdmin
+                .from('generation_jobs')
+                .select('title')
+                .eq('id', documentId)
+                .single();
+            const documentTitle = document?.title || 'Untitled Document';
+
+            // Send email notification via Postmark
+            console.log(`📧 Sending collaboration invite email to ${email}...`);
+            
+            const inviteeName = !existingUser 
+                ? email.split('@')[0] 
+                : (existingUser.first_name || email.split('@')[0]);
+
+            const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/docs-editor?id=${documentId}`;
+
+            try {
+                await postmarkService.sendCollaborationInvite({
+                    inviteeEmail: email,
+                    inviteeName: inviteeName,
+                    inviterName: inviterName,
+                    documentTitle: documentTitle,
+                    role: role,
+                    inviteLink: inviteLink,
+                    accountCreated: !existingUser,
+                    defaultPassword: !existingUser ? 'Manifestr123!' : undefined
+                });
+                console.log(`✅ Collaboration invite email sent to ${email}`);
+            } catch (emailError) {
+                console.error(`⚠️ Failed to send email to ${email}:`, emailError);
+                // Continue anyway - user was added to collaboration
+            }
+
             console.log(`✅ ${inviterName} added ${email} to collaborate as ${role}`);
             
             // If we created the user, include password info
             const responseMessage = !existingUser
-                ? `✅ ${email} added as ${role}! Account created with password: Manifestr123!`
-                : `✅ ${email} added as ${role}! They can now access the document.`;
+                ? `✅ ${email} added as ${role}! Account created with password: Manifestr123! An email has been sent with login details.`
+                : `✅ ${email} added as ${role}! They can now access the document. An invitation email has been sent.`;
 
             return res.json({
                 status: 'success',
@@ -413,7 +445,9 @@ export class CollaborationController extends BaseController {
                     status: 'accepted',
                     userCreated: !existingUser, // True if we created the account
                     defaultPassword: !existingUser ? 'Manifestr123!' : undefined, // Show password if created
-                    inviteId: invite?.id
+                    inviteId: invite?.id,
+                    emailSent: true,
+                    inviteLink: inviteLink
                 }
             });
 

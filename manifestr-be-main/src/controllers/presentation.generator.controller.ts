@@ -27,16 +27,25 @@ export class PresentationGeneratorController extends BaseController {
         super();
     }
 
+    // 🔥 Middleware to increase timeout for AI-heavy routes
+    private extendTimeout(req: Request, res: Response, next: any) {
+        req.socket.setTimeout(300000); // 5 minutes
+        res.socket?.setTimeout(300000);
+        next();
+    }
+
     protected initializeRoutes(): void {
         this.routes = [
             {
                 verb: 'POST',
                 path: '/generate',
+                middlewares: [this.extendTimeout.bind(this)],
                 handler: this.generatePresentation.bind(this),
             },
             {
                 verb: 'POST',
                 path: '/modify',
+                middlewares: [this.extendTimeout.bind(this)],
                 handler: this.modifyPresentation.bind(this),
             },
         ];

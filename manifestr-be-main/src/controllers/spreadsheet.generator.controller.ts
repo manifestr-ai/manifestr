@@ -26,16 +26,26 @@ export class SpreadsheetGeneratorController extends BaseController {
         super();
     }
 
+    // 🔥 Middleware to increase timeout for AI-heavy routes
+    private extendTimeout(req: Request, res: Response, next: any) {
+        // Increase timeout to 5 minutes for this request only
+        req.socket.setTimeout(300000); // 5 minutes
+        res.socket?.setTimeout(300000);
+        next();
+    }
+
     protected initializeRoutes(): void {
         this.routes = [
             {
                 verb: 'POST',
                 path: '/generate',
+                middlewares: [this.extendTimeout.bind(this)], // 🔥 Add timeout extension
                 handler: this.generateSpreadsheet.bind(this),
             },
             {
                 verb: 'POST',
                 path: '/modify',
+                middlewares: [this.extendTimeout.bind(this)], // 🔥 Add timeout extension
                 handler: this.modifySpreadsheet.bind(this),
             },
         ];
@@ -264,7 +274,7 @@ CRITICAL RULES:
 - Return the COMPLETE modified spreadsheet in the same JSON format
 `;
 
-            const userPrompt = `
+                    const userPrompt = `
 USER MODIFICATION REQUEST: "${prompt}"
 
 CURRENT SPREADSHEET DATA:
@@ -296,7 +306,7 @@ Maintain the same JSON structure.
             const jsonContent = JSON.stringify(result);
             const jsonPath = `${jobUserId}/spreadsheets/${job.id}.json`;
             let jsonUrl: string;
-            
+
             try {
                 await supabaseAdmin.storage
                     .from('generated-images')
@@ -346,17 +356,18 @@ Maintain the same JSON structure.
 
             console.log(`💾 Modified spreadsheet saved!`);
 
+            // 7. Return the modified spreadsheet to frontend
             return res.json({
                 status: 'success',
                 data: {
                     jobId: job.id,
-                    spreadsheetData: modifiedSpreadsheet,
+                    spreadsheetData: modifiedSpreadsheet, // ✅ Return actual data
                     generatedAt: new Date().toISOString()
                 }
             });
 
         } catch (error: any) {
-            console.error('❌ Spreadsheet modification failed:', error);
+            console.error('❌ Spreadsheet modification setup failed:', error);
             return res.status(500).json({ 
                 error: 'Internal server error', 
                 details: error instanceof Error ? error.message : String(error) 
