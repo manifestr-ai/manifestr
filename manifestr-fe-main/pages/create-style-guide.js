@@ -11,6 +11,8 @@ import StyleGuideStep3Color from '../components/style-guide/Step3Color'
 import StyleGuideStep4Style from '../components/style-guide/Step4Style'
 import StyleGuideStep5Review from '../components/style-guide/Step5Review'
 import CompletionModal from '../components/style-guide/CompletionModal'
+import UploadBrandKitModal from '../components/style-guide/UploadBrandKitModal'
+import { mapApiGuideToFrontendState, styleGuideStateFromImportedJson } from '../lib/styleGuideImport'
 import { useToast } from '../components/ui/Toast'
 
 const DEFAULT_BRAND_PERSONALITY =
@@ -141,6 +143,7 @@ export default function CreateStyleGuide() {
   const isEditMode = !!editingId
   
   const [currentStep, setCurrentStep] = useState(0) // 0 = initial modal, 1+ = steps
+  const [showUploadBrandKitModal, setShowUploadBrandKitModal] = useState(false)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingExisting, setIsLoadingExisting] = useState(false)
@@ -198,34 +201,8 @@ export default function CreateStyleGuide() {
         const response = await getStyleGuideDetails(editingId)
         const guide = response.data
 
-        // Map backend data to component state
         if (guide) {
-          // Backend stores data in separate JSONB columns: logo, typography, colors, style
-          // The logo column contains: { logos: [], backgrounds: {}, logoRules: {} }
-          const logoData = guide.logo || {};
-          const loadedData = {
-            name: guide.name || "Draft Style Guide",
-            brandKitName: guide.brand_name || guide.name || "",
-            logos: logoData.logos || [],
-            backgrounds: logoData.backgrounds || { permitted: 'light-dark', darkUses: 'white-reversed', minContrast: '' },
-            logoRules: logoData.logoRules || { enabled: true, minSize: '24px', maxSize: '96px', clearSpace: '4', scaling: 'maintain-aspect-ratio', placement: 'Top-left', allowAlternate: false },
-            colors: guide.colors || { selected: ['white', 'black'], custom: [] },
-            typography: guide.typography || { headings: { family: 'Inter', weight: 'Bold' }, body: { family: 'Inter', weight: 'Regular' } },
-            style: {
-              toneDescriptors: ['Professional', 'Bold'],
-              audience: ['B2B (Business)'],
-              personality: DEFAULT_BRAND_PERSONALITY,
-              personas: [{ id: 1, title: 'CTO', summary: '' }],
-              examplePhrases: [{ id: 1, weSay: 'Transform your workflow', weDontSay: 'Disrupt the industry' }],
-              ...guide.style,
-              personality:
-                guide.style?.personality != null && String(guide.style.personality).trim() !== ''
-                  ? guide.style.personality
-                  : DEFAULT_BRAND_PERSONALITY
-            }
-          }
-          
-          setStyleGuideData(loadedData)
+          setStyleGuideData(mapApiGuideToFrontendState(guide, DEFAULT_BRAND_PERSONALITY))
           // Skip the initial modal and go directly to editing
           setCurrentStep(1)
         }
@@ -468,8 +445,14 @@ export default function CreateStyleGuide() {
   }
 
   const handleUploadBrandKit = () => {
-    // Move to step 1 (Logo step) - same for both buttons
+    setShowUploadBrandKitModal(true)
+  }
+
+  const handleImportedStyleGuideFromFile = (nextState) => {
+    setStyleGuideData(nextState)
+    setShowUploadBrandKitModal(false)
     setCurrentStep(1)
+    success('Style guide loaded from file. Review each step to confirm your brand details.')
   }
 
   // Show loading screen while loading existing guide
@@ -704,6 +687,18 @@ export default function CreateStyleGuide() {
               router.push('/style-guide')
             }
           }}
+        />
+
+        <UploadBrandKitModal
+          isOpen={showUploadBrandKitModal}
+          onClose={() => setShowUploadBrandKitModal(false)}
+          onImported={handleImportedStyleGuideFromFile}
+          parseAndNormalize={(parsed) =>
+            styleGuideStateFromImportedJson(parsed, {
+              defaultBrandPersonality: DEFAULT_BRAND_PERSONALITY,
+              baseState: styleGuideData,
+            })
+          }
         />
       </div>
     </>
