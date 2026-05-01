@@ -31,7 +31,8 @@ export const setVaultFolders = (folders) => {
   }));
 };
 
-export const getVaultFolderHref = (folderId) => `/vault/collabs/${folderId}`
+export const getCollabFolderHref = (folderId) => `/vault/collabs/${folderId}`
+export const getVaultFolderHref = (folderId) => `/vault/folder/${folderId}`
 
 export const getVaultFolderById = (folderId) =>
   VAULT_FOLDERS.find((f) => f.id === folderId) || null

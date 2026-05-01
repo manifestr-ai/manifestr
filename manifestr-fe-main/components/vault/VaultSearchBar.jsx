@@ -30,6 +30,8 @@ export default function VaultSearchBar({
   const [selectedTool, setSelectedTool] = useState("All Tools");
   const [selectedCollab, setSelectedCollab] = useState("All Collabs");
   const [selectedSort, setSelectedSort] = useState("Last Edited");
+  const [isRecording, setIsRecording] = useState(false);
+
 
   const tools = [
     "All Tools",
@@ -101,7 +103,53 @@ export default function VaultSearchBar({
             className="w-full h-full pl-10 pr-12 text-[16px] leading-[24px] text-[#18181b] placeholder:text-[#71717a] focus:outline-none"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Mic className="w-6 h-6 text-[#71717a]" />
+            <button
+              type="button"
+              onClick={async () => {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                  alert('Speech recognition not supported in this browser');
+                  return;
+                }
+                const SpeechRecognition =
+                  window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                setIsRecording(true); // <-- Show mic as blinking
+                recognition.onresult = (event) => {
+                  setIsRecording(false); // Turn off blinking when finished
+                  if (event.results && event.results[0] && event.results[0][0]) {
+                    setSearchQuery(event.results[0][0].transcript);
+                  }
+                };
+                recognition.onerror = (event) => {
+                  setIsRecording(false); // Turn off blinking on error
+                  // Optionally show error or toast
+                };
+                recognition.onend = () => { setIsRecording(false); }; // Handle manual stop
+                recognition.start();
+              }}
+              className="focus:outline-none"
+              aria-label="Record search text"
+            >
+              <span className="relative flex items-center">
+                <Mic className="w-6 h-6 text-[#71717a]" />
+                {isRecording && (
+                  <span
+                    className="absolute top-0 right-0 w-2 h-2 rounded-full animate-ping bg-red-500"
+                    style={{ right: "-6px", top: "-3px" }}
+                  />
+                )}
+                {isRecording && (
+                  <span
+                    className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500"
+                    style={{ right: "-6px", top: "-3px" }}
+                  />
+                )}
+              </span>
+            </button>
+  
           </div>
         </div>
       </div>

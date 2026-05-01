@@ -1027,6 +1027,7 @@ export default function Vault() {
                   fileKey: fileKey,
                   parentId: "root", // Default to root for now, or match selectedFolder if we had IDs
                   status: "Draft",
+                  folder_id: data.folderId || null,
                   project:
                     data.project !== "Select project"
                       ? data.project
@@ -1173,6 +1174,7 @@ export default function Vault() {
             name: f.name,
             href: getVaultFolderHref(f.id),
           }))}
+          addFolder={true}
         />
 
         {/* Documents Grid with Loading State */}
@@ -1337,6 +1339,7 @@ export default function Vault() {
                 fileKey: fileKey,
                 parentId: "root", // Default to root for now, or match selectedFolder if we had IDs
                 status: "Draft",
+                folder_id: data.folderId || null,
                 project:
                   data.project !== "Select project"
                     ? data.project

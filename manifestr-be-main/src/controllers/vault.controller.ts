@@ -78,29 +78,39 @@ export class VaultController extends BaseController {
   private listItems = async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user!.userId;
-      const { parentId, search } = req.query;
+      const { parentId, search, folder_id } = req.query;
 
-      // Get all user's vault items
       let items = await SupabaseDB.getUserVaultItems(userId);
 
-      // Filter by search
+      // 1. SEARCH (always applies)
       if (search) {
         items = items.filter((item) =>
           item.title.toLowerCase().includes((search as string).toLowerCase()),
         );
-      } else if (parentId && parentId !== "root") {
+      }
+
+      // 2. FILTER BY folder_id (YOUR PRIMARY LOGIC)
+      if (folder_id) {
+        items = items.filter((item) => item.folder_id === folder_id);
+      }
+
+      // 3. ELSE fallback to parentId (if you still need it)
+      else if (parentId && parentId !== "root") {
         if (!uuidValidate(parentId as string)) {
           return res
             .status(400)
             .json({ status: "error", message: "Invalid parentId" });
         }
+
         items = items.filter((item) => item.parent_id === parentId);
-      } else {
-        // Root items only
-        items = items.filter((item) => !item.parent_id);
       }
 
-      // Sort: folders first, then by title
+      // 4. ROOT ITEMS (default)
+      else {
+        items = items.filter((item) => !item.folder_id);
+      }
+
+      // SORT
       items.sort((a, b) => {
         if (a.type !== b.type) {
           return a.type === "folder" ? -1 : 1;
@@ -114,9 +124,10 @@ export class VaultController extends BaseController {
         meta: { total: items.length },
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ status: "error", message: (error as Error).message });
+      return res.status(500).json({
+        status: "error",
+        message: (error as Error).message,
+      });
     }
   };
 
@@ -154,8 +165,16 @@ export class VaultController extends BaseController {
   private createItem = async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user!.userId;
-      const { title, fileKey, parentId, status, project, size, thumbnailUrl } =
-        req.body;
+      const {
+        title,
+        fileKey,
+        parentId,
+        status,
+        project,
+        size,
+        thumbnailUrl,
+        folder_id,
+      } = req.body;
 
       if (!title || !fileKey) {
         return res
@@ -182,6 +201,7 @@ export class VaultController extends BaseController {
         project,
         size,
         thumbnail_url: thumbnailUrl,
+        folder_id: folder_id,
       });
 
       return res.status(201).json({ status: "success", data: newItem });
