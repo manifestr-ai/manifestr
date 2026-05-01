@@ -14,6 +14,7 @@ import { ImageGeneratorController } from './controllers/image.generator.controll
 import { ImageModifierController } from './controllers/image.modifier.controller';
 import { SpreadsheetGeneratorController } from './controllers/spreadsheet.generator.controller';
 import { PresentationGeneratorController } from './controllers/presentation.generator.controller';
+import { ChartGeneratorController } from './controllers/chart.generator.controller';
 import { VaultController } from './controllers/vault.controller';
 import { StyleGuideController } from './controllers/style-guide.controller';
 import { EarlyAccessController } from './controllers/early-access.controller';
@@ -133,6 +134,7 @@ class App {
             new ImageModifierController(),
             new SpreadsheetGeneratorController(),
             new PresentationGeneratorController(),
+            new ChartGeneratorController(),
             new AIController(),
             new UploadController(),
             new VaultController(),
