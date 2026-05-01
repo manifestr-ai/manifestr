@@ -1,327 +1,451 @@
-import { Response } from 'express';
-import { BaseController } from './base.controller';
-import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
-import SupabaseDB from '../lib/supabase-db';
-import { s3Util } from '../utils/s3.util';
-import { validate as uuidValidate } from 'uuid';
+import { Response } from "express";
+import { BaseController } from "./base.controller";
+import { authenticateToken, AuthRequest } from "../middleware/auth.middleware";
+import SupabaseDB from "../lib/supabase-db";
+import { s3Util } from "../utils/s3.util";
+import { validate as uuidValidate } from "uuid";
 
 export class VaultController extends BaseController {
-    public basePath = '/api/vaults';
+  public basePath = "/api/vaults";
 
-    protected initializeRoutes(): void {
-        this.routes = [
-            { verb: 'GET', path: '/', handler: this.listItems, middlewares: [authenticateToken] },
-            { verb: 'POST', path: '/', handler: this.createItem, middlewares: [authenticateToken] },
-            { verb: 'POST', path: '/folder', handler: this.createFolder, middlewares: [authenticateToken] },
-            { verb: 'PATCH', path: ('/:id'), handler: this.updateItem, middlewares: [authenticateToken] },
-            { verb: 'DELETE', path: '/:id', handler: this.deleteItem, middlewares: [authenticateToken] }
-        ];
-    }
+  protected initializeRoutes(): void {
+    this.routes = [
+      {
+        verb: "GET",
+        path: "/",
+        handler: this.listItems,
+        middlewares: [authenticateToken],
+      },
+      {
+        verb: "POST",
+        path: "/",
+        handler: this.createItem,
+        middlewares: [authenticateToken],
+      },
+      {
+        verb: "POST",
+        path: "/folder",
+        handler: this.createNewFolder,
+        middlewares: [authenticateToken],
+      },
+      {
+        verb: "PATCH",
+        path: "/:id",
+        handler: this.updateItem,
+        middlewares: [authenticateToken],
+      },
+      {
+        verb: "DELETE",
+        path: "/:id",
+        handler: this.deleteItem,
+        middlewares: [authenticateToken],
+      },
 
-    /**
-     * @swagger
-     * /vaults:
-     *   get:
-     *     summary: List vault items
-     *     tags: [Vaults]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: query
-     *         name: parentId
-     *         schema: { type: string }
-     *         description: Filter by parent folder ID (use 'root' or omit for top-level)
-     *       - in: query
-     *         name: search
-     *         schema: { type: string }
-     *         description: Search by title
-     *     responses:
-     *       200:
-     *         description: List of items
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ApiResponse'
-     */
-    private listItems = async (req: AuthRequest, res: Response) => {
-        try {
-            const userId = req.user!.userId;
-            const { parentId, search } = req.query;
+      {
+        verb: "GET",
+        path: "/folders",
+        handler: this.listFolders,
+        middlewares: [authenticateToken],
+      },
+    ];
+  }
 
-            // Get all user's vault items
-            let items = await SupabaseDB.getUserVaultItems(userId);
+  /**
+   * @swagger
+   * /vaults:
+   *   get:
+   *     summary: List vault items
+   *     tags: [Vaults]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: parentId
+   *         schema: { type: string }
+   *         description: Filter by parent folder ID (use 'root' or omit for top-level)
+   *       - in: query
+   *         name: search
+   *         schema: { type: string }
+   *         description: Search by title
+   *     responses:
+   *       200:
+   *         description: List of items
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ApiResponse'
+   */
+  private listItems = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const { parentId, search, folder_id } = req.query;
 
-            // Filter by search
-            if (search) {
-                items = items.filter(item =>
-                    item.title.toLowerCase().includes((search as string).toLowerCase())
-                );
-            } else if (parentId && parentId !== 'root') {
-                if (!uuidValidate(parentId as string)) {
-                    return res.status(400).json({ status: "error", message: "Invalid parentId" });
-                }
-                items = items.filter(item => item.parent_id === parentId);
-            } else {
-                // Root items only
-                items = items.filter(item => !item.parent_id);
-            }
+      let items = await SupabaseDB.getUserVaultItems(userId);
 
-            // Sort: folders first, then by title
-            items.sort((a, b) => {
-                if (a.type !== b.type) {
-                    return a.type === 'folder' ? -1 : 1;
-                }
-                return a.title.localeCompare(b.title);
-            });
+      // 1. SEARCH (always applies)
+      if (search) {
+        items = items.filter((item) =>
+          item.title.toLowerCase().includes((search as string).toLowerCase()),
+        );
+      }
 
-            return res.json({
-                status: "success",
-                data: items,
-                meta: { total: items.length }
-            });
-        } catch (error) {
-            return res.status(500).json({ status: "error", message: (error as Error).message });
+      // 2. FILTER BY folder_id (YOUR PRIMARY LOGIC)
+      if (folder_id) {
+        items = items.filter((item) => item.folder_id === folder_id);
+      }
+
+      // 3. ELSE fallback to parentId (if you still need it)
+      else if (parentId && parentId !== "root") {
+        if (!uuidValidate(parentId as string)) {
+          return res
+            .status(400)
+            .json({ status: "error", message: "Invalid parentId" });
         }
-    }
 
-    /**
-     * @swagger
-     * /vaults:
-     *   post:
-     *     summary: Create a new file item
-     *     tags: [Vaults]
-     *     security:
-     *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             required: [title, fileKey]
-     *             properties:
-     *               title: { type: string }
-     *               fileKey: { type: string }
-     *               parentId: { type: string }
-     *               status: { type: string, enum: [Draft, In Progress, In Review, Final] }
-     *               project: { type: string }
-     *               size: { type: number }
-     *               thumbnailUrl: { type: string }
-     *     responses:
-     *       201:
-     *         description: Item created
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ApiResponse'
-     */
-    private createItem = async (req: AuthRequest, res: Response) => {
-        try {
+        items = items.filter((item) => item.parent_id === parentId);
+      }
 
-            const userId = req.user!.userId;
-            const { title, fileKey, parentId, status, project, size, thumbnailUrl } = req.body;
+      // 4. ROOT ITEMS (default)
+      else {
+        items = items.filter((item) => !item.folder_id);
+      }
 
-            if (!title || !fileKey) {
-                return res.status(400).json({ status: "error", message: "Title and fileKey are required" });
-            }
-
-            let validatedParentId = parentId;
-            if (parentId === 'root') {
-                validatedParentId = null;
-            } else if (parentId && !uuidValidate(parentId)) {
-                return res.status(400).json({ status: "error", message: "Invalid parentId" });
-            }
-
-            // Create vault item using Supabase
-            const newItem = await SupabaseDB.createVaultItem(userId, {
-                title,
-                type: 'file',
-                file_key: fileKey,
-                parent_id: validatedParentId,
-                status: status || 'Draft',
-                project,
-                size,
-                thumbnail_url: thumbnailUrl
-            });
-
-            return res.status(201).json({ status: "success", data: newItem });
-
-        } catch (error: any) {
-            if (error.code === '23503') {
-                return res.status(400).json({ status: "error", message: "User not found or Invalid References" });
-            }
-            return res.status(500).json({ status: "error", message: error.message });
+      // SORT
+      items.sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === "folder" ? -1 : 1;
         }
+        return a.title.localeCompare(b.title);
+      });
+
+      return res.json({
+        status: "success",
+        data: items,
+        meta: { total: items.length },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message: (error as Error).message,
+      });
     }
+  };
 
-    /**
-     * @swagger
-     * /vaults/folder:
-     *   post:
-     *     summary: Create a new folder
-     *     tags: [Vaults]
-     *     security:
-     *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             required: [title]
-     *             properties:
-     *               title: { type: string }
-     *               parentId: { type: string }
-     *               project: { type: string }
-     *     responses:
-     *       201:
-     *         description: Folder created
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ApiResponse'
-     */
-    private createFolder = async (req: AuthRequest, res: Response) => {
-        try {
-            const userId = req.user!.userId;
-            const { title, parentId, project } = req.body;
+  /**
+   * @swagger
+   * /vaults:
+   *   post:
+   *     summary: Create a new file item
+   *     tags: [Vaults]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [title, fileKey]
+   *             properties:
+   *               title: { type: string }
+   *               fileKey: { type: string }
+   *               parentId: { type: string }
+   *               status: { type: string, enum: [Draft, In Progress, In Review, Final] }
+   *               project: { type: string }
+   *               size: { type: number }
+   *               thumbnailUrl: { type: string }
+   *     responses:
+   *       201:
+   *         description: Item created
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ApiResponse'
+   */
+  private createItem = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const {
+        title,
+        fileKey,
+        parentId,
+        status,
+        project,
+        size,
+        thumbnailUrl,
+        folder_id,
+      } = req.body;
 
-            if (!title) {
-                return res.status(400).json({ status: "error", message: "Title is required" });
-            }
+      if (!title || !fileKey) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "Title and fileKey are required" });
+      }
 
-            let validatedParentId = parentId;
-            if (parentId === 'root') {
-                validatedParentId = null;
-            } else if (parentId && !uuidValidate(parentId)) {
-                return res.status(400).json({ status: "error", message: "Invalid parentId" });
-            }
+      let validatedParentId = parentId;
+      if (parentId === "root") {
+        validatedParentId = null;
+      } else if (parentId && !uuidValidate(parentId)) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "Invalid parentId" });
+      }
 
-            // Create folder using Supabase
-            const newItem = await SupabaseDB.createVaultItem(userId, {
-                title,
-                type: 'folder',
-                parent_id: validatedParentId,
-                status: 'Draft',
-                project
-            });
+      // Create vault item using Supabase
+      const newItem = await SupabaseDB.createVaultItem(userId, {
+        title,
+        type: "file",
+        file_key: fileKey,
+        parent_id: validatedParentId,
+        status: status || "Draft",
+        project,
+        size,
+        thumbnail_url: thumbnailUrl,
+        folder_id: folder_id,
+      });
 
-            return res.status(201).json({ status: "success", data: newItem });
+      return res.status(201).json({ status: "success", data: newItem });
+    } catch (error: any) {
+      if (error.code === "23503") {
+        return res.status(400).json({
+          status: "error",
+          message: "User not found or Invalid References",
+        });
+      }
+      return res.status(500).json({ status: "error", message: error.message });
+    }
+  };
 
-        } catch (error) {
-            return res.status(500).json({ status: "error", message: (error as Error).message });
+  /**
+   * @swagger
+   * /vaults/folder:
+   *   post:
+   *     summary: Create a new folder
+   *     tags: [Vaults]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [title]
+   *             properties:
+   *               title: { type: string }
+   *               parentId: { type: string }
+   *               project: { type: string }
+   *     responses:
+   *       201:
+   *         description: Folder created
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ApiResponse'
+   */
+  private createFolder = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const { title, parentId, project } = req.body;
+
+      if (!title) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "Title is required" });
+      }
+
+      let validatedParentId = parentId;
+      if (parentId === "root") {
+        validatedParentId = null;
+      } else if (parentId && !uuidValidate(parentId)) {
+        return res
+          .status(400)
+          .json({ status: "error", message: "Invalid parentId" });
+      }
+
+      // Create folder using Supabase
+      const newItem = await SupabaseDB.createVaultItem(userId, {
+        title,
+        type: "folder",
+        parent_id: validatedParentId,
+        status: "Draft",
+        project,
+      });
+
+      return res.status(201).json({ status: "success", data: newItem });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ status: "error", message: (error as Error).message });
+    }
+  };
+
+  /**
+   * @swagger
+   * /vaults/{id}:
+   *   patch:
+   *     summary: Update an item
+   *     tags: [Vaults]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string }
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title: { type: string }
+   *               status: { type: string }
+   *               parentId: { type: string }
+   *     responses:
+   *       200:
+   *         description: Item updated
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ApiResponse'
+   */
+  private updateItem = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+
+      console.log(userId);
+      const { id } = req.params;
+      const { title, status, parentId } = req.body;
+
+      // Check if item exists
+      const item = await SupabaseDB.getVaultItemById(id, userId);
+      if (!item)
+        return res
+          .status(404)
+          .json({ status: "error", message: "Item not found" });
+
+      // Build updates object
+      const updates: any = {};
+      if (title) updates.title = title;
+      if (status) updates.status = status;
+
+      if (parentId !== undefined) {
+        if (parentId === "root" || parentId === null) {
+          updates.parent_id = null;
+        } else {
+          if (!uuidValidate(parentId)) {
+            return res
+              .status(400)
+              .json({ status: "error", message: "Invalid parentId" });
+          }
+          updates.parent_id = parentId;
         }
-    }
+      }
 
-    /**
-     * @swagger
-     * /vaults/{id}:
-     *   patch:
-     *     summary: Update an item
-     *     tags: [Vaults]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema: { type: string }
-     *     requestBody:
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               title: { type: string }
-     *               status: { type: string }
-     *               parentId: { type: string }
-     *     responses:
-     *       200:
-     *         description: Item updated
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ApiResponse'
-     */
-    private updateItem = async (req: AuthRequest, res: Response) => {
+      // Update using Supabase
+      const updatedItem = await SupabaseDB.updateVaultItem(id, userId, updates);
+      return res.json({ status: "success", data: updatedItem });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ status: "error", message: (error as Error).message });
+    }
+  };
+
+  /**
+   * @swagger
+   * /vaults/{id}:
+   *   delete:
+   *     summary: Delete an item
+   *     tags: [Vaults]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string }
+   *     responses:
+   *       200:
+   *         description: Item deleted
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ApiResponse'
+   */
+  private deleteItem = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const { id } = req.params;
+
+      // Get item using Supabase
+      const item = await SupabaseDB.getVaultItemById(id, userId);
+      if (!item)
+        return res
+          .status(404)
+          .json({ status: "error", message: "Item not found" });
+
+      // If it's a file, delete from S3
+      if (item.type === "file" && item.file_key) {
         try {
-            const userId = req.user!.userId;
-            const { id } = req.params;
-            const { title, status, parentId } = req.body;
+          await s3Util.deleteFile(item.file_key);
+        } catch (e) {}
+      }
 
-            // Check if item exists
-            const item = await SupabaseDB.getVaultItemById(id, userId);
-            if (!item) return res.status(404).json({ status: "error", message: "Item not found" });
-
-            // Build updates object
-            const updates: any = {};
-            if (title) updates.title = title;
-            if (status) updates.status = status;
-
-            if (parentId !== undefined) {
-                if (parentId === 'root' || parentId === null) {
-                    updates.parent_id = null;
-                } else {
-                    if (!uuidValidate(parentId)) {
-                        return res.status(400).json({ status: "error", message: "Invalid parentId" });
-                    }
-                    updates.parent_id = parentId;
-                }
-            }
-
-            // Update using Supabase
-            const updatedItem = await SupabaseDB.updateVaultItem(id, userId, updates);
-            return res.json({ status: "success", data: updatedItem });
-
-        } catch (error) {
-            return res.status(500).json({ status: "error", message: (error as Error).message });
-        }
+      // Delete using Supabase (CASCADE will handle children if folder)
+      await SupabaseDB.deleteVaultItem(id, userId);
+      return res.json({ status: "success", message: "Item deleted" });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ status: "error", message: (error as Error).message });
     }
+  };
 
-    /**
-     * @swagger
-     * /vaults/{id}:
-     *   delete:
-     *     summary: Delete an item
-     *     tags: [Vaults]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         required: true
-     *         schema: { type: string }
-     *     responses:
-     *       200:
-     *         description: Item deleted
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ApiResponse'
-     */
-    private deleteItem = async (req: AuthRequest, res: Response) => {
-        try {
-            const userId = req.user!.userId;
-            const { id } = req.params;
+  private createNewFolder = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const { name } = req.body;
 
-            // Get item using Supabase
-            const item = await SupabaseDB.getVaultItemById(id, userId);
-            if (!item) return res.status(404).json({ status: "error", message: "Item not found" });
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          status: "error",
+          message: "Folder name is required",
+        });
+      }
 
-            // If it's a file, delete from S3
-            if (item.type === 'file' && item.file_key) {
-                try {
-                    await s3Util.deleteFile(item.file_key);
-                } catch (e) {
-                }
-            }
+      const folder = await SupabaseDB.createFolder(userId, name.trim());
 
-            // Delete using Supabase (CASCADE will handle children if folder)
-            await SupabaseDB.deleteVaultItem(id, userId);
-            return res.json({ status: "success", message: "Item deleted" });
+      return res.status(201).json({
+        status: "success",
+        data: folder,
+      });
+    } catch (error) {
+      console.error("Create folder error:", error);
 
-        } catch (error) {
-            return res.status(500).json({ status: "error", message: (error as Error).message });
-        }
+      return res.status(500).json({
+        status: "error",
+        message: (error as Error).message,
+      });
     }
+  };
+
+  private listFolders = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+
+      const folders = await SupabaseDB.getFolders(userId);
+
+      return res.json({
+        status: "success",
+        data: folders,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message: (error as Error).message,
+      });
+    }
+  };
 }

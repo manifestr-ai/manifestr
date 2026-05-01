@@ -12,11 +12,34 @@ import {
 } from "lucide-react";
 import { useSidebar } from "../../contexts/SidebarContext";
 
+import { useEffect, useState } from "react";
+import api from "../../lib/api";
+
 export default function VaultSidebar() {
   const router = useRouter();
   const currentPath = router.pathname;
   // const collabsHref = currentPath.startsWith('/collab-hub') ? '/collab-hub' : '/vault/collabs'
   const { openSidebar } = useSidebar();
+  // If not available globally, adjust import based on your project structure
+
+  const [promptsCount, setPromptsCount] = useState(null);
+
+  useEffect(() => {
+    const fetchPromptsCount = async () => {
+      try {
+        const res = await api.get("/ai/processing-generations");
+        if (res?.data?.data && Array.isArray(res.data.data)) {
+          setPromptsCount(res.data.data.length > 0 ? res.data.data.length : null);
+     
+        } else {
+          setPromptsCount(null);
+        }
+      } catch (err) {
+        setPromptsCount(null);
+      }
+    };
+    fetchPromptsCount();
+  }, []);
 
   const sidebarItems = [
     {
@@ -58,7 +81,7 @@ export default function VaultSidebar() {
       label: "Prompts in progress",
       icon: Sparkles,
       hasDropdown: false,
-      badge: "31",
+      badge: promptsCount, 
       href: "/vault/prompts",
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
   <g clip-path="url(#clip0_12925_20072)">
@@ -221,7 +244,7 @@ export default function VaultSidebar() {
                           />
                         )
                       )}
-            
+
                       <span
                         className={`
                           font-inter
@@ -230,26 +253,28 @@ export default function VaultSidebar() {
                           leading-[21px]
                           font-normal
                           tracking-[-0.15px]
-                          ${isDeleted && itemIsActive
-                            ? "font-bold text-white"
-                            : itemIsActive
-                              ? "font-medium text-[#18181b]"
-                              : isDeleted
-                                ? "font-bold text-[#18181b]"
-                                : ""
+                          ${
+                            isDeleted && itemIsActive
+                              ? "font-bold text-white"
+                              : itemIsActive
+                                ? "font-medium text-[#18181b]"
+                                : isDeleted
+                                  ? "font-bold text-[#18181b]"
+                                  : ""
                           }
                         `}
                         style={{
                           fontFamily: "Inter, sans-serif",
                           fontStyle: "normal",
                           fontSize: "14px",
-                          fontWeight: isDeleted && itemIsActive
-                            ? 700
-                            : itemIsActive
-                              ? 500
-                              : isDeleted
-                                ? 700
-                                : 400,
+                          fontWeight:
+                            isDeleted && itemIsActive
+                              ? 700
+                              : itemIsActive
+                                ? 500
+                                : isDeleted
+                                  ? 700
+                                  : 400,
                           lineHeight: "21px",
                           letterSpacing: "-0.15px",
                           color:
@@ -263,12 +288,11 @@ export default function VaultSidebar() {
                         {item.label}
                       </span>
                     </div>
-               
+
                     {item.badge && (
                       <span className="px-2 py-0.5 border border-[#e4e4e7] rounded-[1234px] bg-[#EDEDED] text-[12px] font-medium leading-[20px] text-[#6B6B73]">
                         {item.badge}
                       </span>
-                 
                     )}
                   </motion.div>
                 </Link>

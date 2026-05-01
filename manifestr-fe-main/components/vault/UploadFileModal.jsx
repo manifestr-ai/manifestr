@@ -1,160 +1,221 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload as UploadIcon, FileText, CheckCircle2, ChevronDown, CheckCircle, ArrowRight } from 'lucide-react'
-import { useRouter } from 'next/router'
-import Checkbox from '../forms/Checkbox'
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  Upload as UploadIcon,
+  FileText,
+  CheckCircle2,
+  ChevronDown,
+  CheckCircle,
+  ArrowRight,
+} from "lucide-react";
+import { useRouter } from "next/router";
+import Checkbox from "../forms/Checkbox";
+import { listFolders } from "../../services/vault";
+import api from "../../lib/api";
 
 export default function UploadFileModal({ isOpen, onClose, onUpload }) {
-  const router = useRouter()
-  const modalRef = useRef(null)
-  const fileInputRef = useRef(null)
-  const [step, setStep] = useState(1) // 1 = Upload/Import, 2 = Review/Confirm
-  const [activeTab, setActiveTab] = useState('Upload')
-  const [uploadedFiles, setUploadedFiles] = useState([])
-  const [documentName, setDocumentName] = useState('')
-  const [selectedProject, setSelectedProject] = useState('Select project')
-  const [selectedFolder, setSelectedFolder] = useState('My Vault')
-  const [showProjectDropdown, setShowProjectDropdown] = useState(false)
-  const [showFolderDropdown, setShowFolderDropdown] = useState(false)
-  const [syncToCollab, setSyncToCollab] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [importLink, setImportLink] = useState('')
-  const [isUploading, setIsUploading] = useState(false)
+  const router = useRouter();
+  const modalRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [step, setStep] = useState(1); // 1 = Upload/Import, 2 = Review/Confirm
+  const [activeTab, setActiveTab] = useState("Upload");
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [documentName, setDocumentName] = useState("");
+  const [selectedProject, setSelectedProject] = useState("Select project");
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+  const [showFolderDropdown, setShowFolderDropdown] = useState(false);
+  const [syncToCollab, setSyncToCollab] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [importLink, setImportLink] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
-  const projects = ['Project 1', 'Project 2', 'Project 3']
-  const folders = ['My Vault', 'Collabs', 'Archived']
+  // const projects = ['Project 1', 'Project 2', 'Project 3']
+  // const folders = ['My Vault', 'Collabs', 'Archived']
+
+  const [projects, setProjects] = useState([]);
+  const [folders, setFolders] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const folderRes = await listFolders();
+        const folderData = folderRes?.data || folderRes || [];
+
+        const mappedFolders = folderData.map((f) => ({
+          id: f.id,
+          name: f.name || f.title,
+        }));
+
+        setFolders(mappedFolders);
+
+        //  SET DEFAULT
+        if (mappedFolders.length > 0) {
+          setSelectedFolder(mappedFolders[0]);
+        }
+
+        // Fetch user projects from API, and map 'title' to 'name'
+        try {
+          const projectsRes = await api.get(
+            "/ai/recent-generations?limit=1000",
+          );
+          const projectData = projectsRes?.data?.data || [];
+
+          const mappedProjects = projectData.map((project) => ({
+            id: project.id,
+            name: project.title || "Untitled Project",
+          }));
+
+          setProjects(mappedProjects);
+        } catch (err) {
+          console.error("Failed to load projects", err);
+          setProjects([]);
+        }
+      } catch (err) {
+        console.error("Failed to load dropdown data", err);
+      }
+    };
+
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
-        setShowProjectDropdown(false)
-        setShowFolderDropdown(false)
+        setShowProjectDropdown(false);
+        setShowFolderDropdown(false);
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setStep(1)
-      setActiveTab('Upload')
-      setUploadedFiles([])
-      setDocumentName('')
-      setSelectedProject('Select project')
-      setSelectedFolder('My Vault')
-      setSyncToCollab(false)
-      setImportLink('')
-      setIsUploading(false)
+      setStep(1);
+      setActiveTab("Upload");
+      setUploadedFiles([]);
+      setDocumentName("");
+      setSelectedProject("Select project");
+      setSelectedFolder(null);
+      setSyncToCollab(false);
+      setImportLink("");
+      setIsUploading(false);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const handleFileSelect = (files) => {
-    const fileArray = Array.from(files)
+    const fileArray = Array.from(files);
     const newFiles = fileArray.map((file) => ({
       id: Date.now() + Math.random(),
       name: file.name,
       size: file.size,
       type: file.type,
       file: file,
-      status: 'Uploaded',
-    }))
-    setUploadedFiles([...uploadedFiles, ...newFiles])
+      status: "Uploaded",
+    }));
+    setUploadedFiles([...uploadedFiles, ...newFiles]);
     if (newFiles.length > 0 && !documentName) {
-      const fileName = newFiles[0].name.replace(/\.[^/.]+$/, '')
-      setDocumentName(fileName)
+      const fileName = newFiles[0].name.replace(/\.[^/.]+$/, "");
+      setDocumentName(fileName);
     }
-  }
+  };
 
   const handleFileInput = (e) => {
-    handleFileSelect(e.target.files)
-  }
+    handleFileSelect(e.target.files);
+  };
 
   const handleDragOver = (e) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = (e) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
+    e.preventDefault();
+    setIsDragging(false);
+  };
 
   const handleDrop = (e) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const files = e.dataTransfer.files
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFileSelect(files)
+      handleFileSelect(files);
     }
-  }
+  };
 
   const handleImportSource = (source) => {
     // Simulate importing from source
     const newFile = {
       id: Date.now(),
-      name: `imported-from-${source.toLowerCase().replace(' ', '-')}.pdf`,
+      name: `imported-from-${source.toLowerCase().replace(" ", "-")}.pdf`,
       size: 0,
-      type: 'application/pdf',
+      type: "application/pdf",
       file: null,
-      status: 'Uploaded',
-    }
-    setUploadedFiles([...uploadedFiles, newFile])
+      status: "Uploaded",
+    };
+    setUploadedFiles([...uploadedFiles, newFile]);
     if (!documentName) {
-      setDocumentName(`imported-from-${source.toLowerCase().replace(' ', '-')}`)
+      setDocumentName(
+        `imported-from-${source.toLowerCase().replace(" ", "-")}`,
+      );
     }
-  }
+  };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
-  }
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  };
 
   const handleRemoveFile = (fileId) => {
-    setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId))
-  }
+    setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+  };
 
   const handleReviewAndConfirm = () => {
     // Move to step 2
-    setStep(2)
-  }
+    setStep(2);
+  };
 
   const handleGoToVault = async () => {
     if (onUpload) {
       try {
-        setIsUploading(true)
+        setIsUploading(true);
         await onUpload({
           files: uploadedFiles,
           documentName,
           project: selectedProject,
-          folder: selectedFolder,
+          folderId: selectedFolder?.id,
           syncToCollab,
-        })
-        onClose()
+        });
+        onClose();
       } catch (error) {
         // Error is handled by alert in parent, but we stop loading here
       } finally {
-        setIsUploading(false)
+        setIsUploading(false);
       }
     } else {
-      router.push('/vault')
-      onClose()
+      router.push("/vault");
+      onClose();
     }
-  }
+  };
 
   const handleUploadMore = () => {
     // Reset to step 1 but keep current files
-    setStep(1)
-    setActiveTab('Upload')
-  }
+    setStep(1);
+    setActiveTab("Upload");
+  };
 
   // Step 2: Review & Confirm Screen
   if (step === 2) {
@@ -168,7 +229,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
             className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
-                onClose()
+                onClose();
               }
             }}
           >
@@ -218,7 +279,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                       <FileText className="w-5 h-5 text-[#18181b] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-[16px] font-normal leading-[24px] text-neutral-950 tracking-[-0.3125px] truncate">
-                          {documentName || file.name.replace(/\.[^/.]+$/, '')}
+                          {documentName || file.name.replace(/\.[^/.]+$/, "")}
                         </p>
                       </div>
                       <CheckCircle2 className="w-4 h-4 text-[#00bc7d] shrink-0" />
@@ -234,7 +295,9 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                           Project:
                         </p>
                         <p className="text-[16px] font-normal leading-[24px] text-[#717182] tracking-[-0.3125px]">
-                          {selectedProject === 'Select project' ? 'None' : selectedProject}
+                          {selectedProject === "Select project"
+                            ? "None"
+                            : selectedProject}
                         </p>
                       </div>
                       <div className="flex gap-2 items-center">
@@ -242,7 +305,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                           Saved to:
                         </p>
                         <p className="text-[16px] font-normal leading-[24px] text-[#717182] tracking-[-0.3125px]">
-                          {selectedFolder}
+                          {selectedFolder?.name || "Select folder"}
                         </p>
                       </div>
                     </div>
@@ -274,7 +337,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                         Uploading...
                       </>
                     ) : (
-                      'Go to Vault'
+                      "Go to Vault"
                     )}
                   </motion.button>
                 </div>
@@ -283,7 +346,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
           </motion.div>
         )}
       </AnimatePresence>
-    )
+    );
   }
 
   // Step 1: Upload/Import Screen
@@ -297,7 +360,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
           className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              onClose()
+              onClose();
             }
           }}
         >
@@ -337,24 +400,26 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
             <div className="px-6 pt-6 pb-0">
               <div className="bg-[#f4f4f4] rounded-md p-1 flex gap-0">
                 <motion.button
-                  onClick={() => setActiveTab('Upload')}
+                  onClick={() => setActiveTab("Upload")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex-1 px-3 py-1.5 rounded-sm text-[14px] font-medium leading-[20px] transition-all ${activeTab === 'Upload'
-                      ? 'bg-white text-[#18181b] shadow-sm'
-                      : 'bg-transparent text-[#71717a]'
-                    }`}
+                  className={`flex-1 px-3 py-1.5 rounded-sm text-[14px] font-medium leading-[20px] transition-all ${
+                    activeTab === "Upload"
+                      ? "bg-white text-[#18181b] shadow-sm"
+                      : "bg-transparent text-[#71717a]"
+                  }`}
                 >
                   Upload
                 </motion.button>
                 <motion.button
-                  onClick={() => setActiveTab('Import')}
+                  onClick={() => setActiveTab("Import")}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex-1 px-3 py-1.5 rounded-sm text-[14px] font-medium leading-[20px] transition-all ${activeTab === 'Import'
-                      ? 'bg-white text-[#18181b] shadow-sm'
-                      : 'bg-transparent text-[#71717a]'
-                    }`}
+                  className={`flex-1 px-3 py-1.5 rounded-sm text-[14px] font-medium leading-[20px] transition-all ${
+                    activeTab === "Import"
+                      ? "bg-white text-[#18181b] shadow-sm"
+                      : "bg-transparent text-[#71717a]"
+                  }`}
                 >
                   Import
                 </motion.button>
@@ -363,15 +428,16 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {activeTab === 'Upload' ? (
+              {activeTab === "Upload" ? (
                 <>
                   {/* Upload Area */}
                   <div
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative bg-[#f4f4f4] h-[240px] rounded-[10px] flex flex-col items-center justify-center px-[50px] pt-[50px] pb-2 transition-colors ${isDragging ? 'bg-[#e4e4e7]' : ''
-                      }`}
+                    className={`relative bg-[#f4f4f4] h-[240px] rounded-[10px] flex flex-col items-center justify-center px-[50px] pt-[50px] pb-2 transition-colors ${
+                      isDragging ? "bg-[#e4e4e7]" : ""
+                    }`}
                   >
                     {/* Watermark Text */}
                     <p className="absolute font-['Playfair_Display'] italic font-semibold text-[98.087px] leading-[normal] text-black opacity-[0.03] select-none pointer-events-none top-[114px] left-[50px]">
@@ -383,7 +449,8 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                         Click to upload or drag and drop files here
                       </p>
                       <p className="text-[16px] font-normal leading-[24px] text-[#717182] text-center tracking-[-0.3125px] max-w-[362px]">
-                        Supports PDF, PPTX, DOCX, XLSX, MP4, PNG (up to 500 MB each)
+                        Supports PDF, PPTX, DOCX, XLSX, MP4, PNG (up to 500 MB
+                        each)
                       </p>
                       <input
                         ref={fileInputRef}
@@ -421,7 +488,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                     {/* Import Source Buttons */}
                     <div className="grid grid-cols-3 gap-4">
                       <motion.button
-                        onClick={() => handleImportSource('Google Drive')}
+                        onClick={() => handleImportSource("Google Drive")}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[8px] h-[80px] flex items-center justify-center text-[14px] font-medium leading-[20px] text-neutral-950 tracking-[-0.1504px] hover:bg-[#f4f4f5] transition-colors"
@@ -429,7 +496,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                         Google Drive
                       </motion.button>
                       <motion.button
-                        onClick={() => handleImportSource('Dropbox')}
+                        onClick={() => handleImportSource("Dropbox")}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[8px] h-[80px] flex items-center justify-center text-[14px] font-medium leading-[20px] text-neutral-950 tracking-[-0.1504px] hover:bg-[#f4f4f5] transition-colors"
@@ -437,7 +504,7 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                         Dropbox
                       </motion.button>
                       <motion.button
-                        onClick={() => handleImportSource('Other Source')}
+                        onClick={() => handleImportSource("Other Source")}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[8px] h-[80px] flex items-center justify-center text-[14px] font-medium leading-[20px] text-neutral-950 tracking-[-0.1504px] hover:bg-[#f4f4f5] transition-colors"
@@ -529,8 +596,8 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                             <div className="relative">
                               <motion.button
                                 onClick={() => {
-                                  setShowProjectDropdown(!showProjectDropdown)
-                                  setShowFolderDropdown(false)
+                                  setShowProjectDropdown(!showProjectDropdown);
+                                  setShowFolderDropdown(false);
                                 }}
                                 whileHover={{ scale: 1.01 }}
                                 whileTap={{ scale: 0.99 }}
@@ -551,15 +618,17 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                                   >
                                     {projects.map((project) => (
                                       <motion.button
-                                        key={project}
+                                        key={project.id}
                                         onClick={() => {
-                                          setSelectedProject(project)
-                                          setShowProjectDropdown(false)
+                                          setSelectedProject(project.name);
+                                          setShowProjectDropdown(false);
                                         }}
-                                        whileHover={{ backgroundColor: '#f4f4f5' }}
+                                        whileHover={{
+                                          backgroundColor: "#f4f4f5",
+                                        }}
                                         className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b]"
                                       >
-                                        {project}
+                                        {project.name}
                                       </motion.button>
                                     ))}
                                   </motion.div>
@@ -576,15 +645,15 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                             <div className="relative">
                               <motion.button
                                 onClick={() => {
-                                  setShowFolderDropdown(!showFolderDropdown)
-                                  setShowProjectDropdown(false)
+                                  setShowFolderDropdown(!showFolderDropdown);
+                                  setShowProjectDropdown(false);
                                 }}
                                 whileHover={{ scale: 1.01 }}
                                 whileTap={{ scale: 0.99 }}
                                 className="w-full bg-white border border-transparent rounded-md px-[13px] py-1 h-[36px] flex items-center justify-between hover:border-[#e4e4e7] transition-colors"
                               >
                                 <span className="text-[14px] font-normal leading-[20px] text-neutral-950 tracking-[-0.1504px]">
-                                  {selectedFolder}
+                                  {selectedFolder?.name || "Select folder"}
                                 </span>
                                 <ChevronDown className="w-4 h-4 text-[#71717a]" />
                               </motion.button>
@@ -598,15 +667,17 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                                   >
                                     {folders.map((folder) => (
                                       <motion.button
-                                        key={folder}
+                                        key={folder.id}
                                         onClick={() => {
-                                          setSelectedFolder(folder)
-                                          setShowFolderDropdown(false)
+                                          setSelectedFolder(folder);
+                                          setShowFolderDropdown(false);
                                         }}
-                                        whileHover={{ backgroundColor: '#f4f4f5' }}
+                                        whileHover={{
+                                          backgroundColor: "#f4f4f5",
+                                        }}
                                         className="w-full px-3 py-2 text-left text-[14px] leading-[21px] text-[#18181b]"
                                       >
-                                        {folder}
+                                        {folder.name}
                                       </motion.button>
                                     ))}
                                   </motion.div>
@@ -649,10 +720,11 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
                   disabled={uploadedFiles.length === 0}
                   whileHover={{ scale: uploadedFiles.length > 0 ? 1.02 : 1 }}
                   whileTap={{ scale: uploadedFiles.length > 0 ? 0.98 : 1 }}
-                  className={`rounded-md h-[40px] px-4 text-[14px] font-medium leading-[20px] transition-opacity ${uploadedFiles.length > 0
-                      ? 'bg-[#18181b] text-white hover:opacity-90'
-                      : 'bg-[#e4e4e7] text-[#71717a] cursor-not-allowed'
-                    }`}
+                  className={`rounded-md h-[40px] px-4 text-[14px] font-medium leading-[20px] transition-opacity ${
+                    uploadedFiles.length > 0
+                      ? "bg-[#18181b] text-white hover:opacity-90"
+                      : "bg-[#e4e4e7] text-[#71717a] cursor-not-allowed"
+                  }`}
                 >
                   Review & Confirm
                 </motion.button>
@@ -662,5 +734,5 @@ export default function UploadFileModal({ isOpen, onClose, onUpload }) {
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

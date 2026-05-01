@@ -12,7 +12,7 @@ import AddDocumentToCollabModal from '../../../components/vault/AddDocumentToCol
 import InviteMemberModal from '../../../components/vault/InviteMemberModal'
 import { Loader2, Users, FileText, UserPlus, FilePlus, Settings } from 'lucide-react'
 import api from '../../../lib/api'
-import { VAULT_FOLDERS, VAULT_FOLDER_DESCRIPTION, getVaultFolderById, getVaultFolderDocuments, getVaultFolderHref } from '../../../components/vault/vaultFolders'
+import { VAULT_FOLDERS, VAULT_FOLDER_DESCRIPTION, getVaultFolderById, getVaultFolderDocuments, getCollabFolderHref } from '../../../components/vault/vaultFolders'
 
 export default function CollabDetailPage() {
   const router = useRouter()
@@ -247,7 +247,7 @@ export default function CollabDetailPage() {
                 folders={VAULT_FOLDERS.map((f) => ({
                   id: f.id,
                   name: f.name,
-                  href: getVaultFolderHref(f.id),
+                  href: getCollabFolderHref(f.id),
                 }))}
               />
             )}

@@ -15,6 +15,12 @@ export default function VaultArchived() {
   const [viewMode, setViewMode] = useState('grid')
   const [documentCards, setDocumentCards] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filters, setFilters] = useState({
+    tool: 'All Tools',
+    sort: 'Last Edited',
+    collab: 'All Collabs',
+  })
 
   // Fetch archived documents
   useEffect(() => {
@@ -150,6 +156,66 @@ export default function VaultArchived() {
     ? `${window.location.origin}/assets/banners/abstract-black-wave.png`
     : 'http://localhost:3000/assets/banners/abstract-black-wave.png'
 
+  const normalizedQuery = searchQuery.trim().toLowerCase()
+
+  const filteredCards = documentCards
+    .filter((card) => {
+      if (normalizedQuery) {
+        const haystack = [
+          card.title,
+          card.project,
+          card.status,
+          card.lastEdited,
+          ...(card.collaborators || []).map((c) => c?.name),
+          ...(card.collaborators || []).map((c) => c?.email),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+
+        if (!haystack.includes(normalizedQuery)) return false
+      }
+
+      if (filters.tool !== 'All Tools') {
+        if (!card.project?.toLowerCase().includes(filters.tool.toLowerCase())) {
+          return false
+        }
+      }
+
+      if (filters.collab !== 'All Collabs') {
+        const hasCollab = card.collaborators?.some(
+          (c) => c.name === filters.collab,
+        )
+        if (!hasCollab) return false
+      }
+
+      return true
+    })
+    .sort((a, b) => {
+      switch (filters.sort) {
+        case 'Last Edited':
+          return (
+            new Date(b.rawData?.lastAccessed || 0) -
+            new Date(a.rawData?.lastAccessed || 0)
+          )
+
+        case 'Recently Saved':
+          return (
+            new Date(b.rawData?.createdAt || 0) -
+            new Date(a.rawData?.createdAt || 0)
+          )
+
+        case 'Most Used':
+          return (b.rawData?.usage || 0) - (a.rawData?.usage || 0)
+
+        case 'Tool Origin':
+          return (a.project || '').localeCompare(b.project || '')
+
+        default:
+          return 0
+      }
+    })
+
   return (
     <>
       <Head>
@@ -169,6 +235,9 @@ export default function VaultArchived() {
         <VaultSearchBar
           viewMode={viewMode}
           setViewMode={setViewMode}
+          query={searchQuery}
+          onQueryChange={(q) => setSearchQuery(q)}
+          onFiltersChange={(newFilters) => setFilters(newFilters)}
         />
 
         {/* Documents Grid - Show loading, empty, or data */}
@@ -181,9 +250,14 @@ export default function VaultArchived() {
             <p className="text-gray-500 text-lg mb-2">No archived documents.</p>
             <p className="text-gray-400 text-sm">Archive documents from the Vault to hide them here!</p>
           </div>
+        ) : filteredCards.length === 0 ? (
+          <div className="px-4 md:px-[38px] py-12 w-full text-center">
+            <p className="text-gray-500 text-lg mb-2">No results found.</p>
+            <p className="text-gray-400 text-sm">Try a different search term or filter.</p>
+          </div>
         ) : (
           <VaultGrid
-            cards={documentCards}
+            cards={filteredCards}
             showTitle={false}
             viewMode={viewMode}
             onCardClick={handleProjectClick}
