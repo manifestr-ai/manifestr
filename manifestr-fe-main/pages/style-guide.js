@@ -49,13 +49,14 @@ export default function StyleGuide() {
         // API returns: { id, name, brand_name, logo, typography, colors, style, is_completed, created_at, updated_at, ... }
         const mappedGuides = (response.data || []).map((guide, index) => {
           // Generate a deterministic gradient based on index or ID if not stored
+          // Radial washes (Figma 9742:8857 — vivid corner → black)
           const gradients = [
-            'linear-gradient(135deg, #DC2626 0%, #18181b 100%)',
-            'linear-gradient(135deg, #16A34A 0%, #18181b 100%)',
-            'linear-gradient(135deg, #2563EB 0%, #18181b 100%)',
-            'linear-gradient(135deg, #9333EA 0%, #18181b 100%)',
-            'linear-gradient(135deg, #EA580C 0%, #92400E 0%, #18181b 100%)',
-            'linear-gradient(135deg, #EC4899 0%, #BE185D 0%, #18181b 100%)',
+            'radial-gradient(ellipse 135% 115% at 0% 0%, #dc2626 0%, #991b1b 28%, #450a0a 52%, #171717 78%, #000000 100%)',
+            'radial-gradient(ellipse 135% 115% at 0% 0%, #16a34a 0%, #166534 28%, #14532d 52%, #171717 78%, #000000 100%)',
+            'radial-gradient(ellipse 135% 115% at 0% 0%, #2563eb 0%, #1d4ed8 28%, #1e3a8a 52%, #171717 78%, #000000 100%)',
+            'radial-gradient(ellipse 135% 115% at 0% 0%, #9333ea 0%, #7e22ce 28%, #581c87 52%, #171717 78%, #000000 100%)',
+            'radial-gradient(ellipse 135% 115% at 0% 0%, #ea580c 0%, #c2410c 28%, #7c2d12 52%, #171717 78%, #000000 100%)',
+            'radial-gradient(ellipse 135% 115% at 0% 0%, #ec4899 0%, #db2777 28%, #831843 52%, #171717 78%, #000000 100%)',
           ]
           const gradient = gradients[index % gradients.length]
 
@@ -132,7 +133,7 @@ export default function StyleGuide() {
 
   // Handle opening a style guide
   const handleOpenGuide = (guide) => {
-    router.push(`/style-guide/${guide.id}`)
+    router.push({ pathname: '/create-style-guide', query: { id: guide.id } })
   }
 
   // Handle renaming
@@ -280,9 +281,9 @@ export default function StyleGuide() {
             />
           </div>
 
-          {/* Content */}
-          <div className="relative z-10 mx-auto w-full max-w-[1280px] px-6 md:px-[80px] pt-12 md:pt-[88px] pb-4 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 md:gap-0">
-            <div className="text-center md:text-left">
+          {/* Content — tighter left inset so headline clears the banner “M” */}
+          <div className="relative z-10 mx-auto w-full max-w-[1280px] pl-2 pr-6 md:pl-8 md:pr-[80px] pt-12 md:pt-[88px] pb-4 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 md:gap-0">
+            <div className="text-center md:text-left md:-translate-x-2 lg:-translate-x-3">
               <h1 className="text-[#181818] tracking-[0.4063px] whitespace-nowrap mb-4 flex items-baseline justify-center md:justify-start leading-[0]">
                 <span className="font-inter font-bold text-[34px] leading-[48px] mr-[6px]">STYLE</span>
                 <span className="font-ivy-presto italic font-semibold text-[44px] leading-[48px]">guide</span>
