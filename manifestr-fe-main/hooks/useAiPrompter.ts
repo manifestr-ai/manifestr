@@ -115,7 +115,8 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
       console.log('📦 Request data keys:', Object.keys(requestData));
 
       const response = await api.post(endpoint, requestData, {
-        timeout: 90000 // 90 seconds timeout
+        timeout: 600000, // 🔥 10 minutes timeout for content modification (spreadsheets can be large)
+        timeoutErrorMessage: 'Content modification is taking longer than expected. Please try with a simpler prompt.'
       });
 
       console.log('📦 Response received:', response.data);
@@ -146,7 +147,19 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Failed to modify content';
       console.error(' Content modification failed:', errorMessage);
-      setError(errorMessage);
+      console.error('   Full error:', err);
+      
+      // Provide more helpful error messages for timeouts
+      let userFriendlyError = errorMessage;
+      if (err.code === 'ECONNABORTED' || errorMessage.includes('timeout')) {
+        userFriendlyError = `The ${editorType} modification is taking longer than expected. This usually happens with complex ${editorType}s or detailed prompts. Try:\n• Using a simpler prompt\n• Breaking down your request into smaller changes\n• Refreshing and trying again`;
+      } else if (err.response?.status === 500) {
+        userFriendlyError = `Server error while modifying ${editorType}. Please try again in a moment.`;
+      } else if (!err.response) {
+        userFriendlyError = `Network error. Please check your connection and try again.`;
+      }
+      
+      setError(userFriendlyError);
       
       if (onError) {
         onError(err);
@@ -195,7 +208,8 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
       }
 
       const response = await api.post(endpoint, requestData, {
-        timeout: 90000 // 90 seconds timeout for content generation
+        timeout: 600000, // 🔥 10 minutes timeout for content generation
+        timeoutErrorMessage: 'Content generation is taking longer than expected. Please try with a simpler prompt.'
       });
 
       const result = response.data.data;
@@ -216,7 +230,19 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Failed to generate content';
       console.error(' Content generation failed:', errorMessage);
-      setError(errorMessage);
+      console.error('   Full error:', err);
+      
+      // Provide more helpful error messages
+      let userFriendlyError = errorMessage;
+      if (err.code === 'ECONNABORTED' || errorMessage.includes('timeout')) {
+        userFriendlyError = `The ${editorType} generation is taking longer than expected. Try using a simpler or more specific prompt.`;
+      } else if (err.response?.status === 500) {
+        userFriendlyError = `Server error while generating ${editorType}. Please try again in a moment.`;
+      } else if (!err.response) {
+        userFriendlyError = `Network error. Please check your connection and try again.`;
+      }
+      
+      setError(userFriendlyError);
       
       if (onError) {
         onError(err);

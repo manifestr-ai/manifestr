@@ -11,6 +11,7 @@ const API_URL =
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true, // Required for HttpOnly cookies
+  timeout: 0, // 🔥 No timeout by default - let per-request configs handle it
   headers: {
     "Content-Type": "application/json",
   },

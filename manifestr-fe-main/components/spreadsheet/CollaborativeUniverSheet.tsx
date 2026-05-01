@@ -618,7 +618,7 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
     return (
       <>
         {/* Active Users Bar */}
-        {/* {activeUsers.length > 0 && (
+        {activeUsers.length > 0 && (
           <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-[9999]">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-blue-900">
@@ -649,7 +649,7 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
               Changes sync automatically
             </span>
           </div>
-        )} */}
+        )}
 
         {/* Save Status Indicator */}
         {/* <div className="absolute top-4 right-[200px] z-[9999] flex gap-2">

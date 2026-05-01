@@ -21,6 +21,7 @@ import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 import StyleGuideModal from "../components/editor/StyleGuideModal";
 import { useToast } from "../hooks/useToast";
 import api from "../lib/api";
+import { useEffect } from "react";
 
 export default function DocsEditor() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function DocsEditor() {
   const { showToast } = useToast();
   const [activeTool, setActiveTool] = useState<string | null>("format");
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
 
   const extractHeadings = (html) => {
     // Store HTML for download
@@ -156,6 +158,54 @@ export default function DocsEditor() {
     }
   };
 
+  // Fetch active users
+  useEffect(() => {
+    if (!actualDocumentId) return;
+
+    const fetchActiveUsers = async () => {
+      try {
+        const response = await api.get(
+          `/collaborations/${actualDocumentId}/active-users`,
+        );
+        if (response.data.status === "success") {
+          setActiveUsers(response.data.data);
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch active users:", error);
+      }
+    };
+
+    fetchActiveUsers();
+    const interval = setInterval(fetchActiveUsers, 5000);
+
+    return () => clearInterval(interval);
+  }, [actualDocumentId]);
+
+  // Start collaboration session
+  useEffect(() => {
+    if (!actualDocumentId) return;
+
+    const startSession = async () => {
+      try {
+        await api.post("/collaborations/session/start", {
+          documentId: actualDocumentId,
+          sessionId: `doc-${Date.now()}`,
+          userColor: "#3b82f6",
+        });
+      } catch (error: any) {
+        console.error("Failed to start collaboration session:", error);
+      }
+    };
+
+    startSession();
+
+    return () => {
+      api
+        .post("/collaborations/session/end", { documentId: actualDocumentId })
+        .catch(() => {});
+    };
+  }, [actualDocumentId]);
+
   return (
     <GenerationLoaderUI loading={loading} status={status} error={error}>
       <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -183,14 +233,50 @@ export default function DocsEditor() {
 
           {/* Editor Container */}
           <div className="flex-grow relative" style={{ zoom } as any}>
+            {/* Active Users Bar */}
+            {activeUsers.length > 0 && (
+              <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-blue-900">
+                    {activeUsers.length} editing now:
+                  </span>
+                  <div className="flex -space-x-2">
+                    {activeUsers.map((user) => (
+                      <div
+                        key={user.user_id}
+                        className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                        style={{ backgroundColor: user.user_color || "#3b82f6" }}
+                        title={
+                          user.users
+                            ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
+                              user.users.email
+                            : "User"
+                        }
+                      >
+                        {(user.users
+                          ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
+                            user.users.email
+                          : user.users?.email || "U")[0].toUpperCase()}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <span className="text-xs text-blue-700">
+                  Changes sync automatically
+                </span>
+              </div>
+            )}
+
             {/* Render DOCX as HTML */}
-            <DocxViewer
-              documentId={actualDocumentId}
-              savedContent={savedHtmlContent}
-              onEditorReady={setEditorInstance}
-              onHeadingsChange={setHeadings}
-              onSaveStatusChange={setSaveStatus}
-            />
+            <div className={activeUsers.length > 0 ? "pt-12" : ""}>
+              <DocxViewer
+                documentId={actualDocumentId}
+                savedContent={savedHtmlContent}
+                onEditorReady={setEditorInstance}
+                onHeadingsChange={setHeadings}
+                onSaveStatusChange={setSaveStatus}
+              />
+            </div>
 
             {/* Save Status Indicator */}
             {actualDocumentId && (

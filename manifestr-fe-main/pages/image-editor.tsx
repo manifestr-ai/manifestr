@@ -27,6 +27,7 @@ export default function ImageEditor() {
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const imageIdParam = router.query.id;
   const actualImageId =
     typeof imageIdParam === "string"
@@ -92,6 +93,54 @@ export default function ImageEditor() {
     }
   }, [router.query]);
 
+  // Fetch active users
+  useEffect(() => {
+    if (!actualImageId) return;
+
+    const fetchActiveUsers = async () => {
+      try {
+        const response = await api.get(
+          `/collaborations/${actualImageId}/active-users`,
+        );
+        if (response.data.status === "success") {
+          setActiveUsers(response.data.data);
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch active users:", error);
+      }
+    };
+
+    fetchActiveUsers();
+    const interval = setInterval(fetchActiveUsers, 5000);
+
+    return () => clearInterval(interval);
+  }, [actualImageId]);
+
+  // Start collaboration session
+  useEffect(() => {
+    if (!actualImageId) return;
+
+    const startSession = async () => {
+      try {
+        await api.post("/collaborations/session/start", {
+          documentId: actualImageId,
+          sessionId: `img-${Date.now()}`,
+          userColor: "#3b82f6",
+        });
+      } catch (error: any) {
+        console.error("Failed to start collaboration session:", error);
+      }
+    };
+
+    startSession();
+
+    return () => {
+      api
+        .post("/collaborations/session/end", { documentId: actualImageId })
+        .catch(() => {});
+    };
+  }, [actualImageId]);
+
   const [store, setStore] = useState<any>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
@@ -135,6 +184,40 @@ export default function ImageEditor() {
       <div className="flex-grow flex relative overflow-hidden bg-gray-100">
         {/* Grid Container (Full Size) */}
         <div className="flex-grow overflow-hidden relative z-10">
+          {/* Active Users Bar */}
+          {activeUsers.length > 0 && (
+            <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-blue-900">
+                  {activeUsers.length} editing now:
+                </span>
+                <div className="flex -space-x-2">
+                  {activeUsers.map((user) => (
+                    <div
+                      key={user.user_id}
+                      className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                      style={{ backgroundColor: user.user_color || "#3b82f6" }}
+                      title={
+                        user.users
+                          ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
+                            user.users.email
+                          : "User"
+                      }
+                    >
+                      {(user.users
+                        ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
+                          user.users.email
+                        : user.users?.email || "U")[0].toUpperCase()}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <span className="text-xs text-blue-700">
+                Changes sync automatically
+              </span>
+            </div>
+          )}
+
           {loading ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-center">
@@ -146,19 +229,23 @@ export default function ImageEditor() {
               </div>
             </div>
           ) : imageUrl && imageUrl !== "/assets/dummy/dummy-trainer.jpg" ? (
-            <PhotoEditor 
-              key={imageUrl} 
-              imageSrc={imageUrl} 
-              onStoreReady={setStore}
-              onActiveToolChange={setActiveTool}
-            />
+            <div className={activeUsers.length > 0 ? "pt-12" : ""} style={{ height: '100%' }}>
+              <PhotoEditor 
+                key={imageUrl} 
+                imageSrc={imageUrl} 
+                onStoreReady={setStore}
+                onActiveToolChange={setActiveTool}
+              />
+            </div>
           ) : imageUrl ? (
-            <PhotoEditor 
-              key="default" 
-              imageSrc={imageUrl} 
-              onStoreReady={setStore}
-              onActiveToolChange={setActiveTool}
-            />
+            <div className={activeUsers.length > 0 ? "pt-12" : ""} style={{ height: '100%' }}>
+              <PhotoEditor 
+                key="default" 
+                imageSrc={imageUrl} 
+                onStoreReady={setStore}
+                onActiveToolChange={setActiveTool}
+              />
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-center">
