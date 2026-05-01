@@ -39,6 +39,7 @@ import api from "../../lib/api";
 import EditorBottomToolbar from "../editor/EditorBottomToolbar";
 import ToolPanel from "../editor/panels/chart-editor/ToolPanel";
 import StyleGuideModal from "../editor/StyleGuideModal";
+import AiPrompterPanel from "../editor/panels/comman-panel/AiPrompterPanel";
 
 ChartJS.register(
   CategoryScale,
@@ -2754,7 +2755,19 @@ export default function ChartEditor({
       </div>
 
       {/* Tool Panel */}
-      <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
+      {activeTool !== "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
+      )}
+
+      {/* AI Prompter Panel */}
+      {activeTool === "ai_prompter" && (
+        <AiPrompterPanel
+          store={store}
+          editorType="chart"
+          onClose={() => setActiveTool("charts")}
+          generationId={generationId}
+        />
+      )}
 
       {/* Bottom Toolbar */}
       <EditorBottomToolbar

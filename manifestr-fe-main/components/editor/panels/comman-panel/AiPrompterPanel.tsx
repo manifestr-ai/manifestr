@@ -13,43 +13,50 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
-import useAiPrompter, { PromptHistoryItem } from "../../../../hooks/useAiPrompter";
+import useAiPrompter, {
+  PromptHistoryItem,
+} from "../../../../hooks/useAiPrompter";
 import api from "../../../../lib/api";
 
 interface AiPrompterPanelProps {
   store: any;
-  editorType?: 'image' | 'document' | 'spreadsheet' | 'presentation' | 'chart';
+  editorType?: "image" | "document" | "spreadsheet" | "presentation" | "chart";
   onClose?: () => void;
   generationId?: string;
 }
 
-export default function AiPrompterPanel({ store, editorType = 'image', onClose, generationId }: AiPrompterPanelProps) {
+export default function AiPrompterPanel({
+  store,
+  editorType = "image",
+  onClose,
+  generationId,
+}: AiPrompterPanelProps) {
   const [activeTab, setActiveTab] = useState("Freestyle");
   const [mode, setMode] = useState("Prompt Mode");
   const [isRecording, setIsRecording] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [historyFilter, setHistoryFilter] = useState("All");
-  
+
   // Freestyle tab state
   const [freestylePrompt, setFreestylePrompt] = useState("");
-  
+
   // Brief Me tab state
   const [briefData, setBriefData] = useState({
     whatToDo: "",
     focusArea: "",
     style: "",
     presentation: "",
-    constraints: ""
+    constraints: "",
   });
-  
+
   // Voice recording state
   const recognitionRef = useRef<any>(null);
   const [voiceTranscript, setVoiceTranscript] = useState("");
-  
+
   // File upload ref
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // AI Prompter hook
   const {
     isProcessing,
@@ -61,455 +68,668 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
     processVoiceInput,
     processUploadedFile,
     processBrief,
-    clearHistory
+    clearHistory,
   } = useAiPrompter({
     editorType,
     onSuccess: async (result) => {
-      console.log('✅ AI Prompter success! Result keys:', Object.keys(result));
-      console.log('📦 Result data:', result);
-      console.log('📋 Editor/Store available:', !!store);
-      console.log('📋 Editor type check:', editorType);
+      console.log(" AI Prompter success! Result keys:", Object.keys(result));
+      console.log(" Result data:", result);
+      console.log(" Editor/Store available:", !!store);
+      console.log(" Editor type check:", editorType);
 
       // Update editor based on result
       if (store) {
-        console.log('🔄 Calling updateEditorWithData...');
+        console.log(" Calling updateEditorWithData...");
         await updateEditorWithData(result);
-        console.log('✅ updateEditorWithData completed!');
-        
+        console.log(" updateEditorWithData completed!");
+
         // Show success message to user
         setTimeout(() => {
-          console.log('🎉 Document updated successfully!');
+          console.log(" Document updated successfully!");
         }, 100);
       } else {
-        console.error('❌ No store/editor available to update!');
-        console.error('❌ This means the editor instance was not passed correctly');
-        alert('Editor not available. Please refresh the page and try again.');
+        console.error(" No store/editor available to update!");
+        console.error(
+          " This means the editor instance was not passed correctly",
+        );
+        alert("Editor not available. Please refresh the page and try again.");
       }
     },
     onError: (error) => {
-      console.error('❌ AI Prompter error:', error);
-    }
+      console.error(" AI Prompter error:", error);
+    },
   });
-  
+
   // Get current editor data (image URL, spreadsheet data, or presentation data)
   const getCurrentEditorData = (): any => {
-    console.log('📥 Getting current editor data for:', editorType);
-    console.log('📥 Store available:', !!store);
-    
+    console.log(" Getting current editor data for:", editorType);
+    console.log(" Store available:", !!store);
+
     if (!store) {
-      console.warn('⚠️ No store available');
+      console.warn(" No store available");
       return null;
     }
-    
+
     try {
-      if (editorType === 'image') {
+      if (editorType === "image") {
         // For Polotno store (image editor)
         const page = store.activePage;
         if (!page) {
-          console.warn('⚠️ No active page');
+          console.warn(" No active page");
           return null;
         }
-        
+
         // Find the first image element
-        const imageElement = page.children.find((child: any) => child.type === 'image');
+        const imageElement = page.children.find(
+          (child: any) => child.type === "image",
+        );
         if (imageElement && imageElement.src) {
-          console.log('✅ Got image URL:', imageElement.src);
+          console.log(" Got image URL:", imageElement.src);
           return imageElement.src;
         }
-        
-        console.warn('⚠️ No image element found');
+
+        console.warn(" No image element found");
         return null;
-      } else if (editorType === 'document') {
+      } else if (editorType === "document") {
         // For Tiptap editor (HTML content)
         // Get HTML content from editor
         if (store && store.getHTML) {
           const html = store.getHTML();
-          console.log('✅ Got document HTML, length:', html?.length || 0);
+          console.log(" Got document HTML, length:", html?.length || 0);
           return html;
         } else if (store && store.state) {
           // Fallback: Try to get HTML from editor state
-          console.log('⚠️ Using fallback method to get HTML');
+          console.log(" Using fallback method to get HTML");
           return null;
         } else {
-          console.warn('⚠️ Store does not have getHTML method');
-          console.log('📋 Store type:', typeof store);
-          console.log('📋 Store methods:', store ? Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 10) : 'no store');
+          console.warn(" Store does not have getHTML method");
+          console.log(" Store type:", typeof store);
+          console.log(
+            " Store methods:",
+            store
+              ? Object.keys(store)
+                  .filter((k) => typeof store[k] === "function")
+                  .slice(0, 10)
+              : "no store",
+          );
           return null;
         }
-      } else if (editorType === 'presentation') {
+      } else if (editorType === "presentation") {
         // For Polotno store (presentation editor)
         // Get complete presentation JSON
         if (store.toJSON) {
           const data = store.toJSON();
-          console.log('✅ Got presentation data, pages:', data?.pages?.length);
+          console.log(" Got presentation data, pages:", data?.pages?.length);
           return data;
         } else {
-          console.warn('⚠️ Store does not have toJSON method');
+          console.warn(" Store does not have toJSON method");
           return null;
         }
-      } else if (editorType === 'spreadsheet') {
+      } else if (editorType === "spreadsheet") {
         // For Univer (spreadsheet editor)
         // Get current spreadsheet data from store (univerAPI)
-        console.log('📋 Store type:', typeof store);
-        console.log('📋 Store has getActiveWorkbook:', typeof store.getActiveWorkbook === 'function');
-        
+        console.log("📋 Store type:", typeof store);
+        console.log(
+          " Store has getActiveWorkbook:",
+          typeof store.getActiveWorkbook === "function",
+        );
+
         try {
           // The store is the univerAPI object
           if (store.getActiveWorkbook) {
             const workbook = store.getActiveWorkbook();
-            
+
             if (!workbook) {
-              console.warn('⚠️ No active workbook found');
+              console.warn(" No active workbook found");
               return null;
             }
-            
-            console.log('✅ Got active workbook');
-            
+
+            console.log(" Got active workbook");
+
             // Get workbook data as JSON
             if (workbook.save) {
               const data = workbook.save();
-              console.log('✅ Got workbook data via save()');
-              console.log('✅ Data keys:', Object.keys(data).slice(0, 10));
+              console.log(" Got workbook data via save()");
+              console.log(" Data keys:", Object.keys(data).slice(0, 10));
               return data;
             } else if (workbook.getSnapshot) {
               const data = workbook.getSnapshot();
-              console.log('✅ Got workbook data via getSnapshot()');
+              console.log(" Got workbook data via getSnapshot()");
               return data;
             } else {
-              console.error('❌ Workbook has no save() or getSnapshot() method');
+              console.error(" Workbook has no save() or getSnapshot() method");
               return null;
             }
           } else if (store.getData) {
             // Fallback for different API structure
             const data = store.getData();
-            console.log('✅ Got data via getData()');
+            console.log(" Got data via getData()");
             return data;
           } else {
-            console.error('❌ Store has no getActiveWorkbook() or getData() method');
-            console.error('❌ Available methods:', Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 20));
+            console.error(
+              " Store has no getActiveWorkbook() or getData() method",
+            );
+            console.error(
+              " Available methods:",
+              Object.keys(store)
+                .filter((k) => typeof store[k] === "function")
+                .slice(0, 20),
+            );
             return null;
           }
         } catch (error) {
-          console.error('❌ Error extracting workbook data:', error);
+          console.error(" Error extracting workbook data:", error);
+          return null;
+        }
+      } else if (editorType === "chart") {
+        // For Chart Editor
+        // Get current chart data from store
+        console.log(" Getting chart data");
+        console.log(" Store available:", !!store);
+
+        try {
+          // Extract chart state from the store object
+          if (store && typeof store === "object") {
+            const chartData = {
+              chartType: store.chartType,
+              labels: store.labels,
+              datasets: store.datasets,
+              chartTitle: store.chartTitle,
+              showLegend: store.showLegend,
+              showGrid: store.showGrid,
+              selectedColorScheme: store.selectedColorScheme,
+            };
+
+            console.log(" Got chart data");
+            console.log(" Chart type:", chartData.chartType);
+            console.log(" Labels:", chartData.labels?.length || 0);
+            console.log(" Datasets:", chartData.datasets?.length || 0);
+
+            return chartData;
+          } else {
+            console.warn(" Store is not an object");
+            return null;
+          }
+        } catch (error) {
+          console.error(" Error extracting chart data:", error);
           return null;
         }
       }
-      
+
       return null;
     } catch (error) {
-      console.error('❌ Error getting current editor data:', error);
+      console.error(" Error getting current editor data:", error);
       return null;
     }
   };
-  
+
   // Update editor with new data (image, spreadsheet, or presentation)
   const updateEditorWithData = async (result: any) => {
     if (!store) return;
-    
+
     try {
-      if (editorType === 'image' && result.imageUrl) {
+      if (editorType === "image" && result.imageUrl) {
         // Update image editor
         const page = store.activePage;
         if (!page) return;
-        
+
         // Find existing image element or create new one
-        let imageElement = page.children.find((child: any) => child.type === 'image');
-        
+        let imageElement = page.children.find(
+          (child: any) => child.type === "image",
+        );
+
         if (imageElement) {
           // Update existing image
           imageElement.set({ src: result.imageUrl });
-          console.log('✅ Updated existing image element');
+          console.log(" Updated existing image element");
         } else {
           // Create new image element
           page.addElement({
-            type: 'image',
+            type: "image",
             src: result.imageUrl,
             x: 0,
             y: 0,
             width: page.width,
-            height: page.height
+            height: page.height,
           });
-          console.log('✅ Created new image element');
+          console.log(" Created new image element");
         }
-      } else if (editorType === 'document' && result.documentData) {
+      } else if (editorType === "document" && result.documentData) {
         // Update document editor (Tiptap - HTML content)
-        console.log('📝 Updating document with new HTML');
-        console.log('📄 New HTML length:', result.documentData?.length || 0);
-        console.log('📋 Store available:', !!store);
-        console.log('📋 Store type:', typeof store);
-        
+        console.log(" Updating document with new HTML");
+        console.log(" New HTML length:", result.documentData?.length || 0);
+        console.log(" Store available:", !!store);
+        console.log(" Store type:", typeof store);
+
         try {
           // Verify editor instance
           if (!store) {
-            console.error('❌ No editor instance available');
-            alert('Editor not ready. Please try again.');
+            console.error(" No editor instance available");
+            alert("Editor not ready. Please try again.");
             return;
           }
 
           // Log available methods for debugging
           if (store.commands) {
-            console.log('✅ Editor has commands object');
+            console.log(" Editor has commands object");
           }
-          
+
           // Tiptap setContent method (Primary method)
-          if (store.commands && typeof store.commands.setContent === 'function') {
-            console.log('🔄 Calling editor.commands.setContent()...');
+          if (
+            store.commands &&
+            typeof store.commands.setContent === "function"
+          ) {
+            console.log(" Calling editor.commands.setContent()...");
             const success = store.commands.setContent(result.documentData);
-            console.log('✅ setContent result:', success);
-            console.log('✅ Document HTML updated successfully!');
-            console.log('✅ You should see the changes in the editor now!');
-          } else if (store.setContent && typeof store.setContent === 'function') {
+            console.log(" setContent result:", success);
+            console.log(" Document HTML updated successfully!");
+            console.log(" You should see the changes in the editor now!");
+          } else if (
+            store.setContent &&
+            typeof store.setContent === "function"
+          ) {
             // Alternative method 1
-            console.log('🔄 Calling editor.setContent()...');
+            console.log(" Calling editor.setContent()...");
             store.setContent(result.documentData);
-            console.log('✅ Document updated successfully using setContent');
-          } else if (store.setHTML && typeof store.setHTML === 'function') {
+            console.log(" Document updated successfully using setContent");
+          } else if (store.setHTML && typeof store.setHTML === "function") {
             // Alternative method 2
-            console.log('🔄 Calling editor.setHTML()...');
+            console.log(" Calling editor.setHTML()...");
             store.setHTML(result.documentData);
-            console.log('✅ Document updated successfully using setHTML');
+            console.log("Document updated successfully using setHTML");
           } else {
-            console.error('❌ Could not find method to update document HTML');
-            console.log('📋 Available store properties:', Object.keys(store).slice(0, 30));
-            console.log('📋 Commands available:', store.commands ? Object.keys(store.commands).slice(0, 30) : 'no commands');
-            alert('Failed to update document. The editor API might have changed. Please refresh the page and try again.');
+            console.error(" Could not find method to update document HTML");
+            console.log(
+              " Available store properties:",
+              Object.keys(store).slice(0, 30),
+            );
+            console.log(
+              " Commands available:",
+              store.commands
+                ? Object.keys(store.commands).slice(0, 30)
+                : "no commands",
+            );
+            alert(
+              "Failed to update document. The editor API might have changed. Please refresh the page and try again.",
+            );
           }
         } catch (updateError) {
-          console.error('❌ Error updating document HTML:', updateError);
-          console.error('❌ Error details:', updateError);
-          alert('Failed to update document: ' + (updateError instanceof Error ? updateError.message : String(updateError)));
+          console.error("Error updating document HTML:", updateError);
+          console.error(" Error details:", updateError);
+          alert(
+            "Failed to update document: " +
+              (updateError instanceof Error
+                ? updateError.message
+                : String(updateError)),
+          );
         }
-      } else if (editorType === 'presentation' && result.presentationData) {
+      } else if (editorType === "presentation" && result.presentationData) {
         // Update presentation editor (Polotno)
-        console.log('📽️  Updating presentation with new data:', result.presentationData);
-        
+        console.log(
+          "📽️  Updating presentation with new data:",
+          result.presentationData,
+        );
+
         try {
           // Polotno loadJSON method to replace entire presentation
           if (store.loadJSON) {
             store.loadJSON(result.presentationData);
-            console.log('✅ Presentation updated successfully using loadJSON');
+            console.log("Presentation updated successfully using loadJSON");
           } else if (store.clear && store.addPage) {
             // Fallback: Clear all pages and add new ones
             store.clear();
             const pages = result.presentationData.pages || [];
             pages.forEach((pageData: any) => {
               const page = store.addPage(pageData);
-              console.log('✅ Added page:', page.id);
+              console.log("Added page:", page.id);
             });
-            console.log('✅ Presentation updated successfully via clear/addPage');
+            console.log("Presentation updated successfully via clear/addPage");
           } else {
-            console.warn('⚠️ Could not find method to update presentation');
-            console.log('💡 Try refreshing the page to see updated presentation');
+            console.warn(" Could not find method to update presentation");
+            console.log("Try refreshing the page to see updated presentation");
           }
         } catch (loadError) {
-          console.error('❌ Error loading presentation JSON:', loadError);
-          console.log('💡 Consider refreshing the page to see updated presentation');
+          console.error("Error loading presentation JSON:", loadError);
+          console.log(
+            "Consider refreshing the page to see updated presentation",
+          );
         }
-      } else if (editorType === 'spreadsheet' && result.spreadsheetData) {
+      } else if (editorType === "spreadsheet" && result.spreadsheetData) {
         // Update spreadsheet editor (Univer)
-        console.log('📊 Updating spreadsheet with new data');
-        console.log('📋 New data keys:', Object.keys(result.spreadsheetData).slice(0, 10));
-        
+        console.log("📊 Updating spreadsheet with new data");
+        console.log(
+          "New data keys:",
+          Object.keys(result.spreadsheetData).slice(0, 10),
+        );
+
         try {
           // The store is the univerAPI object
-          if (store.getActiveWorkbook && store.disposeUnit && store.createWorkbook) {
-            console.log('🔄 Updating spreadsheet with AI-generated data...');
-            
+          if (
+            store.getActiveWorkbook &&
+            store.disposeUnit &&
+            store.createWorkbook
+          ) {
+            console.log("Updating spreadsheet with AI-generated data...");
+
             // Get current workbook
             const currentWorkbook = store.getActiveWorkbook();
-            
-            if (currentWorkbook && typeof currentWorkbook.getId === 'function') {
+
+            if (
+              currentWorkbook &&
+              typeof currentWorkbook.getId === "function"
+            ) {
               // Get workbook ID using the correct method
               const workbookId = currentWorkbook.getId();
-              console.log('📋 Current workbook ID:', workbookId);
-              console.log('📋 Disposing current workbook...');
-              
+              console.log("Current workbook ID:", workbookId);
+              console.log(" Disposing current workbook...");
+
               // Dispose current workbook
               store.disposeUnit(workbookId);
-              console.log('✅ Workbook disposed');
-              
+              console.log("Workbook disposed");
+
               // Small delay to ensure disposal is complete
-              await new Promise(resolve => setTimeout(resolve, 50));
-              
+              await new Promise((resolve) => setTimeout(resolve, 50));
+
               // Create new workbook with AI-generated data
-              console.log('📋 Creating new workbook with AI-generated data...');
-              console.log('📋 Data keys:', Object.keys(result.spreadsheetData || {}));
-              
+              console.log("Creating new workbook with AI-generated data...");
+              console.log(
+                "📋 Data keys:",
+                Object.keys(result.spreadsheetData || {}),
+              );
+
               store.createWorkbook(result.spreadsheetData);
-              
+
               // Verify new workbook was created
-              await new Promise(resolve => setTimeout(resolve, 100));
+              await new Promise((resolve) => setTimeout(resolve, 100));
               const verifyWorkbook = store.getActiveWorkbook();
-              
+
               if (verifyWorkbook) {
-                console.log('✅ New workbook created successfully!');
-                console.log('✅ New workbook ID:', verifyWorkbook.getId ? verifyWorkbook.getId() : 'Unknown');
-                console.log('✅ Spreadsheet updated immediately! Changes are now visible.');
-                
+                console.log("  New workbook created successfully!");
+                console.log(
+                  " New workbook ID:",
+                  verifyWorkbook.getId ? verifyWorkbook.getId() : "Unknown",
+                );
+                console.log(
+                  " Spreadsheet updated immediately! Changes are now visible.",
+                );
+
                 // Show success message
-                console.log('🎉 AI-generated spreadsheet is now displayed!');
-                
+                console.log("🎉 AI-generated spreadsheet is now displayed!");
+
                 // Auto-save to database if generationId is available
                 if (generationId) {
-                  console.log('💾 Auto-saving AI-generated spreadsheet to database...');
+                  console.log(
+                    " Auto-saving AI-generated spreadsheet to database...",
+                  );
                   try {
-                    const saveData = typeof verifyWorkbook.save === 'function' 
-                      ? verifyWorkbook.save() 
-                      : result.spreadsheetData;
-                    
+                    const saveData =
+                      typeof verifyWorkbook.save === "function"
+                        ? verifyWorkbook.save()
+                        : result.spreadsheetData;
+
                     await api.patch(`/ai/generation/${generationId}`, {
-                      content: saveData
+                      content: saveData,
                     });
-                    
-                    console.log('✅ AI-generated spreadsheet saved to database!');
-                    console.log('🎉 Your changes are now persisted and will be available on reload!');
+
+                    console.log(" AI-generated spreadsheet saved to database!");
+                    console.log(
+                      " Your changes are now persisted and will be available on reload!",
+                    );
                   } catch (saveError) {
-                    console.error('❌ Error saving to database:', saveError);
-                    console.log('💡 Spreadsheet is displayed but not saved. Try manual save or refresh.');
+                    console.error(" Error saving to database:", saveError);
+                    console.log(
+                      " Spreadsheet is displayed but not saved. Try manual save or refresh.",
+                    );
                   }
                 } else {
-                  console.log('ℹ️ No generation ID available, skipping database save');
-                  console.log('💡 Create a saved document to enable persistence');
+                  console.log(
+                    "ℹNo generation ID available, skipping database save",
+                  );
+                  console.log(" Create a saved document to enable persistence");
                 }
               } else {
-                console.error('❌ Failed to create new workbook');
-                console.warn('💡 Refresh the page to see the updated spreadsheet');
+                console.error(" Failed to create new workbook");
+                console.warn(
+                  " Refresh the page to see the updated spreadsheet",
+                );
               }
             } else {
-              console.warn('⚠️ No active workbook found or getId() method not available');
-              console.log('💡 Trying direct creation...');
-              
+              console.warn(
+                " No active workbook found or getId() method not available",
+              );
+              console.log(" Trying direct creation...");
+
               // Try direct creation without disposal
               try {
                 store.createWorkbook(result.spreadsheetData);
-                await new Promise(resolve => setTimeout(resolve, 100));
-                console.log('✅ Spreadsheet created directly');
+                await new Promise((resolve) => setTimeout(resolve, 100));
+                console.log("Spreadsheet created directly");
               } catch (directError) {
-                console.error('❌ Direct creation failed:', directError);
+                console.error(" Direct creation failed:", directError);
               }
             }
           } else if (store.setData) {
             // Fallback 1: setData method
-            console.log('📋 Using setData() method...');
+            console.log(" Using setData() method...");
             store.setData(result.spreadsheetData);
-            console.log('✅ Spreadsheet updated via setData()');
+            console.log(" Spreadsheet updated via setData()");
           } else if (store.loadData) {
             // Fallback 2: loadData method
-            console.log('📋 Using loadData() method...');
+            console.log(" Using loadData() method...");
             store.loadData(result.spreadsheetData);
-            console.log('✅ Spreadsheet updated via loadData()');
+            console.log(" Spreadsheet updated via loadData()");
           } else {
-            console.warn('⚠️ Could not find method to update spreadsheet data');
-            console.log('💡 Available methods:', Object.keys(store).filter(k => typeof store[k] === 'function').slice(0, 30));
-            console.log('💡 Refresh the page to see the AI-generated spreadsheet');
+            console.warn(" Could not find method to update spreadsheet data");
+            console.log(
+              " Available methods:",
+              Object.keys(store)
+                .filter((k) => typeof store[k] === "function")
+                .slice(0, 30),
+            );
+            console.log(
+              " Refresh the page to see the AI-generated spreadsheet",
+            );
           }
         } catch (updateError) {
-          console.error('❌ Error updating spreadsheet:', updateError);
-          console.error('❌ Error details:', updateError.message || updateError);
-          console.log('💡 Refresh the page to see the AI-generated spreadsheet');
+          console.error(" Error updating spreadsheet:", updateError);
+          console.error(" Error details:", updateError.message || updateError);
+          console.log(" Refresh the page to see the AI-generated spreadsheet");
+        }
+      } else if (editorType === "chart" && result.chartData) {
+        // Update chart editor
+        console.log(" Updating chart with AI-generated data");
+        console.log(" New chart data keys:", Object.keys(result.chartData));
+
+        try {
+          // The store object has setter functions for each state
+          if (store && typeof store === "object") {
+            const chartData = result.chartData;
+
+            // Update chart type
+            if (
+              chartData.chartType &&
+              typeof store.setChartType === "function"
+            ) {
+              store.setChartType(chartData.chartType);
+              console.log("✅ Updated chart type:", chartData.chartType);
+            }
+
+            // Update labels
+            if (chartData.labels && typeof store.setLabels === "function") {
+              store.setLabels(chartData.labels);
+              console.log("✅ Updated labels:", chartData.labels.length);
+            }
+
+            // Update datasets
+            if (chartData.datasets && typeof store.setDatasets === "function") {
+              store.setDatasets(chartData.datasets);
+              console.log("✅ Updated datasets:", chartData.datasets.length);
+            }
+
+            // Update chart title
+            if (
+              chartData.chartTitle !== undefined &&
+              typeof store.setChartTitle === "function"
+            ) {
+              store.setChartTitle(chartData.chartTitle);
+              console.log("✅ Updated title:", chartData.chartTitle);
+            }
+
+            // Update legend visibility
+            if (
+              chartData.showLegend !== undefined &&
+              typeof store.setShowLegend === "function"
+            ) {
+              store.setShowLegend(chartData.showLegend);
+              console.log(
+                "✅ Updated legend visibility:",
+                chartData.showLegend,
+              );
+            }
+
+            // Update grid visibility
+            if (
+              chartData.showGrid !== undefined &&
+              typeof store.setShowGrid === "function"
+            ) {
+              store.setShowGrid(chartData.showGrid);
+              console.log("✅ Updated grid visibility:", chartData.showGrid);
+            }
+
+            // Update color scheme
+            if (
+              chartData.selectedColorScheme &&
+              typeof store.setSelectedColorScheme === "function"
+            ) {
+              store.setSelectedColorScheme(chartData.selectedColorScheme);
+              console.log(
+                "✅ Updated color scheme:",
+                chartData.selectedColorScheme,
+              );
+            }
+
+            console.log(
+              "✅ Chart updated successfully with AI-generated data!",
+            );
+            console.log(
+              "🎉 Your chart is now displaying the AI-generated visualization!",
+            );
+          } else {
+            console.error(" Store is not available or not an object");
+            console.log("💡 Refresh the page to see the AI-generated chart");
+          }
+        } catch (updateError) {
+          console.error(" Error updating chart:", updateError);
+          console.error(" Error details:", updateError.message || updateError);
+          console.log("💡 Refresh the page to see the AI-generated chart");
         }
       }
     } catch (error) {
-      console.error('❌ Error updating editor:', error);
+      console.error(" Error updating editor:", error);
     }
   };
-  
+
   // Handle Freestyle prompt submission
   const handleFreestyleSubmit = async () => {
     if (!freestylePrompt.trim()) return;
-    
+
     const currentData = getCurrentEditorData();
-    
+
     try {
       if (currentData) {
-        await modifyContent(freestylePrompt, currentData, 'Freestyle');
+        await modifyContent(freestylePrompt, currentData, "Freestyle");
       } else {
-        await generateContent(freestylePrompt, 'Freestyle');
+        await generateContent(freestylePrompt, "Freestyle");
       }
-      
+
       // Clear input on success
       setFreestylePrompt("");
     } catch (error) {
       // Error is already handled by the hook
     }
   };
-  
+
   // Handle voice recording with Web Speech API
   const startRecording = () => {
     try {
       // Check if browser supports Speech Recognition
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+
       if (!SpeechRecognition) {
-        alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+        alert(
+          "Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.",
+        );
         return;
       }
-      
+
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
-      
+      recognition.lang = "en-US";
+
       recognition.onstart = () => {
-        console.log('🎤 Voice recognition started');
+        console.log("🎤 Voice recognition started");
         setIsRecording(true);
         setVoiceTranscript("");
       };
-      
+
       recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
-        
+        let finalTranscript = "";
+        let interimTranscript = "";
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
+            finalTranscript += transcript + " ";
           } else {
             interimTranscript += transcript;
           }
         }
-        
+
         if (finalTranscript) {
-          setVoiceTranscript(prev => (prev + finalTranscript).trim());
+          setVoiceTranscript((prev) => (prev + finalTranscript).trim());
         }
       };
-      
+
       recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        if (event.error === 'no-speech') {
-          console.log('No speech detected, continuing...');
+        console.error("Speech recognition error:", event.error);
+        if (event.error === "no-speech") {
+          console.log("No speech detected, continuing...");
         } else {
           alert(`Speech recognition error: ${event.error}`);
           setIsRecording(false);
         }
       };
-      
+
       recognition.onend = () => {
-        console.log('🎤 Voice recognition ended');
+        console.log("🎤 Voice recognition ended");
         setIsRecording(false);
-        
+
         // Process the transcript if we have one
         if (voiceTranscript.trim()) {
           handleVoiceTranscript(voiceTranscript);
         }
       };
-      
+
       recognition.start();
       recognitionRef.current = recognition;
-      
     } catch (error) {
-      console.error('Error starting speech recognition:', error);
-      alert('Failed to start speech recognition. Please check microphone permissions.');
+      console.error("Error starting speech recognition:", error);
+      alert(
+        "Failed to start speech recognition. Please check microphone permissions.",
+      );
     }
   };
-  
+
   const stopRecording = () => {
     if (recognitionRef.current && isRecording) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
     }
   };
-  
+
   const toggleRecording = () => {
     if (isRecording) {
       stopRecording();
@@ -517,122 +737,134 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
       startRecording();
     }
   };
-  
+
   // Handle the transcribed voice input
   const handleVoiceTranscript = async (transcript: string) => {
     if (!transcript.trim()) {
-      alert('No speech was detected. Please try again.');
+      alert("No speech was detected. Please try again.");
       return;
     }
-    
-    console.log('🎤 Processing transcript:', transcript);
-    
+
+    console.log("🎤 Processing transcript:", transcript);
+
     const currentData = getCurrentEditorData();
-    
+
     try {
       if (currentData) {
-        await modifyContent(transcript, currentData, 'Talk To Me');
+        await modifyContent(transcript, currentData, "Talk To Me");
       } else {
-        await generateContent(transcript, 'Talk To Me');
+        await generateContent(transcript, "Talk To Me");
       }
-      
+
       // Clear transcript on success
       setVoiceTranscript("");
     } catch (error) {
       // Error is already handled by the hook
-      console.error('Failed to process voice input:', error);
+      console.error("Failed to process voice input:", error);
     }
   };
-  
+
   // Handle file upload
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5 MB');
+      alert("File size must be less than 5 MB");
       return;
     }
-    
+
     // Validate file type based on editor type
-    if (editorType === 'image' && !file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+    if (editorType === "image" && !file.type.startsWith("image/")) {
+      alert("Please upload an image file");
       return;
     }
-    
-    if (editorType === 'spreadsheet' && !['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type)) {
-      alert('Please upload a CSV or Excel file');
+
+    if (
+      editorType === "spreadsheet" &&
+      ![
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ].includes(file.type)
+    ) {
+      alert("Please upload a CSV or Excel file");
       return;
     }
-    
+
     const currentData = getCurrentEditorData();
-    
+
     try {
       await processUploadedFile(file, currentData || undefined);
-      
+
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     } catch (error) {
       // Error is already handled by the hook
     }
   };
-  
+
   // Handle Brief Me submission
   const handleBriefSubmit = async () => {
     // Validate that at least one field is filled
-    const hasContent = Object.values(briefData).some(val => val.trim());
+    const hasContent = Object.values(briefData).some((val) => val.trim());
     if (!hasContent) {
-      alert('Please fill in at least one field');
+      alert("Please fill in at least one field");
       return;
     }
-    
+
     const currentData = getCurrentEditorData();
-    
+
     try {
       await processBrief(briefData, currentData || undefined);
-      
+
       // Clear form on success
       setBriefData({
         whatToDo: "",
         focusArea: "",
         style: "",
         presentation: "",
-        constraints: ""
+        constraints: "",
       });
     } catch (error) {
       // Error is already handled by the hook
     }
   };
-  
+
   // Keyboard shortcut for Freestyle (Cmd/Ctrl + Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        if (activeTab === 'Freestyle' && mode === 'Prompt Mode') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        if (activeTab === "Freestyle" && mode === "Prompt Mode") {
           handleFreestyleSubmit();
         }
       }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeTab, mode, freestylePrompt]);
-  
+
   // Filter history based on search and filter
-  const filteredHistory = history.filter(item => {
+  const filteredHistory = history.filter((item) => {
     // Apply type filter
-    if (historyFilter !== 'All' && item.type !== historyFilter) {
+    if (historyFilter !== "All" && item.type !== historyFilter) {
       return false;
     }
-    
+
     // Apply search filter
-    if (searchQuery && !item.prompt.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (
+      searchQuery &&
+      !item.prompt.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -642,34 +874,39 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
     { name: "Dropzone", icon: Upload },
     { name: "Brief Me", icon: FileText },
   ];
-  
+
   // Helper function to get icon and color for history item type
-  const getHistoryItemStyle = (type: PromptHistoryItem['type']) => {
+  const getHistoryItemStyle = (type: PromptHistoryItem["type"]) => {
     switch (type) {
-      case 'Freestyle':
+      case "Freestyle":
         return {
           icon: Sparkles,
-          color: "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white"
+          color:
+            "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white",
         };
-      case 'Talk To Me':
+      case "Talk To Me":
         return {
           icon: Mic,
-          color: "bg-[linear-gradient(135deg,_#51A2FF_0%,_#155DFC_100%)] text-white"
+          color:
+            "bg-[linear-gradient(135deg,_#51A2FF_0%,_#155DFC_100%)] text-white",
         };
-      case 'Brief Me':
+      case "Brief Me":
         return {
           icon: FileText,
-          color: "bg-[linear-gradient(135deg,_#FFB900_0%,_#E17100_100%)] text-white"
+          color:
+            "bg-[linear-gradient(135deg,_#FFB900_0%,_#E17100_100%)] text-white",
         };
-      case 'Dropzone':
+      case "Dropzone":
         return {
           icon: Upload,
-          color: "bg-[linear-gradient(135deg,_#05DF72_0%,_#00A63E_100%)] text-white"
+          color:
+            "bg-[linear-gradient(135deg,_#05DF72_0%,_#00A63E_100%)] text-white",
         };
       default:
         return {
           icon: Sparkles,
-          color: "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white"
+          color:
+            "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white",
         };
     }
   };
@@ -692,9 +929,9 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
           <X className="w-4 h-4 text-[#6B7280] group-hover:text-[#1F2937]" />
         </button>
       )}
-      
+
       {/* Warning if editor not ready (for document editor) */}
-      {editorType === 'document' && !store && (
+      {editorType === "document" && !store && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-6 mt-4">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -702,13 +939,14 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
             </div>
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
-                <strong>Editor is loading...</strong> Please wait a moment for the editor to initialize, then try again.
+                <strong>Editor is loading...</strong> Please wait a moment for
+                the editor to initialize, then try again.
               </p>
             </div>
           </div>
         </div>
       )}
-      
+
       <div className="p-4 sm:p-6 space-y-6 mx-auto max-w-full">
         {/* Row 1: Toggles */}
         <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
@@ -764,12 +1002,16 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
             <Loader2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5 animate-spin" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-800">Processing your request...</p>
-              <p className="text-xs text-blue-600 mt-0.5">This may take 20-30 seconds. Please wait.</p>
+              <p className="text-sm font-medium text-blue-800">
+                Processing your request...
+              </p>
+              <p className="text-xs text-blue-600 mt-0.5">
+                This may take 20-30 seconds. Please wait.
+              </p>
             </div>
           </div>
         )}
-        
+
         {/* Error Display */}
         {aiError && !isProcessing && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
@@ -794,7 +1036,7 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                       activeTab === tab.name
                         ? "bg-white text-[#1E293B] shadow-sm border border-[#E2E8F0]"
                         : "text-[#64748B] hover:bg-slate-200/50"
-                    } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <tab.icon
                       className={`w-4 h-4 ${activeTab === tab.name ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
@@ -1075,15 +1317,20 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                     {isProcessing && !isRecording
                       ? "Processing..."
                       : isRecording
-                      ? voiceTranscript || "Listening... (tap to stop and send)"
-                      : "Ready to record"}
+                        ? voiceTranscript ||
+                          "Listening... (tap to stop and send)"
+                        : "Ready to record"}
                   </p>
-                  
+
                   {/* Show transcript while recording */}
                   {isRecording && voiceTranscript && (
                     <div className="mt-4 px-6 py-3 bg-white/80 rounded-xl border border-[#E2E8F0] max-w-md mx-auto">
-                      <p className="text-sm text-[#45556C] font-medium mb-1">Transcript:</p>
-                      <p className="text-sm text-[#1E293B]">{voiceTranscript}</p>
+                      <p className="text-sm text-[#45556C] font-medium mb-1">
+                        Transcript:
+                      </p>
+                      <p className="text-sm text-[#1E293B]">
+                        {voiceTranscript}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1173,7 +1420,7 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                           text-white font-medium
                           cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
                           w-full sm:w-auto
-                          ${isProcessing ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}
+                          ${isProcessing ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
                         `}
                         tabIndex={0}
                       >
@@ -1267,7 +1514,12 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                       <input
                         type="text"
                         value={briefData.whatToDo}
-                        onChange={(e) => setBriefData({...briefData, whatToDo: e.target.value})}
+                        onChange={(e) =>
+                          setBriefData({
+                            ...briefData,
+                            whatToDo: e.target.value,
+                          })
+                        }
                         disabled={isProcessing}
                         className="
                           flex
@@ -1306,7 +1558,12 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                       <input
                         type="text"
                         value={briefData.focusArea}
-                        onChange={(e) => setBriefData({...briefData, focusArea: e.target.value})}
+                        onChange={(e) =>
+                          setBriefData({
+                            ...briefData,
+                            focusArea: e.target.value,
+                          })
+                        }
                         disabled={isProcessing}
                         className="
                           flex
@@ -1345,7 +1602,9 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                       <input
                         type="text"
                         value={briefData.style}
-                        onChange={(e) => setBriefData({...briefData, style: e.target.value})}
+                        onChange={(e) =>
+                          setBriefData({ ...briefData, style: e.target.value })
+                        }
                         disabled={isProcessing}
                         className="
                           flex
@@ -1384,7 +1643,12 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                       <input
                         type="text"
                         value={briefData.presentation}
-                        onChange={(e) => setBriefData({...briefData, presentation: e.target.value})}
+                        onChange={(e) =>
+                          setBriefData({
+                            ...briefData,
+                            presentation: e.target.value,
+                          })
+                        }
                         disabled={isProcessing}
                         className="
                           flex
@@ -1424,7 +1688,12 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                     <input
                       type="text"
                       value={briefData.constraints}
-                      onChange={(e) => setBriefData({...briefData, constraints: e.target.value})}
+                      onChange={(e) =>
+                        setBriefData({
+                          ...briefData,
+                          constraints: e.target.value,
+                        })
+                      }
                       disabled={isProcessing}
                       className="
                         flex
@@ -1449,7 +1718,10 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                   <button
                     type="button"
                     onClick={handleBriefSubmit}
-                    disabled={isProcessing || !Object.values(briefData).some(val => val.trim())}
+                    disabled={
+                      isProcessing ||
+                      !Object.values(briefData).some((val) => val.trim())
+                    }
                     className="
                       w-full mt-4 sm:mt-8
                       flex items-center justify-center
@@ -1767,7 +2039,7 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                   {filteredHistory.map((item) => {
                     const itemStyle = getHistoryItemStyle(item.type);
                     const ItemIcon = itemStyle.icon;
-                    
+
                     return (
                       <div
                         key={item.id}
@@ -1776,7 +2048,7 @@ export default function AiPrompterPanel({ store, editorType = 'image', onClose, 
                           // Optionally, allow re-running a prompt from history
                           setActiveTab(item.type);
                           setMode("Prompt Mode");
-                          if (item.type === 'Freestyle') {
+                          if (item.type === "Freestyle") {
                             setFreestylePrompt(item.prompt);
                           }
                         }}

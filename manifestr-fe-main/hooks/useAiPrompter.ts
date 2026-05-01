@@ -77,7 +77,7 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
       // Validate currentData
       if (!currentData) {
         const errorMsg = `No ${editorType} data available to modify. Please ensure the editor is loaded.`;
-        console.error('❌', errorMsg);
+        console.error(' ', errorMsg);
         setError(errorMsg);
         throw new Error(errorMsg);
       }
@@ -98,34 +98,39 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
         endpoint = '/spreadsheet-generator/modify';
         requestData.spreadsheetData = currentData;
       } else if (editorType === 'presentation') {
-        console.log('📽️  Modifying presentation with prompt:', prompt);
-        console.log('🎬 Current data:', currentData);
+          console.log(' Modifying presentation with prompt:', prompt);
+        console.log(' Current data:', currentData);
         endpoint = '/presentation-generator/modify';
         requestData.presentationData = currentData;
+      } else if (editorType === 'chart') {
+        console.log('Modifying chart with prompt:', prompt);
+        console.log('Current data:', currentData);
+        endpoint = '/chart-generator/modify';
+        requestData.chartData = currentData;
       } else if (editorType === 'document') {
-        console.log('📝 Modifying document with prompt:', prompt);
-        console.log('📄 Current document pages:', currentData?.pages?.length || 0);
+        console.log(' Modifying document with prompt:', prompt);
+        console.log(' Current document pages:', currentData?.pages?.length || 0);
         endpoint = '/document-generator/modify';
         requestData.documentData = currentData;
       } else {
         throw new Error(`Modification not supported for ${editorType}`);
       }
 
-      console.log('🚀 Sending request to:', endpoint);
-      console.log('📦 Request data keys:', Object.keys(requestData));
+      console.log(' Sending request to:', endpoint);
+      console.log(' Request data keys:', Object.keys(requestData));
 
       const response = await api.post(endpoint, requestData, {
-        timeout: 600000, // 🔥 10 minutes timeout for content modification (spreadsheets can be large)
+        timeout: 600000, // 10 minutes timeout for content modification (spreadsheets can be large)
         timeoutErrorMessage: 'Content modification is taking longer than expected. Please try with a simpler prompt.'
       });
 
-      console.log('📦 Response received:', response.data);
+      console.log(' Response received:', response.data);
 
       // Handle different response structures
       const result = response.data?.data || response.data;
       
       if (!result) {
-        console.error('❌ No result in response:', response.data);
+        console.error(' No result in response:', response.data);
         throw new Error('Invalid response from server');
       }
       
@@ -135,7 +140,7 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
       addToHistory({
         type,
         prompt,
-        imageUrl: result.imageUrl || result.spreadsheetData || result.presentationData || result.documentData,
+        imageUrl: result.imageUrl || result.spreadsheetData || result.presentationData || result.documentData || result.chartData,
         response: result
       });
 
@@ -183,6 +188,7 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
 
     try {
       console.log(' Generating content with prompt:', prompt);
+      console.log(' Editor type:', editorType);
 
       // Route to appropriate endpoint based on editor type
       let endpoint = '';
@@ -203,12 +209,15 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
           // Add default page count for presentations
           requestData.pageCount = 5;
           break;
+        case 'chart':
+          endpoint = '/chart-generator/generate';
+          break;
         default:
           throw new Error(`Unsupported editor type: ${editorType}`);
       }
 
       const response = await api.post(endpoint, requestData, {
-        timeout: 600000, // 🔥 10 minutes timeout for content generation
+        timeout: 600000, // 10 minutes timeout for content generation
         timeoutErrorMessage: 'Content generation is taking longer than expected. Please try with a simpler prompt.'
       });
 
