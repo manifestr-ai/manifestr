@@ -5,7 +5,7 @@ import PlaybookTabs from './PlaybookTabs'
 import SubmitTicketModal from './SubmitTicketModal'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044715/Frame_2_m5ahej.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458840/Product_Updates_Banner_1441x804_x2_bdvnel.webp'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 const HELP_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 

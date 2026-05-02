@@ -6,7 +6,7 @@ import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 import { DEMO_VIDEOS } from '../../data/demoVideos'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775670192/6999ed29b2e67618b5815daf16382aa929f90057_sarl2g.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458844/Demo_Videos_Banner_1441x608_x2_gd9b5h.webp'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const BROWSE_CATEGORIES = [

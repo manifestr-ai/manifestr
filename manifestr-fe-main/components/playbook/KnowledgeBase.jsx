@@ -5,7 +5,7 @@ import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042697/Frame_rbbkjw.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458839/Knowledge_Articles_Banner_1441x802_x2_q2q9o5.webp'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 
@@ -132,7 +132,7 @@ export default function KnowledgeBase() {
       {/* ─── Hero ─── */}
       <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
         <div className="absolute inset-0">
-          <CldImage src={HERO_BG} alt="" className="h-full w-full object-cover object-top" />
+          <CldImage src={HERO_BG} alt="" className="h-full w-full object-cover object-center" />
           <div className="absolute inset-0 bg-black/20" />
         </div>
 
