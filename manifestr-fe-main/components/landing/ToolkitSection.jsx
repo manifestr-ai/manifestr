@@ -302,12 +302,12 @@ export default function ToolkitSection() {
                 </span>
               </p>
               <Link
-                href="/tools"
-                className="inline-flex items-center justify-center h-[54px] w-[160px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                Explore The Toolkit
-              </Link>
+  href="/tools"
+  className="inline-flex items-center justify-center h-[54px] w-[190px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors whitespace-nowrap px-[20px]"
+  style={{ fontFamily: "'Inter', sans-serif" }}
+>
+  Explore The Toolkit
+</Link>
             </div>
             </div>
 

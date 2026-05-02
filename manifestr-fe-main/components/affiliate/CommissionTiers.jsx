@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const MARBLE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775024211/Marble_1_uhea3e.jpg'
+const MARBLE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351461/Affiliate_Marble_Background_1441x628_x2_tfg9jx.webp'
 
 const TIERS = [
   { label: 'Starter', badge: 'Noir', pct: 30, range: '0–99 new paid accounts' },
@@ -14,7 +14,7 @@ export default function CommissionTiers() {
     <section className="relative w-full bg-[#242424] overflow-hidden py-[70px]">
       {/* Marble texture */}
       <div className="absolute inset-0">
-        <CldImage src={MARBLE_BG} alt="" className="w-full h-full object-cover opacity-[0.7]" />
+        <CldImage src={MARBLE_BG} alt="" className="w-full h-full object-cover opacity-[0.39]" />
       </div>
 
       <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px]">

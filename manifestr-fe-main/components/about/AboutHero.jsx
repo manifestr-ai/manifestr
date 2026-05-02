@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041145/wallpaperflare.com_wallpaper_1_mmjf16.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351402/About_Banner_1441x692_x2_j4gbdu.webp'
 
 export default function AboutHero() {
   return (

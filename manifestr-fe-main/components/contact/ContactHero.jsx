@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775028777/businesswoman-having-mobile-call-conversation-smartphone-talking-with-client-standing-white_1_xs0nvm.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351502/Contact_Us_Banner_1441x0000_x2_lohwvs.webp'
 
 export default function ContactHero() {
   return (

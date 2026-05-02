@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943915/Rectangle_17_vc62pu.jpg'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466273/The_Toolkit_Banner_1441x804_x2_nksfjd.webp'
 
 export default function ToolsHero() {
   return (

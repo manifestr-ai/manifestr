@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025724/creative-inspirational-resource_1_xvzeqt.jpg'
-const MOBILE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025724/creative-inspirational-resource_1_xvzeqt.jpg'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351487/Careers_Hero_Banner_1441x600_x2_utzwsf.webp'
+const MOBILE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351487/Careers_Hero_Banner_1441x600_x2_utzwsf.webp'
 
 export default function CareersHero() {
   return (
@@ -14,7 +14,7 @@ export default function CareersHero() {
           alt=""
           className="w-full h-full object-cover"
           priority
-          style={{ objectPosition: 'center top' }}
+          style={{ objectPosition: 'bottom center' }}
         />
       </div>
 
@@ -25,7 +25,7 @@ export default function CareersHero() {
           alt=""
           className="w-full h-full object-cover"
           priority
-          style={{ objectPosition: 'center top' }}
+          style={{ objectPosition: 'center center' }}
         />
       </div>
 

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const WOMAN_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775119747/100-Extended_1_1_hlxkcv.jpg'
+const WOMAN_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351464/Earnings_Image_1441_x1113_x2__White_iypsts.webp'
 const M_LOGO = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775024484/image_1_1_b0m4bv.svg'
 const ARROW_DOWN = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775024481/arrow-down-sign-to-navigate_1_adouel.svg'
 

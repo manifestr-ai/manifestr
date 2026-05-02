@@ -1,4 +1,4 @@
-const STRATEGIST_HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954644/Strategist_hsfyhp.jpg'
+const STRATEGIST_HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466114/The_Strategist_Banner_1441x1511_x2_q1tmg4.webp'
 const STRATEGIST_SPRITE  = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954695/Group_1577709340_if0cs4.svg'
 
 /** Optional `heroImageMobile` per tool: full-bleed mobile hero art (Figma 14258:25165). Falls back to `heroImage`. */
@@ -15,10 +15,10 @@ const TOOL_DETAILS = {
       { text: 'forward', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959782/Rectangle_13_geq2bq.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959781/Rectangle_14_aummte.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959781/Rectangle_14-1_x2ospq.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959781/Rectangle_14-2_nsyeld.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466105/Strategist_1_gyuiwq.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466106/Strategist_2_ml8aag.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466111/Strategist_High_Res_4_n7kebh.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466108/Strategist_High_Res_3_yned2s.webp',
     ],
     heroHeadline: [
       { text: 'Think three moves ', style: 'normal' },
@@ -72,8 +72,8 @@ const TOOL_DETAILS = {
     slug: 'analyzer',
     name: 'analyzer',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458960/The_Analyzer_Banner_1441x1589_x2_zi8ifb.webp',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458960/The_Analyzer_Banner_1441x1589_x2_zi8ifb.webp',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Analyzer ', style: 'normal' },
@@ -81,10 +81,10 @@ const TOOL_DETAILS = {
       { text: ' for you', style: 'normal' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959983/Rectangle_13_wbnwku.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959985/Rectangle_14_h9mhdk.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959985/Rectangle_14-1_fl3wgx.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959988/Rectangle_14-8_biluiz.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458961/Analyzer_1_spw8r3.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458931/Analyzer_3_r9ehlq.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458933/The_Analyzer_2_y6dbet.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458935/The_Analyzer_4_quohyk.webp',
     ],
     heroHeadline: [
       { text: 'Let the ', style: 'normal' },
@@ -143,18 +143,18 @@ const TOOL_DETAILS = {
     slug: 'briefcase',
     name: 'briefcase',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465762/Briefcase_Banner_1441x1589_x2_oxkcp8.webp',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465762/Briefcase_Banner_1441x1589_x2_oxkcp8.webp',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Briefcase turns plans into ', style: 'normal' },
       { text: 'execution', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959983/Rectangle_13-1_jm2xlr.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959985/Rectangle_14-3_jljra7.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959985/Rectangle_14-4_b1bgic.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959986/Rectangle_14-5_mx4xno.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465766/Briefcase_1_lzbong.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465768/Briefcase_2_yyyeyj.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465769/Briefcase_3_xzbsmp.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465761/Briefcase_4_alfvtz.webp',
     ],
     heroHeadline: [
       { text: 'Document what ', style: 'normal' },
@@ -212,18 +212,18 @@ const TOOL_DETAILS = {
     slug: 'design-studio',
     name: 'studio',
     prefix: 'DESIGN',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_Banner_1441x1576_x2_mupy4r.webp',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_Banner_1441x1576_x2_mupy4r.webp',
     heroSprites: null,
     featureHeading: [
       { text: 'How Design Studio turns visuals into ', style: 'normal' },
       { text: 'impact', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959985/Rectangle_13-5_q4k2bb.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-15_geszty.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959989/Rectangle_14-9_hle6ox.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959982/Rectangle_14-17_efkwdn.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458604/Design_Studio_1_xcj0bq.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_2_syv5ei.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_3_xwhvxr.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_4_rn3ib4.webp',
     ],
     heroHeadline: [
       { text: 'Define the visual ', style: 'normal' },
@@ -281,7 +281,7 @@ const TOOL_DETAILS = {
     slug: 'wordsmith',
     name: 'wordsmith',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466181/The_Wordsmith_Header_Banner_1441x1511_x2_oj0qgh.webp',
     heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
     heroSprites: null,
     featureHeading: [
@@ -289,10 +289,10 @@ const TOOL_DETAILS = {
       { text: 'results', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959984/Rectangle_13-4_u41lbv.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-12_o2sujq.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-13_k7diey.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-14_patr4v.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466186/Wordsmith_1_fawsfz.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466172/Wordsmith_2_tu6ncb.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466175/Wordsmith_3_jbyg96.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466178/Wordsmith_4_ndfqt3.webp',
     ],
     heroHeadline: [
       { text: 'Write with ', style: 'normal' },
@@ -350,18 +350,18 @@ const TOOL_DETAILS = {
     slug: 'deck',
     name: 'deck',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465959/The_Deck_Banner_1441x1511_x2_wewkrw.webp',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465959/The_Deck_Banner_1441x1511_x2_wewkrw.webp',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Deck moves your work ', style: 'normal' },
       { text: 'forward', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959984/Rectangle_13-3_mvaoxm.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959981/Rectangle_14-16_o6jeqz.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959989/Rectangle_14-10_jjcybf.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959989/Rectangle_14-11_hyljdz.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465951/The_Deck_1_l1jm5p.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465953/The_Deck_2_mecuzu.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465955/The_Deck_3_yfwicv.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465957/The_Deck_4_qlb679.webp',
     ],
     heroHeadline: [
       { text: 'Make every ', style: 'normal' },
@@ -419,18 +419,18 @@ const TOOL_DETAILS = {
     slug: 'huddle',
     name: 'huddle',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466023/The_Huddle_Banner_1441x1511_x2_ih3erc.webp',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466023/The_Huddle_Banner_1441x1511_x2_ih3erc.webp',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Huddle helps you lead the ', style: 'normal' },
       { text: 'room', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959985/Rectangle_13-6_dnd2ao.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959982/Rectangle_14-18_fttk56.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959982/Rectangle_14-19_wvg4xm.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959983/Rectangle_14-20_erpma7.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466026/The_Huddle_1_xc4fk3.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466028/The_Huddle_2_zd8t5d.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466018/The_Huddle_3_pbknv8.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466021/The_Huddle_4_sw5qxc.webp',
     ],
     heroHeadline: [
       { text: 'Lead the room. Align the ', style: 'normal' },
@@ -488,18 +488,18 @@ const TOOL_DETAILS = {
     slug: 'cost-ctrl',
     name: 'CTRL',
     prefix: 'COST',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351523/Cost_CTRL_Banner_1441x_1511_x2_h45qwz.webp',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351523/Cost_CTRL_Banner_1441x_1511_x2_h45qwz.webp',
     heroSprites: null,
     featureHeading: [
       { text: 'How Cost CTRL elevates how you ', style: 'normal' },
       { text: 'operate', style: 'italic' },
     ],
     featureImages: [
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959983/Rectangle_13-2_dsjn0y.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959986/Rectangle_14-6_ilfr7o.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959986/Rectangle_14-7_muoavd.jpg',
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774959988/Rectangle_14-8_biluiz.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351525/CST_CTRL_1_aar9rf.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351526/Cost_CTRL_2_s29ogp.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351527/Cost_CTRL_3_mjdux8.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351528/Cost_CTRL_4_av9fjo.webp',
     ],
     heroHeadline: [
       { text: 'Control the ', style: 'normal' },
