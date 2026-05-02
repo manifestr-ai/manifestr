@@ -1,4 +1,4 @@
-const STRATEGIST_HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954644/Strategist_hsfyhp.jpg'
+const STRATEGIST_HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png'
 const STRATEGIST_SPRITE  = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954695/Group_1577709340_if0cs4.svg'
 
 /** Optional `heroImageMobile` per tool: full-bleed mobile hero art (Figma 14258:25165). Falls back to `heroImage`. */
@@ -72,8 +72,8 @@ const TOOL_DETAILS = {
     slug: 'analyzer',
     name: 'analyzer',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629465/Strategist_n1ybcx.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Analyzer ', style: 'normal' },
@@ -143,8 +143,8 @@ const TOOL_DETAILS = {
     slug: 'briefcase',
     name: 'briefcase',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629468/Strategist-1_kfpsaj.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Briefcase turns plans into ', style: 'normal' },
@@ -212,8 +212,8 @@ const TOOL_DETAILS = {
     slug: 'design-studio',
     name: 'studio',
     prefix: 'DESIGN',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629470/Strategist-2_iqjqsn.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How Design Studio turns visuals into ', style: 'normal' },
@@ -281,8 +281,8 @@ const TOOL_DETAILS = {
     slug: 'wordsmith',
     name: 'wordsmith',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629459/Strategist-1_fdorfj.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Wordsmith turns words into ', style: 'normal' },
@@ -350,8 +350,8 @@ const TOOL_DETAILS = {
     slug: 'deck',
     name: 'deck',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629288/Rectangle_34624953_nbe4ql.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Deck moves your work ', style: 'normal' },
@@ -419,8 +419,8 @@ const TOOL_DETAILS = {
     slug: 'huddle',
     name: 'huddle',
     prefix: 'THE',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629464/Strategist-3_gsbmjz.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How The Huddle helps you lead the ', style: 'normal' },
@@ -488,8 +488,8 @@ const TOOL_DETAILS = {
     slug: 'cost-ctrl',
     name: 'CTRL',
     prefix: 'COST',
-    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
-    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775629461/Strategist_ifkw89.png',
+    heroImage: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
+    heroImageMobile: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
     heroSprites: null,
     featureHeading: [
       { text: 'How Cost CTRL elevates how you ', style: 'normal' },

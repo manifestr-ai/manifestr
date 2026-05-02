@@ -13,7 +13,7 @@ const tools = [
     description:
       'On-brand, editable presentation decks with visuals, charts and structured slides.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774942622/Stra_7_nkbwni.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
   },
   {
     id: 'strategist',
@@ -22,7 +22,7 @@ const tools = [
     description:
       'Strategic plans, positioning and decision frameworks backed by data and built to execute.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-7_capdej.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
   },
   {
     id: 'cost-ctrl',
@@ -31,7 +31,7 @@ const tools = [
     description:
       'Smart budgets, cost breakdowns and financial summaries built fast.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774942621/Stra_8_fv428n.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
   },
   {
     id: 'analyzer',
@@ -40,7 +40,7 @@ const tools = [
     description:
       'Data and insights shaped into charts and visuals for confident decision-making.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941773/Stra-2_pbxx8o.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
   },
   {
     id: 'design-studio',
@@ -49,7 +49,7 @@ const tools = [
     description:
       'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941774/Stra-3_ysxkgz.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
   },
   {
     id: 'briefcase',
@@ -58,7 +58,7 @@ const tools = [
     description:
       'Structured, professional documentation including briefs, reports, timelines and run sheets.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-6_ubdfxg.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
   },
   {
     id: 'huddle',
@@ -67,7 +67,7 @@ const tools = [
     description:
       'Meeting notes, agendas and action plans to keep teams aligned.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-5_u1vfl9.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
   },
   {
     id: 'wordsmith',
@@ -76,7 +76,7 @@ const tools = [
     description:
       'Professional copywriter delivering brand-aligned writing across formats and audiences.',
     image:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941775/Stra-4_nmzjna.jpg',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
   },
 ]
 
