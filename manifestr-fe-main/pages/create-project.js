@@ -27,7 +27,7 @@ const tools = [
     id: 'strategist',
     title: 'THE strategist',
     subtitle: 'Strategic Planning • Corporate Vision',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425439/the-strategist-1_bt4bgq.jpg',
+    imageSrc: '/assets/cards/the-strategist.svg',
     outputType: 'presentation',
     description: {
       title: 'Strategic Planning Studio',
@@ -43,7 +43,7 @@ Outputs: Comprehensive strategy presentations`,
     id: 'analyser',
     title: 'THE analyser',
     subtitle: 'Data Analysis • Insights',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425608/the-analyser-2_ffvrkb.png',
+    imageSrc: '/assets/cards/the-analyzer.svg',
     outputType: 'chart',
     description: {
       title: 'Data Insight Engine',
@@ -59,7 +59,7 @@ Outputs: Interactive charts and data visualizations`,
     id: 'briefcase',
     title: 'THE briefcase',
     subtitle: 'Business Reports • Executive Briefs',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425438/breifcase-3_zr4b1e.jpg',
+    imageSrc: '/assets/cards/the-briefcase.svg',
     outputType: 'document',
     description: {
       title: 'Executive Documentation Center',
@@ -75,7 +75,7 @@ Outputs: Structured, professional documents`,
     id: 'design-studio',
     title: 'DESIGN studio',
     subtitle: 'AI Image Generation • Visual Creation',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425442/design-studio-4_jp5ilu.jpg',
+    imageSrc: '/assets/cards/design-studio.svg',
     outputType: 'image',
     description: {
       title: 'AI-Powered Image Studio',
@@ -92,7 +92,7 @@ Outputs: High-quality AI-generated images ready for editing`,
     id: 'wordsmith',
     title: 'WORDSMITH',
     subtitle: 'Copywriting • Editorial Content',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425439/wordsmith-5_oxgigx.png',
+    imageSrc: '/assets/cards/the-wordsmith.svg',
     outputType: 'document',
     description: {
       title: 'Editorial Content Creator',
@@ -108,7 +108,7 @@ Outputs: Engaging, well-written articles and posts`,
     id: 'deck',
     title: 'THE deck',
     subtitle: 'Pitch Decks • Sales Presentations',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425444/the-deck-6_zsrwdb.jpg',
+    imageSrc: '/assets/cards/the-deck.svg',
     outputType: 'presentation',
     description: {
       title: 'Pitch Perfector',
@@ -124,7 +124,7 @@ Outputs: Persuasive, high-impact decks`,
     id: 'huddle',
     title: 'THE huddle',
     subtitle: 'Meeting Notes • Team Agendas',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425448/the-huddle-7_nnenqf.jpg',
+    imageSrc: '/assets/cards/the-huddle.svg',
     outputType: 'document',
     description: {
       title: 'Team Collaboration Hub',
@@ -140,7 +140,7 @@ Outputs: Clear, organized team documents`,
     id: 'cost-ctrl',
     title: 'COST CTRL',
     subtitle: 'Budgets • Financial Planning',
-    imageSrc: 'https://res.cloudinary.com/dd41crxhy/image/upload/v1776425437/cost-control-8_jf9ivs.png',
+    imageSrc: '/assets/cards/ctrl.svg',
     outputType: 'spreadsheet',
     description: {
       title: 'Financial Control Center',
@@ -249,6 +249,7 @@ export default function CreateProject() {
 
   const handleToolSelect = (toolId) => {
     setSelectedToolId(toolId)
+    setSelectedDocument(null)
   }
 
   const handleDocumentSelect = (documentId) => {
@@ -262,9 +263,6 @@ export default function CreateProject() {
   const handleBack = () => {
     if (currentStep === 1) {
       router.push('/home')
-    } else if (currentStep === 3 && selectedTool?.outputType === 'image') {
-      // If on Step 3 with image tool, go back to Step 1 (skip Step 2)
-      setCurrentStep(1)
     } else {
       setCurrentStep(currentStep - 1)
     }
@@ -272,12 +270,7 @@ export default function CreateProject() {
 
   const handleNext = async () => {
     if (currentStep === 1 && selectedToolId) {
-      // Skip Step 2 (document selection) for image generation
-      if (selectedTool.outputType === 'image') {
-        setCurrentStep(3)
-      } else {
-        setCurrentStep(2)
-      }
+      setCurrentStep(2)
     } else if (currentStep === 2 && selectedDocument) {
       setCurrentStep(3)
     } else if (currentStep === 3 && selectedStyle) {
