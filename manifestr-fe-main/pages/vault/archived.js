@@ -8,6 +8,7 @@ import VaultSearchBar from '../../components/vault/VaultSearchBar'
 import VaultGrid from '../../components/vault/VaultGrid'
 import api from '../../lib/api'
 import { useToast } from '../../components/ui/Toast'
+import { VAULT_BANNER } from '../../lib/vaultBanners'
 
 export default function VaultArchived() {
   const router = useRouter()
@@ -151,10 +152,7 @@ export default function VaultArchived() {
     }
   }
 
-  // Background image URL for the header (dark marble wave - matches Figma)
-  const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/abstract-black-wave.png`
-    : 'http://localhost:3000/assets/banners/abstract-black-wave.png'
+  const headerBackgroundImage = VAULT_BANNER.archived
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
 

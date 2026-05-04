@@ -7,6 +7,7 @@ import VaultHeader from '../../components/vault/VaultHeader'
 import DeletedCard from '../../components/vault/DeletedCard'
 import { Trash2, RotateCcw, X } from 'lucide-react'
 import api from '../../lib/api'
+import { VAULT_BANNER } from '../../lib/vaultBanners'
 import { useSidebar } from '../../contexts/SidebarContext'
 
 export default function VaultDeleted() {
@@ -128,10 +129,7 @@ export default function VaultDeleted() {
     }
   }
 
-  // Background image URL for the header
-  const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/Rectangle-4.png`
-    : 'http://localhost:3000/assets/banners/Rectangle-4.png'
+  const headerBackgroundImage = VAULT_BANNER.deleted
 
   // Custom action button for restore all
   const customActionButton = documentCards.length > 0 && (

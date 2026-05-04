@@ -249,7 +249,7 @@ export default function Toolkit() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
-              className="mx-auto mt-8 w-full max-w-[1290px] px-4 md:mt-16"
+              className="mx-auto mt-12 w-full max-w-[1290px] px-4 md:mt-20"
             >
               <div className="grid grid-cols-1 justify-items-center gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {tools.map((tool, index) => (

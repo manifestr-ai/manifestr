@@ -9,6 +9,7 @@ import { Sparkles, Play } from "lucide-react";
 import api from "../../lib/api";
 import { useRouter } from "next/router";
 import { timeAgo } from "../../utils/url";
+import { VAULT_BANNER } from "../../lib/vaultBanners";
 
 export default function VaultPromptsInProgress() {
   const router = useRouter();
@@ -22,10 +23,7 @@ export default function VaultPromptsInProgress() {
     collab: "All Collabs",
   });
 
-  const headerBackgroundImage =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/assets/banners/abstract-white-wave.png`
-      : "http://localhost:3000/assets/banners/abstract-white-wave.png";
+  const headerBackgroundImage = VAULT_BANNER.prompts;
 
   // const prompts = [
   //   {
