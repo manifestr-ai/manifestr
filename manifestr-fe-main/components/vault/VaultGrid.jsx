@@ -52,20 +52,14 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
         </div>
       )}
 
-      <div className={
-        viewMode === 'list'
-          ? "flex flex-col gap-0 mb-6 overflow-hidden"
-          : `grid ${gridCols} gap-6 mb-6`
-      }>
-        {/* {viewMode === 'list' && (
-          <div className="flex items-center px-4 py-3 border-b border-[#e4e4e7] bg-[#f4f4f5] text-[12px] font-medium text-[#71717a]">
-            <div className="flex-1 pl-2">Name</div>
-            <div className="w-[100px] text-center hidden md:block">Status</div>
-            <div className="w-[120px] pl-2 hidden md:block">Team</div>
-            <div className="w-[140px] text-right hidden lg:block pr-4">Last Edited</div>
-            <div className="w-[40px]"></div>
-          </div>
-        )} */}
+<div
+  className={
+    viewMode === "list"
+      ? "flex flex-col gap-0 mb-6 overflow-hidden"
+      : "grid gap-6 mb-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]"
+  }
+>
+      
         {cards.map((card, index) => (
           <VaultCard
             key={index}

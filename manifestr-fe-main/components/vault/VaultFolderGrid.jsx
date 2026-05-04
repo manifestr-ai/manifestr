@@ -48,7 +48,7 @@ export default function VaultFolderGrid({
   };
   return (
     <div className="px-4 md:px-[38px]">
-      <div className="mb-4">
+      <div >
         <h2
           className="text-[20px] font-bold leading-[30px] text-[var(--base-foreground,#18181B)] font-[Inter] not-italic"
           style={{

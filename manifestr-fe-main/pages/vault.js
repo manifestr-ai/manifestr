@@ -16,7 +16,7 @@ import {
 } from "../components/vault/vaultFolders";
 import { useToast } from "../components/ui/Toast";
 import { timeAgo } from "../utils/url";
-import { loaderMsg } from "../utils/loaderMsg";
+import { showLoader, hideLoader } from "../utils/loaderMsg";
 import { createVaultFolder, listFolders } from "../services/vault";
 import { setVaultFolders } from "../components/vault/vaultFolders";
 import { motion } from "framer-motion";
@@ -450,7 +450,7 @@ export default function Vault() {
   // It should stay commented unless debugging legacy project fetch behavior, as the new fetchAllData below is now the canonical loader.
   useEffect(() => {
     const fetchAllData = async () => {
-      loaderMsg("Please wait...", 2000);
+      showLoader("Please wait...");
       try {
         setIsLoading(true);
 
@@ -501,7 +501,7 @@ export default function Vault() {
         } catch (err) {}
 
         // =========================
-        // 🔹 MAP AI PROJECTS
+        //  MAP AI PROJECTS
         // =========================
         const aiItems = allProjects.map((project) => {
           const collabs = collaboratorsByDocId[project.id] || [];
@@ -535,7 +535,7 @@ export default function Vault() {
         });
 
         // =========================
-        // 🔹 MAP VAULT FILES
+        //  MAP VAULT FILES
         // =========================
         const vaultItems = (vaultRes?.data || []).map((item) => {
           let thumbnailUrl = item.thumbnail_url;
@@ -567,7 +567,7 @@ export default function Vault() {
         });
 
         // =========================
-        // 🔥 MERGE EVERYTHING
+        //  MERGE EVERYTHING
         // =========================
         const mergedItems = [...aiItems, ...vaultItems];
 
@@ -584,6 +584,7 @@ export default function Vault() {
         setItems([]); // important for empty state
       } finally {
         setIsLoading(false);
+        hideLoader();
       }
     };
 
@@ -672,7 +673,7 @@ export default function Vault() {
       if (card.isPinned) {
         // Unpin
         await api.delete(`/ai/pin/${card.id}`);
-        console.log(`📌 Unpinned: ${card.title}`);
+        //console.log(`📌 Unpinned: ${card.title}`);
       } else {
         // Pin
         const response = await api.post(`/ai/pin/${card.id}`);
@@ -680,7 +681,7 @@ export default function Vault() {
           showError(response.data.message);
           return;
         }
-        console.log(`📌 Pinned: ${card.title}`);
+        // console.log(`📌 Pinned: ${card.title}`);
       }
 
       // Update local state

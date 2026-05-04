@@ -183,7 +183,7 @@ export default function VaultCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       onClick={onClick}
-      className="w-full max-w-[350px] flex flex-col bg-white rounded-xl overflow-hidden shadow-[0_8px_16px_0_rgba(22,34,51,0.08)] border border-[#e4e4e7] group cursor-pointer transition-shadow hover:shadow-[0_8px_16px_0_rgba(22,34,51,0.12)]"
+      className="w-full max-w-[300px] flex flex-col bg-white rounded-xl overflow-hidden shadow-[0_8px_16px_0_rgba(22,34,51,0.08)] border border-[#e4e4e7] group cursor-pointer transition-shadow hover:shadow-[0_8px_16px_0_rgba(22,34,51,0.12)]"
     >
       {/* Header Section with Image */}
       <div className="relative w-full h-[180px] overflow-hidden">
