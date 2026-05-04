@@ -299,15 +299,48 @@ Make it visually stunning, with modern design, proper typography, and engaging l
             console.log(`📝 Job ID: ${job.id}`);
 
             // 2. SMART MODIFICATION: Extract slide number from prompt if specified
-            // Match patterns: "slide 10", "10th slide", "slide #10", "page 10", etc.
-            const slideMatch = prompt.match(/(?:slide|page)\s*#?\s*(\d+)|(\d+)(?:st|nd|rd|th)?\s+(?:slide|page)/i);
-            const targetSlideIndex = slideMatch ? parseInt(slideMatch[1] || slideMatch[2]) - 1 : -1;
+            // Helper function to convert word numbers to digits
+            const wordToNumber = (word: string): number | null => {
+                const wordMap: Record<string, number> = {
+                    'first': 1, 'second': 2, 'third': 3, 'fourth': 4, 'fifth': 5,
+                    'sixth': 6, 'seventh': 7, 'eighth': 8, 'ninth': 9, 'tenth': 10,
+                    'eleventh': 11, 'twelfth': 12, 'thirteenth': 13, 'fourteenth': 14, 'fifteenth': 15,
+                    'sixteenth': 16, 'seventeenth': 17, 'eighteenth': 18, 'nineteenth': 19, 'twentieth': 20,
+                    'last': -1
+                };
+                return wordMap[word.toLowerCase()] || null;
+            };
+
+            // Match patterns: "slide 10", "10th slide", "slide #10", "fourth slide", "the last slide", etc.
+            const digitMatch = prompt.match(/(?:the\s+)?(?:slide|page)\s*#?\s*(\d+)|(\d+)(?:st|nd|rd|th)?\s+(?:slide|page)/i);
+            const wordMatch = prompt.match(/(?:the\s+)?(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|last)\s+(?:slide|page)/i);
+            
+            let targetSlideIndex = -1;
+            
+            if (digitMatch) {
+                // Handle digit-based slide numbers (e.g., "slide 4", "4th slide")
+                targetSlideIndex = parseInt(digitMatch[1] || digitMatch[2]) - 1;
+            } else if (wordMatch) {
+                // Handle word-based slide numbers (e.g., "fourth slide", "the last slide")
+                const slideNumber = wordToNumber(wordMatch[1]);
+                if (slideNumber === -1) {
+                    // "last slide" - get the last index
+                    targetSlideIndex = (presentationData.pages?.length || 1) - 1;
+                } else if (slideNumber !== null) {
+                    targetSlideIndex = slideNumber - 1;
+                }
+            }
             
             console.log(`🔍 Prompt analysis: "${prompt}"`);
-            console.log(`🔍 Slide match found: ${slideMatch ? 'YES' : 'NO'}`);
-            if (slideMatch) {
+            console.log(`🔍 Slide match found: ${targetSlideIndex >= 0 ? 'YES' : 'NO'}`);
+            if (targetSlideIndex >= 0) {
                 console.log(`🎯 Target slide number: ${targetSlideIndex + 1} (index: ${targetSlideIndex})`);
                 console.log(`📊 Total slides available: ${presentationData.pages.length}`);
+                if (digitMatch) {
+                    console.log(`✓ Match type: Digit-based (${digitMatch[0]})`);
+                } else if (wordMatch) {
+                    console.log(`✓ Match type: Word-based (${wordMatch[0]})`);
+                }
             }
 
             let modifiedPresentation: any;

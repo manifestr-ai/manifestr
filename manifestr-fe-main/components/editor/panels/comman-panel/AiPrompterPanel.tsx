@@ -17,6 +17,7 @@ import useAiPrompter, {
   PromptHistoryItem,
 } from "../../../../hooks/useAiPrompter";
 import api from "../../../../lib/api";
+import { useToast } from "../../../ui/Toast";
 
 interface AiPrompterPanelProps {
   store: any;
@@ -31,6 +32,7 @@ export default function AiPrompterPanel({
   onClose,
   generationId,
 }: AiPrompterPanelProps) {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState("Freestyle");
   const [mode, setMode] = useState("Prompt Mode");
   const [isRecording, setIsRecording] = useState(false);
@@ -56,6 +58,10 @@ export default function AiPrompterPanel({
 
   // File upload ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Dropzone document preview state
+  const [extractedDocText, setExtractedDocText] = useState("");
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   // AI Prompter hook
   const {
@@ -92,7 +98,7 @@ export default function AiPrompterPanel({
         console.error(
           " This means the editor instance was not passed correctly",
         );
-        alert("Editor not available. Please refresh the page and try again.");
+        toast.error("Editor not available. Please refresh the page and try again.");
       }
     },
     onError: (error) => {
@@ -305,7 +311,7 @@ export default function AiPrompterPanel({
           // Verify editor instance
           if (!store) {
             console.error(" No editor instance available");
-            alert("Editor not ready. Please try again.");
+            toast.error("Editor not ready. Please try again.");
             return;
           }
 
@@ -349,14 +355,14 @@ export default function AiPrompterPanel({
                 ? Object.keys(store.commands).slice(0, 30)
                 : "no commands",
             );
-            alert(
+            toast.error(
               "Failed to update document. The editor API might have changed. Please refresh the page and try again.",
             );
           }
         } catch (updateError) {
           console.error("Error updating document HTML:", updateError);
           console.error(" Error details:", updateError);
-          alert(
+          toast.error(
             "Failed to update document: " +
               (updateError instanceof Error
                 ? updateError.message
@@ -658,7 +664,7 @@ export default function AiPrompterPanel({
         (window as any).webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
-        alert(
+        toast.error(
           "Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.",
         );
         return;
@@ -698,7 +704,7 @@ export default function AiPrompterPanel({
         if (event.error === "no-speech") {
           console.log("No speech detected, continuing...");
         } else {
-          alert(`Speech recognition error: ${event.error}`);
+          toast.error(`Speech recognition error: ${event.error}`);
           setIsRecording(false);
         }
       };
@@ -706,18 +712,14 @@ export default function AiPrompterPanel({
       recognition.onend = () => {
         console.log("🎤 Voice recognition ended");
         setIsRecording(false);
-
-        // Process the transcript if we have one
-        if (voiceTranscript.trim()) {
-          handleVoiceTranscript(voiceTranscript);
-        }
+        // Note: No auto-send here - user must click "Send Prompt" button
       };
 
       recognition.start();
       recognitionRef.current = recognition;
     } catch (error) {
       console.error("Error starting speech recognition:", error);
-      alert(
+      toast.error(
         "Failed to start speech recognition. Please check microphone permissions.",
       );
     }
@@ -741,7 +743,7 @@ export default function AiPrompterPanel({
   // Handle the transcribed voice input
   const handleVoiceTranscript = async (transcript: string) => {
     if (!transcript.trim()) {
-      alert("No speech was detected. Please try again.");
+      toast.error("No speech was detected. Please try again.");
       return;
     }
 
@@ -771,15 +773,67 @@ export default function AiPrompterPanel({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5 MB");
+    // Validate file size (10MB limit for documents, 5MB for images)
+    const isDocument = [
+      "text/plain",
+      "application/msword",
+      "application/vnd.ms-word",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ].includes(file.type) || file.name.match(/\.(txt|doc|docx)$/i);
+
+    const maxSize = isDocument ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`File size must be less than ${isDocument ? '10' : '5'} MB`);
       return;
     }
 
-    // Validate file type based on editor type
+    // Handle document uploads (txt, doc, docx) - EXTRACT AND PREVIEW
+    if (isDocument) {
+      console.log("📄 Document file detected, extracting text...");
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await api.post("/api/uploads/extract-text", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        const extractedText = response.data.data.extractedText;
+        console.log(
+          `✅ Extracted ${extractedText.length} characters from ${file.name}`,
+        );
+
+        if (!extractedText || extractedText.trim().length === 0) {
+          toast.error(
+            "No text could be extracted from the document. Please ensure the file contains readable text.",
+          );
+          return;
+        }
+
+        // Set extracted text for preview (don't send yet!)
+        setExtractedDocText(extractedText);
+        setUploadedFileName(file.name);
+
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      } catch (error: any) {
+        console.error("❌ Document text extraction failed:", error);
+        toast.error(
+          `Failed to extract text from document: ${error.response?.data?.message || error.message || "Unknown error"}`,
+        );
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+    }
+
+    // Validate file type based on editor type (for non-document files)
     if (editorType === "image" && !file.type.startsWith("image/")) {
-      alert("Please upload an image file");
+      toast.error("Please upload an image file or a document (.txt, .doc, .docx)");
       return;
     }
 
@@ -791,7 +845,7 @@ export default function AiPrompterPanel({
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       ].includes(file.type)
     ) {
-      alert("Please upload a CSV or Excel file");
+      toast.error("Please upload a CSV or Excel file, or a document (.txt, .doc, .docx)");
       return;
     }
 
@@ -809,12 +863,34 @@ export default function AiPrompterPanel({
     }
   };
 
+  // Handle sending extracted document text as prompt
+  const handleSendExtractedText = async () => {
+    if (!extractedDocText.trim()) return;
+
+    const currentData = getCurrentEditorData();
+
+    try {
+      if (currentData) {
+        await modifyContent(extractedDocText, currentData, "Dropzone");
+      } else {
+        await generateContent(extractedDocText, "Dropzone");
+      }
+
+      // Clear extracted text after sending
+      setExtractedDocText("");
+      setUploadedFileName("");
+    } catch (error) {
+      // Error is already handled by the hook
+      console.error("Failed to process extracted text:", error);
+    }
+  };
+
   // Handle Brief Me submission
   const handleBriefSubmit = async () => {
     // Validate that at least one field is filled
     const hasContent = Object.values(briefData).some((val) => val.trim());
     if (!hasContent) {
-      alert("Please fill in at least one field");
+      toast.error("Please fill in at least one field");
       return;
     }
 
@@ -1318,7 +1394,7 @@ export default function AiPrompterPanel({
                       ? "Processing..."
                       : isRecording
                         ? voiceTranscript ||
-                          "Listening... (tap to stop and send)"
+                          "Listening... Click 'Send Prompt' when ready"
                         : "Ready to record"}
                   </p>
 
@@ -1333,6 +1409,50 @@ export default function AiPrompterPanel({
                       </p>
                     </div>
                   )}
+
+                  {/* Send Prompt Button - Shows when recording */}
+                  {isRecording && (
+                    <button
+                      onClick={() => {
+                        stopRecording();
+                        if (voiceTranscript.trim()) {
+                          handleVoiceTranscript(voiceTranscript);
+                        }
+                      }}
+                      disabled={!voiceTranscript.trim()}
+                      className="
+                        mt-6
+                        flex
+                        justify-center
+                        items-center
+                        gap-2
+                        rounded-[16px]
+                        border
+                        border-white/40
+                        shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
+                        transition-all
+                        active:scale-95
+                        bg-gradient-to-r from-[#62748E] to-[#4A5565]
+                        px-6
+                        py-3
+                        disabled:opacity-50
+                        disabled:cursor-not-allowed
+                        disabled:active:scale-100
+                      "
+                      style={{
+                        color: "#FFF",
+                        fontFamily: "Inter, sans-serif",
+                        fontSize: "14px",
+                        fontStyle: "normal",
+                        fontWeight: 500,
+                        lineHeight: "20px",
+                        letterSpacing: "-0.15px",
+                      }}
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Send Prompt</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -1345,109 +1465,231 @@ export default function AiPrompterPanel({
                     "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
                 }}
               >
-                <div className="flex flex-col items-center gap-2 sm:gap-4 p-6 sm:p-10">
-                  <div className="flex flex-col items-center justify-center w-full">
-                    <div className="flex flex-col items-center justify-center mb-4 sm:mb-6">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="relative flex items-center justify-center w-12 h-12 sm:w-[56px] sm:h-[56px] mb-2 sm:mb-3 ">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="48"
-                            height="48"
-                            viewBox="0 0 48 48"
-                            fill="none"
-                          >
-                            <path
-                              d="M24 6V30"
-                              stroke="#45556C"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M34 16L24 6L14 16"
-                              stroke="#45556C"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30"
-                              stroke="#45556C"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <span
-                          className="text-[#1D293D] text-center font-inter text-[16px] not-italic font-normal leading-6 tracking-[-0.312px] mb-1 w-full block"
+                <div className="flex flex-col items-center gap-2 sm:gap-4 p-6 sm:p-10 w-full">
+                  {/* Show extracted text preview if available */}
+                  {extractedDocText ? (
+                    <div className="w-full space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div
                           style={{
-                            color: "#1D293D",
-                            textAlign: "center",
-                            fontFamily: "Inter, sans-serif",
-                            fontSize: "16px",
-                            fontStyle: "normal",
-                            fontWeight: 400,
-                            lineHeight: "24px",
-                            letterSpacing: "-0.312px",
+                            display: "flex",
+                            width: "40px",
+                            height: "40px",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderRadius: "16px",
+                            background:
+                              "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
+                            boxShadow:
+                              "0 20px 25px -5px rgba(98, 116, 142, 0.40), 0 8px 10px -6px rgba(98, 116, 142, 0.40)",
+                            color: "#fff",
                           }}
                         >
-                          Upload Logo
-                        </span>
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <h3
+                            className="text-lg font-medium"
+                            style={{
+                              color: "#0A0A0A",
+                              fontFamily: "Inter, sans-serif",
+                            }}
+                          >
+                            Extracted Text from {uploadedFileName}
+                          </h3>
+                          <p className="text-sm text-[#64748B]">
+                            {extractedDocText.length} characters
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setExtractedDocText("");
+                            setUploadedFileName("");
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-full transition"
+                        >
+                          <X className="w-4 h-4 text-[#64748B]" />
+                        </button>
                       </div>
-                      <span className="text-[#64748B] text-xs sm:text-sm mt-1">
-                        Images must be less than{" "}
-                        <span className="font-medium text-[#4B5563]">5 MB</span>{" "}
-                        in size
-                      </span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full">
+
+                      {/* Text Preview */}
+                      <div className="relative">
+                        <textarea
+                          value={extractedDocText}
+                          onChange={(e) => setExtractedDocText(e.target.value)}
+                          className="
+                            w-full
+                            h-[200px]
+                            p-4
+                            rounded-[16px]
+                            border
+                            border-white/80
+                            bg-white/50
+                            shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
+                            text-[#374151]
+                            resize-none
+                            text-[14px]
+                            leading-relaxed
+                            font-medium
+                            focus:ring-2
+                            focus:ring-[#90A1B9]
+                            focus:outline-none
+                          "
+                        />
+                      </div>
+
+                      {/* Send Prompt Button */}
                       <button
-                        type="button"
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px] border border-[rgba(202,213,226,0.80)] bg-[rgba(255,255,255,0.80)] hover:bg-[#F3F4F6] text-[#0A0A0A] font-medium transition focus:outline-none shadow-[0_1px_3px_0_rgba(0,0,0,0.10),0_1px_2px_-1px_rgba(0,0,0,0.10)] w-full sm:w-auto"
-                      >
-                        <span className="text-xl leading-none">+</span>
-                        Import from drive
-                      </button>
-                      <label
-                        htmlFor="file-upload"
-                        className={`
-                          flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px]
-                          border border-white/40
+                        onClick={handleSendExtractedText}
+                        disabled={isProcessing || !extractedDocText.trim()}
+                        className="
+                          w-full
+                          flex
+                          justify-center
+                          items-center
+                          gap-2
+                          rounded-[16px]
+                          border
+                          border-white/40
+                          shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
+                          transition-all
+                          active:scale-95
                           bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                          shadow-[0_10px_15px_-3px_rgba(98,116,142,0.30),0_4px_6px_-4px_rgba(98,116,142,0.30)]
-                          text-white font-medium
-                          cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
-                          w-full sm:w-auto
-                          ${isProcessing ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
-                        `}
-                        tabIndex={0}
+                          px-6
+                          py-3
+                          disabled:opacity-50
+                          disabled:cursor-not-allowed
+                          disabled:active:scale-100
+                        "
+                        style={{
+                          color: "#FFF",
+                          fontFamily: "Inter, sans-serif",
+                          fontSize: "14px",
+                          fontStyle: "normal",
+                          fontWeight: 500,
+                          lineHeight: "20px",
+                          letterSpacing: "-0.15px",
+                        }}
                       >
                         {isProcessing ? (
                           <>
-                            <Loader2 className="w-4 h-4 mr-1 text-white animate-spin" />
-                            Processing...
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Processing...</span>
                           </>
                         ) : (
                           <>
-                            <Upload className="w-4 h-4 mr-1 text-white" />
-                            Click to upload
+                            <Send className="w-4 h-4" />
+                            <span>Send Prompt</span>
                           </>
                         )}
-                        <input
-                          ref={fileInputRef}
-                          id="file-upload"
-                          name="file-upload"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleFileUpload}
-                          disabled={isProcessing}
-                        />
-                      </label>
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    /* Upload UI */
+                    <div className="flex flex-col items-center justify-center w-full">
+                      <div className="flex flex-col items-center justify-center mb-4 sm:mb-6">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="relative flex items-center justify-center w-12 h-12 sm:w-[56px] sm:h-[56px] mb-2 sm:mb-3 ">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="48"
+                              height="48"
+                              viewBox="0 0 48 48"
+                              fill="none"
+                            >
+                              <path
+                                d="M24 6V30"
+                                stroke="#45556C"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M34 16L24 6L14 16"
+                                stroke="#45556C"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30"
+                                stroke="#45556C"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <span
+                            className="text-[#1D293D] text-center font-inter text-[16px] not-italic font-normal leading-6 tracking-[-0.312px] mb-1 w-full block"
+                            style={{
+                              color: "#1D293D",
+                              textAlign: "center",
+                              fontFamily: "Inter, sans-serif",
+                              fontSize: "16px",
+                              fontStyle: "normal",
+                              fontWeight: 400,
+                              lineHeight: "24px",
+                              letterSpacing: "-0.312px",
+                            }}
+                          >
+                            Upload File or Document
+                          </span>
+                        </div>
+                        <span className="text-[#64748B] text-xs sm:text-sm mt-1 text-center">
+                          Upload images, or documents with prompts{" "}
+                          <span className="font-medium text-[#4B5563]">(.txt, .doc, .docx)</span>
+                          <br />
+                          <span className="text-[10px]">Images: 5 MB max | Documents: 10 MB max</span>
+                        </span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full">
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px] border border-[rgba(202,213,226,0.80)] bg-[rgba(255,255,255,0.80)] hover:bg-[#F3F4F6] text-[#0A0A0A] font-medium transition focus:outline-none shadow-[0_1px_3px_0_rgba(0,0,0,0.10),0_1px_2px_-1px_rgba(0,0,0,0.10)] w-full sm:w-auto justify-center"
+                        >
+                          <span className="text-xl leading-none">+</span>
+                          Import from drive
+                        </button>
+                        <label
+                          htmlFor="file-upload"
+                          className={`
+                            flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-[14px]
+                            border border-white/40
+                            bg-gradient-to-r from-[#62748E] to-[#4A5565]
+                            shadow-[0_10px_15px_-3px_rgba(98,116,142,0.30),0_4px_6px_-4px_rgba(98,116,142,0.30)]
+                            text-white font-medium
+                            cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
+                            w-full sm:w-auto
+                            ${isProcessing ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+                          `}
+                          tabIndex={0}
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 text-white animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 text-white" />
+                              Click to upload
+                            </>
+                          )}
+                          <input
+                            ref={fileInputRef}
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            className="hidden"
+                            accept="image/*,.txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            onChange={handleFileUpload}
+                            disabled={isProcessing}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

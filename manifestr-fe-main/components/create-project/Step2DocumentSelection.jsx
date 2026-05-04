@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ChevronDown, Search } from 'lucide-react'
 import Image from 'next/image'
 
 // Document types - this could be dynamic based on selected tool
@@ -161,19 +161,19 @@ function DocumentCard({ document, isSelected, onClick }) {
     <div
       data-doc-card="true"
       onClick={onClick}
-      className={`flex flex-col items-start rounded-xl overflow-hidden cursor-pointer transition-all duration-200 ${isSelected
-          ? 'border-2 border-[#000000] shadow-lg'
-          : 'border-2 border-transparent shadow-sm hover:shadow-md'
+      className={`flex flex-col p-2 justify-between rounded-xl overflow-hidden cursor-pointer transition-all duration-200 ${isSelected
+        ? 'border-2 border-[#000000] shadow-lg'
+        : 'border-2 border-transparent shadow-sm hover:shadow-md'
         }`}
     >
-      {/* Image */}
+      <div>
       <div className="relative w-full h-[118px] bg-gray-200 rounded-t-xl overflow-hidden">
         {document.imageSrc ? (
           <Image
             src={document.imageSrc}
             alt={document.title}
             fill
-            className="object-cover"
+            className="object-cover rounded-t-xl"
           />
         ) : (
           <div className="w-full h-full bg-base-muted flex items-center justify-center">
@@ -182,24 +182,24 @@ function DocumentCard({ document, isSelected, onClick }) {
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-6 w-full">
-        <div>
-          <h3 className="font-hero font-bold text-[24px] leading-[24px] text-black mb-1">
+      <div className="p-2 w-full mt-2 flex flex-col items-center">
+          <h3 className="font-hero font-medium text-[16px] text-[#16192C] mb-1">
             {document.title}
           </h3>
-          <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
+          <p className="text-[14px] text-center text-[#425466]">
             {document.subtitle}
           </p>
-        </div>
       </div>
+      </div>
+      <button className='flex items-center justify-center py-1.5 my-1 gap-2 bg-black text-white w-full rounded-md text-sm'>Select Document <ChevronDown className='w-4 h-4' /></button>
     </div>
   )
 }
 
-// Helper function to render tool title (same as ToolCard) - with white text for banner
 function renderToolTitle(title, textColor = 'text-white') {
-  if (title.startsWith('THE')) {
+  if (!title) return null
+  const upper = title.toUpperCase()
+  if (upper.startsWith('THE ')) {
     const rest = title.substring(4)
     return (
       <span className="flex items-baseline">
@@ -228,7 +228,6 @@ function renderToolTitle(title, textColor = 'text-white') {
           className={`font-accent italic font-bold text-[40px] leading-[44px] tracking-[-0.72px] ${textColor} lowercase`}
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
-          {' '}
           {rest}
         </span>
       </span>
@@ -241,56 +240,76 @@ function renderToolTitle(title, textColor = 'text-white') {
   )
 }
 
+function getStep2Config(selectedTool) {
+  if (!selectedTool?.id) return null
+  return STEP2_BY_TOOL_ID[selectedTool.id] || null
+}
+
 export default function Step2DocumentSelection({ selectedTool, selectedDocument, onDocumentSelect }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [confidentialMode, setConfidentialMode] = useState(false)
 
-  // Get tool title for display
+  const step2 = getStep2Config(selectedTool)
   const toolTitle = selectedTool?.title || 'Tool'
 
-  // Get document types based on selected tool output type
-  const currentDocumentTypes = documentTypesByOutput[selectedTool?.outputType] || documentTypesByOutput.presentation
+  const baseDocuments = useMemo(() => {
+    if (step2?.documents?.length) return step2.documents
+    const byOutput = documentTypesByOutput[selectedTool?.outputType] || documentTypesByOutput.presentation
+    return byOutput
+  }, [step2, selectedTool?.outputType])
+
+  const filteredDocuments = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return baseDocuments
+    return baseDocuments.filter(
+      (d) =>
+        d.title.toLowerCase().includes(q) ||
+        d.subtitle.toLowerCase().includes(q)
+    )
+  }, [baseDocuments, searchQuery])
+
+  const bannerSrc = step2?.bannerSrc || selectedTool?.imageSrc
+  const bannerTitle = step2?.bannerTitle ?? toolTitle
+  // Dedicated step-2 banner art already includes the toolkit title in the image
+  const showBannerTitleOverlay = !step2?.bannerSrc
 
   return (
     <div className="flex flex-col gap-[35px] items-center w-full max-w-[1110px] mx-auto">
-      {/* Banner with Tool Name */}
       <div className="relative w-full h-[186px] rounded-xl overflow-hidden">
-        {/* Background Image */}
-        {selectedTool?.imageSrc && (
+        {bannerSrc && (
           <div className="absolute inset-0">
             <Image
-              src={selectedTool.imageSrc}
-              alt={toolTitle}
+              src={bannerSrc}
+              alt={bannerTitle}
               fill
-              className="object-cover"
+              className="object-cover object-[center_28%]"
+              priority
             />
-            {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/20" />
+            <div className={`absolute inset-0 ${showBannerTitleOverlay ? 'bg-black/20' : 'bg-black/0'}`} />
           </div>
         )}
-        {/* Tool Name - Centered */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex items-center">
-            {renderToolTitle(toolTitle, 'text-white')}
+        {showBannerTitleOverlay && (
+          <div className="absolute inset-0 flex items-center justify-center px-4">
+            <div className="flex items-center text-center">
+              {renderToolTitle(bannerTitle, 'text-white')}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Heading Section */}
       <div className="flex flex-col gap-[12px] items-center w-full">
         <div className="flex flex-col gap-[5px] items-center w-full">
-          <h1 className="font-hero font-bold text-[36px] leading-[44px] tracking-[-0.72px] text-black text-center">
-            Let's create your document
+          <h1 className="font-hero font-semibold text-[36px] tracking-[-0.72px] text-black text-center">
+            Let&apos;s create your document
           </h1>
-          <p className="text-[16px] leading-[24px] text-center text-base-muted-foreground+">
-            Select what you're creating - we'll shape it into something polished.
+          <p className="text-[16px] text-center text-base-muted-foreground+">
+            Select what you&apos;re creating - we&apos;ll shape it into something polished.
           </p>
         </div>
       </div>
 
-      {/* Document Cards Grid */}
-      <div className="grid grid-cols-4 gap-5 w-full">
-        {currentDocumentTypes.map((doc) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
+        {filteredDocuments.map((doc) => (
           <DocumentCard
             key={doc.id}
             document={doc}
@@ -300,7 +319,10 @@ export default function Step2DocumentSelection({ selectedTool, selectedDocument,
         ))}
       </div>
 
-      {/* Search Bar */}
+      {searchQuery.trim() && filteredDocuments.length === 0 && (
+        <p className="text-sm text-base-muted-foreground+">No matches. Try another search.</p>
+      )}
+
       <div className="w-full max-w-[630px]">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7c7c7c]" />
@@ -314,8 +336,7 @@ export default function Step2DocumentSelection({ selectedTool, selectedDocument,
         </div>
       </div>
 
-      {/* Confidential Mode Toggle */}
-      <div className="flex items-center justify-center gap-3 w-full">
+      <div className="flex items-center justify-center gap-3 w-full flex-wrap">
         <span className="text-[14px] leading-[24px] text-black">
           Confidential Mode
         </span>
@@ -338,4 +359,3 @@ export default function Step2DocumentSelection({ selectedTool, selectedDocument,
     </div>
   )
 }
-

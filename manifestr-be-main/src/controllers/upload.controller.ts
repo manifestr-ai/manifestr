@@ -6,6 +6,35 @@ import { uploadImage } from '../middleware/upload.middleware';
 import { supabaseAdmin } from '../lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import documentTextExtractor from '../services/document-text-extractor.service';
+import multer from 'multer';
+
+// Multer configuration for document uploads
+const documentUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        // Accept text documents only
+        const allowedMimeTypes = [
+            'text/plain',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.ms-word',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        
+        const allowedExtensions = ['.txt', '.pdf', '.doc', '.docx'];
+        const extension = path.extname(file.originalname).toLowerCase();
+        
+        if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(extension)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only .txt, .doc, .docx, and .pdf files are allowed.'));
+        }
+    }
+});
 
 export class UploadController extends BaseController {
     public basePath = '/api/uploads';
@@ -13,7 +42,8 @@ export class UploadController extends BaseController {
     protected initializeRoutes(): void {
         this.routes = [
             { verb: 'POST', path: '/presign', handler: this.getPresignedUrl, middlewares: [authenticateToken] },
-            { verb: 'POST', path: '/direct', handler: this.directUpload, middlewares: [uploadImage.single('file')] }
+            { verb: 'POST', path: '/direct', handler: this.directUpload, middlewares: [uploadImage.single('file')] },
+            { verb: 'POST', path: '/extract-text', handler: this.extractDocumentText, middlewares: [documentUpload.single('file')] }
         ];
     }
 
@@ -148,6 +178,80 @@ export class UploadController extends BaseController {
             return res.status(500).json({ 
                 status: "error", 
                 message: (error as Error).message 
+            });
+        }
+    }
+
+    /**
+     * Extract text from document file (.txt, .doc, .docx, .pdf)
+     * Used by AI Prompter Dropzone to extract prompts from uploaded documents
+     */
+    private extractDocumentText = async (req: AuthRequest, res: Response) => {
+        try {
+            const file = req.file;
+            
+            if (!file) {
+                return res.status(400).json({ 
+                    status: "error", 
+                    message: "No file uploaded" 
+                });
+            }
+
+            console.log(`📄 Processing document: ${file.originalname} (${file.mimetype})`);
+
+            // Extract text from the document
+            const extractedText = await documentTextExtractor.extractText(
+                file.buffer,
+                file.mimetype,
+                file.originalname
+            );
+
+            if (!extractedText || extractedText.trim().length === 0) {
+                return res.status(400).json({
+                    status: "error",
+                    message: "No text could be extracted from the document. Please ensure the file contains readable text."
+                });
+            }
+
+            console.log(` Successfully extracted ${extractedText.length} characters from ${file.originalname}`);
+            console.log('');
+            console.log('╔' + '═'.repeat(78) + '╗');
+            console.log('║' + ' '.repeat(25) + 'EXTRACTED TEXT PREVIEW' + ' '.repeat(31) + '║');
+            console.log('╠' + '═'.repeat(78) + '╣');
+            
+            // Split text into lines and print first 20 lines
+            const lines = extractedText.split('\n');
+            const previewLines = lines.slice(0, 20);
+            
+            previewLines.forEach(line => {
+                const trimmedLine = line.substring(0, 76);
+                const padding = ' '.repeat(Math.max(0, 76 - trimmedLine.length));
+                console.log('║ ' + trimmedLine + padding + ' ║');
+            });
+            
+            if (lines.length > 20) {
+                console.log('║ ' + `... (${lines.length - 20} more lines)`.padEnd(76) + ' ║');
+            }
+            
+            console.log('╚' + '═'.repeat(78) + '╝');
+            console.log('');
+
+            return res.json({
+                status: "success",
+                data: {
+                    extractedText: extractedText,
+                    fileName: file.originalname,
+                    fileSize: file.size,
+                    mimeType: file.mimetype,
+                    characterCount: extractedText.length
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Text extraction failed:', error);
+            return res.status(500).json({ 
+                status: "error", 
+                message: error instanceof Error ? error.message : 'Failed to extract text from document'
             });
         }
     }

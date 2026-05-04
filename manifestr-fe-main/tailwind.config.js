@@ -109,6 +109,9 @@ module.exports = {
       boxShadow: {
         // Add custom shadows if needed from design
       },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],

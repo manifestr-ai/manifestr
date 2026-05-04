@@ -90,8 +90,8 @@ export default function Home() {
     if (type.includes("presentation")) {
       path = `/presentation-editor?id=${project.id}`;
     } else if (type.includes("chart")) {
-      // THE analyser shows auto-generated charts
-      path = `/chart-editor?id=${project.id}`;
+      // THE analyser shows auto-generated charts - go to viewer first
+      path = `/chart-viewer?id=${project.id}`;
     } else if (type.includes("spreadsheet") || type.includes("sheet")) {
       // Other spreadsheet tools open spreadsheet editor
       path = `/spreadsheet-editor?id=${project.id}`;

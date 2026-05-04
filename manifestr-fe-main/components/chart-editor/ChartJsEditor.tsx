@@ -174,10 +174,10 @@ export default function ChartJsEditor() {
                 return {
                     label: dataset.label,
                     data: dataset.data.map((y: number, i: number) => {
-                        // Scale bubble size between 5 and 15 (smaller bubbles)
+                        // Scale bubble size between 3 and 9 (smaller, nicer bubbles)
                         const normalizedValue = (Math.abs(y) - minValue) / range;
-                        const bubbleSize = 5 + (normalizedValue * 10);
-                        
+                        const bubbleSize = 3 + (normalizedValue * 6);
+
                         return {
                             x: i + 1,
                             y: y,

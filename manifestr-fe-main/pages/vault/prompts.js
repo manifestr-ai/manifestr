@@ -182,8 +182,8 @@ export default function VaultPromptsInProgress() {
     if (type.includes("presentation")) {
       path = `/presentation-editor?id=${prompt.id}`;
     } else if (type.includes("chart")) {
-      // THE analyser shows auto-generated charts
-      path = `/chart-editor?id=${prompt.id}`;
+      // THE analyser shows auto-generated charts - go to viewer first
+      path = `/chart-viewer?id=${prompt.id}`;
     } else if (type.includes("spreadsheet") || type.includes("sheet")) {
       // Other spreadsheet tools open spreadsheet editor
       path = `/spreadsheet-editor?id=${prompt.id}`;

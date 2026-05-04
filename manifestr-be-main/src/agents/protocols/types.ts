@@ -39,6 +39,10 @@ export const IntentResponseSchema = z.object({
         isAnalyzer: z.boolean().optional().describe("true if this is an Analyzer chart/visualization request"),
         analyzerTemplateId: z.string().optional().describe("Matched analyzer template ID"),
         analyzerChartType: z.string().optional().describe("Chart type (funnel, bar, pie, etc.)"),
+        // 🆕 Document Type Matching support
+        specificDocumentType: z.string().optional().describe("Specific document type matched from CSV (e.g. 'Agency Pitch Presentation')"),
+        toolId: z.string().optional().describe("The toolkit ID selected by user (e.g. 'deck', 'strategist')"),
+        documentCategory: z.string().optional().describe("The document category selected by user (e.g. 'Proposals', 'Plans')"),
     }),
     styleGuide: z.any().nullable().optional(),
     userPreferences: z.object({

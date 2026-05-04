@@ -156,7 +156,7 @@ export default function VaultRecents() {
     if (type.includes("presentation")) {
       path = `/presentation-editor?id=${project.id}`;
     } else if (type.includes("chart")) {
-      path = `/chart-editor?id=${project.id}`;
+      path = `/chart-viewer?id=${project.id}`;
     } else if (type.includes("spreadsheet") || type.includes("sheet")) {
       path = `/spreadsheet-editor?id=${project.id}`;
     } else if (type.includes("image")) {

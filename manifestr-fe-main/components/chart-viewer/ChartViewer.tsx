@@ -290,7 +290,7 @@ export default function ChartViewer() {
             data: ds.data.map((y: number, i: number) => ({
               x: i + 1,
               y,
-              r: Math.abs(y) / 2 + 5,
+              r: Math.abs(y) / 15 + 3, // Smaller, nicer bubbles
             })),
           })),
         };
