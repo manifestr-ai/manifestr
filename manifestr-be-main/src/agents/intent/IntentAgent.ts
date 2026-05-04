@@ -4,6 +4,7 @@ import { generateJSON } from "../../lib/claude";
 import { selectTemplate } from "../presentation/TemplateSelector";
 import { initGenerationLog, appendLog } from "../presentation/GenerationLogger";
 import { selectLogicFramework, LogicFramework } from "../frameworks/LogicFrameworks";
+import { DocumentMatcher } from "../../services/DocumentMatcher";
 
 export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
 
@@ -54,6 +55,32 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
         appendLog(`📊 BEST FOR: ${logicFramework.bestFor.join(', ')}`);
         appendLog(`📈 STRUCTURE STEPS: ${logicFramework.structure.length}`);
         appendLog('\n' + '═'.repeat(68) + '\n');
+
+        // ─────────────────────────────────────────────────────────────
+        // STEP 1.5: MATCH SPECIFIC DOCUMENT TYPE (IF PROVIDED)
+        // ─────────────────────────────────────────────────────────────
+        let specificDocumentType: string | null = null;
+        
+        if (input.meta?.toolId && input.meta?.documentCategory) {
+            try {
+                const documentMatcher = new DocumentMatcher();
+                specificDocumentType = await documentMatcher.matchDocumentType(
+                    input.meta.toolId,
+                    input.meta.documentCategory,
+                    input.prompt
+                );
+                
+                appendLog('\n╔══════════════════════════════════════════════════════════════════╗');
+                appendLog('║          📄 SPECIFIC DOCUMENT TYPE - MATCHED                   ║');
+                appendLog('╚══════════════════════════════════════════════════════════════════╝');
+                appendLog(`\n🎯 TOOL: ${input.meta.toolId}`);
+                appendLog(`📂 CATEGORY: ${input.meta.documentCategory}`);
+                appendLog(`📝 DOCUMENT TYPE: ${specificDocumentType}`);
+                appendLog('\n' + '═'.repeat(68) + '\n');
+            } catch (err) {
+                appendLog(`⚠️ Document type matching failed: ${err}`);
+            }
+        }
 
         // ─────────────────────────────────────────────────────────────
         // STEP 2: SELECT OPTIMAL TEMPLATE DECK (FOR PRESENTATIONS)
@@ -204,12 +231,22 @@ export class IntentAgent extends BaseAgent<UserPrompt, IntentResponse> {
         response.metadata.selectedTemplate = templateSelection.selectedDeck;
         response.metadata.templateReasoning = templateSelection.reasoning;
         
+        // Attach specific document type if matched
+        if (specificDocumentType) {
+            (response.metadata as any).specificDocumentType = specificDocumentType;
+            (response.metadata as any).toolId = input.meta?.toolId;
+            (response.metadata as any).documentCategory = input.meta?.documentCategory;
+        }
+        
         // LOG TEMPLATE SELECTION RESULTS TO FILE
         appendLog('\n╔══════════════════════════════════════════════════════════════════╗');
         appendLog('║          🎯 STRATEGIC BRIEF - FINAL CONFIGURATION               ║');
         appendLog('╚══════════════════════════════════════════════════════════════════╝');
         appendLog(`\n📝 USER PROMPT: "${input.prompt.substring(0, 100)}${input.prompt.length > 100 ? '...' : ''}"`);
         appendLog(`📋 OUTPUT TYPE: ${response.metadata.outputFormat}`);
+        if (specificDocumentType) {
+            appendLog(`📄 SPECIFIC DOCUMENT: ${specificDocumentType}`);
+        }
         appendLog(`👥 AUDIENCE: ${response.metadata.audience}`);
         appendLog(`🎭 TONE: ${response.metadata.tone}`);
         appendLog(`🎯 GOAL: ${response.metadata.goal}`);

@@ -168,8 +168,14 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
             // Actually BaseAgent saves job AFTER this hook. So we just modify the object.
 
             // 3. Create Vault Item using Supabase
+            // Extract specific document type from metadata if available
+            const resultData = job.current_step_data || {};
+            const metadata = resultData.layout?.intent?.metadata as any;
+            const specificDocType = metadata?.specificDocumentType;
+            const displayTitle = specificDocType || job.input_data?.title || "Untitled Generation";
+            
             const vaultItem = await SupabaseDB.createVaultItem(job.user_id, {
-                title: job.input_data?.title || "Untitled Generation",
+                title: displayTitle,
                 type: 'file',
                 status: 'Final',
                 file_key: fileKey,
@@ -178,7 +184,10 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
                 size: Buffer.byteLength(jsonContent),
                 meta: {
                     generationJobId: job.id,
-                    outputType: job.type
+                    outputType: job.type,
+                    specificDocumentType: specificDocType,
+                    toolId: metadata?.toolId,
+                    documentCategory: metadata?.documentCategory
                 }
             });
 
@@ -209,7 +218,8 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
         
         // Extract document info with safe access
         const metadata = input.layout.intent.metadata as any;
-        const documentType = metadata.type || 'Report';
+        // Use specific document type if matched, otherwise fall back to generic type
+        const documentType = metadata.specificDocumentType || metadata.type || 'Report';
         const tool = metadata.selectedTool || 'Strategist';
         const prompt = job.input_data?.brief || 'Professional document';
         
