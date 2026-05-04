@@ -232,7 +232,7 @@ export default function DocsEditor() {
           </div>
 
           {/* Editor Container */}
-          <div className="flex-grow relative" style={{ zoom } as any}>
+          <div className="flex-grow relative overflow-hidden" style={{ zoom } as any}>
             {/* Active Users Bar */}
             {activeUsers.length > 0 && (
               <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
@@ -267,8 +267,8 @@ export default function DocsEditor() {
               </div>
             )}
 
-            {/* Render DOCX as HTML */}
-            <div className={activeUsers.length > 0 ? "pt-12" : ""}>
+            {/* Render DOCX as HTML - Now with proper scroll container */}
+            <div className={`h-full overflow-y-auto ${activeUsers.length > 0 ? "pt-12" : ""}`}>
               <DocxViewer
                 documentId={actualDocumentId}
                 savedContent={savedHtmlContent}
@@ -1573,26 +1573,29 @@ function DocxViewer({
   }, [onEditorReady]);
 
   return (
-    <div
-      ref={contentRef}
-      contentEditable={true}
-      spellCheck={true}
-      lang="en"
-      autoCorrect="on"
-      autoCapitalize="sentences"
-      suppressContentEditableWarning={true}
-      className="ProseMirror w-full h-full overflow-auto bg-gray-100 focus:outline-none"
-      style={{
-        maxWidth: "8.5in",
-        margin: "0 auto",
-        padding: "60px 80px",
-        background: "white",
-        fontFamily: "Arial, sans-serif",
-        fontSize: "11pt",
-        lineHeight: 1.6,
-        color: "#2C2C2C",
-      }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <div className="w-full h-full bg-[#e5e7eb] py-8 overflow-auto">
+      <div
+        ref={contentRef}
+        contentEditable={true}
+        spellCheck={true}
+        lang="en"
+        autoCorrect="on"
+        autoCapitalize="sentences"
+        suppressContentEditableWarning={true}
+        className="ProseMirror mx-auto focus:outline-none shadow-lg"
+        style={{
+          width: "8.5in",
+          minHeight: "11in",
+          padding: "1in",
+          background: "white",
+          fontFamily: "Arial, sans-serif",
+          fontSize: "11pt",
+          lineHeight: 1.6,
+          color: "#2C2C2C",
+          marginBottom: "40px",
+        }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
   );
 }

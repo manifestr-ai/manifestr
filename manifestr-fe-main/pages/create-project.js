@@ -350,7 +350,9 @@ export default function CreateProject() {
             audience: projectData.primaryAudience,
             brand: projectData.projectBrandName,
             budget: projectData.budget,
-            timeline: projectData.timeline
+            timeline: projectData.timeline,
+            toolId: selectedTool.id,
+            documentCategory: selectedDocument
           },
           // style_guide_id: null
         }
