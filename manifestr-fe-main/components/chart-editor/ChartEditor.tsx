@@ -937,7 +937,7 @@ export default function ChartEditor({
           label: dataset.label,
           data: dataset.data.map((y: number, i: number) => {
             const normalizedValue = (Math.abs(y) - minValue) / range;
-            const bubbleSize = 5 + normalizedValue * 10;
+            const bubbleSize = 3 + normalizedValue * 6; // Smaller, nicer bubbles
 
             return {
               x: i + 1,

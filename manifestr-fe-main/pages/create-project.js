@@ -10,6 +10,7 @@ import Step3 from '../components/create-project/Step3'
 import Step4BriefMe from '../components/create-project/Step4BriefMe'
 import Step4DropZone from '../components/create-project/Step4DropZone'
 import Step4FreeStyle from '../components/create-project/Step4FreeStyle'
+import Step4TalkToMe from '../components/create-project/Step4TalkToMe'
 import Step5Clarify from '../components/create-project/Step5Clarify'
 import Step6Edit from '../components/create-project/Step6Edit'
 import api from '../lib/api'
@@ -278,21 +279,71 @@ export default function CreateProject() {
     } else if (currentStep === 4) {
       setIsGenerating(true)
       try {
+        // Build comprehensive context from sidebar inputs
+        const contextDetails = []
+        if (projectData.contextObjective) {
+          contextDetails.push(`Objective: ${projectData.contextObjective}`)
+        }
+        if (projectData.contextAudience) {
+          contextDetails.push(`Audience: ${projectData.contextAudience}`)
+        }
+        if (projectData.contextTone) {
+          contextDetails.push(`Tone/Style: ${projectData.contextTone}`)
+        }
+        if (projectData.contextPages) {
+          contextDetails.push(`Desired Pages: ${projectData.contextPages}`)
+        }
+        if (projectData.contextMandatories) {
+          contextDetails.push(`Mandatories (frameworks/keywords): ${projectData.contextMandatories}`)
+        }
+        if (projectData.contextPriorityFocus) {
+          const focuses = []
+          if (projectData.contextPriorityFocus.dataAccuracy) focuses.push('Data accuracy')
+          if (projectData.contextPriorityFocus.visualStorytelling) focuses.push('Visual storytelling')
+          if (projectData.contextPriorityFocus.persuasiveness) focuses.push('Persuasiveness')
+          if (focuses.length > 0) {
+            contextDetails.push(`Priority Focus: ${focuses.join(', ')}`)
+          }
+        }
+        if (projectData.contextSensitivity) {
+          contextDetails.push(`Sensitivity Level: ${projectData.contextSensitivity}`)
+        }
+
+        const enrichedContext = contextDetails.length > 0 
+          ? contextDetails.join('\n') 
+          : ''
+
+        // Prepare payload with uploaded files and context
+        const payload = {
+          projectData: {
+            ...projectData,
+            enrichedContext, // Add the formatted context
+          },
+          tool: selectedTool,
+          uploadedFiles: uploadedFiles || [], // Include uploaded files from Dropzone
+          mode: selectedStyle // 'drop-zone', 'free-style', 'brief-me', 'talk-to-me'
+        }
+
+        console.log('📤 Sending to clarify with context:', {
+          contextProvided: !!enrichedContext,
+          filesProvided: uploadedFiles?.length || 0,
+          mode: selectedStyle
+        })
+
         const response = await fetch('/api/generate-clarify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            projectData,
-            tool: selectedTool
-          })
+          body: JSON.stringify(payload)
         })
 
         if (response.ok) {
           const data = await response.json()
           updateProjectData(data)
         } else {
+          console.error('Failed to generate clarify response')
         }
       } catch (error) {
+        console.error('Error in Step 4 -> Step 5:', error)
       } finally {
         setIsGenerating(false)
         setCurrentStep(5)
@@ -301,8 +352,24 @@ export default function CreateProject() {
       // Step 5 -> Step 6 (Trigger Generation)
       setIsGenerating(true)
 
+      // Build context from sidebar inputs
+      let sidebarContext = ''
+      if (projectData.enrichedContext) {
+        sidebarContext = `\n\nCONTEXT FROM USER (CRITICAL - MUST FOLLOW):\n${projectData.enrichedContext}\n`
+      }
+
+      // Build file context
+      let fileInfo = ''
+      if (uploadedFiles && uploadedFiles.length > 0) {
+        fileInfo = `\n\nUPLOADED FILES (${uploadedFiles.length}):\n`
+        uploadedFiles.forEach((file, index) => {
+          fileInfo += `${index + 1}. ${file.name || 'File'} (${file.type || 'Unknown type'})\n`
+        })
+        fileInfo += `\nIMPORTANT: Analyze and incorporate the content from these uploaded files into the document.\n`
+      }
+
       const combinedPrompt = `${projectData.context}
-      
+      ${sidebarContext}${fileInfo}
       Specific Requirements:
       - Objective: ${projectData.primaryObjective}
       - Key Message: ${projectData.keyMessage}
@@ -324,7 +391,9 @@ export default function CreateProject() {
             meta: {
               tone: projectData.tone,
               audience: projectData.primaryAudience,
-              brand: projectData.projectBrandName
+              brand: projectData.projectBrandName,
+              contextFromSidebar: projectData.enrichedContext || null,
+              uploadedFilesCount: uploadedFiles?.length || 0
             }
           })
 
@@ -352,7 +421,11 @@ export default function CreateProject() {
             budget: projectData.budget,
             timeline: projectData.timeline,
             toolId: selectedTool.id,
-            documentCategory: selectedDocument
+            documentCategory: selectedDocument,
+            // Include context and files metadata
+            contextFromSidebar: projectData.enrichedContext || null,
+            uploadedFilesCount: uploadedFiles?.length || 0,
+            uploadedFiles: uploadedFiles || []
           },
           // style_guide_id: null
         }
@@ -416,6 +489,10 @@ export default function CreateProject() {
       return uploadedFiles && uploadedFiles.length > 0
     }
 
+    if (selectedStyle === 'talk-to-me') {
+      return projectData.voiceTranscript && projectData.voiceTranscript.trim().length > 0
+    }
+
     return false
   }
 
@@ -447,7 +524,7 @@ export default function CreateProject() {
           step={currentStep}
           totalSteps={6}
           onSaveExit={handleSaveExit}
-          sidebarVisible={currentStep === 4 && (selectedStyle === 'talk-to-me' || selectedStyle === 'drop-zone' || selectedStyle === 'free-style')}
+          sidebarVisible={currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')}
         />
 
         {/* Spacer for fixed header */}
@@ -500,9 +577,12 @@ export default function CreateProject() {
               />
             </div>
           ) : currentStep === 4 ? (
-            <div className={`relative w-full pt-4 pb-8 transition-all duration-300 ${(selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
-              ? 'lg:pl-[348px]'
-              : ''
+            <div className={`relative w-full transition-all duration-300 ${
+              selectedStyle === 'talk-to-me' 
+                ? '' 
+                : (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
+                  ? 'pt-4 pb-8 lg:pl-[348px]'
+                  : 'pt-4 pb-8'
               }`}>
               {selectedStyle === 'brief-me' && (
                 <div className="max-w-[1301px] mx-auto px-4">
@@ -513,10 +593,15 @@ export default function CreateProject() {
                 <Step4DropZone onFilesChange={handleFilesChange} projectData={projectData} updateProjectData={updateProjectData} />
               )}
               {selectedStyle === 'free-style' && <Step4FreeStyle projectData={projectData} updateProjectData={updateProjectData} />}
+              {selectedStyle === 'talk-to-me' && (
+                <div className="w-full h-[calc(100vh-80px)]">
+                  <Step4TalkToMe projectData={projectData} updateProjectData={updateProjectData} />
+                </div>
+              )}
               {/* Show sidebar for drop-zone and free-style */}
               {(selectedStyle === 'drop-zone' || selectedStyle === 'free-style') && (
                 <div className="hidden lg:block">
-                  <ContextSidebar />
+                  <ContextSidebar projectData={projectData} updateProjectData={updateProjectData} />
                 </div>
               )}
             </div>
@@ -556,13 +641,15 @@ export default function CreateProject() {
           {/* Footer Actions - Hide on Step 6 (loading screen) */}
           {currentStep !== 6 && (
             <div
-              className={`fixed bottom-0 right-0 z-50 backdrop-blur-sm bg-[#ffffffd5] transition-all duration-300 w-full left-0 ${currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
+              className={`fixed bottom-0 right-0 z-50 backdrop-blur-sm bg-[#ffffffd5] transition-all duration-300 w-full left-0 ${
+                currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
                 ? 'lg:left-[348px] lg:w-auto lg:right-0'
                 : ''
                 }`}
             >
               <div
-                className={`flex items-center justify-between gap-3 sm:gap-4 ${currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
+                className={`flex items-center justify-between gap-3 sm:gap-4 ${
+                  currentStep === 4 && (selectedStyle === 'drop-zone' || selectedStyle === 'free-style')
                   ? 'w-full py-4 sm:py-6 px-4 sm:px-6 lg:px-8'
                   : 'max-w-[1280px] mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-6'
                   }`}
