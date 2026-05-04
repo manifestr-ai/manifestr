@@ -755,18 +755,218 @@ export class SupabaseDB {
     return count || 0;
   }
 
-  static async getActivatedUsersCount(since?: string) {
-    let query = supabase.from("generation_jobs").select("user_id");
+  // ===== ANALYTICS EVENTS =====
+  static async createAnalyticsEvent(eventData: {
+    user_id?: string;
+    user_email?: string;
+    event_name: string;
+    event_category: string;
+    event_action: string;
+    session_id?: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    referrer?: string;
+    ip_address?: string;
+    user_agent?: string;
+    device_type?: string;
+    browser?: string;
+    os?: string;
+    ai_model?: string;
+    duration_ms?: number;
+    tokens_used?: number;
+    cost_usd?: number;
+    resource_id?: string;
+    resource_type?: string;
+    properties?: any;
+  }) {
+    const { data, error } = await supabaseAdmin
+      .from("analytics_events")
+      .insert(eventData)
+      .select()
+      .single();
 
-    if (since) {
-      query = query.gte("created_at", since);
+    if (error) throw error;
+    return data;
+  }
+
+  static async getAnalyticsEvents(options: {
+    userId?: string;
+    eventName?: string;
+    eventCategory?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  }) {
+    let query = supabaseAdmin
+      .from("analytics_events")
+      .select("*");
+
+    if (options.userId) {
+      query = query.eq("user_id", options.userId);
+    }
+
+    if (options.eventName) {
+      query = query.eq("event_name", options.eventName);
+    }
+
+    if (options.eventCategory) {
+      query = query.eq("event_category", options.eventCategory);
+    }
+
+    if (options.startDate) {
+      query = query.gte("created_at", options.startDate);
+    }
+
+    if (options.endDate) {
+      query = query.lte("created_at", options.endDate);
+    }
+
+    query = query.order("created_at", { ascending: false });
+
+    if (options.limit) {
+      query = query.limit(options.limit);
     }
 
     const { data, error } = await query;
 
     if (error) throw error;
+    return data;
+  }
 
-    return new Set(data.map((d: any) => d.user_id)).size;
+  // ===== USER SESSIONS =====
+  static async createSession(sessionData: {
+    user_id?: string;
+    session_id: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    referrer?: string;
+    ip_address?: string;
+    user_agent?: string;
+    device_type?: string;
+    browser?: string;
+    os?: string;
+  }) {
+    const { data, error } = await supabaseAdmin
+      .from("user_sessions")
+      .insert(sessionData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async getSessionById(sessionId: string) {
+    const { data, error } = await supabaseAdmin
+      .from("user_sessions")
+      .select("*")
+      .eq("session_id", sessionId)
+      .single();
+
+    if (error && error.code === "PGRST116") return null;
+    if (error) throw error;
+    return data;
+  }
+
+  static async getUserSessions(userId: string, limit: number = 50) {
+    const { data, error } = await supabaseAdmin
+      .from("user_sessions")
+      .select("*")
+      .eq("user_id", userId)
+      .order("started_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateSession(sessionId: string, updates: any) {
+    const { data, error } = await supabaseAdmin
+      .from("user_sessions")
+      .update(updates)
+      .eq("session_id", sessionId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async getActiveSessions(userId?: string) {
+    let query = supabaseAdmin
+      .from("user_sessions")
+      .select("*")
+      .eq("is_active", true);
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query.order("started_at", { ascending: false });
+
+    if (error) throw error;
+    return data;
+  }
+
+  // ===== USER ACTIVATIONS =====
+  static async getUserActivation(userId: string) {
+    const { data, error } = await supabaseAdmin
+      .from("user_activations")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (error && error.code === "PGRST116") return null;
+    if (error) throw error;
+    return data;
+  }
+
+  static async createUserActivation(userId: string, activationData: any) {
+    const { data, error } = await supabaseAdmin
+      .from("user_activations")
+      .insert({
+        user_id: userId,
+        ...activationData
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateUserActivation(userId: string, updates: any) {
+    const { data, error } = await supabaseAdmin
+      .from("user_activations")
+      .update(updates)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async getActivatedUsersCount(since?: string) {
+    let query = supabaseAdmin
+      .from("user_activations")
+      .select("*", { count: "exact", head: true })
+      .eq("is_activated", true);
+
+    if (since) {
+      query = query.gte("activated_at", since);
+    }
+
+    const { count, error } = await query;
+
+    if (error) throw error;
+    return count || 0;
   }
 
   static async getTotalJobsCount(since?: string) {

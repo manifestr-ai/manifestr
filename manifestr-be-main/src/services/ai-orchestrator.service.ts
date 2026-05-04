@@ -2,6 +2,7 @@ import SupabaseDB from "../lib/supabase-db";
 import { UserPrompt } from "../agents/protocols/types";
 import Anthropic from "@anthropic-ai/sdk";
 import { fetchUnsplashImage } from "../utils/image.util";
+import EventTrackingService from "./EventTracking.service";
 
 // Import Agents
 import { IntentAgent } from "../agents/intent/IntentAgent";
@@ -55,7 +56,7 @@ export class AIOrchestrator {
     /**
      * Starts the generation process
      */
-    async startGeneration(userId: string, promptData: Partial<UserPrompt>): Promise<any> {
+    async startGeneration(userId: string, promptData: Partial<UserPrompt>, sessionId?: string): Promise<any> {
         // 1. Generate metadata first
         let title = "New Generation";
         let coverImage = null;
@@ -82,9 +83,25 @@ export class AIOrchestrator {
             status: 'queued'
         });
 
+        // 🎯 Track AI Generation Started
+        await EventTrackingService.track({
+            userId,
+            sessionId,
+            eventName: 'AI Generation Started',
+            eventCategory: 'product_usage',
+            eventAction: 'generation_started',
+            resourceId: job.id,
+            resourceType: 'generation_job',
+            properties: {
+                generation_type: promptData.output,
+                prompt_length: promptData.prompt?.length || 0,
+                has_style_guide: !!promptData.style_guide_id
+            }
+        });
+
         // 3. Start the Agent Flow (Async - Fire and Forget)
         // We don't await this so the API returns immediately
-        this.runJobFlow(job.id, userId).catch(err => {
+        this.runJobFlow(job.id, userId, sessionId).catch(err => {
             console.error(`❌ Job Flow Failed for ${job.id}:`, err);
         });
 
@@ -94,8 +111,10 @@ export class AIOrchestrator {
     /**
      * Orchestrates the agent chain directly in-memory
      */
-    private async runJobFlow(jobId: string, userId: string) {
+    private async runJobFlow(jobId: string, userId: string, sessionId?: string) {
         console.log(`\n🚀 Starting Job Flow: ${jobId}`);
+        
+        const startTime = Date.now();
         
         // 1. Fetch fresh job
         let job = await SupabaseDB.getGenerationJobById(jobId, userId);
@@ -170,10 +189,63 @@ export class AIOrchestrator {
                 await this.renderingAgent.run(job);
             }
 
+            const endTime = Date.now();
+            const durationMs = endTime - startTime;
+
+            // 🎯 Track AI Generation Complete with Performance Metrics
+            await EventTrackingService.trackAIGeneration({
+                userId,
+                eventName: 'AI Generation Completed',
+                aiModel: 'claude-sonnet-4-20250514',
+                durationMs,
+                tokensUsed: job.tokens_used || 0,
+                costUsd: 0, // Calculate based on your pricing if needed
+                resourceId: jobId,
+                resourceType: 'generation_job',
+                properties: {
+                    generation_type: format,
+                    success: true
+                }
+            });
+
+            // 🎯 Track Content Creation & Activation
+            await EventTrackingService.trackContentCreation({
+                userId,
+                sessionId,
+                contentType: format as any,
+                action: 'generated',
+                resourceId: jobId,
+                properties: {
+                    duration_ms: durationMs,
+                    tokens_used: job.tokens_used || 0,
+                    ai_model: 'claude-sonnet-4-20250514'
+                }
+            });
+
             console.log(`✅ Job Flow Complete: ${jobId}\n`);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(`❌ Job Flow Error:`, error);
+            
+            const endTime = Date.now();
+            const durationMs = endTime - startTime;
+
+            // 🎯 Track AI Generation Failure
+            await EventTrackingService.track({
+                userId,
+                sessionId,
+                eventName: 'AI Generation Failed',
+                eventCategory: 'product_usage',
+                eventAction: 'generation_failed',
+                resourceId: jobId,
+                resourceType: 'generation_job',
+                properties: {
+                    generation_type: job.type,
+                    error_message: error.message || 'Unknown error',
+                    duration_ms: durationMs
+                }
+            });
+            
             // Error handling is done inside BaseAgent.run(), so DB should be updated already
         }
     }
