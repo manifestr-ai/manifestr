@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const DOC_BG_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774955690/Frame_2147229619_ymqnrl.jpg'
+const DOC_BG_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351581/Laptop_Rock_Desktop_1441x915_x2__Light_vw1azu.webp'
 const CHECK_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774955815/Vector_f5rveb.svg'
 
 export default function ToolDocuments({ tool }) {

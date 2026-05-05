@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import CldImage from '../ui/CldImage'
 
-const SECTION_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774956290/Group_1577709283_kifbjh.jpg'
-const SECTION_IMAGE_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774956258/Frame_2147230209_uakfxc.jpg'
+const SECTION_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351553/Tools_DESKTOP_Light_Version_ia9ylz.webp'
+const SECTION_IMAGE_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351549/Tools_MOBILE_Light_Version_ihx1fw.webp'
 
 export default function ToolConnectedSystem() {
   return (
@@ -20,7 +20,7 @@ export default function ToolConnectedSystem() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-[32px] leading-[39px] mt-12 tracking-[-0.64px] text-center mb-[8px]"
+              className="text-[32px] leading-[39px] mt-2 tracking-[-0.64px] text-center mb-[8px]"
             >
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>Your </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Connected</span>

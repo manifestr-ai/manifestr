@@ -5,7 +5,7 @@ import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044769/Frame_3_esfcck.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458845/FAQ_Banner_Articles_Banner_1441x518_x2_w9eods.webp'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
 const SIDEBAR_CATEGORIES = [

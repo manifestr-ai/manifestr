@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const ROCK_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025006/Image_Rock_2_iyceuw.jpg'
+const ROCK_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351466/Affiliate_Earnings_Desktop_1441x915_x2__Light_jwiy0d.webp'
 const CHECK_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023115/Vector_uz3ve2.svg'
-const DASHBOARD_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025215/DashboardSection_a5pmld.jpg'
+const DASHBOARD_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351468/Affiliate_Earnings_Mobile_1080x2092_Light_sfhapo.webp'
 const MOBILE_CHECK_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023115/Vector_uz3ve2.svg'
 
 const FEATURES = [

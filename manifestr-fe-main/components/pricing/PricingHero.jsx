@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775632076/Default_f8wbn1.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458888/Pricing_Banner_1441x557_x2_smb6i4.webp'
 
 export default function PricingHero() {
   return (

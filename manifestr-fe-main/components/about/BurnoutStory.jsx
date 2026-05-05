@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const WOMAN_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041144/Leah_Studio_16May24-4_1_tfcqwz.png'
+const WOMAN_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351403/Leah_Studio_Shot_pq03z6.webp'
 
 export default function BurnoutStory() {
   return (

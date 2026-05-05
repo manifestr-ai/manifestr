@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const LAPTOP_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041143/Rectangle_34624833_g3e8qg.png'
+const LAPTOP_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351406/Manifestr_Leah_Computer_befpr2.webp'
 
 export default function BuiltForBrilliance() {
   return (

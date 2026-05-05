@@ -1,18 +1,10 @@
 import { motion } from 'framer-motion'
 
-const watermarkStyle = {
-  fontFamily: "'IvyPresto Headline', serif",
-  fontWeight: 600,
-  fontStyle: 'italic',
-  color: 'rgba(227,226,223,0.52)',
-}
-
 export default function FromTheSilence() {
   return (
     <section className="relative w-full bg-white overflow-hidden">
       <div className="relative w-full max-w-[1440px] mx-auto min-h-0 md:min-h-[1111px]">
 
-        {/* Mobile: left column → right column → watermark bottom. Desktop: two columns row 1, watermark full width row 2. */}
         <div
           className="relative z-10 grid grid-cols-1 gap-y-[24px] px-6 pb-[24px] pt-[48px] md:grid-cols-2 md:gap-x-[41px] md:gap-y-[80px] md:px-[190px] md:pb-[80px] md:pt-[128px]"
         >
@@ -80,34 +72,18 @@ export default function FromTheSilence() {
             </div>
           </motion.div>
 
-          {/* Watermark — bottom of section on mobile (after both columns); full width row below on desktop */}
+          {/* Image — replaces watermark */}
           <div
             className="pointer-events-none col-span-1 w-full select-none md:col-span-2 md:row-start-2"
             aria-hidden="true"
           >
-            <div className="relative">
-              <p
-                className="text-[20px] md:text-[64px] leading-none tracking-[-0.39px] md:tracking-[-1.28px] uppercase"
-                style={watermarkStyle}
-              >
-                FROM THE
-              </p>
-
-              <p
-                className="-ml-[2px] -mt-[5px] whitespace-nowrap text-[92px] leading-[0.95] tracking-[-1.85px] uppercase md:-ml-[20px] md:-mt-[20px] md:text-[300px] md:leading-none md:tracking-[-6px]"
-                style={watermarkStyle}
-              >
-                SILENCE
-              </p>
-
-              <p
-                className="mt-0 text-right text-[20px] leading-none tracking-[-0.39px] uppercase md:mt-[10px] md:text-[64px] md:tracking-[-1.28px]"
-                style={watermarkStyle}
-              >
-                MANIFESTR WAS BORN
-              </p>
-            </div>
+            <img
+              src="https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351403/FROM_THE_SILENCE_ccnq2q.svg"
+              alt=""
+              className="w-full h-auto object-contain"
+            />
           </div>
+
         </div>
 
       </div>

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const IMG_LEFT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046085/Placeholder_Image_i9heus.png'
+const IMG_LEFT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458800/Homepage_Woman_x2_bedzbo.webp'
 const IMG_RIGHT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046086/Placeholder_Image-1_ldgb49.png'
 const IMG_LOGOMARK = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046046/Vector_1_tmgxe4.svg'
 const IMG_CIRCLE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046160/Group_jbs8sb.svg'

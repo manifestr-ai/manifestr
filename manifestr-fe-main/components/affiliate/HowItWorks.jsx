@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const PEOPLE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775631915/upscaled-image-1760619644309_1_m8hpfj.png'
-const PEOPLE_IMG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023332/upscaled-image-1760619644309_1_oezfn4.jpg'
+const PEOPLE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351465/Affiliate_1441x1183_x2_zqgyel.webp'
+const PEOPLE_IMG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351465/Affiliate_1441x1183_x2_zqgyel.webp'
 const CURVE_LINE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023333/Vector_1_b73kah.svg'
 const DOT_ICON_1 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023336/Group_1577708898_ctj0lu.svg'
 const DOT_ICON_2 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023336/Group_1577708898_ctj0lu.svg'
@@ -200,7 +200,7 @@ export default function HowItWorks() {
         {/* Background people image — centered behind lower steps */}
         <div
           className="absolute pointer-events-none left-1/2 -translate-x-1/2 overflow-hidden"
-          style={{ top: 410, width: 1152, height: 1124 }}
+          style={{ top: 450, width: 1152, height: 1124 }}
         >
           <CldImage
             alt=""

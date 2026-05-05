@@ -4,9 +4,9 @@ import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775044849/Frame_4_t9fjae.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458842/Submit_A_Ticket_1441x749_x2_iic4ip.webp'
 const MAX_MESSAGE_LENGTH = 300
-
+//finalized
 const TOPICS = [
   'General Inquiry',
   'Technical Support',
