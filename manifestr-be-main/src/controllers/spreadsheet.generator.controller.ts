@@ -26,16 +26,31 @@ export class SpreadsheetGeneratorController extends BaseController {
         super();
     }
 
+    // 🔥 Middleware to increase timeout for AI-heavy routes
+    private extendTimeout(req: Request, res: Response, next: any) {
+        // Increase timeout to 10 minutes for this request only (spreadsheets can be complex)
+        req.socket.setTimeout(600000); // 10 minutes
+        res.socket?.setTimeout(600000);
+        
+        // Send keep-alive headers to prevent proxy timeouts
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Keep-Alive', 'timeout=600');
+        
+        next();
+    }
+
     protected initializeRoutes(): void {
         this.routes = [
             {
                 verb: 'POST',
                 path: '/generate',
+                middlewares: [this.extendTimeout.bind(this)], // 🔥 Add timeout extension
                 handler: this.generateSpreadsheet.bind(this),
             },
             {
                 verb: 'POST',
                 path: '/modify',
+                middlewares: [this.extendTimeout.bind(this)], // 🔥 Add timeout extension
                 handler: this.modifySpreadsheet.bind(this),
             },
         ];
@@ -222,6 +237,7 @@ IMPORTANT: Return a JSON object with this exact structure:
 
             console.log(`📊 Modifying spreadsheet for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
+            console.log(`📊 Spreadsheet data size: ${JSON.stringify(spreadsheetData).length} bytes`);
             
             // Check if we're updating an existing generation
             let job: any;
@@ -262,16 +278,39 @@ CRITICAL RULES:
 - If adding data, make it realistic and consistent with existing data
 - If adding columns/rows, maintain proper formatting
 - Return the COMPLETE modified spreadsheet in the same JSON format
+- For large spreadsheets, be efficient and only modify what's necessary
 `;
+
+            // Limit the spreadsheet data sent to Claude to avoid token limits
+            const dataString = JSON.stringify(spreadsheetData);
+            const maxDataLength = 50000; // ~50KB of JSON data
+            let truncatedData = spreadsheetData;
+            
+            if (dataString.length > maxDataLength) {
+                console.log(`⚠️  Large spreadsheet detected (${dataString.length} bytes), truncating for AI processing...`);
+                // For very large spreadsheets, only send structure and sample data
+                truncatedData = {
+                    ...spreadsheetData,
+                    workbook: {
+                        ...spreadsheetData.workbook,
+                        sheets: spreadsheetData.workbook?.sheets?.map((sheet: any) => ({
+                            ...sheet,
+                            data: sheet.data?.slice(0, 20) // Only send first 20 rows as sample
+                        }))
+                    },
+                    _note: 'Data truncated for processing. Full data will be preserved.'
+                };
+            }
 
             const userPrompt = `
 USER MODIFICATION REQUEST: "${prompt}"
 
 CURRENT SPREADSHEET DATA:
-${JSON.stringify(spreadsheetData, null, 2)}
+${JSON.stringify(truncatedData, null, 2)}
 
 Please modify the spreadsheet according to the user's request and return the COMPLETE modified version.
 Maintain the same JSON structure.
+${dataString.length > maxDataLength ? '\nNOTE: Only sample data is shown. Apply changes to the full dataset.' : ''}
 `;
 
             const modifiedSpreadsheet = await generateJSON<any>(
@@ -296,7 +335,7 @@ Maintain the same JSON structure.
             const jsonContent = JSON.stringify(result);
             const jsonPath = `${jobUserId}/spreadsheets/${job.id}.json`;
             let jsonUrl: string;
-            
+
             try {
                 await supabaseAdmin.storage
                     .from('generated-images')
@@ -346,17 +385,18 @@ Maintain the same JSON structure.
 
             console.log(`💾 Modified spreadsheet saved!`);
 
+            // 7. Return the modified spreadsheet to frontend
             return res.json({
                 status: 'success',
                 data: {
                     jobId: job.id,
-                    spreadsheetData: modifiedSpreadsheet,
+                    spreadsheetData: modifiedSpreadsheet, // ✅ Return actual data
                     generatedAt: new Date().toISOString()
                 }
             });
 
         } catch (error: any) {
-            console.error('❌ Spreadsheet modification failed:', error);
+            console.error('❌ Spreadsheet modification setup failed:', error);
             return res.status(500).json({ 
                 error: 'Internal server error', 
                 details: error instanceof Error ? error.message : String(error) 

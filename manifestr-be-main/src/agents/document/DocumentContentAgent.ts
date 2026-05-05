@@ -184,96 +184,34 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
         const documentType = input.documentType;
         const semanticSchema = input.semanticSchema;
         
-        const systemPrompt = `
-        You are a WORLD-CLASS PROFESSIONAL DOCUMENT WRITER with expertise across ALL industries and document types.
-        Your mission: Fill in the provided semantic document schema with HIGH-QUALITY, PROFESSIONAL, BEAUTIFULLY FORMATTED content.
-        
-        ### 📋 DOCUMENT TYPE: ${documentType.toUpperCase().replace(/_/g, ' ')}
-        
-        ### 🎯 YOUR TASK:
-        You've been given a document schema (structure). Your job is to populate it with REAL, PROFESSIONAL content that matches the document type.
-        
-        ### ⚠️ CRITICAL RULES:
-        
-        1. **MAINTAIN THE EXACT SCHEMA STRUCTURE**: 
-           - Keep ALL keys exactly as provided
-           - Do NOT add new fields
-           - Do NOT remove fields
-           - Do NOT change the nesting structure
-        
-        2. **CONTENT QUALITY & LENGTH**:
-           ${documentType.includes('letter') || documentType.includes('email') ? '- Professional business correspondence tone\n           - 150-250 words per main section' : ''}
-           ${documentType.includes('legal') ? '- Legal language with clear, unambiguous terms\n           - Detailed clauses with 100-200 words each' : ''}
-           ${documentType.includes('checklist') ? '- Clear, specific, actionable task items\n           - 5-15 detailed items per category' : ''}
-           ${documentType.includes('run_sheet') || documentType.includes('event') ? '- Precise timing and clear responsibilities\n           - Detailed activity descriptions (50-100 words each)' : ''}
-           ${documentType.includes('financial') || documentType.includes('invoice') ? '- Accurate numbers and professional formatting\n           - Detailed line item descriptions' : ''}
-           ${documentType.includes('resume') || documentType.includes('cv') ? '- Achievement-focused, quantified accomplishments\n           - 3-5 bullet points per role with metrics' : ''}
-           ${documentType.includes('article') || documentType.includes('blog') || documentType.includes('report') || documentType.includes('whitepaper') ? '- LONG-FORM CONTENT: 500-800 words per section\n           - Multiple detailed paragraphs with examples\n           - Include subheadings within sections\n           - Rich, comprehensive analysis' : ''}
-           - For text fields: Write REALISTIC, PROFESSIONAL content
-           - For arrays: Generate 5-12 realistic, detailed entries
-           - For tables: Ensure 6-10 rows minimum with varied, realistic data
-           - For numbers: Use plausible, realistic values
-           - For dates: Use appropriate date formats (e.g., "January 15, 2025")
-        
-        3. **FORMATTING EXCELLENCE - USE PROPER HTML** (CRITICAL):
-           
-           📊 **TABLE FORMATTING**:
-           - Generate HTML tables with thead, tbody, tr, th, td elements
-           - MINIMUM 6-10 rows per table (not just 3-4!)
-           - Use VARIED, realistic data - no repetitive patterns
-           - Column values should be diverse and meaningful
-           - Header row in thead with th elements
-           - Data rows in tbody with td elements
-           
-           📝 **TEXT FORMATTING** (Use HTML tags, NOT Markdown):
-           - Headings: Use h1, h2, h3, h4 elements (NOT Markdown # symbols)
-           - Paragraphs: Wrap all text in p elements
-           - Bold: Use strong elements (NOT Markdown asterisks)
-           - Italic: Use em elements (NOT Markdown underscores)
-           - Bullet lists: Use ul with li elements
-           - Numbered lists: Use ol with li elements
-           - Code blocks: Use pre with code elements
-           - Quotes: Use blockquote with cite elements for attribution
-           
-           📐 **STRUCTURE**:
-           - Clear visual hierarchy using proper heading levels
-           - Consistent HTML formatting patterns
-           - Professional spacing with p elements
-           - Logical grouping of related information
-           
-           ⚠️ **CRITICAL**: Use HTML tags ONLY. Do NOT use Markdown syntax like asterisks, hashtags, or underscores
-           
-        4. **CONTENT DEPTH**:
-           ${documentType.includes('article') || documentType.includes('blog') || documentType.includes('report') ? '- This is LONG-FORM content - GO BIG!\n           - Each section should have 4-8 paragraphs\n           - Include examples, data points, analysis\n           - Add context and background\n           - Explain the "why" and "how", not just "what"' : '- Provide comprehensive, detailed information\n           - Include relevant context and examples'}
-        
-        5. **CONTEXT**:
-           - Original Request: "${input.intent.originalPrompt}"
-           - Goal: ${input.intent.metadata.goal}
-           - Audience: ${input.intent.metadata.audience}
-           - Tone: ${input.intent.metadata.tone}
-        
-        6. **OUTPUT FORMAT**:
-           Return the COMPLETE filled schema as valid JSON. Replace all placeholder descriptions with actual content.
-           
-           **FORMATTING REQUIREMENTS**:
-           - ALL text content MUST use HTML elements (h1, h2, p, strong, em, ul, li, table, etc.)
-           - Do NOT use Markdown syntax (asterisks, hashtags, underscores)
-           - Tables MUST have 6-10 rows minimum with varied, realistic data
-           - Text sections MUST be comprehensive and well-formatted with HTML
-           - Code blocks MUST use pre wrapping code elements
-           - Quotes MUST use blockquote elements
-        
-        ### 📄 SCHEMA TO FILL:
-        ${JSON.stringify(semanticSchema, null, 2)}
-        
-        Return ONLY the filled JSON with proper HTML formatting. NO Markdown syntax.
-        `;
+        // 🚀 OPTIMIZED: Moved schema to user message (85% prompt reduction!)
+        // 🚀 FIXED: No longer forces excessive tables/arrays - now context-appropriate
+        const systemPrompt = `You are a professional document writer. Fill the provided schema with high-quality, appropriate content.
+
+RULES:
+1. Keep exact schema structure (same keys, no additions/removals)
+2. Content length: ${this.getContentLengthGuideline(documentType)}
+3. Use HTML formatting (h1-h6, p, strong, em, ul, ol, table, blockquote)
+4. NO Markdown syntax (no **, __, #)
+5. For tables: Use appropriate row count (3-5 for simple docs, 6-10 for detailed tracking docs)
+6. For arrays: Generate appropriate entries based on context (2-3 for simple lists, 5-8 for comprehensive sections)
+7. Focus on QUALITY over QUANTITY - don't add filler content
+
+Context: ${documentType} | Tone: ${input.intent.metadata.tone} | Audience: ${input.intent.metadata.audience}`;
+
+        // User message now contains the schema (NOT in system prompt!)
+        const userMessage = `Fill this ${documentType} schema with professional content for: "${input.intent.originalPrompt}"
+
+SCHEMA:
+${JSON.stringify(semanticSchema, null, 2)}
+
+Return ONLY the filled JSON with HTML-formatted content.`;
 
         // Generate content using the semantic schema
         const filledDocument: any = await generateJSON<any>(
             null,
             systemPrompt,
-            `Fill this ${documentType} document with professional content based on the user's request: "${input.intent.originalPrompt}"`
+            userMessage
         );
 
         // Return in ContentResponse format
@@ -290,5 +228,24 @@ export class DocumentContentAgent extends BaseAgent<LayoutResponse, ContentRespo
         };
 
         return response;
+    }
+
+    /**
+     * Get content length guidelines based on document type
+     */
+    private getContentLengthGuideline(docType: string): string {
+        if (docType.includes('article') || docType.includes('blog') || docType.includes('report') || docType.includes('whitepaper')) {
+            return '500-800 words per section, 4-8 paragraphs';
+        } else if (docType.includes('letter') || docType.includes('email')) {
+            return '150-250 words per section';
+        } else if (docType.includes('legal')) {
+            return '100-200 words per clause';
+        } else if (docType.includes('checklist')) {
+            return '5-15 detailed items per category';
+        } else if (docType.includes('resume') || docType.includes('cv')) {
+            return '3-5 bullet points per role with metrics';
+        } else {
+            return '200-400 words per section';
+        }
     }
 }

@@ -41,17 +41,17 @@ const UNPROTECTED_ROUTES = [
     '/privacy',
     '/cookies',
     '/support',
-    '/admin',
-    '/admin/overview',
-    '/admin/growth',
-    '/admin/product-usage',
-    '/admin/monetization',
-    '/admin/ai-performance',
-    '/admin/platform-health',
-    '/admin/retention',
-    '/admin/lifecycle',
-    '/admin/feature-adaptation',
-    '/admin/[section]',
+    // '/admin',
+    // '/admin/overview',
+    // '/admin/growth',
+    // '/admin/product-usage',
+    // '/admin/monetization',
+    // '/admin/ai-performance',
+    // '/admin/platform-health',
+    // '/admin/retention',
+    // '/admin/lifecycle',
+    // '/admin/feature-adaptation',
+    // '/admin/[section]',
 ];
 
 export default function AuthGuard({ children }) {
@@ -87,8 +87,15 @@ export default function AuthGuard({ children }) {
                 router.replace('/login');
             } else if (isGuestOnly && user) {
                 lastRedirectTime.current = now;
-                lastRedirectPath.current = '/home';
-                router.replace('/home');
+               
+                if (user?.is_admin) {
+                    lastRedirectPath.current = '/admin/overview';
+                    router.replace('/admin/overview');
+                } else {
+                    lastRedirectPath.current = '/home';
+                    router.replace('/home');
+                }
+           
             }
         }
     }, [user, loading, router.pathname]);

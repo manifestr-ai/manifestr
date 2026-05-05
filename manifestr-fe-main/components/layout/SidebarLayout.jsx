@@ -43,19 +43,23 @@ export default function SidebarLayout({ children }) {
       </AnimatePresence>
 
       {/* Collabs Folder Sidebar - shown on collabs pages */}
-      <AnimatePresence>
-        {showCollabsFolderSidebar && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 240, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="hidden md:block relative z-20"
-          >
-            <CollabsFolderSidebar />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Only show CollabsFolderSidebar if the route is /vault */}
+      {typeof window !== 'undefined' && window.location.pathname === '/vault' && (
+        <AnimatePresence>
+          {showCollabsFolderSidebar && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 240, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="hidden md:block relative z-20"
+            >
+              <CollabsFolderSidebar />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+ 
 
       {/* Main Content */}
       <div className="flex-1 min-w-0 overflow-x-hidden">

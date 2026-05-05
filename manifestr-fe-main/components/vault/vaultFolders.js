@@ -1,29 +1,38 @@
 export const VAULT_FOLDER_DESCRIPTION = 'Your secure workspace for every project, deck & document.'
 
-export const VAULT_FOLDERS = [
-  {
-    id: 'marketing-materials',
-    name: 'Marketing Materials',
-    headerTitle: 'MARKETING materials',
-  },
-  {
-    id: 'finance-reports',
-    name: 'Finance Reports',
-    headerTitle: 'FINANCE reports',
-  },
-  {
-    id: 'presentations',
-    name: 'Presentations',
-    headerTitle: 'PRESENTATIONS',
-  },
-  {
-    id: 'client-assets',
-    name: 'Client Assets',
-    headerTitle: 'CLIENT assets',
-  },
-]
+// export const VAULT_FOLDERS = [
+//   {
+//     id: 'marketing-materials',
+//     name: 'Marketing Materials',
+//     headerTitle: 'MARKETING materials',
+//   },
+//   {
+//     id: 'finance-reports',
+//     name: 'Finance Reports',
+//     headerTitle: 'FINANCE reports',
+//   },
+//   {
+//     id: 'presentations',
+//     name: 'Presentations',
+//     headerTitle: 'PRESENTATIONS',
+//   },
+//   {
+//     id: 'client-assets',
+//     name: 'Client Assets',
+//     headerTitle: 'CLIENT assets',
+//   },
+// ]
+export let VAULT_FOLDERS = [];
+export const setVaultFolders = (folders) => {
+  VAULT_FOLDERS = folders.map((f) => ({
+    id: f.id,
+    name: f.name || f.title,
+    headerTitle: (f.name || f.title).toUpperCase(),
+  }));
+};
 
-export const getVaultFolderHref = (folderId) => `/vault/collabs/${folderId}`
+export const getCollabFolderHref = (folderId) => `/vault/collabs/${folderId}`
+export const getVaultFolderHref = (folderId) => `/vault/folder/${folderId}`
 
 export const getVaultFolderById = (folderId) =>
   VAULT_FOLDERS.find((f) => f.id === folderId) || null

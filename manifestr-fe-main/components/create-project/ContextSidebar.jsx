@@ -1,22 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Input from '../forms/Input'
 import Select from '../forms/Select'
 import Checkbox from '../forms/Checkbox'
 import RadioButton from '../forms/RadioButton'
 import Button from '../ui/Button'
 
-export default function ContextSidebar() {
-  const [objective, setObjective] = useState('')
-  const [audience, setAudience] = useState('')
-  const [toneStyle, setToneStyle] = useState('')
-  const [desiredPages, setDesiredPages] = useState('')
-  const [mandatories, setMandatories] = useState('')
-  const [priorityFocus, setPriorityFocus] = useState({
+export default function ContextSidebar({ projectData = {}, updateProjectData }) {
+  const [objective, setObjective] = useState(projectData.contextObjective || '')
+  const [audience, setAudience] = useState(projectData.contextAudience || '')
+  const [toneStyle, setToneStyle] = useState(projectData.contextTone || '')
+  const [desiredPages, setDesiredPages] = useState(projectData.contextPages || '')
+  const [mandatories, setMandatories] = useState(projectData.contextMandatories || '')
+  const [priorityFocus, setPriorityFocus] = useState(projectData.contextPriorityFocus || {
     dataAccuracy: false,
     visualStorytelling: false,
     persuasiveness: false,
   })
-  const [sensitivityLevel, setSensitivityLevel] = useState('')
+  const [sensitivityLevel, setSensitivityLevel] = useState(projectData.contextSensitivity || '')
 
   const handleSkip = (field) => {
     switch (field) {
@@ -47,8 +47,24 @@ export default function ContextSidebar() {
     }
   }
 
+  // Auto-save context to projectData whenever values change
+  useEffect(() => {
+    if (updateProjectData) {
+      updateProjectData({
+        contextObjective: objective,
+        contextAudience: audience,
+        contextTone: toneStyle,
+        contextPages: desiredPages,
+        contextMandatories: mandatories,
+        contextPriorityFocus: priorityFocus,
+        contextSensitivity: sensitivityLevel
+      })
+    }
+  }, [objective, audience, toneStyle, desiredPages, mandatories, priorityFocus, sensitivityLevel])
+
   const handleSave = () => {
-    // Handle save logic
+    // Context is auto-saved via useEffect
+    console.log('✅ Context saved to project data')
   }
 
   const toneStyleOptions = [

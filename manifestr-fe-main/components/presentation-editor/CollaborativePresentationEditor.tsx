@@ -600,6 +600,40 @@ export default function CollaborativePresentationEditor({
 
   return (
     <div className="w-full h-full bg-[#f3f4f6] flex flex-col relative">
+      {/* Active Users Bar */}
+      {activeUsers.length > 0 && (
+        <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-blue-900">
+              {activeUsers.length} editing now:
+            </span>
+            <div className="flex -space-x-2">
+              {activeUsers.map((user) => (
+                <div
+                  key={user.user_id}
+                  className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                  style={{ backgroundColor: user.user_color || "#3b82f6" }}
+                  title={
+                    user.users
+                      ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
+                        user.users.email
+                      : "User"
+                  }
+                >
+                  {(user.users
+                    ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
+                      user.users.email
+                    : user.users?.email || "U")[0].toUpperCase()}
+                </div>
+              ))}
+            </div>
+          </div>
+          <span className="text-xs text-blue-700">
+            Changes sync automatically
+          </span>
+        </div>
+      )}
+      
       {/* HEADER */}
       <div
         className="
@@ -614,7 +648,7 @@ export default function CollaborativePresentationEditor({
           border-[#E5E7EB]
           bg-white
           "
-        style={{ paddingTop: "12.5px", paddingBottom: "13.5px" }}
+        style={{ paddingTop: activeUsers.length > 0 ? "56.5px" : "12.5px", paddingBottom: "13.5px" }}
       >
         <div className="text-sm text-gray-700 flex items-center">
           <span

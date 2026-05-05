@@ -19,13 +19,20 @@ export class ImageGeneratorController extends BaseController {
         super();
     }
 
+    // 🔥 Middleware to increase timeout for AI-heavy routes
+    private extendTimeout(req: Request, res: Response, next: any) {
+        req.socket.setTimeout(300000); // 5 minutes
+        res.socket?.setTimeout(300000);
+        next();
+    }
+
     protected initializeRoutes(): void {
         this.routes = [
             {
                 verb: 'POST',
                 path: '/generate',
                 handler: this.generateImage.bind(this),
-                middlewares: [authenticateToken],
+                middlewares: [authenticateToken, this.extendTimeout.bind(this)],
             },
         ];
     }

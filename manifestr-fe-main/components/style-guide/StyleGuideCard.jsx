@@ -6,6 +6,7 @@ import StyleGuideDropdown from '../ui/StyleGuideDropdown'
 
 export default function StyleGuideCard({
   category,
+  categoryDetail = 'Style Guide',
   title,
   subtitle,
   projectCount,
@@ -24,20 +25,19 @@ export default function StyleGuideCard({
   const handleMenuClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (!isDropdownOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
       const dropdownWidth = 200
-      
-      // Calculate position - align to the right edge of the button
+
       const left = rect.right - dropdownWidth
       const top = rect.bottom + 8
-      
+
       setDropdownPosition({
         top: top,
-        left: left
+        left: left,
       })
-      
+
       setIsDropdownOpen(true)
     } else {
       setIsDropdownOpen(false)
@@ -54,63 +54,71 @@ export default function StyleGuideCard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1, duration: 0.4 }}
-        whileHover={{ y: -4, scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="relative rounded-3xl overflow-hidden cursor-pointer min-h-[200px] group"
+        whileHover={{ y: -4 }}
+        whileTap={{ scale: 0.99 }}
+        className="relative rounded-xl overflow-hidden cursor-pointer min-h-[192px] group shadow-[0px_1px_3px_rgba(0,0,0,0.08)]"
         style={{
           background: gradient,
         }}
         onClick={onClick}
       >
-        {/* Content */}
-        <div className="absolute inset-0 p-6 flex flex-col justify-between rounded-3xl overflow-hidden">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-[14px] leading-[20px] text-white/80 mb-2">
-                {category}
-              </p>
-              <h3 className="text-[20px] md:text-[24px] font-bold leading-[28px] md:leading-[32px] text-white mb-1">
-                {title}
-              </h3>
-              <p className="text-[16px] leading-[24px] text-white/90">
-                {subtitle}
-              </p>
+        <div className="absolute inset-0 flex flex-col justify-between p-6 rounded-xl">
+          {/* Top: header + menu (Figma 9742:8858) */}
+          <div className="flex shrink-0 items-center justify-between gap-3 w-full">
+            <div className="flex min-w-0 flex-wrap items-center gap-1 text-[14px] leading-5 tracking-[-0.15px]">
+              <span className="font-semibold text-white truncate">{category}</span>
+              {categoryDetail ? (
+                <span className="font-normal text-[#e3e3e3] truncate">{categoryDetail}</span>
+              ) : null}
             </div>
             <button
               ref={buttonRef}
+              type="button"
+              aria-label="More actions"
               onClick={handleMenuClick}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition-colors opacity-0 group-hover:opacity-100 z-10"
+              className="shrink-0 flex h-8 w-8 items-center justify-center rounded-md bg-white/10 transition-colors hover:bg-white/[0.18] z-10"
             >
-              <MoreVertical className="w-5 h-5 text-white" />
+              <MoreVertical className="h-4 w-4 text-white" strokeWidth={2} />
             </button>
           </div>
 
-          <div className="text-[14px] leading-[20px] text-white/80">
-            {projectCount} Projects
+          {/* Title block — gap 4px per Figma */}
+          <div className="flex flex-1 flex-col justify-center gap-1 min-h-[52px] py-1">
+            <h3 className="text-[20px] font-medium leading-7 text-white tracking-[-0.45px] truncate">
+              {title}
+            </h3>
+            <p className="text-[14px] font-medium leading-5 text-white tracking-[-0.15px] truncate">
+              {subtitle}
+            </p>
+          </div>
+
+          {/* Footer: count + muted label (Figma 9742:8872) */}
+          <div className="flex h-9 shrink-0 items-center">
+            <div className="flex items-center gap-1.5 text-[14px] leading-5 font-normal tracking-[-0.15px]">
+              <span className="text-white">{projectCount}</span>
+              <span className="text-[#d1d5dc]">Projects</span>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Dropdown Menu - Rendered via portal to document body */}
       {typeof document !== 'undefined' && isDropdownOpen && createPortal(
         <>
-          {/* Invisible backdrop to catch clicks outside */}
-          <div 
+          <div
             onClick={(e) => {
               e.stopPropagation()
               handleCloseDropdown()
             }}
-            style={{ 
-              position: 'fixed', 
-              top: 0, 
-              left: 0, 
-              width: '100vw', 
-              height: '100vh', 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
               zIndex: 9998,
-              background: 'transparent'
+              background: 'transparent',
             }}
           />
-          {/* Dropdown */}
           <StyleGuideDropdown
             isOpen={isDropdownOpen}
             onClose={handleCloseDropdown}
@@ -126,4 +134,3 @@ export default function StyleGuideCard({
     </>
   )
 }
-

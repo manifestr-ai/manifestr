@@ -11,12 +11,8 @@ import { Toaster, Intent } from "@blueprintjs/core";
 import { useToast } from "../components/ui/Toast";
 
 import { useAuth } from "../contexts/AuthContext";
-import { useRouter } from "next/router";import { loaderMsg } from "../utils/loaderMsg";
-;
-
-
-
-
+import { useRouter } from "next/router";
+import { loaderMsg } from "../utils/loaderMsg";
 // Create toaster instance
 const AppToaster =
   typeof window !== "undefined"
@@ -65,11 +61,7 @@ export default function Login() {
       setIsSubmitting(true);
 
       try {
-        
-        
         await login(email, password);
-       
-   
 
         // Success - AuthContext handles redirect to /home
         // if (AppToaster) {
@@ -80,7 +72,6 @@ export default function Login() {
         //     timeout: 2000,
         //   })
         // }
-      
       } catch (err) {
         console.log(err);
         // Always reset submitting state on error
@@ -148,40 +139,17 @@ export default function Login() {
 
       <div className="min-h-screen flex flex-col lg:flex-row bg-white">
         {/* Left Section - Login Form */}
-        <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-[480px] relative py-12 lg:py-0">
+        <div className="flex-1 flex flex-col w-full lg:min-w-[480px] relative py-12 lg:py-0">
           {/* Logo - Top Left */}
-          <div className="absolute left-6 top-6 lg:left-8 lg:top-8">
+          <div className="p-5">
             <Logo size="md" />
           </div>
 
-          {/* Footer - Bottom Left */}
-          <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8 flex flex-wrap gap-3 items-center">
-            <p className="text-l2-regular text-[#71717b]">
-              © MANIFESTR LLC 2050
-            </p>
-            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">
-              |
-            </span>
-            <Link
-              href="/privacy"
-              className="text-l2-regular !text-[#71717B] hover:opacity-80"
-            >
-              Privacy Policy
-            </Link>
-            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">
-              |
-            </span>
-            <Link
-              href="/terms"
-              className="text-l2-regular !text-[#71717B] hover:opacity-80"
-            >
-              Terms of Use
-            </Link>
-          </div>
-
           {/* Form Container */}
-          <div className="w-full max-w-[550px] px-6 lg:px-8 mt-16 lg:mt-0 mb-20 lg:mb-0">
-            <div className="flex flex-col gap-8 items-center">
+          <div className="w-full max-w-[550px] px-4 sm:px-6 lg:px-8 mx-auto flex flex-col items-center justify-center my-10 sm:my-16 lg:my-20">
+     
+     
+            <div className="flex flex-col gap-8 items-center w-full max-w-[500px]">
               {/* Header Text */}
               <div className="flex flex-col gap-3 items-start w-full">
                 <h1 className="text-[30px] leading-[38px] font-bold text-base-foreground font-hero">
@@ -331,6 +299,32 @@ export default function Login() {
                 </Link>
               </div>
             </div>
+          </div>
+
+          {/* Footer - Bottom Left */}
+          <div className="flex flex-wrap gap-x-3 gap-y-2 items-center mt-5 w-full justify-center sm:justify-start text-center sm:text-left">
+     
+            <p className="text-l2-regular text-[#71717b]">
+              © MANIFESTR LLC 2050
+            </p>
+            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">
+              |
+            </span>
+            <Link
+              href="/privacy"
+              className="text-l2-regular !text-[#71717B] hover:opacity-80"
+            >
+              Privacy Policy
+            </Link>
+            <span className="hidden sm:inline text-zinc-300 text-base leading-6 tracking-[-0.3125px]">
+              |
+            </span>
+            <Link
+              href="/terms"
+              className="text-l2-regular !text-[#71717B] hover:opacity-80"
+            >
+              Terms of Use
+            </Link>
           </div>
         </div>
 

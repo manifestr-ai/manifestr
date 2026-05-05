@@ -10,6 +10,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { Extension, Node, mergeAttributes } from "@tiptap/core";
+import { NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Image } from "@tiptap/extension-image";
 import { TaskList } from "@tiptap/extension-task-list";
@@ -21,6 +23,7 @@ import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { Underline } from "@tiptap/extension-underline";
 import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 import { Link } from "@tiptap/extension-link";
 import { FontFamily } from "../../lib/tiptap-font-family-extension";
 import { Table } from "@tiptap/extension-table";
@@ -40,6 +43,7 @@ import { DocumentFooter } from "../../lib/tiptap-document-footer-extension";
 import { ParagraphIndent } from "../../lib/tiptap-paragraph-indent-extension";
 import { ParagraphSpacing } from "../../lib/tiptap-paragraph-spacing-extension";
 import { SearchHighlight } from "../../lib/tiptap-search-highlight-extension";
+import { HeadingWithId, resetHeadingCounter } from "../../lib/tiptap-heading-with-id-extension";
 
 interface CollaborativeTiptapEditorProps {
   documentId: string;
@@ -63,6 +67,219 @@ const getUserColor = (userId: string): string => {
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return colors[hash % colors.length];
 };
+
+const CommentHighlight = Highlight.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      comment: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-comment"),
+        renderHTML: (attributes) =>
+          attributes.comment
+            ? { "data-comment": attributes.comment, class: "comment-highlight" }
+            : {},
+      },
+    };
+  },
+});
+
+const TableDeleteOnBackspace = Extension.create({
+  name: "tableDeleteOnBackspace",
+  addKeyboardShortcuts() {
+    const deleteTableIfSelected = () => {
+      const { selection } = this.editor.state;
+      if (selection instanceof NodeSelection && selection.node.type.name === "table") {
+        return this.editor.commands.deleteSelection();
+      }
+      return false;
+    };
+
+    const deleteNodeBeforeIfTable = () => {
+      return this.editor.commands.command(({ state, dispatch }) => {
+        const { selection } = state;
+        if (!selection.empty) return false;
+        const $from = selection.$from;
+        const before = $from.nodeBefore;
+        if (!before || before.type.name !== "table") return false;
+        const tr = state.tr.delete($from.pos - before.nodeSize, $from.pos);
+        if (dispatch) dispatch(tr);
+        return true;
+      });
+    };
+
+    const deleteNodeAfterIfTable = () => {
+      return this.editor.commands.command(({ state, dispatch }) => {
+        const { selection } = state;
+        if (!selection.empty) return false;
+        const $from = selection.$from;
+        const after = $from.nodeAfter;
+        if (!after || after.type.name !== "table") return false;
+        const tr = state.tr.delete($from.pos, $from.pos + after.nodeSize);
+        if (dispatch) dispatch(tr);
+        return true;
+      });
+    };
+
+    return {
+      Backspace: () =>
+        deleteTableIfSelected() ||
+        deleteNodeBeforeIfTable() ||
+        false,
+      Delete: () =>
+        deleteTableIfSelected() ||
+        deleteNodeAfterIfTable() ||
+        false,
+    };
+  },
+});
+
+const PageNumberConfig = Node.create({
+  name: "pageNumberConfig",
+  group: "block",
+  atom: true,
+  selectable: false,
+  draggable: false,
+  addAttributes() {
+    return {
+      position: {
+        default: "bottom-center",
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'div[data-type="page-number-config"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-type": "page-number-config",
+        class: "page-number-config",
+      }),
+    ];
+  },
+});
+
+const PageNumber = Node.create({
+  name: "pageNumber",
+  group: "block",
+  atom: true,
+  selectable: false,
+  draggable: false,
+  addAttributes() {
+    return {
+      number: {
+        default: 1,
+      },
+      position: {
+        default: "bottom-center",
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'div[data-type="page-number"]' }];
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    const position = typeof node.attrs.position === "string" ? node.attrs.position : "bottom-center";
+    const number = typeof node.attrs.number === "number" ? node.attrs.number : 1;
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-type": "page-number",
+        "data-position": position,
+        class: `page-number page-number--${position}`,
+      }),
+      `Page ${number}`,
+    ];
+  },
+});
+
+const PAGE_NUMBER_META_KEY = "pageNumberUpdate";
+
+const PageNumberManager = Extension.create({
+  name: "pageNumberManager",
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("pageNumberManager"),
+        appendTransaction: (transactions, _oldState, newState) => {
+          if (!transactions.some((tr) => tr.docChanged)) return null;
+          if (transactions.some((tr) => tr.getMeta(PAGE_NUMBER_META_KEY))) return null;
+
+          const configType = newState.schema.nodes.pageNumberConfig;
+          const pageNumberType = newState.schema.nodes.pageNumber;
+          const pageBreakType = newState.schema.nodes.pageBreak;
+          if (!configType || !pageNumberType || !pageBreakType) return null;
+
+          let configPos: number | null = null;
+          let position: string | null = null;
+
+          newState.doc.descendants((node, pos) => {
+            if (node.type === configType) {
+              configPos = pos;
+              position = typeof node.attrs.position === "string" ? node.attrs.position : "bottom-center";
+              return false;
+            }
+            return true;
+          });
+
+          if (!position) return null;
+
+          const tr = newState.tr.setMeta(PAGE_NUMBER_META_KEY, true);
+
+          const existingNumbers: Array<{ from: number; to: number }> = [];
+          tr.doc.descendants((node, pos) => {
+            if (node.type === pageNumberType) {
+              existingNumbers.push({ from: pos, to: pos + node.nodeSize });
+            }
+            return true;
+          });
+          existingNumbers
+            .sort((a, b) => b.from - a.from)
+            .forEach(({ from, to }) => tr.delete(from, to));
+
+          let configNodeSize = 0;
+          let resolvedConfigPos = configPos;
+          if (resolvedConfigPos != null) {
+            const node = tr.doc.nodeAt(resolvedConfigPos);
+            configNodeSize = node?.nodeSize ?? 0;
+          }
+
+          const breaks: Array<{ pos: number; size: number }> = [];
+          tr.doc.descendants((node, pos) => {
+            if (node.type === pageBreakType) breaks.push({ pos, size: node.nodeSize });
+            return true;
+          });
+
+          const pageCount = breaks.length + 1;
+          const insertAtStart = position.startsWith("top") || position.startsWith("middle");
+
+          const insertions: Array<{ pos: number; number: number }> = [];
+          for (let i = 0; i < pageCount; i++) {
+            const start = i === 0 ? 0 : breaks[i - 1].pos + breaks[i - 1].size;
+            const end = i < breaks.length ? breaks[i].pos : tr.doc.content.size;
+            let insertPos = insertAtStart ? start : end;
+
+            if (i === 0 && resolvedConfigPos === 0 && insertPos === 0) {
+              insertPos = configNodeSize;
+            }
+
+            insertions.push({ pos: insertPos, number: i + 1 });
+          }
+
+          insertions
+            .sort((a, b) => b.pos - a.pos)
+            .forEach(({ pos, number }) => {
+              tr.insert(pos, pageNumberType.create({ number, position }));
+            });
+
+          return tr.docChanged ? tr : null;
+        },
+      }),
+    ];
+  },
+});
 
 export default function CollaborativeTiptapEditor({
   documentId,
@@ -155,11 +372,16 @@ export default function CollaborativeTiptapEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: false, // Disable default heading, we'll use our custom one with IDs
+      }),
+      HeadingWithId.configure({
+        levels: [1, 2, 3, 4, 5, 6],
+      }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      Highlight.configure({ multicolor: true }),
+      CommentHighlight.configure({ multicolor: true }),
       Image,
       Typography,
       Link.configure({
@@ -169,6 +391,9 @@ export default function CollaborativeTiptapEditor({
         },
       }),
       TextStyle,
+      Color.configure({
+        types: ["textStyle"],
+      }),
       FontFamily.configure({
         types: ['textStyle'],
       }),
@@ -195,6 +420,10 @@ export default function CollaborativeTiptapEditor({
       TableRow,
       TableHeader,
       TableCell,
+      TableDeleteOnBackspace,
+      PageNumberConfig,
+      PageNumber,
+      PageNumberManager,
       Collaboration.configure({
         document: ydoc,
         fragment: ydoc.getXmlFragment("prosemirror"),

@@ -1,27 +1,62 @@
-import Head from 'next/head'
-import AdminHeader from '../../components/admin/AdminHeader'
-import AdminSidebar from '../../components/admin/AdminSidebar'
-import MonetizationHeader from '../../components/admin/monetization/MonetizationHeader'
-import RevenueStatCard from '../../components/admin/monetization/RevenueStatCard'
-import FunnelCard from '../../components/admin/monetization/FunnelCard'
-import RevenueTrendChart from '../../components/admin/monetization/RevenueTrendChart'
-import RevenueByPlanChart from '../../components/admin/monetization/RevenueByPlanChart'
-import ExportUsageByPlan from '../../components/admin/monetization/ExportUsageByPlan'
-import PaywallEvents from '../../components/admin/monetization/PaywallEvents'
-import TopRevenueUsersTable from '../../components/admin/monetization/TopRevenueUsersTable'
-import { getAdminMonetizationData } from '../../services/admin/monetization'
+import { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRouter } from "next/router";
+import Head from "next/head";
+
+import AdminHeader from "../../components/admin/AdminHeader";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import MonetizationHeader from "../../components/admin/monetization/MonetizationHeader";
+import RevenueStatCard from "../../components/admin/monetization/RevenueStatCard";
+import FunnelCard from "../../components/admin/monetization/FunnelCard";
+import RevenueTrendChart from "../../components/admin/monetization/RevenueTrendChart";
+import RevenueByPlanChart from "../../components/admin/monetization/RevenueByPlanChart";
+import ExportUsageByPlan from "../../components/admin/monetization/ExportUsageByPlan";
+import PaywallEvents from "../../components/admin/monetization/PaywallEvents";
+import TopRevenueUsersTable from "../../components/admin/monetization/TopRevenueUsersTable";
+
+import { getAdminMonetizationData } from "../../services/admin/monetization";
 
 function SectionLabel({ children }) {
   return (
     <div className="pt-2">
-      <p className="text-[12px] leading-[18px] font-semibold tracking-[0.08em] uppercase text-[#71717a]">
+      <p className="text-[12px] font-semibold uppercase text-[#71717a]">
         {children}
       </p>
     </div>
-  )
+  );
 }
 
-export default function AdminMonetization({ monetizationData }) {
+export default function AdminMonetization() {
+  const [monetizationData, setMonetizationData] = useState(null);
+  const [error, setError] = useState(false);
+
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && (!user || !user.is_admin)) {
+      router.replace("/login");
+    }
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    if (user?.is_admin) {
+      getAdminMonetizationData()
+        .then((data) => {
+          if (!data) setError(true);
+          else setMonetizationData(data);
+        })
+        .catch(() => setError(true));
+    }
+  }, [user]);
+
+  if (loading ) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-500">Failed to load data</div>;
+  }
   return (
     <>
       <Head>
@@ -41,7 +76,6 @@ export default function AdminMonetization({ monetizationData }) {
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
-
               {/* Core Revenue Metrics */}
               <SectionLabel>Core Revenue Metrics</SectionLabel>
 
@@ -80,21 +114,12 @@ export default function AdminMonetization({ monetizationData }) {
               {/* Top Users by Revenue */}
               <SectionLabel>Top Users by Revenue</SectionLabel>
               <TopRevenueUsersTable data={monetizationData?.topRevenueUsers} />
-
             </div>
           </div>
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export async function getServerSideProps({ query }) {
-  const monetizationData = await getAdminMonetizationData(query)
 
-  return {
-    props: {
-      monetizationData,
-    },
-  }
-}

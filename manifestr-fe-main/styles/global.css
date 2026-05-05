@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import './_variables.scss';
-@import './_keyframe-animations.scss';
+@import "./_variables.scss";
+@import "./_keyframe-animations.scss";
 
 @plugin "@tailwindcss/typography";
 
@@ -45,41 +45,48 @@
   --border-radius-xl: 12px;
 
   /* Typography */
-  --font-family-sans: 'Hanken Grotesk', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-sans:
+    "Hanken Grotesk", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
   --font-family-title: Roboto, sans-serif;
-  --font-family-castoro-titling: 'Castoro Titling', serif;
-  --font-family-monte-carlo: 'MonteCarlo', cursive;
-  --font-family-ivy-presto: 'IvyPresto Headline', serif;
+  --font-family-castoro-titling: "Castoro Titling", serif;
+  --font-family-monte-carlo: "MonteCarlo", cursive;
+  --font-family-ivy-presto: "IvyPresto Headline", serif;
 }
 
 /* IvyPresto Headline – local font */
 @font-face {
-  font-family: 'IvyPresto Headline';
-  src: url('/fonts/IvyPresto Headline/IvyPrestoHeadline-SemiBoldItalic.otf') format('opentype');
+  font-family: "IvyPresto Headline";
+  src: url("/fonts/IvyPresto Headline/IvyPrestoHeadline-SemiBoldItalic.otf")
+    format("opentype");
   font-weight: 600;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IvyPresto Headline';
-  src: url('/fonts/IvyPresto Headline/IvyPrestoHeadline-LightItalic.otf') format('opentype');
+  font-family: "IvyPresto Headline";
+  src: url("/fonts/IvyPresto Headline/IvyPrestoHeadline-LightItalic.otf")
+    format("opentype");
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IvyPresto Headline';
-  src: url('/fonts/IvyPresto Headline/IvyPrestoDisplay-Bold.otf') format('opentype');
+  font-family: "IvyPresto Headline";
+  src: url("/fonts/IvyPresto Headline/IvyPrestoDisplay-Bold.otf")
+    format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IvyPresto Headline';
-  src: url('/fonts/IvyPresto Headline/IvyPrestoDisplay-Regular.otf') format('opentype');
+  font-family: "IvyPresto Headline";
+  src: url("/fonts/IvyPresto Headline/IvyPrestoDisplay-Regular.otf")
+    format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -87,8 +94,12 @@
 
 /* Spin animation for rotating elements */
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Toast notification animations */
@@ -144,7 +155,6 @@
 }
 
 @layer base {
-
   html,
   body {
     padding: 0;
@@ -217,7 +227,8 @@
  */
 @layer utilities {
   .admin-card-theme [class*="rounded-xl"][class*="bg-white"][class*="border"],
-  .admin-card-theme [class*="rounded-[20px]"][class*="bg-white"][class*="border"] {
+  .admin-card-theme
+    [class*="rounded-[20px]"][class*="bg-white"][class*="border"] {
     background-color: #f4f4f4 !important;
   }
 
@@ -356,7 +367,6 @@
  * These can be used alongside Tailwind classes
  */
 @layer utilities {
-
   /* Typography Utilities */
   .text-body-base {
     font-size: 16px;
@@ -531,6 +541,48 @@
   user-select: none;
 }
 
+.page-number-config {
+  display: none;
+}
+
+.page-number {
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b7280;
+  margin: 8px 0;
+  user-select: none;
+}
+
+.page-number--top-left,
+.page-number--bottom-left {
+  text-align: left;
+}
+
+.page-number--top-center,
+.page-number--bottom-center {
+  text-align: center;
+}
+
+.page-number--top-right,
+.page-number--bottom-right {
+  text-align: right;
+}
+
+.page-number--middle-left {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  width: fit-content;
+  margin-left: -36px;
+}
+
+.page-number--middle-right {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: -36px;
+}
+
 @media print {
   .page-break {
     height: 0;
@@ -561,12 +613,11 @@
 .polotno-workspace-container {
   /* background-color: #ffffff !important; */
   overflow: hidden !important;
-  }
+}
 
 /* .bp5-popover-target{
   display: none !important;
 } */
-
 
 /* Spreadsheet css start from here */
 
@@ -615,12 +666,12 @@
   justify-content: center !important;
   align-items: center !important;
   border-radius: 4px !important;
-  border: 1px solid #E5E7EB !important;
-  background: #F3F4F6 !important;
+  border: 1px solid #e5e7eb !important;
+  background: #f3f4f6 !important;
 }
 
 [data-u-comp="defined-name"] input {
-  color: #0A0A0A !important;
+  color: #0a0a0a !important;
   text-align: center !important;
   font-family: Inter, sans-serif !important;
   font-size: 14px !important;
@@ -632,7 +683,7 @@
   outline: none !important;
   padding: 0 !important;
   margin: 0 !important;
-  margin-right:5px !important
+  margin-right: 5px !important;
 }
 
 [data-u-comp="slide-tab-item"] {
@@ -641,15 +692,15 @@
   padding: 0 12px !important;
   align-items: center !important;
   border-radius: 4px 4px 0 0 !important;
-  border-top: 2px solid #2B7FFF !important;
-  background: #FFF !important;
+  border-top: 2px solid #2b7fff !important;
+  background: #fff !important;
   position: relative;
-  color:#0A0A0A !important;
+  color: #0a0a0a !important;
 }
 
 /* Add pencil icon after the text in each slide tab item */
 [data-u-comp="slide-tab-item"]::after {
-  content: '';
+  content: "";
   display: inline-block;
   width: 16px;
   height: 16px;
@@ -665,29 +716,25 @@
   display: none !important;
 }
 
-
 [data-u-comp="formula-bar"] .univer-ring-1 {
   height: 32px !important;
   padding: 4px 40px 4px 12px !important;
   border-radius: 6px !important;
-  border: 1px solid rgba(0, 0, 0, 0.00) !important;
-  background: #F3F3F5 !important;
+  border: 1px solid rgba(0, 0, 0, 0) !important;
+  background: #f3f3f5 !important;
 }
 
-
-footer > .univer-box-border{
-  background: #F9FAFB !important;
+footer > .univer-box-border {
+  background: #f9fafb !important;
 }
 
 /* Hide dropdown (range selector arrow) */
 .univerjs-icon-dropdown-icon {
   display: none !important;
 }
-.univerjs-icon-close-icon{
+.univerjs-icon-close-icon {
   display: none !important;
 }
-
-
 
 /* Tiptap Table Styles */
 .ProseMirror table {
@@ -794,12 +841,49 @@ footer > .univer-box-border{
   box-shadow: 0 0 0 2px #fef08a;
 }
 
+.search-highlight--active {
+  background-color: #fdba74 !important;
+  box-shadow: 0 0 0 2px #fb923c;
+}
+
 /* Comment Highlight */
 .comment-highlight {
   background-color: #fef3c7 !important;
   border-bottom: 2px solid #f59e0b;
   cursor: help;
   position: relative;
+}
+
+.comment-highlight[data-comment]:hover::after {
+  content: attr(data-comment);
+  position: absolute;
+  left: 0;
+  top: -10px;
+  transform: translateY(-100%);
+  max-width: 280px;
+  width: max-content;
+  background: #111827;
+  color: #ffffff;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 16px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+  z-index: 9999;
+  pointer-events: none;
+  white-space: normal;
+}
+
+.comment-highlight[data-comment]:hover::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: -10px;
+  transform: translateY(-100%);
+  border: 6px solid transparent;
+  border-top-color: #111827;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 /* Hide comments when toggled */
@@ -826,7 +910,7 @@ footer > .univer-box-border{
 }
 
 .doc-header::before {
-  content: 'HEADER';
+  content: "HEADER";
   position: absolute;
   top: 4px;
   right: 8px;
@@ -837,7 +921,7 @@ footer > .univer-box-border{
 }
 
 .doc-footer::before {
-  content: 'FOOTER';
+  content: "FOOTER";
   position: absolute;
   top: 4px;
   right: 8px;
@@ -852,14 +936,10 @@ footer > .univer-box-border{
   .doc-footer::before {
     display: none;
   }
-  
+
   .doc-header,
   .doc-footer {
     border: none;
     background: transparent;
   }
 }
-
-
-
-

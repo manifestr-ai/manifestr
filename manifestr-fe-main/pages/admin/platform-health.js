@@ -1,4 +1,8 @@
+import { useEffect, useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
+
 import AdminHeader from '../../components/admin/AdminHeader'
 import AdminSidebar from '../../components/admin/AdminSidebar'
 import PlatformHealthHeader from '../../components/admin/platform-health/PlatformHealthHeader'
@@ -9,9 +13,37 @@ import QueueAndExportsMonitor from '../../components/admin/platform-health/Queue
 import SystemLogsSection from '../../components/admin/platform-health/SystemLogsSection'
 import RealtimeSystemAlerts from '../../components/admin/platform-health/RealtimeSystemAlerts'
 import FailuresAlertsList from '../../components/admin/platform-health/FailuresAlertsList'
+
 import { getAdminPlatformHealthData } from '../../services/admin/platform-health'
 
-export default function AdminPlatformHealth({ platformHealthData }) {
+export default function AdminPlatformHealth() {
+  const [platformHealthData, setplatformHealthData] = useState(null)
+  const [error, setError] = useState(false)
+
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  // 🔐 Protect route
+  useEffect(() => {
+    if (!loading && (!user || !user.is_admin)) {
+      router.replace('/login')
+    }
+  }, [user, loading, router])
+
+  // 📡 Fetch data
+  useEffect(() => {
+    if (user?.is_admin) {
+      getAdminPlatformHealthData()
+        .then((res) => {
+          if (!res) setError(true)
+          else setplatformHealthData(res)
+        })
+        .catch(() => setError(true))
+    }
+  }, [user])
+
+  if (loading) return <div className="p-6">Loading...</div>
+  if (error) return <div className="p-6 text-red-500">Failed to load</div>
   return (
     <>
       <Head>
@@ -60,12 +92,3 @@ export default function AdminPlatformHealth({ platformHealthData }) {
   )
 }
 
-export async function getServerSideProps({ query }) {
-  const platformHealthData = await getAdminPlatformHealthData(query)
-
-  return {
-    props: {
-      platformHealthData,
-    },
-  }
-}

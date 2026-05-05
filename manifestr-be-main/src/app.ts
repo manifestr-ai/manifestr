@@ -14,11 +14,13 @@ import { ImageGeneratorController } from './controllers/image.generator.controll
 import { ImageModifierController } from './controllers/image.modifier.controller';
 import { SpreadsheetGeneratorController } from './controllers/spreadsheet.generator.controller';
 import { PresentationGeneratorController } from './controllers/presentation.generator.controller';
+import { ChartGeneratorController } from './controllers/chart.generator.controller';
 import { VaultController } from './controllers/vault.controller';
 import { StyleGuideController } from './controllers/style-guide.controller';
 import { EarlyAccessController } from './controllers/early-access.controller';
 import { CollaborationController } from './controllers/collaboration.controller';
 import { CollabProjectsController } from './controllers/collab-projects.controller';
+import { AdminController } from './controllers/admin.controller';
 import { ThreadsController } from './controllers/threads.controller';
 import { UserStatsController } from './controllers/user.stats.controller';
 
@@ -36,7 +38,16 @@ class App {
     }
 
     public listen(cb?: () => void) {
-        this.app.listen(this.port, cb);
+        const server = this.app.listen(this.port, cb);
+        
+        // 🔥 Set server timeout to 10 minutes for long-running AI requests
+        server.timeout = 600000; // 10 minutes in milliseconds
+        server.keepAliveTimeout = 605000; // Slightly longer than timeout
+        server.headersTimeout = 610000; // Slightly longer than keepAliveTimeout
+        
+        console.log(`⏱️  Server timeout set to ${server.timeout / 1000} seconds`);
+        
+        return server;
     }
 
     private initializeMiddlewares() {
@@ -123,11 +134,13 @@ class App {
             new ImageModifierController(),
             new SpreadsheetGeneratorController(),
             new PresentationGeneratorController(),
+            new ChartGeneratorController(),
             new AIController(),
             new UploadController(),
             new VaultController(),
             new StyleGuideController(),
             new EarlyAccessController(),
+            new AdminController(),
             new CollaborationController(), // Real-time collaboration
             new CollabProjectsController(), // Collab projects/folders
             new ThreadsController(), // NEW: Threaded commenting/feedback system

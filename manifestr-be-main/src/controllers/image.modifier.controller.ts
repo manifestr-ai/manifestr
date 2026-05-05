@@ -21,13 +21,20 @@ export class ImageModifierController extends BaseController {
         super();
     }
 
+    // 🔥 Middleware to increase timeout for AI-heavy routes
+    private extendTimeout(req: Request, res: Response, next: any) {
+        req.socket.setTimeout(300000); // 5 minutes
+        res.socket?.setTimeout(300000);
+        next();
+    }
+
     protected initializeRoutes(): void {
         this.routes = [
             {
                 verb: 'POST',
                 path: '/modify',
                 handler: this.modifyImage.bind(this),
-                middlewares: [authenticateToken],
+                middlewares: [authenticateToken, this.extendTimeout.bind(this)],
             },
         ];
     }

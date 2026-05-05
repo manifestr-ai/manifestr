@@ -3,13 +3,34 @@ export default async function handler(req, res) {
         return res.status(405).json({ message: 'Method not allowed' })
     }
 
-    const { projectData, tool } = req.body
+    const { projectData, tool, uploadedFiles = [], mode } = req.body
+
+    // Build file context if files were uploaded
+    let fileContext = ''
+    if (uploadedFiles && uploadedFiles.length > 0) {
+        fileContext = `\n\nUPLOADED FILES CONTEXT:\n`
+        uploadedFiles.forEach((file, index) => {
+            fileContext += `File ${index + 1}: ${file.name || 'Unknown'} (Type: ${file.type || 'Unknown'})\n`
+            if (file.url) {
+                fileContext += `URL: ${file.url}\n`
+            }
+        })
+        fileContext += `\nThe user has uploaded ${uploadedFiles.length} file(s). Analyze these files and incorporate their content/context into your brief generation. For images, describe what they contain and how they should inform the document structure and content.\n`
+    }
+
+    // Include enriched context from sidebar
+    let contextSidebarInfo = ''
+    if (projectData.enrichedContext) {
+        contextSidebarInfo = `\n\nUSER-PROVIDED CONTEXT FROM SIDEBAR:\n${projectData.enrichedContext}\n\nThis context is CRITICAL - it contains the user's specific requirements. Make sure ALL of these requirements are reflected in the final brief.\n`
+    }
 
     const systemPrompt = `
     You are an expert strategic consultant and content architect. 
     Your goal is to take sparse or detailed user input and transform it into a professional, comprehensive project brief.
     
     The user is creating a: ${tool?.title || 'Document'} (${tool?.outputType || 'Project'})
+    Mode: ${mode || 'Unknown'}
+    ${fileContext}${contextSidebarInfo}
     
     Output must be a VALID JSON object with the following fields:
     - documentName (Creative, professional title)
@@ -35,8 +56,26 @@ export default async function handler(req, res) {
     Do NOT output markdown code blocks. Just the raw JSON string.
   `
 
+    // Build voice context if available
+    let voiceContext = ''
+    if (projectData.voiceTranscript) {
+        voiceContext = `\n\nVOICE TRANSCRIPT (talk-to-me mode):\n"${projectData.voiceTranscript}"\n`
+        
+        if (projectData.voiceExtractedData) {
+            voiceContext += `\nALREADY EXTRACTED INFORMATION from voice:\n${JSON.stringify(projectData.voiceExtractedData, null, 2)}\n`
+            voiceContext += `\nIMPORTANT: Use the already extracted information above as the PRIMARY source. The voice transcript is provided for additional context only. DO NOT re-extract or override the already extracted fields.`
+        } else {
+            voiceContext += `\nParse this natural speech and extract all relevant project details. Pay special attention to verbal cues about objectives, audience, deliverables, and constraints.`
+        }
+    }
+
     const userPrompt = `
     User Input Context: ${JSON.stringify(projectData)}
+    
+    ${uploadedFiles.length > 0 ? `IMPORTANT: The user uploaded ${uploadedFiles.length} file(s). These files should heavily influence the brief. Analyze what these files likely contain and tailor the brief accordingly.` : ''}
+    
+    ${projectData.enrichedContext ? `CRITICAL CONTEXT: The user provided specific requirements in the sidebar. These MUST be incorporated into the brief:\n${projectData.enrichedContext}` : ''}
+    ${voiceContext}
   `
 
     try {

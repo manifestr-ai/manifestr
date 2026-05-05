@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { shapeConfigs as presentationShapeConfigs, type ShapeConfig } from "../comman-panel/ShapesPanel";
 
 interface InsertPanelProps {
   store: any; // Univer FacadeAPI
@@ -8,13 +9,13 @@ export default function InsertPanel({ store }: InsertPanelProps) {
   const [showSymbolPicker, setShowSymbolPicker] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showShapePicker, setShowShapePicker] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
 
-  if (!store) return null;
-
   // Helper to get active cell
   const getActiveCell = () => {
+    if (!store) return null;
     try {
       const workbook = store.getActiveWorkbook();
       if (!workbook) return null;
@@ -321,82 +322,291 @@ export default function InsertPanel({ store }: InsertPanelProps) {
 
   // Insert Shape (draws shape using cell backgrounds) - BULLETPROOF
   const handleInsertShape = () => {
-    console.log('🔵 Insert Shape clicked!');
-    
-    if (!store) {
-      console.error('⚠️ Spreadsheet not ready');
-      return;
-    }
+    if (!store) return;
+    setShowShapePicker(true);
+  };
 
+  const getActiveStartCell = () => {
+    const cellInfo = getActiveCell();
+    if (!cellInfo) return null;
+    const { sheet, selection } = cellInfo;
+    let startRow = 0;
+    let startCol = 0;
     try {
-      const cellInfo = getActiveCell();
-      if (!cellInfo) {
-        console.warn('⚠️ Please select a cell first');
-        return;
+      const range = sheet.getActiveRange();
+      if (range && typeof range.getRow === "function") {
+        startRow = range.getRow();
+        startCol = range.getColumn();
+      } else if (range && typeof range.getStartRow === "function") {
+        startRow = range.getStartRow();
+        startCol = range.getStartColumn();
+      } else if (selection) {
+        const activeCell = selection.getActiveCell();
+        if (activeCell) {
+          startRow = activeCell.row;
+          startCol = activeCell.column;
+        }
       }
+    } catch {}
+    return { ...cellInfo, startRow, startCol };
+  };
 
-      const { sheet, selection } = cellInfo;
-      
-      // Try to get active range position
-      let startRow = 0;
-      let startCol = 0;
-      
-      try {
-        const range = sheet.getActiveRange();
-        if (range && typeof range.getRow === 'function') {
-          startRow = range.getRow();
-          startCol = range.getColumn();
-        } else if (range && typeof range.getStartRow === 'function') {
-          startRow = range.getStartRow();
-          startCol = range.getStartColumn();
-        } else if (selection) {
-          const activeCell = selection.getActiveCell();
-          if (activeCell) {
-            startRow = activeCell.row;
-            startCol = activeCell.column;
-          }
+  type ShapePreset = {
+    id: string;
+    config: ShapeConfig;
+    w: number;
+    h: number;
+  };
+
+  const shapePresets: ShapePreset[] = useMemo(() => {
+    const toDims = (shape: ShapeConfig) => {
+      if (shape.figureSubType === "circle") return { w: 9, h: 9 };
+      if (shape.figureSubType === "triangle") return { w: 11, h: 9 };
+      if (shape.figureSubType === "diamond") return { w: 11, h: 9 };
+      if (shape.figureSubType === "pentagon") return { w: 11, h: 9 };
+      if (shape.figureSubType === "hexagon") return { w: 11, h: 9 };
+      if (shape.figureSubType === "star") return { w: 11, h: 11 };
+      if (shape.figureSubType === "rightArrow" || shape.figureSubType === "leftArrow") return { w: 13, h: 7 };
+      if (shape.figureSubType === "speechBubble") return { w: 13, h: 9 };
+      if (shape.figureSubType === "line") return { w: 13, h: 7 };
+      const isRounded = shape.figureSubType === "rect" && (shape.cornerRadius || 0) > 0;
+      return { w: 11, h: isRounded ? 7 : 7 };
+    };
+
+    return presentationShapeConfigs.map((config) => {
+      const dims = toDims(config);
+      return {
+        id: `${config.figureSubType}-${config.name}`.toLowerCase().replace(/\s+/g, "-"),
+        config,
+        w: dims.w,
+        h: dims.h,
+      };
+    });
+  }, []);
+
+  const buildMask = (preset: ShapePreset) => {
+    const w = Math.max(3, Math.round(preset.w));
+    const h = Math.max(3, Math.round(preset.h));
+    const mask: boolean[][] = Array.from({ length: h }, () =>
+      Array.from({ length: w }, () => false),
+    );
+
+    const set = (x: number, y: number, v: boolean) => {
+      if (y < 0 || y >= h || x < 0 || x >= w) return;
+      mask[y][x] = v;
+    };
+
+    const fillBy = (fn: (x: number, y: number) => boolean) => {
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          set(x, y, fn(x, y));
         }
-      } catch (e) {
-        console.log('Using fallback position (0,0)');
       }
-      
-      console.log(`🔵 Drawing rectangle at row ${startRow}, col ${startCol}`);
-      
-      let successCount = 0;
-      
-      // Draw a simple rectangle shape (3x5 cells)
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 5; c++) {
-          try {
-            const cell = sheet.getRange(startRow + r, startCol + c, 1, 1);
-            
-            if (r === 0 || r === 2 || c === 0 || c === 4) {
-              try {
-                cell.setBackground('#3B82F6');
-                cell.setValue(' ');
-                successCount++;
-              } catch (e) {}
-            } else {
-              try {
-                cell.setBackground('#EFF6FF');
-                successCount++;
-              } catch (e) {}
-            }
-          } catch (e) {
-            console.warn(`Failed to draw shape cell at ${r}, ${c}:`, e);
-          }
-        }
-      }
-      
-      if (successCount > 0) {
-        console.log(`✅ SHAPE INSERTED! (${successCount} cells set)`);
-      } else {
-        throw new Error('No shape cells were set');
-      }
-      
-    } catch (error) {
-      console.error('❌ Insert shape failed:', error);
+    };
+
+    const cx = (w - 1) / 2;
+    const cy = (h - 1) / 2;
+
+    const kind = preset.config.figureSubType;
+
+    if (kind === "rect" && (preset.config.cornerRadius || 0) === 0) {
+      fillBy(() => true);
+      return mask;
     }
+
+    if (kind === "rect" && (preset.config.cornerRadius || 0) > 0) {
+      const r = Math.max(1, Math.floor(Math.min(w, h) / 3));
+      fillBy((x, y) => {
+        const left = x;
+        const right = w - 1 - x;
+        const top = y;
+        const bottom = h - 1 - y;
+        const inCorner = (left < r && top < r) || (right < r && top < r) || (left < r && bottom < r) || (right < r && bottom < r);
+        if (!inCorner) return true;
+        const cornerCx = left < r ? r - 1 : w - r;
+        const cornerCy = top < r ? r - 1 : h - r;
+        const dx = x - cornerCx;
+        const dy = y - cornerCy;
+        return dx * dx + dy * dy <= r * r;
+      });
+      return mask;
+    }
+
+    if (kind === "circle") {
+      const rx = (w - 1) / 2;
+      const ry = (h - 1) / 2;
+      fillBy((x, y) => {
+        const dx = (x - cx) / rx;
+        const dy = (y - cy) / ry;
+        return dx * dx + dy * dy <= 1;
+      });
+      return mask;
+    }
+
+    if (kind === "triangle") {
+      fillBy((x, y) => {
+        const t = y / (h - 1);
+        const half = (w - 1) / 2;
+        const span = Math.round(t * half);
+        const left = Math.round(cx - span);
+        const right = Math.round(cx + span);
+        return x >= left && x <= right;
+      });
+      return mask;
+    }
+
+    if (kind === "diamond") {
+      const rx = (w - 1) / 2;
+      const ry = (h - 1) / 2;
+      fillBy((x, y) => Math.abs(x - cx) / rx + Math.abs(y - cy) / ry <= 1);
+      return mask;
+    }
+
+    if (kind === "hexagon") {
+      const inset = Math.max(1, Math.floor(w / 6));
+      fillBy((x, y) => {
+        const t = Math.abs(y - cy) / cy;
+        const sideInset = Math.round(t * inset);
+        const left = sideInset;
+        const right = w - 1 - sideInset;
+        return x >= left && x <= right;
+      });
+      return mask;
+    }
+
+    if (kind === "pentagon") {
+      fillBy((x, y) => {
+        const topZone = y <= Math.floor(h / 3);
+        if (topZone) {
+          const t = y / Math.floor(h / 3);
+          const half = (w - 1) / 2;
+          const span = Math.round((1 - t) * half);
+          const left = Math.round(cx - (half - span));
+          const right = Math.round(cx + (half - span));
+          return x >= left && x <= right;
+        }
+        return true;
+      });
+      return mask;
+    }
+
+    if (kind === "rightArrow" || kind === "leftArrow") {
+      const head = Math.max(3, Math.floor(w / 3));
+      const shaftH = Math.max(3, Math.floor(h / 3));
+      const shaftTop = Math.floor((h - shaftH) / 2);
+      const shaftBottom = shaftTop + shaftH - 1;
+      fillBy((x, y) => {
+        const inShaft =
+          y >= shaftTop && y <= shaftBottom && (kind === "rightArrow" ? x <= w - head : x >= head - 1);
+        if (inShaft) return true;
+        const rel = Math.abs(y - cy);
+        const span = Math.round((cy - rel) * (head - 1) / cy);
+        if (kind === "rightArrow") {
+          const left = w - head;
+          const right = w - 1;
+          const tipX = right;
+          const minX = tipX - span;
+          return x >= Math.max(left, minX) && x <= right;
+        }
+        const left = 0;
+        const right = head - 1;
+        const tipX = left;
+        const maxX = tipX + span;
+        return x >= left && x <= Math.min(right, maxX);
+      });
+      return mask;
+    }
+
+    if (kind === "star") {
+      fillBy((x, y) => {
+        const dx = x - cx;
+        const dy = y - cy;
+        const r = Math.sqrt(dx * dx + dy * dy) || 1;
+        const angle = Math.atan2(dy, dx);
+        const spikes = 5;
+        const k = Math.abs(Math.cos((spikes * angle) / 2));
+        const maxR = (Math.min(w, h) / 2) * (0.55 + 0.45 * k);
+        return r <= maxR;
+      });
+      return mask;
+    }
+
+    if (kind === "line") {
+      fillBy((x, y) => {
+        const t = x / (w - 1);
+        const yLine = (1 - t) * (h - 1);
+        return Math.abs(y - yLine) <= 0.8;
+      });
+      return mask;
+    }
+
+    if (kind === "speechBubble") {
+      const tailW = Math.max(3, Math.floor(w / 4));
+      const tailH = Math.max(2, Math.floor(h / 4));
+      const bodyH = h - tailH;
+      fillBy((x, y) => {
+        if (y < bodyH) return true;
+        const ty = y - bodyH;
+        const left = Math.floor(w / 5);
+        const right = left + tailW - 1;
+        const span = Math.max(0, tailW - 1 - Math.round((ty / (tailH - 1)) * (tailW - 1)));
+        const l = Math.round((left + right) / 2 - span / 2);
+        const r = l + span;
+        return x >= l && x <= r;
+      });
+      return mask;
+    }
+
+    fillBy(() => true);
+    return mask;
+  };
+
+  const computeBorder = (mask: boolean[][]) => {
+    const h = mask.length;
+    const w = mask[0]?.length || 0;
+    const border: boolean[][] = Array.from({ length: h }, () =>
+      Array.from({ length: w }, () => false),
+    );
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (!mask[y][x]) continue;
+        const neighbors = [
+          [x - 1, y],
+          [x + 1, y],
+          [x, y - 1],
+          [x, y + 1],
+        ];
+        const isEdge = neighbors.some(([nx, ny]) => ny < 0 || ny >= h || nx < 0 || nx >= w || !mask[ny][nx]);
+        border[y][x] = isEdge;
+      }
+    }
+    return border;
+  };
+
+  const insertShapePreset = (preset: ShapePreset) => {
+    if (!store) return;
+    const cellInfo = getActiveStartCell();
+    if (!cellInfo) return;
+    const { sheet, startRow, startCol } = cellInfo;
+
+    const strokeColor = "#111827";
+    const fillColor = "#DBEAFE";
+    const mask = buildMask(preset);
+    const border = computeBorder(mask);
+
+    for (let y = 0; y < mask.length; y++) {
+      for (let x = 0; x < mask[0].length; x++) {
+        if (!mask[y][x]) continue;
+        try {
+          const cell = sheet.getRange(startRow + y, startCol + x, 1, 1);
+          const color = border[y][x] ? strokeColor : fillColor;
+          cell.setBackground(color);
+          cell.setValue(" ");
+        } catch {}
+      }
+    }
+
+    setShowShapePicker(false);
   };
 
   // Insert Icon (inserts emoji/symbol) - BULLETPROOF
@@ -624,6 +834,8 @@ export default function InsertPanel({ store }: InsertPanelProps) {
     '•', '◦', '▪', '▫', '★', '☆', '♠', '♣', '♥', '♦', '¶', '§', '†', '‡', '‰'
   ];
 
+  if (!store) return null;
+
   return (
     <>
     <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
@@ -810,13 +1022,12 @@ export default function InsertPanel({ store }: InsertPanelProps) {
       {/* Divider */}
       <div className=" w-px h-[50px] bg-[#E3E4EA]" />
       {/* Charts */}
-      <div className="flex flex-col items-center min-w-[150px]">
+      {/* <div className="flex flex-col items-center min-w-[150px]">
         <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
           Charts
         </span>
 
-        <div className="flex flex-row items-center gap-[34px]">
-          {/* Chart */}
+        <div className="flex flex-row items-center gap-[34px]">    
           <button
             onClick={handleInsertChart}
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
@@ -879,7 +1090,7 @@ export default function InsertPanel({ store }: InsertPanelProps) {
             </span>
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Divider */}
       <div className=" w-px h-[50px] bg-[#E3E4EA]" />
@@ -1210,6 +1421,48 @@ export default function InsertPanel({ store }: InsertPanelProps) {
           >
             Cancel
           </button>
+        </div>
+      </div>
+    )}
+
+    {/* Shape Picker Modal */}
+    {showShapePicker && (
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        onClick={() => setShowShapePicker(false)}
+      >
+        <div
+          className="bg-white rounded-lg p-6 w-[720px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-80px)] shadow-xl overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Shapes</h3>
+            <button
+              type="button"
+              onClick={() => setShowShapePicker(false)}
+              className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="grid grid-cols-6 gap-3">
+            {shapePresets.map((preset) => {
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => insertShapePreset(preset)}
+                  className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition flex flex-col items-center gap-2"
+                >
+                  <div className="text-black">{preset.config.icon}</div>
+                  <div className="text-[11px] text-gray-700 text-center leading-4">
+                    {preset.config.name}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     )}

@@ -40,16 +40,25 @@ export class DocumentGeneratorController extends BaseController {
         this.generator = new ProfessionalDocGenerator();
     }
 
+    // 🔥 Middleware to increase timeout for AI-heavy routes
+    private extendTimeout(req: Request, res: Response, next: any) {
+        req.socket.setTimeout(300000); // 5 minutes
+        res.socket?.setTimeout(300000);
+        next();
+    }
+
     protected initializeRoutes() {
         this.routes = [
             {
                 verb: 'POST',
                 path: '/create',
+                middlewares: [this.extendTimeout.bind(this)],
                 handler: this.generateDocument.bind(this),
             },
             {
                 verb: 'POST',
                 path: '/modify',
+                middlewares: [this.extendTimeout.bind(this)],
                 handler: this.modifyDocument.bind(this),
             },
         ];

@@ -8,6 +8,7 @@ import VaultSearchBar from "../../components/vault/VaultSearchBar";
 import VaultGrid from "../../components/vault/VaultGrid";
 import api from "../../lib/api";
 import { useToast } from "../../components/ui/Toast";
+import { VAULT_BANNER } from "../../lib/vaultBanners";
 
 export default function VaultRecents() {
   const router = useRouter();
@@ -155,7 +156,7 @@ export default function VaultRecents() {
     if (type.includes("presentation")) {
       path = `/presentation-editor?id=${project.id}`;
     } else if (type.includes("chart")) {
-      path = `/chart-editor?id=${project.id}`;
+      path = `/chart-viewer?id=${project.id}`;
     } else if (type.includes("spreadsheet") || type.includes("sheet")) {
       path = `/spreadsheet-editor?id=${project.id}`;
     } else if (type.includes("image")) {
@@ -167,11 +168,7 @@ export default function VaultRecents() {
     router.push(path);
   };
 
-  // Background image URL for the header
-  const headerBackgroundImage =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/assets/banners/Rectangle.png`
-      : "http://localhost:3000/assets/banners/Rectangle.png";
+  const headerBackgroundImage = VAULT_BANNER.recents;
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
 

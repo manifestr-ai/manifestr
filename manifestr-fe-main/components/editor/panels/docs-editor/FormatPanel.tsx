@@ -1,25 +1,9 @@
-import React, { useState, useEffect } from "react";
-import {
-  Scissors,
-  Copy,
-  Clipboard,
-  Eraser,
-  ChevronDown,
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  List,
-  ListOrdered,
-  IndentDecrease,
-  IndentIncrease,
-  Space,
-  Strikethrough,
-  Subscript,
-  Superscript,
+import React, { useState, useEffect, useRef } from "react";
+import { 
+  Scissors, Copy, Clipboard, Eraser, ChevronDown, Bold, Italic, Underline,
+  Palette, Highlighter, AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  List, ListOrdered, IndentDecrease, IndentIncrease, Space, Strikethrough,
+  Subscript, Superscript
 } from "lucide-react";
 
 interface FormatPanelProps {
@@ -31,16 +15,43 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
   const [style, setStyle] = useState("Normal");
   const [font, setFont] = useState("Inter");
   const [fontSize, setFontSize] = useState("12pt");
+  const [textColor, setTextColor] = useState("#000000");
+  const textColorInputRef = useRef<HTMLInputElement | null>(null);
+  const [showHighlightMenu, setShowHighlightMenu] = useState(false);
+  const highlightMenuAnchorRef = useRef<HTMLButtonElement | null>(null);
+  const highlightMenuRef = useRef<HTMLDivElement | null>(null);
+  const [highlightMenuPos, setHighlightMenuPos] = useState<{ top: number; right: number } | null>(null);
+
+  const focusEditor = () => {
+    if (!editor) return;
+    if (typeof editor.commands?.focus === "function") {
+      editor.commands.focus();
+      return;
+    }
+    if (typeof editor.view?.focus === "function") {
+      editor.view.focus();
+    }
+  };
+
+  const isEditableTarget = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null;
+    if (!el) return false;
+    const tag = el.tagName?.toLowerCase();
+    return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
+  };
 
   // Update active states based on editor state
   useEffect(() => {
     if (!editor) return;
 
     const updateStates = () => {
-      if (editor.isActive("heading", { level: 1 })) setStyle("Heading 1");
-      else if (editor.isActive("heading", { level: 2 })) setStyle("Heading 2");
-      else if (editor.isActive("heading", { level: 3 })) setStyle("Heading 3");
-      else setStyle("Normal");
+      if (editor.isActive('heading', { level: 1 })) setStyle('Heading 1');
+      else if (editor.isActive('heading', { level: 2 })) setStyle('Heading 2');
+      else if (editor.isActive('heading', { level: 3 })) setStyle('Heading 3');
+      else setStyle('Normal');
+
+      const activeColor = editor.getAttributes?.("textStyle")?.color;
+      setTextColor(typeof activeColor === "string" ? activeColor : "#000000");
     };
 
     editor.on("selectionUpdate", updateStates);
@@ -52,23 +63,174 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
     };
   }, [editor]);
 
-  // Quick Actions
-  const handleCut = () => {
-    document.execCommand("cut");
+  useEffect(() => {
+    if (!showHighlightMenu) return;
+
+    const close = (e: MouseEvent) => {
+      const anchor = highlightMenuAnchorRef.current;
+      const menu = highlightMenuRef.current;
+      if (e.target instanceof Node) {
+        if (anchor && anchor.contains(e.target)) return;
+        if (menu && menu.contains(e.target)) return;
+      }
+      setShowHighlightMenu(false);
+    };
+
+    window.addEventListener("mousedown", close, true);
+    return () => window.removeEventListener("mousedown", close, true);
+  }, [showHighlightMenu]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const onKeyDown = async (e: KeyboardEvent) => {
+      if (isEditableTarget(e.target)) return;
+      if (!(e.metaKey || e.ctrlKey)) return;
+
+      const key = e.key.toLowerCase();
+      if (key !== "c" && key !== "x" && key !== "v") return;
+
+      focusEditor();
+
+      if (key === "c") {
+        document.execCommand("copy");
+        return;
+      }
+
+      if (key === "x") {
+        document.execCommand("cut");
+        return;
+      }
+
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && typeof editor.commands?.insertContent === "function") {
+          editor.commands.insertContent(text);
+        }
+      } catch {}
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [editor]);
+
+  const applyTextColor = (color: string) => {
+    setTextColor(color);
+    if (!editor) return;
+    if (typeof editor.chain?.().focus?.().setColor === "function") {
+      editor.chain().focus().setColor(color).run();
+      return;
+    }
+    editor.chain().focus().setMark("textStyle", { color }).run();
   };
 
-  const handleCopy = () => {
-    document.execCommand("copy");
+  const applyHighlight = (color: string | null) => {
+    if (!editor) return;
+    focusEditor();
+
+    const isTiptapLike = typeof editor?.commands?.focus === "function";
+
+    if (color == null) {
+      if (isTiptapLike) {
+        if (typeof editor.chain?.().focus?.().unsetHighlight === "function") {
+          editor.chain().focus().unsetHighlight().run();
+          return;
+        }
+        if (typeof editor.chain?.().focus?.().unsetMark === "function") {
+          editor.chain().focus().unsetMark("highlight").run();
+          return;
+        }
+        return;
+      }
+
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const getHighlightedAncestor = (node: Node | null): HTMLElement | null => {
+        const el =
+          (node &&
+            (node.nodeType === Node.ELEMENT_NODE
+              ? (node as HTMLElement)
+              : (node as any).parentElement)) ||
+          null;
+        if (!el) return null;
+        const highlighted = el.closest?.('[style*="background-color"]') as HTMLElement | null;
+        if (highlighted?.style?.backgroundColor) return highlighted;
+        if (el?.style?.backgroundColor) return el;
+        return null;
+      };
+      const isSelectionHighlighted = () => {
+        const a = getHighlightedAncestor(selection.anchorNode);
+        const f = getHighlightedAncestor(selection.focusNode);
+        return !!(a || f);
+      };
+
+      if (!isSelectionHighlighted()) return;
+      if (typeof editor.chain?.().focus?.().toggleHighlight === "function") {
+        editor.chain().focus().toggleHighlight({ color: "#fef08a" }).run();
+      }
+      return;
+    }
+
+    if (isTiptapLike) {
+      if (typeof editor.chain?.().focus?.().setHighlight === "function") {
+        editor.chain().focus().setHighlight({ color }).run();
+        return;
+      }
+      editor.chain().focus().toggleHighlight({ color }).run();
+      return;
+    }
+
+    if (typeof editor.chain?.().focus?.().setHighlight === "function") {
+      editor.chain().focus().setHighlight(color).run();
+      return;
+    }
+
+    if (typeof editor.chain?.().focus?.().toggleHighlight === "function") {
+      editor.chain().focus().toggleHighlight({ color }).run();
+    }
+  };
+
+  // Quick Actions
+  const handleCut = async () => {
+    if (!editor) return;
+    focusEditor();
+    const ok = document.execCommand("cut");
+    if (ok) return;
+
+    try {
+      const { from, to } = editor.state.selection;
+      const text = editor.state.doc.textBetween(from, to, "\n");
+      if (text) await navigator.clipboard.writeText(text);
+      editor.commands.deleteSelection();
+    } catch {}
+  };
+
+  const handleCopy = async () => {
+    if (!editor) return;
+    focusEditor();
+    const ok = document.execCommand("copy");
+    if (ok) return;
+
+    try {
+      const { from, to } = editor.state.selection;
+      const text = editor.state.doc.textBetween(from, to, "\n");
+      if (text) await navigator.clipboard.writeText(text);
+    } catch {}
   };
 
   const handlePaste = async () => {
+    if (!editor) return;
+    focusEditor();
     try {
       const text = await navigator.clipboard.readText();
-      document.execCommand('insertText', false, text);
-    } catch (err) {
-      // Fallback to execCommand paste
-      document.execCommand("paste");
-    }
+      if (text) {
+        editor.chain().focus().insertContent(text).run();
+        return;
+      }
+    } catch {}
+    document.execCommand("paste");
   };
 
   const handleClear = () => {
@@ -127,15 +289,19 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
         </p>
         <div className="flex gap-2">
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleCut}
             className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2"
+            type="button"
           >
             <Scissors className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">Cut</p>
           </button>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleCopy}
             className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2"
+            type="button"
           >
             <Copy className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">
@@ -143,8 +309,10 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             </p>
           </button>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handlePaste}
             className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2"
+            type="button"
           >
             <Clipboard className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">
@@ -152,8 +320,10 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
             </p>
           </button>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleClear}
             className="border border-transparent h-[30px] rounded-[10px] px-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2"
+            type="button"
           >
             <Eraser className="size-4" stroke="#364153" strokeWidth={1.5} />
             <p className="font-inter font-normal text-[#4a5565] text-xs">
@@ -278,6 +448,109 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
               strokeWidth={editor?.isActive("underline") ? 2 : 1.5}
             />
           </button>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="bg-[#d1d5dc] h-14 w-px shrink-0" />
+
+      {/* Text & Highlight Colors */}
+      <div className="h-[81px] flex gap-5 shrink-0 pt-2">
+        <div className="relative">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              focusEditor();
+              textColorInputRef.current?.click();
+            }}
+            className="border border-transparent h-[65px] w-[39px] rounded-[14px] hover:bg-gray-50 transition-colors flex flex-col items-center justify-start pt-2 gap-1"
+          >
+            <Palette className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+            <div className="h-1.5 w-8 rounded" style={{ backgroundColor: textColor }} />
+            <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
+              Text
+            </p>
+          </button>
+          <input
+            ref={textColorInputRef}
+            type="color"
+            value={textColor}
+            onChange={(e) => applyTextColor(e.target.value)}
+            className="absolute inset-0 opacity-0 pointer-events-none"
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+        </div>
+        <div className="relative">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => applyHighlight("#fef08a")}
+            className={`border border-transparent h-[65px] w-[47px] rounded-[14px] hover:bg-gray-50 transition-colors flex flex-col items-center justify-start pt-2 gap-1 ${
+              editor?.isActive("highlight") ? "bg-gray-100" : ""
+            }`}
+            type="button"
+          >
+            <Highlighter className="size-[18px]" stroke="#364153" strokeWidth={1.5} />
+            <div className="bg-yellow-400 h-1.5 w-8 rounded" />
+            <p className="font-inter font-normal leading-[15px] text-[#4a5565] text-[10px] tracking-[0.117px]">
+              Highlight
+            </p>
+          </button>
+
+          <button
+            ref={highlightMenuAnchorRef}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const rect = highlightMenuAnchorRef.current?.getBoundingClientRect();
+              if (rect) {
+                setHighlightMenuPos({
+                  top: rect.bottom + 8,
+                  right: Math.max(8, window.innerWidth - rect.right),
+                });
+              } else {
+                setHighlightMenuPos({ top: 96, right: 24 });
+              }
+              setShowHighlightMenu((v) => !v);
+            }}
+            className="absolute -right-1 -top-1 rounded-md hover:bg-gray-100 p-0.5"
+            aria-label="Highlight options"
+          >
+            <ChevronDown className="size-3" stroke="#364153" strokeWidth={1.5} />
+          </button>
+
+          {showHighlightMenu && highlightMenuPos && (
+            <div
+              ref={highlightMenuRef}
+              className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-1 w-[160px]"
+              style={{ top: highlightMenuPos.top, right: highlightMenuPos.right }}
+            >
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  applyHighlight("#ffffff00");
+                  setShowHighlightMenu(false);
+                }}
+                className="w-full text-left px-2 py-1.5 rounded-md hover:bg-gray-50 text-sm text-[#0a0a0a]"
+              >
+                No color
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  applyHighlight("#fef08a");
+                  setShowHighlightMenu(false);
+                }}
+                className="w-full text-left px-2 py-1.5 rounded-md hover:bg-gray-50 text-sm text-[#0a0a0a] flex items-center gap-2"
+              >
+                <span className="inline-block h-3 w-3 rounded bg-yellow-300" />
+                Yellow
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

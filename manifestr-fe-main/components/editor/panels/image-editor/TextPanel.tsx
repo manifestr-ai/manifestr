@@ -12,6 +12,36 @@ const FONT_FAMILIES = [
   "Oswald",
 ];
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 64];
+const FONT_WEIGHTS: Array<{ value: number; label: string }> = [
+  { value: 100, label: "Thin (100)" },
+  { value: 200, label: "Extra Light (200)" },
+  { value: 300, label: "Light (300)" },
+  { value: 400, label: "Regular (400)" },
+  { value: 500, label: "Medium (500)" },
+  { value: 600, label: "Semi Bold (600)" },
+  { value: 700, label: "Bold (700)" },
+  { value: 800, label: "Extra Bold (800)" },
+  { value: 900, label: "Black (900)" },
+];
+
+type TextEffectKey =
+  | "none"
+  | "shadow-soft"
+  | "shadow-hard"
+  | "shadow-long"
+  | "glow"
+  | "neon"
+  | "outline";
+
+const TEXT_EFFECTS: Array<{ value: TextEffectKey; label: string }> = [
+  { value: "none", label: "None" },
+  { value: "shadow-soft", label: "Shadow (Soft)" },
+  { value: "shadow-hard", label: "Shadow (Hard)" },
+  { value: "shadow-long", label: "Shadow (Long)" },
+  { value: "glow", label: "Glow" },
+  { value: "neon", label: "Neon" },
+  { value: "outline", label: "Outline" },
+];
 
 interface TextPanelProps {
   store: any;
@@ -31,15 +61,36 @@ export default function TextPanel({ store }: TextPanelProps) {
 
   const applyToSelectedText = (patch: any) => {
     if (!hasTextSelection) return;
+    const normalizedPatch = (() => {
+      if (!patch || typeof patch !== "object") return patch;
+      if (!("fontWeight" in patch)) return patch;
+      const next = { ...patch };
+      const v = (next as any).fontWeight;
+      if (typeof v === "number" && Number.isFinite(v)) {
+        (next as any).fontWeight = String(Math.round(v));
+      }
+      return next;
+    })();
     selectedTextElements.forEach((el: any) => {
       if (el?.type !== "text" || typeof el?.set !== "function") return;
-      el.set(patch);
+      el.set(normalizedPatch);
     });
   };
 
   const fontFamily = typeof primary?.fontFamily === "string" ? primary.fontFamily : "Inter";
   const fontSize = typeof primary?.fontSize === "number" ? primary.fontSize : 18;
-  const fontWeight = typeof primary?.fontWeight === "string" ? primary.fontWeight : "normal";
+  const normalizeFontWeight = (value: any) => {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const trimmed = value.trim().toLowerCase();
+      if (trimmed === "bold") return 700;
+      if (trimmed === "normal") return 400;
+      const parsed = Number(trimmed);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return 400;
+  };
+  const fontWeight = primary ? normalizeFontWeight(primary.fontWeight) : 400;
   const fontStyle = typeof primary?.fontStyle === "string" ? primary.fontStyle : "normal";
   const textDecoration =
     typeof primary?.textDecoration === "string" ? primary.textDecoration : "none";
@@ -49,6 +100,23 @@ export default function TextPanel({ store }: TextPanelProps) {
 
   const isOutline = (Number(primary?.strokeWidth) || 0) > 0;
   const isShadow = !!primary?.shadowEnabled && (Number(primary?.shadowBlur) || 0) > 0;
+  const currentEffect: TextEffectKey = (() => {
+    const fromCustom = primary?.custom?.textEffect;
+    if (
+      fromCustom === "none" ||
+      fromCustom === "shadow-soft" ||
+      fromCustom === "shadow-hard" ||
+      fromCustom === "shadow-long" ||
+      fromCustom === "glow" ||
+      fromCustom === "neon" ||
+      fromCustom === "outline"
+    ) {
+      return fromCustom;
+    }
+    if (isOutline) return "outline";
+    if (isShadow) return "shadow-soft";
+    return "none";
+  })();
 
   const [letterSpacingPct, setLetterSpacingPct] = useState(100);
   const [lineHeightPct, setLineHeightPct] = useState(120);
@@ -66,6 +134,96 @@ export default function TextPanel({ store }: TextPanelProps) {
     setLetterSpacingPct(nextLetter);
     setLineHeightPct(nextLine);
   }, [primary?.id, selectionKey]);
+
+  const applyTextEffect = (key: TextEffectKey) => {
+    if (!hasTextSelection) return;
+    const baseFill = typeof primary?.fill === "string" ? primary.fill : "#000000";
+    const baseStroke = typeof primary?.stroke === "string" ? primary.stroke : baseFill;
+    const base = {
+      shadowEnabled: false,
+      shadowBlur: 0,
+      shadowOffsetX: 0,
+      shadowOffsetY: 0,
+      shadowOpacity: 0,
+      shadowColor: "#000000",
+      strokeWidth: 0,
+      stroke: baseStroke,
+    };
+
+    const patchForKey = (() => {
+      if (key === "none") return base;
+      if (key === "outline") {
+        return {
+          ...base,
+          strokeWidth: 2,
+          stroke: baseStroke,
+        };
+      }
+      if (key === "shadow-hard") {
+        return {
+          ...base,
+          shadowEnabled: true,
+          shadowBlur: 2,
+          shadowOffsetX: 3,
+          shadowOffsetY: 3,
+          shadowOpacity: 0.45,
+          shadowColor: "#000000",
+        };
+      }
+      if (key === "shadow-long") {
+        return {
+          ...base,
+          shadowEnabled: true,
+          shadowBlur: 0,
+          shadowOffsetX: 8,
+          shadowOffsetY: 8,
+          shadowOpacity: 0.25,
+          shadowColor: "#000000",
+        };
+      }
+      if (key === "glow") {
+        return {
+          ...base,
+          shadowEnabled: true,
+          shadowBlur: 18,
+          shadowOffsetX: 0,
+          shadowOffsetY: 0,
+          shadowOpacity: 0.65,
+          shadowColor: baseFill,
+        };
+      }
+      if (key === "neon") {
+        return {
+          ...base,
+          strokeWidth: 1,
+          stroke: baseFill,
+          shadowEnabled: true,
+          shadowBlur: 26,
+          shadowOffsetX: 0,
+          shadowOffsetY: 0,
+          shadowOpacity: 0.8,
+          shadowColor: baseFill,
+        };
+      }
+      return {
+        ...base,
+        shadowEnabled: true,
+        shadowBlur: 10,
+        shadowOffsetX: 2,
+        shadowOffsetY: 2,
+        shadowOpacity: 0.35,
+        shadowColor: "#000000",
+      };
+    })();
+
+    applyToSelectedText({
+      ...patchForKey,
+      custom: {
+        ...(primary?.custom || {}),
+        textEffect: key,
+      },
+    });
+  };
 
   const toggleTextPath = () => {
     if (!hasTextSelection || !primary || !page?.addElement) return;
@@ -194,12 +352,12 @@ export default function TextPanel({ store }: TextPanelProps) {
           <button
             onClick={() =>
               applyToSelectedText({
-                fontWeight: fontWeight === "bold" ? "normal" : "bold",
+                fontWeight: fontWeight >= 600 ? "400" : "700",
               })
             }
             type="button"
             disabled={!hasTextSelection}
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontWeight === "bold" ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
+            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${fontWeight >= 600 ? "bg-[#E9EBF0]" : "bg-transparent"} hover:bg-[#E9EBF0] py-2`}
           >
             <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
               <svg
@@ -327,7 +485,7 @@ export default function TextPanel({ store }: TextPanelProps) {
             <div
               className="flex justify-center items-center gap-[12px]"
               style={{
-                width: "268px",
+                width: "410px",
                 padding: "12px 18px",
                 borderRadius: "14px",
                 border: "2px solid #D1D5DC",
@@ -464,6 +622,7 @@ export default function TextPanel({ store }: TextPanelProps) {
                     </select>
                   </div>
                 </div>
+
               </div>
             </div>
           </div>
@@ -478,122 +637,129 @@ export default function TextPanel({ store }: TextPanelProps) {
         <span className="text-xs text-gray-500 mb-3">Style</span>
         <div className="flex gap-2 gap-[34px]">
           {/* Font */}
-          <button
-            type="button"
-            disabled={!hasTextSelection}
-            onClick={() => {
-              if (!hasTextSelection) return;
-              applyToSelectedText(
-                isOutline
-                  ? { strokeWidth: 0 }
-                  : { stroke: typeof primary?.stroke === "string" ? primary.stroke : fill, strokeWidth: 2 },
-              );
-            }}
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${
-              isOutline ? "bg-[#E9EBF0]" : "bg-transparent"
+          <div
+            className={`relative flex flex-col items-center justify-center w-[90px] rounded-md transition ${
+              fontWeight !== 400 ? "bg-[#E9EBF0]" : "bg-transparent"
             } ${hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"} py-2`}
           >
-            <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-              >
-                <path
-                  d="M10 3.33203V16.6654"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M3.33594 5.83203V4.16536C3.33594 3.94435 3.42374 3.73239 3.58002 3.57611C3.7363 3.41983 3.94826 3.33203 4.16927 3.33203H15.8359C16.057 3.33203 16.2689 3.41983 16.4252 3.57611C16.5815 3.73239 16.6693 3.94435 16.6693 4.16536V5.83203"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M7.5 16.668H12.5"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
-              Font
-            </span>
-          </button>
+            <button type="button" disabled={!hasTextSelection} className="w-full flex flex-col items-center">
+              <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M10 3.33203V16.6654"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M3.33594 5.83203V4.16536C3.33594 3.94435 3.42374 3.73239 3.58002 3.57611C3.7363 3.41983 3.94826 3.33203 4.16927 3.33203H15.8359C16.057 3.33203 16.2689 3.41983 16.4252 3.57611C16.5815 3.73239 16.6693 3.94435 16.6693 4.16536V5.83203"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M7.5 16.668H12.5"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
+                Font
+              </span>
+              <span className="text-[#6B7280] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] -mt-[1px]">
+                {(FONT_WEIGHTS.find((w) => w.value === fontWeight)?.label ?? `${fontWeight}`).replace(
+                  /\s*\(\d+\)\s*$/,
+                  "",
+                )}
+              </span>
+            </button>
+            <select
+              value={String(fontWeight)}
+              disabled={!hasTextSelection}
+              onChange={(e) => applyToSelectedText({ fontWeight: e.target.value })}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            >
+              {FONT_WEIGHTS.map((w) => (
+                <option key={w.value} value={String(w.value)}>
+                  {w.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Effect */}
-          <button
-            type="button"
-            disabled={!hasTextSelection}
-            onClick={() => {
-              if (!hasTextSelection) return;
-              applyToSelectedText(
-                isShadow
-                  ? { shadowEnabled: false, shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0, shadowOpacity: 0 }
-                  : {
-                      shadowEnabled: true,
-                      shadowBlur: 10,
-                      shadowOffsetX: 2,
-                      shadowOffsetY: 2,
-                      shadowOpacity: 0.35,
-                      shadowColor: "#000000",
-                    },
-              );
-            }}
-            className={`flex flex-col items-center justify-center w-[44px]  rounded-md transition ${
-              isShadow ? "bg-[#E9EBF0]" : "bg-transparent"
+          <div
+            className={`relative flex flex-col items-center justify-center w-[64px] rounded-md transition ${
+              currentEffect !== "none" ? "bg-[#E9EBF0]" : "bg-transparent"
             } ${hasTextSelection ? "hover:bg-[#E9EBF0]" : "opacity-40 cursor-not-allowed"} py-2`}
           >
-            <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-              >
-                <path
-                  d="M9.18022 2.34439C9.21593 2.15323 9.31737 1.98057 9.46697 1.85632C9.61658 1.73208 9.80492 1.66406 9.99939 1.66406C10.1939 1.66406 10.3822 1.73208 10.5318 1.85632C10.6814 1.98057 10.7829 2.15323 10.8186 2.34439L11.6944 6.97606C11.7566 7.30535 11.9166 7.60824 12.1536 7.8452C12.3905 8.08216 12.6934 8.24219 13.0227 8.30439L17.6544 9.18022C17.8456 9.21593 18.0182 9.31737 18.1425 9.46697C18.2667 9.61658 18.3347 9.80492 18.3347 9.99939C18.3347 10.1939 18.2667 10.3822 18.1425 10.5318C18.0182 10.6814 17.8456 10.7829 17.6544 10.8186L13.0227 11.6944C12.6934 11.7566 12.3905 11.9166 12.1536 12.1536C11.9166 12.3905 11.7566 12.6934 11.6944 13.0227L10.8186 17.6544C10.7829 17.8456 10.6814 18.0182 10.5318 18.1425C10.3822 18.2667 10.1939 18.3347 9.99939 18.3347C9.80492 18.3347 9.61658 18.2667 9.46697 18.1425C9.31737 18.0182 9.21593 17.8456 9.18022 17.6544L8.30439 13.0227C8.24219 12.6934 8.08216 12.3905 7.8452 12.1536C7.60824 11.9166 7.30535 11.7566 6.97606 11.6944L2.34439 10.8186C2.15323 10.7829 1.98057 10.6814 1.85632 10.5318C1.73208 10.3822 1.66406 10.1939 1.66406 9.99939C1.66406 9.80492 1.73208 9.61658 1.85632 9.46697C1.98057 9.31737 2.15323 9.21593 2.34439 9.18022L6.97606 8.30439C7.30535 8.24219 7.60824 8.08216 7.8452 7.8452C8.08216 7.60824 8.24219 7.30535 8.30439 6.97606L9.18022 2.34439Z"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M16.6641 1.66797V5.0013"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M18.3333 3.33203H15"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path
-                  d="M3.33073 18.3333C4.2512 18.3333 4.9974 17.5871 4.9974 16.6667C4.9974 15.7462 4.2512 15 3.33073 15C2.41025 15 1.66406 15.7462 1.66406 16.6667C1.66406 17.5871 2.41025 18.3333 3.33073 18.3333Z"
-                  stroke="#364153"
-                  stroke-width="1.66667"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
-              Effect
-            </span>
-          </button>
+            <button type="button" disabled={!hasTextSelection} className="w-full flex flex-col items-center">
+              <span className="text-[18px] font-bold text-[#2B2F38] leading-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                >
+                  <path
+                    d="M9.18022 2.34439C9.21593 2.15323 9.31737 1.98057 9.46697 1.85632C9.61658 1.73208 9.80492 1.66406 9.99939 1.66406C10.1939 1.66406 10.3822 1.73208 10.5318 1.85632C10.6814 1.98057 10.7829 2.15323 10.8186 2.34439L11.6944 6.97606C11.7566 7.30535 11.9166 7.60824 12.1536 7.8452C12.3905 8.08216 12.6934 8.24219 13.0227 8.30439L17.6544 9.18022C17.8456 9.21593 18.0182 9.31737 18.1425 9.46697C18.2667 9.61658 18.3347 9.80492 18.3347 9.99939C18.3347 10.1939 18.2667 10.3822 18.1425 10.5318C18.0182 10.6814 17.8456 10.7829 17.6544 10.8186L13.0227 11.6944C12.6934 11.7566 12.3905 11.9166 12.1536 12.1536C11.9166 12.3905 11.7566 12.6934 11.6944 13.0227L10.8186 17.6544C10.7829 17.8456 10.6814 18.0182 10.5318 18.1425C10.3822 18.2667 10.1939 18.3347 9.99939 18.3347C9.80492 18.3347 9.61658 18.2667 9.46697 18.1425C9.31737 18.0182 9.21593 17.8456 9.18022 17.6544L8.30439 13.0227C8.24219 12.6934 8.08216 12.3905 7.8452 12.1536C7.60824 11.9166 7.30535 11.7566 6.97606 11.6944L2.34439 10.8186C2.15323 10.7829 1.98057 10.6814 1.85632 10.5318C1.73208 10.3822 1.66406 10.1939 1.66406 9.99939C1.66406 9.80492 1.73208 9.61658 1.85632 9.46697C1.98057 9.31737 2.15323 9.21593 2.34439 9.18022L6.97606 8.30439C7.30535 8.24219 7.60824 8.08216 7.8452 7.8452C8.08216 7.60824 8.24219 7.30535 8.30439 6.97606L9.18022 2.34439Z"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M16.6641 1.66797V5.0013"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M18.3333 3.33203H15"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M3.33073 18.3333C4.2512 18.3333 4.9974 17.5871 4.9974 16.6667C4.9974 15.7462 4.2512 15 3.33073 15C2.41025 15 1.66406 15.7462 1.66406 16.6667C1.66406 17.5871 2.41025 18.3333 3.33073 18.3333Z"
+                    stroke="#364153"
+                    stroke-width="1.66667"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1">
+                Effect
+              </span>
+            </button>
+            <select
+              value={currentEffect}
+              disabled={!hasTextSelection}
+              onChange={(e) => applyTextEffect(e.target.value as TextEffectKey)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            >
+              {TEXT_EFFECTS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Path */}
           {/* <button

@@ -11,6 +11,7 @@ const API_URL =
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true, // Required for HttpOnly cookies
+  timeout: 0, // 🔥 No timeout by default - let per-request configs handle it
   headers: {
     "Content-Type": "application/json",
   },
@@ -18,8 +19,9 @@ const api = axios.create({
 
 let isRefreshing = false;
 let failedQueue = [];
-let isRedirectingToLogin = false; // Prevent multiple simultaneous redirects
+let isRedirectingToLogin = false;
 
+// Process queued requests after token refresh
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -32,7 +34,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request interceptor for API calls
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
@@ -43,25 +45,21 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for API calls
+// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If no config, just reject (network error, etc.)
+    // If no config (network error etc)
     if (!originalRequest) {
       return Promise.reject(error);
     }
 
-    // Don't try to refresh token on login/signup requests - just let them fail
+    // Auth-related routes (DO NOT refresh token for these)
     const isAuthRequest =
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/signup") ||
@@ -70,32 +68,30 @@ api.interceptors.response.use(
       originalRequest.url?.includes("/auth/send-reset-code") ||
       originalRequest.url?.includes("/auth/verify-reset-code") ||
       originalRequest.url?.includes("/auth/reset-password");
- 
 
-    // Prevent infinite loops
+    // Handle 401 (token expired)
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !isAuthRequest
     ) {
+      // If already refreshing → queue requests
       if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
             originalRequest.headers.Authorization = "Bearer " + token;
             return api(originalRequest);
           })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // Call refresh token endpoint (it uses the HttpOnly cookie)
+        // Refresh token (HttpOnly cookie based)
         const response = await api.post("/auth/refresh-token");
         const accessToken = response?.data?.details?.accessToken;
 
@@ -103,49 +99,49 @@ api.interceptors.response.use(
           throw new Error("Refresh token failed");
         }
 
+        // Store new token
         localStorage.setItem("accessToken", accessToken);
-        api.defaults.headers.common.Authorization = "Bearer " + accessToken;
+        api.defaults.headers.common.Authorization =
+          "Bearer " + accessToken;
 
+        // Retry queued requests
         processQueue(null, accessToken);
 
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
 
-        // SILENT LOGOUT - Don't show error popup to user
+        // Silent logout (NO UI crash)
         if (typeof window !== "undefined" && !isRedirectingToLogin) {
           isRedirectingToLogin = true;
 
-          // Clear ALL auth data
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           localStorage.removeItem("pendingUser");
           localStorage.removeItem("pendingVerificationEmail");
 
-          // Use replace to avoid stacking URLs
           Router.replace("/login");
 
-          // Reset flag after redirect
           setTimeout(() => {
             isRedirectingToLogin = false;
           }, 1000);
         }
 
-        // DON'T reject - return a resolved promise to prevent error popup
+        // Return resolved response (prevents UI error popups)
         return Promise.resolve({
-            data: {
-              status: 'error',
-              message: 'Session expired',
-              details: {}
-            }
-          });
+          data: {
+            status: "error",
+            message: "Session expired",
+            details: {},
+          },
+        });
       } finally {
         isRefreshing = false;
       }
     }
 
-    // If we get 401 on auth requests themselves, clear everything and redirect
+    // If 401 on auth routes → force logout
     if (
       error.response?.status === 401 &&
       isAuthRequest &&
@@ -166,14 +162,16 @@ api.interceptors.response.use(
         isRedirectingToLogin = false;
       }, 1000);
 
-      // Return resolved promise to prevent error popup
       return Promise.resolve({
-        data: { status: "error", message: "Session expired" },
+        data: {
+          status: "error",
+          message: "Session expired",
+        },
       });
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export default api;

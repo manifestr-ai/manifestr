@@ -39,6 +39,7 @@ import api from "../../lib/api";
 import EditorBottomToolbar from "../editor/EditorBottomToolbar";
 import ToolPanel from "../editor/panels/chart-editor/ToolPanel";
 import StyleGuideModal from "../editor/StyleGuideModal";
+import AiPrompterPanel from "../editor/panels/comman-panel/AiPrompterPanel";
 
 ChartJS.register(
   CategoryScale,
@@ -267,6 +268,8 @@ export default function ChartEditor({
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [titleCaret, setTitleCaret] = useState<number | null>(null);
   const [legendCarets, setLegendCarets] = useState<Record<number, number>>({});
+  const initialStateRef = useRef<any>(null);
+  const initialGenerationIdRef = useRef<string | null>(null);
 
   // Notify parent about activeTool changes
   useEffect(() => {
@@ -934,7 +937,7 @@ export default function ChartEditor({
           label: dataset.label,
           data: dataset.data.map((y: number, i: number) => {
             const normalizedValue = (Math.abs(y) - minValue) / range;
-            const bubbleSize = 5 + normalizedValue * 10;
+            const bubbleSize = 3 + normalizedValue * 6; // Smaller, nicer bubbles
 
             return {
               x: i + 1,
@@ -1172,6 +1175,24 @@ export default function ChartEditor({
 
         if (content?.chartState) {
           const state = content.chartState;
+          const snapshot = {
+            chartType: state.chartType || "bar",
+            labels: state.labels || labels,
+            datasets: state.datasets || datasets,
+            chartTitle: state.chartTitle || chartTitle,
+            showLegend: state.showLegend ?? showLegend,
+            showGrid: state.showGrid ?? showGrid,
+            selectedColorScheme: state.selectedColorScheme || selectedColorScheme,
+            titleAlign: state.titleAlign || "center",
+            legendAlign: state.legendAlign || "center",
+            titleFormat:
+              state.titleFormat || ({ bold: true, italic: false, underline: false } as TextFormat),
+            legendFormats: state.legendFormats || {},
+            titleEffects: normalizeTextEffects(state.titleEffects),
+            legendEffects: normalizeLegendEffects(state.legendEffects),
+          };
+          initialStateRef.current = snapshot;
+          initialGenerationIdRef.current = generationId;
           setChartType(state.chartType || "bar");
           setLabels(state.labels || labels);
           setDatasets(state.datasets || datasets);
@@ -1227,6 +1248,78 @@ export default function ChartEditor({
         setLoading(false);
       });
   }, [generationId]);
+
+  useEffect(() => {
+    if (generationId) return;
+    if (initialStateRef.current) return;
+    initialGenerationIdRef.current = null;
+    initialStateRef.current = {
+      chartType,
+      labels,
+      datasets,
+      chartTitle,
+      showLegend,
+      showGrid,
+      selectedColorScheme,
+      titleAlign,
+      legendAlign,
+      titleFormat,
+      legendFormats,
+      titleEffects,
+      legendEffects,
+    };
+  }, [generationId]);
+
+  const resetChart = () => {
+    const snapshot = initialStateRef.current;
+    if (!snapshot) return;
+    setChartType(snapshot.chartType);
+    setLabels(snapshot.labels);
+    setDatasets(snapshot.datasets);
+    setChartTitle(snapshot.chartTitle);
+    setShowLegend(snapshot.showLegend);
+    setShowGrid(snapshot.showGrid);
+    setSelectedColorScheme(snapshot.selectedColorScheme);
+    setTitleAlign(snapshot.titleAlign);
+    setLegendAlign(snapshot.legendAlign);
+    setTitleFormat(snapshot.titleFormat);
+    setLegendFormats(snapshot.legendFormats);
+    setTitleEffects(snapshot.titleEffects);
+    setLegendEffects(snapshot.legendEffects);
+    setSelectedTextTarget(null);
+    setTitleCaret(null);
+    setLegendCarets({});
+    setInsertPicker({ open: false, kind: null });
+    setStylePicker({ open: false, kind: null });
+    setIsTableModalOpen(false);
+    setGradientDraft({ from: "#3b82f6", to: "#ef4444", angle: 90 });
+    setLinkText("");
+    setLinkUrl("");
+    showToast("Reset to original");
+  };
+
+  useEffect(() => {
+    if (loading) return;
+    if (!generationId) return;
+    if (initialGenerationIdRef.current === generationId && initialStateRef.current) return;
+    if (initialStateRef.current) return;
+    initialGenerationIdRef.current = generationId;
+    initialStateRef.current = {
+      chartType,
+      labels,
+      datasets,
+      chartTitle,
+      showLegend,
+      showGrid,
+      selectedColorScheme,
+      titleAlign,
+      legendAlign,
+      titleFormat,
+      legendFormats,
+      titleEffects,
+      legendEffects,
+    };
+  }, [loading, generationId]);
 
   // Initialize user
   useEffect(() => {
@@ -1471,6 +1564,7 @@ export default function ChartEditor({
       toggleTextEffect,
       openStylePicker,
       openTableModal: () => setIsTableModalOpen(true),
+      resetChart,
       insertRow,
       insertColumn,
       openInsertPicker,
@@ -2387,7 +2481,7 @@ export default function ChartEditor({
                     : titleAlign === "right"
                       ? "text-right"
                       : "text-center"
-                } ${titleFormat.bold ? "font-bold" : "font-semibold"} ${
+                } ${titleFormat.bold ? "font-bold" : "font-normal"} ${
                   titleFormat.italic ? "italic" : ""
                 } ${titleFormat.underline ? "underline" : ""} ${
                   selectedTextTarget?.type === "title"
@@ -2490,7 +2584,7 @@ export default function ChartEditor({
                             );
                           }}
                           className={`text-[13px] leading-[18px] text-[#52525b] focus:outline-none ${
-                            fmt.bold ? "font-semibold" : "font-medium"
+                            fmt.bold ? "font-semibold" : "font-normal"
                           } ${fmt.italic ? "italic" : ""} ${
                             fmt.underline ? "underline" : ""
                           } ${
@@ -2661,7 +2755,19 @@ export default function ChartEditor({
       </div>
 
       {/* Tool Panel */}
-      <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
+      {activeTool !== "ai_prompter" && (
+        <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
+      )}
+
+      {/* AI Prompter Panel */}
+      {activeTool === "ai_prompter" && (
+        <AiPrompterPanel
+          store={store}
+          editorType="chart"
+          onClose={() => setActiveTool("charts")}
+          generationId={generationId}
+        />
+      )}
 
       {/* Bottom Toolbar */}
       <EditorBottomToolbar

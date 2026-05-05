@@ -35,6 +35,14 @@ export const IntentResponseSchema = z.object({
         templateReasoning: z.string().optional().describe("Why this template was selected"),
         appliedLogic: z.string().optional().describe("Name of the logic framework applied (e.g. 'Proposal Logic', 'Strategy Logic')"),
         logicFrameworkId: z.string().optional().describe("ID of the logic framework (e.g. 'proposal', 'strategy')"),
+        // 🆕 Analyzer support
+        isAnalyzer: z.boolean().optional().describe("true if this is an Analyzer chart/visualization request"),
+        analyzerTemplateId: z.string().optional().describe("Matched analyzer template ID"),
+        analyzerChartType: z.string().optional().describe("Chart type (funnel, bar, pie, etc.)"),
+        // 🆕 Document Type Matching support
+        specificDocumentType: z.string().optional().describe("Specific document type matched from CSV (e.g. 'Agency Pitch Presentation')"),
+        toolId: z.string().optional().describe("The toolkit ID selected by user (e.g. 'deck', 'strategist')"),
+        documentCategory: z.string().optional().describe("The document category selected by user (e.g. 'Proposals', 'Plans')"),
     }),
     styleGuide: z.any().nullable().optional(),
     userPreferences: z.object({
@@ -124,7 +132,7 @@ export const CriticGenerationSchema = z.object({
 // ------------------------------------------------------------------
 export const RenderResponseSchema = z.object({
     jobId: z.string().uuid(),
-    outputFormat: z.enum(["presentation", "document", "spreadsheet", "image"]),
+    outputFormat: z.enum(["presentation", "document", "spreadsheet", "image", "chart"]),
     finalUrl: z.string().url().optional(), // S3 URL
     editorState: z.any(), // The huge JSON for Polotno/Tiptap/Univer
     docxUrl: z.string().url().optional(), // Download link for Word document

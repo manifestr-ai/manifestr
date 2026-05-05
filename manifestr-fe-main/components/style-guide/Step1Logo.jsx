@@ -131,7 +131,7 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
 
 
   return (
-    <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: 'rgba(242, 242, 247, 1)' }}>
+    <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: '#F4F4F5' }}>
       {/* Left Sidebar - Fixed */}
       <div className="hidden lg:block fixed top-[72px] left-0 w-[240px] h-[calc(100vh-72px)] bg-white border-r border-[#e4e4e7] py-8 z-40">
         <div className="px-8">

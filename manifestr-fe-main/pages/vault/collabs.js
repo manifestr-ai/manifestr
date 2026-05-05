@@ -10,6 +10,7 @@ import VaultGrid from '../../components/vault/VaultGrid'
 import CreateNewCollabModal from '../../components/vault/CreateNewCollabModal'
 import UploadFileModal from '../../components/vault/UploadFileModal'
 import api from '../../lib/api'
+import { VAULT_BANNER } from '../../lib/vaultBanners'
 import { Loader2, FolderOpen } from 'lucide-react'
 
 export default function VaultCollabs() {
@@ -65,10 +66,7 @@ export default function VaultCollabs() {
     documentCount: project.documentCount || 0
   }))
 
-  // Background image URL for the header
-  const headerBackgroundImage = typeof window !== 'undefined'
-    ? `${window.location.origin}/assets/banners/Rectangle-2.png`
-    : 'http://localhost:3000/assets/banners/Rectangle-2.png'
+  const headerBackgroundImage = VAULT_BANNER.collabSkinny
 
   return (
     <>

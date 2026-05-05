@@ -64,7 +64,7 @@ const tools: ToolItem[] = [
         </defs>
       </svg>
     ),
-    editor_for: ["presentation", "image", "spreadsheet"],
+    editor_for: ["presentation", "image", "spreadsheet", "chart"],
   },
 
   {
