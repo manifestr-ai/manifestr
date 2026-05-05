@@ -3,9 +3,57 @@ import { FileText } from 'lucide-react';
 
 export default function DocumentOutline({ headings }) {
     const scrollToHeading = (id) => {
-        const element = document.querySelector(`[data-id="${id}"]`);
+        console.log('🔍 Scrolling to heading:', id);
+        
+        // Try multiple selectors to find the heading
+        let element = document.getElementById(id);
+        if (!element) {
+            element = document.querySelector(`[data-id="${id}"]`);
+        }
+        if (!element) {
+            element = document.querySelector(`h1[id="${id}"], h2[id="${id}"], h3[id="${id}"], h4[id="${id}"], h5[id="${id}"], h6[id="${id}"]`);
+        }
+        
+        console.log('🔍 Found element:', element);
+        
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Find the scroll container (TipTap's editor wrapper)
+            const scrollContainer = element.closest('.simple-editor-wrapper') || 
+                                   element.closest('.simple-editor-content') ||
+                                   element.closest('.ProseMirror') || 
+                                   document.querySelector('.simple-editor-wrapper');
+            
+            console.log('🔍 Scroll container:', scrollContainer);
+            
+            if (scrollContainer) {
+                // Calculate position relative to scroll container
+                const containerRect = scrollContainer.getBoundingClientRect();
+                const elementRect = element.getBoundingClientRect();
+                const scrollTop = scrollContainer.scrollTop;
+                const offset = elementRect.top - containerRect.top + scrollTop - 20; // 20px padding
+                
+                console.log('🔍 Scrolling to offset:', offset);
+                
+                scrollContainer.scrollTo({
+                    top: offset,
+                    behavior: 'smooth'
+                });
+            } else {
+                // Fallback to regular scroll
+                console.log('🔍 Using fallback scrollIntoView');
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } else {
+            console.error('❌ Element not found with id:', id);
+            
+            // Debug: Show what's available
+            const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            console.error('❌ Available headings in DOM:', Array.from(allHeadings).map(el => ({
+                tag: el.tagName,
+                id: el.id,
+                dataId: el.getAttribute('data-id'),
+                text: el.textContent?.substring(0, 30)
+            })));
         }
     };
 

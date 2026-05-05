@@ -43,6 +43,7 @@ import { DocumentFooter } from "../../lib/tiptap-document-footer-extension";
 import { ParagraphIndent } from "../../lib/tiptap-paragraph-indent-extension";
 import { ParagraphSpacing } from "../../lib/tiptap-paragraph-spacing-extension";
 import { SearchHighlight } from "../../lib/tiptap-search-highlight-extension";
+import { HeadingWithId, resetHeadingCounter } from "../../lib/tiptap-heading-with-id-extension";
 
 interface CollaborativeTiptapEditorProps {
   documentId: string;
@@ -371,7 +372,12 @@ export default function CollaborativeTiptapEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: false, // Disable default heading, we'll use our custom one with IDs
+      }),
+      HeadingWithId.configure({
+        levels: [1, 2, 3, 4, 5, 6],
+      }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),

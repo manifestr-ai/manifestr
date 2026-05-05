@@ -79,6 +79,7 @@ import { DocumentFooter } from "../../../lib/tiptap-document-footer-extension";
 import { ParagraphIndent } from "../../../lib/tiptap-paragraph-indent-extension";
 import { ParagraphSpacing } from "../../../lib/tiptap-paragraph-spacing-extension";
 import { SearchHighlight } from "../../../lib/tiptap-search-highlight-extension";
+import { HeadingWithId, resetHeadingCounter } from "../../../lib/tiptap-heading-with-id-extension";
 
 // --- Styles ---
 
@@ -429,6 +430,10 @@ export function SimpleEditor({
     extensions: [
       StarterKit.configure({
         horizontalRule: false,
+        heading: false, // Disable default heading, we'll use our custom one with IDs
+      }),
+      HeadingWithId.configure({
+        levels: [1, 2, 3, 4, 5, 6],
       }),
       HorizontalRule,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
