@@ -1,11 +1,199 @@
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { useToast } from "../../../ui/Toast";
 
 interface PageLayoutPanelProps {
   store: any;
 }
 
 export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
+  const { success, error: showError, info } = useToast();
+  const [gridlinesOn, setGridlinesOn] = useState(true);
+  const [headingsOn, setHeadingsOn] = useState(true);
+  const [savedHeaderSizes, setSavedHeaderSizes] = useState<{
+    colHeaderHeight: number;
+    rowHeaderWidth: number;
+  } | null>(null);
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">(
+    "portrait",
+  );
+  const [marginPreset, setMarginPreset] = useState<
+    "normal" | "narrow" | "wide"
+  >("normal");
+
   if (!store) return null;
+
+  const getActiveSheet = useCallback(() => {
+    try {
+      const wb = store.getActiveWorkbook?.();
+      const sheet = wb?.getActiveSheet?.();
+      return sheet ?? null;
+    } catch {
+      return null;
+    }
+  }, [store]);
+
+  const tryMany = useCallback((calls: Array<() => any>) => {
+    for (const fn of calls) {
+      try {
+        const res = fn();
+        if (res !== false) return true;
+      } catch {
+        // continue
+      }
+    }
+    return false;
+  }, []);
+
+  const handleToggleGridlines = useCallback(() => {
+    const sheet = getActiveSheet();
+    if (!sheet) {
+      showError("Spreadsheet not ready.");
+      return;
+    }
+
+    // Univer Facade API (documented)
+    // https://docs.univer.ai/guides/sheets/features/core/gridlines
+    try {
+      const currentlyHidden =
+        typeof sheet.hasHiddenGridLines === "function"
+          ? sheet.hasHiddenGridLines()
+          : false;
+      const nextHidden = !currentlyHidden;
+      if (typeof sheet.setHiddenGridlines === "function") {
+        sheet.setHiddenGridlines(nextHidden);
+        setGridlinesOn(!nextHidden);
+        success(`Gridlines ${nextHidden ? "hidden" : "shown"}.`);
+        return;
+      }
+    } catch {
+      // fall through to older guesses
+    }
+
+    const next = !gridlinesOn;
+    setGridlinesOn(next);
+    const ok = tryMany([
+      () => sheet.setShowGridlines?.(next),
+      () => sheet.setGridlinesVisible?.(next),
+      () => sheet.setGridlineVisible?.(next),
+    ]);
+
+    if (ok) success(`Gridlines ${next ? "shown" : "hidden"}.`);
+    else info("Gridlines toggle isn't supported in this Univer build.");
+  }, [getActiveSheet, gridlinesOn, info, showError, success, tryMany]);
+
+  const handleToggleHeadings = useCallback(() => {
+    const sheet = getActiveSheet();
+    if (!sheet) {
+      showError("Spreadsheet not ready.");
+      return;
+    }
+
+    // Facade API doesn't expose a direct "hide headings" toggle, but it does allow
+    // controlling header sizes. Setting them to 0 effectively hides headings.
+    // See: setColumnHeaderHeight / setRowHeaderWidth on FWorksheet.
+    try {
+      const next = !headingsOn;
+      if (next) {
+        // turning ON headings: restore previous sizes (or defaults)
+        const restore = savedHeaderSizes ?? { colHeaderHeight: 24, rowHeaderWidth: 40 };
+        if (typeof sheet.setColumnHeaderHeight === "function") {
+          sheet.setColumnHeaderHeight(restore.colHeaderHeight);
+        }
+        if (typeof sheet.setRowHeaderWidth === "function") {
+          sheet.setRowHeaderWidth(restore.rowHeaderWidth);
+        }
+        setHeadingsOn(true);
+        success("Headings shown.");
+        return;
+      }
+
+      // turning OFF headings: remember current (best-effort) then set to 0
+      // If getters aren't available, we just remember defaults so we can restore later.
+      if (!savedHeaderSizes) {
+        setSavedHeaderSizes({ colHeaderHeight: 24, rowHeaderWidth: 40 });
+      }
+      if (typeof sheet.setColumnHeaderHeight === "function") {
+        sheet.setColumnHeaderHeight(0);
+      }
+      if (typeof sheet.setRowHeaderWidth === "function") {
+        sheet.setRowHeaderWidth(0);
+      }
+      setHeadingsOn(false);
+      success("Headings hidden.");
+      return;
+    } catch {
+      // fall through
+    }
+
+    const next = !headingsOn;
+    setHeadingsOn(next);
+    const ok = tryMany([
+      () => sheet.setShowHeadings?.(next),
+      () => sheet.setHeadingsVisible?.(next),
+      () => sheet.setRowColHeaderVisible?.(next),
+    ]);
+
+    if (ok) success(`Headings ${next ? "shown" : "hidden"}.`);
+    else info("Headings toggle isn't supported in this Univer build.");
+  }, [
+    getActiveSheet,
+    headingsOn,
+    info,
+    savedHeaderSizes,
+    showError,
+    success,
+    tryMany,
+  ]);
+
+  const handleOrientation = useCallback(() => {
+    const next = orientation === "portrait" ? "landscape" : "portrait";
+    setOrientation(next);
+    // Univer core preset doesn't reliably expose print/page orientation APIs.
+    info(`Orientation set to ${next.toUpperCase()} (print setup not available in this build).`);
+  }, [info, orientation]);
+
+  const marginPresets = useMemo(
+    () => ({
+      normal: { top: 1, right: 1, bottom: 1, left: 1 },
+      narrow: { top: 0.5, right: 0.5, bottom: 0.5, left: 0.5 },
+      wide: { top: 1.5, right: 1.5, bottom: 1.5, left: 1.5 },
+    }),
+    [],
+  );
+
+  const handleMargins = useCallback(() => {
+    const next =
+      marginPreset === "normal"
+        ? "narrow"
+        : marginPreset === "narrow"
+          ? "wide"
+          : "normal";
+    setMarginPreset(next);
+
+    // Univer core preset doesn't reliably expose print/page margin APIs.
+    // We still track the selected preset in UI.
+    success(`Margins preset: ${next.toUpperCase()}`);
+  }, [
+    getActiveSheet,
+    info,
+    marginPreset,
+    marginPresets,
+    showError,
+    success,
+    tryMany,
+  ]);
+
+  const handlePageSetup = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const scaleStr =
+      window.prompt("Scale percent (for export/print):", "100") ?? "100";
+    const scale = Number(scaleStr);
+    if (!Number.isFinite(scale) || scale <= 0) {
+      showError("Invalid scale value.");
+      return;
+    }
+    info(`Scale set to ${scale}% (print setup not available in this build).`);
+  }, [info, showError]);
 
   return (
     <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
@@ -20,6 +208,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleToggleGridlines}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -75,6 +264,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleToggleHeadings}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -133,6 +323,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
             className="flex flex-col items-center justify-center w-[65px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handlePageSetup}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -199,6 +390,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleMargins}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -272,6 +464,7 @@ export default function PageLayoutPanel({ store }: PageLayoutPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleOrientation}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

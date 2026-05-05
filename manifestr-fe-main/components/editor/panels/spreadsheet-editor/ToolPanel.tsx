@@ -13,9 +13,16 @@ interface ToolPanelProps {
   store: any;
   setActiveTool?: (tool: any) => void;
   generationId?: string;
+  onOpenThemePicker?: () => void;
 }
 
-export default function ToolPanel({ activeTool, store, setActiveTool, generationId }: ToolPanelProps) {
+export default function ToolPanel({
+  activeTool,
+  store,
+  setActiveTool,
+  generationId,
+  onOpenThemePicker,
+}: ToolPanelProps) {
   if (!activeTool) return null;
 
   switch (activeTool) {
@@ -39,7 +46,7 @@ export default function ToolPanel({ activeTool, store, setActiveTool, generation
       return <FormatPanel store={store} />;
 
     case "style":
-      return <StylePanel store={store} />;
+      return <StylePanel store={store} onOpenThemePicker={onOpenThemePicker} />;
 
     case "page_layout":
       return <PageLayoutPanel store={store} />;
