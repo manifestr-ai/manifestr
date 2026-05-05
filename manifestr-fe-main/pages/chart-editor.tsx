@@ -38,6 +38,7 @@ export default function ChartEditorPage() {
   const [store, setStore] = useState<any>(null);
   const [zoom, setZoom] = useState(1);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const chartDownloadRef = useRef<(() => void) | null>(null);
 
   const clampZoom = (value: number) => Math.min(2, Math.max(0.5, value));
 
@@ -50,6 +51,16 @@ export default function ChartEditorPage() {
   };
 
   const handleZoomReset = () => setZoom(1);
+
+  const handleDownloadChart = () => {
+    if (chartDownloadRef.current) {
+      chartDownloadRef.current();
+    }
+  };
+
+  const setChartDownloadFn = (fn: () => void) => {
+    chartDownloadRef.current = fn;
+  };
 
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden font-sans">
@@ -65,6 +76,7 @@ export default function ChartEditorPage() {
           documentId={actualGenerationId}
           documentTitle="Chart"
           enableCollaboration={!!actualGenerationId}
+          onDownload={handleDownloadChart}
         />
       </div>
 
@@ -76,6 +88,7 @@ export default function ChartEditorPage() {
             generationId={actualGenerationId}
             onStoreReady={setStore}
             onActiveToolChange={setActiveTool}
+            onDownloadReady={setChartDownloadFn}
           />
         </div>
 

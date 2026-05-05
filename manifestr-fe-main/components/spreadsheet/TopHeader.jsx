@@ -213,6 +213,17 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                     </button>
                 )}
 
+                {/* Download Button - Only for spreadsheet editor */}
+                {editorType === 'spreadsheet' && onDownload && (
+                    <button 
+                        onClick={onDownload}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium"
+                    >
+                        <Download size={16} />
+                        Download XLSX
+                    </button>
+                )}
+
                     {/* Download Button - Only for presentation editor */}
 
                     {editorType === 'presentation' && (
@@ -220,11 +231,6 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                             position={Position.BOTTOM_RIGHT}
                             content={
                             <Menu>
-                                <MenuItem
-                                text="Share"
-                                disabled={!enableCollaboration}
-                                onClick={() => enableCollaboration && setShowShareModal(true)}
-                                />
                                 <MenuItem
                                 
                                 text="PDF"
@@ -269,8 +275,8 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                                 disabled={!store}
                             >
                                 <span className="flex items-center gap-2">
-                                    <Share size={16} />
-                                    <span>Share &amp; Download</span>
+                                    <Download size={16} />
+                                    <span>Download</span>
                                 </span>
                             </Button>
                        
@@ -285,11 +291,6 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                             position={Position.BOTTOM_RIGHT}
                             content={
                             <Menu>
-                                <MenuItem
-                                text="Share"
-                                disabled={!enableCollaboration}
-                                onClick={() => enableCollaboration && setShowShareModal(true)}
-                                />
                                 <MenuItem
                                 
                                 text="PNG"
@@ -321,22 +322,24 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                                 disabled={!store}
                             >
                                 <span className="flex items-center gap-2">
-                                    <Share size={16} />
-                                    <span>Share &amp; Download</span>
+                                    <Download size={16} />
+                                    <span>Download</span>
                                 </span>
                             </Button>
                        
                         </Popover>
                         )}
-                    {/* Share Button - Opens collaboration modal if enabled */}
-                    {(editorType !== 'presentation' && editorType !== 'image' ) && (   <button
-                    onClick={() => enableCollaboration && setShowShareModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!enableCollaboration}
-                >
-                    <Share size={16} />
-                    Share
-                </button>  )}
+
+                    {/* Download Chart Button - Only for chart editor */}
+                    {editorType === 'chart' && onDownload && (
+                        <button 
+                            onClick={onDownload}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 text-sm font-medium"
+                        >
+                            <Download size={16} />
+                            Download Chart
+                        </button>
+                    )}
             </div>
 
             {/* Share Modal - Only render if collaboration enabled */}

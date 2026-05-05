@@ -13,7 +13,7 @@ export default function ChartViewerPage() {
 
             {/* Top Section */}
             <div className="flex-none z-30">
-                <TopHeader editorType="document" />
+                <TopHeader editorType="viewer" />
             </div>
 
             {/* Main Content Area - SCROLLABLE */}

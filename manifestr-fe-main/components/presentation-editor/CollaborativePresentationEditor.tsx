@@ -479,24 +479,28 @@ export default function CollaborativePresentationEditor({
 
   // Handle style guide selection - REGENERATE with style guide
   const handleSelectStyleGuide = async (styleGuide: any) => {
-    console.log('🎨 Regenerating presentation with style guide:', styleGuide);
-    
+    console.log("🎨 Regenerating presentation with style guide:", styleGuide);
+
     try {
       setShowStyleGuideModal(false);
-      
+
       // Show loading state
-      success(`🔄 Regenerating presentation with "${styleGuide.brand_name || styleGuide.name}" theme...`);
-      
+      success(
+        `🔄 Regenerating presentation with "${styleGuide.brand_name || styleGuide.name}" theme...`,
+      );
+
       // Get current context
-      const currentTitle = store.pages[0]?.children.find((c: any) => c.type === 'text')?.text || 'Professional Presentation';
+      const currentTitle =
+        store.pages[0]?.children.find((c: any) => c.type === "text")?.text ||
+        "Professional Presentation";
       const pageCount = store.pages.length || 5;
       const currentPresentation = store.toJSON();
-      
+
       // If we have a generation ID, use modify endpoint to update the SAME presentation
       if (generationId) {
-        console.log('📝 Updating existing presentation with ID:', generationId);
-        
-        const response = await api.post('/presentation-generator/modify', {
+        console.log("📝 Updating existing presentation with ID:", generationId);
+
+        const response = await api.post("/presentation-generator/modify", {
           prompt: `Apply brand style guide: ${styleGuide.brand_name || styleGuide.name} to this ${currentTitle}`,
           presentationData: currentPresentation,
           styleGuideId: styleGuide.id,
@@ -504,47 +508,48 @@ export default function CollaborativePresentationEditor({
             colors: styleGuide.colors,
             typography: styleGuide.typography,
             brandName: styleGuide.brand_name || styleGuide.name,
-            logo: styleGuide.logo
+            logo: styleGuide.logo,
           },
           generationId: generationId,
-          meta: { 
-            editorType: 'presentation',
+          meta: {
+            editorType: "presentation",
             applyStyleGuide: true,
-            updateExisting: true
-          }
+            updateExisting: true,
+          },
         });
-        
-        console.log('📽️  Modified presentation response:', response.data);
-        
+
+        console.log("📽️  Modified presentation response:", response.data);
+
         if (response.data?.data?.presentationData && store) {
           const updatedPresentation = response.data.data.presentationData;
-          console.log('✅ Loading updated presentation data into store');
-          
+          console.log("✅ Loading updated presentation data into store");
+
           // Clear existing pages (correct method: deletePages)
           const pageIds = store.pages.map((p: any) => p.id);
           store.deletePages(pageIds);
-          
+
           // Load updated presentation
           try {
             store.loadJSON(updatedPresentation);
-            console.log('✅ Presentation updated successfully!');
-            success(`✅ Presentation regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`);
+            console.log("✅ Presentation updated successfully!");
+            success(
+              `✅ Presentation regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`,
+            );
           } catch (loadError) {
-            console.error('❌ Error loading JSON:', loadError);
+            console.error("❌ Error loading JSON:", loadError);
             // Force page reload as fallback
             setTimeout(() => window.location.reload(), 500);
           }
         } else {
           // Fallback: reload page
-          console.log('🔄 Reloading page to show updated presentation...');
+          console.log("🔄 Reloading page to show updated presentation...");
           setTimeout(() => window.location.reload(), 500);
         }
-        
       } else {
         // No ID - create new presentation
-        console.log('📝 Creating new presentation with style guide');
-        
-        const response = await api.post('/presentation-generator/generate', {
+        console.log("📝 Creating new presentation with style guide");
+
+        const response = await api.post("/presentation-generator/generate", {
           prompt: `${currentTitle}. Apply brand style guide: ${styleGuide.brand_name || styleGuide.name}`,
           pageCount: pageCount,
           styleGuideId: styleGuide.id,
@@ -552,48 +557,56 @@ export default function CollaborativePresentationEditor({
             colors: styleGuide.colors,
             typography: styleGuide.typography,
             brandName: styleGuide.brand_name || styleGuide.name,
-            logo: styleGuide.logo
+            logo: styleGuide.logo,
           },
-          meta: { 
-            editorType: 'presentation',
-            applyStyleGuide: true
-          }
+          meta: {
+            editorType: "presentation",
+            applyStyleGuide: true,
+          },
         });
-        
-        console.log('📽️  API Response:', response.data);
-        
+
+        console.log("📽️  API Response:", response.data);
+
         if (response.data?.data?.presentationData && store) {
           const newPresentation = response.data.data.presentationData;
-          console.log('✅ Loading regenerated presentation data into store');
-          
+          console.log("✅ Loading regenerated presentation data into store");
+
           // Clear existing pages (correct method: deletePages)
           const pageIds = store.pages.map((p: any) => p.id);
           store.deletePages(pageIds);
-          
+
           // Load new presentation
           try {
             store.loadJSON(newPresentation);
-            console.log('✅ Presentation loaded successfully!');
-            
+            console.log("✅ Presentation loaded successfully!");
+
             // If we got a jobId, update URL
             if (response.data?.data?.jobId) {
-              window.history.replaceState({}, '', `/presentation-editor?id=${response.data.data.jobId}`);
+              window.history.replaceState(
+                {},
+                "",
+                `/presentation-editor?id=${response.data.data.jobId}`,
+              );
             }
-            
-            success(`✅ Presentation regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`);
+
+            success(
+              `✅ Presentation regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`,
+            );
           } catch (loadError) {
-            console.error('❌ Error loading JSON:', loadError);
+            console.error("❌ Error loading JSON:", loadError);
             setTimeout(() => window.location.reload(), 500);
           }
         } else {
-          console.warn('⚠️ No presentation data in response, reloading page...');
+          console.warn(
+            "⚠️ No presentation data in response, reloading page...",
+          );
           setTimeout(() => window.location.reload(), 1000);
         }
       }
-      
     } catch (error: any) {
-      console.error('❌ Failed to regenerate presentation:', error);
-      const errorMsg = error?.response?.data?.message || error?.message || 'Unknown error';
+      console.error("❌ Failed to regenerate presentation:", error);
+      const errorMsg =
+        error?.response?.data?.message || error?.message || "Unknown error";
       success(`⚠️ Regeneration in progress... Check console: ${errorMsg}`);
     }
   };
@@ -633,7 +646,7 @@ export default function CollaborativePresentationEditor({
           </span>
         </div>
       )}
-      
+
       {/* HEADER */}
       <div
         className="
@@ -648,7 +661,10 @@ export default function CollaborativePresentationEditor({
           border-[#E5E7EB]
           bg-white
           "
-        style={{ paddingTop: activeUsers.length > 0 ? "56.5px" : "12.5px", paddingBottom: "13.5px" }}
+        style={{
+          paddingTop: activeUsers.length > 0 ? "56.5px" : "12.5px",
+          paddingBottom: "13.5px",
+        }}
       >
         <div className="text-sm text-gray-700 flex items-center">
           <span
@@ -688,84 +704,6 @@ export default function CollaborativePresentationEditor({
 
       {/* ACTION BAR */}
       <div className="h-[60px] flex items-center gap-3 px-6 border-b border-gray-200 bg-white">
-        <button
-          className={`
-            px-3 py-2 flex items-center gap-2 transition 
-            font-medium rounded-[10px] 
-            bg-gray-100 text-[#0A0A0A]
-            hover:bg-gray-200 hover:shadow-md
-            focus:outline-none focus:ring-2 focus:ring-blue-400
-            active:bg-gray-300
-            text-[13px] sm:text-[14px] 
-            leading-5 
-            md:px-4
-          `}
-          style={{
-            fontFamily: "Inter",
-            fontStyle: "normal",
-            fontWeight: 500,
-            letterSpacing: "-0.15px",
-          }}
-          type="button"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="w-4 h-4 md:w-4 md:h-4"
-          >
-            <path
-              d="M10.0013 1.33594H4.0013C3.64768 1.33594 3.30854 1.47641 3.05849 1.72646C2.80844 1.97651 2.66797 2.31565 2.66797 2.66927V13.3359C2.66797 13.6896 2.80844 14.0287 3.05849 14.2787C3.30854 14.5288 3.64768 14.6693 4.0013 14.6693H12.0013C12.3549 14.6693 12.6941 14.5288 12.9441 14.2787C13.1942 14.0287 13.3346 13.6896 13.3346 13.3359V4.66927L10.0013 1.33594Z"
-              stroke="black"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M9.33203 1.33594V4.0026C9.33203 4.35623 9.47251 4.69536 9.72256 4.94541C9.9726 5.19546 10.3117 5.33594 10.6654 5.33594H13.332"
-              stroke="black"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M6.66536 6H5.33203"
-              stroke="black"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M10.6654 8.66406H5.33203"
-              stroke="black"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M10.6654 11.3359H5.33203"
-              stroke="black"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="hidden lg:inline">Insert From the Vault</span>
-        </button>
-
-        <div
-          style={{
-            width: "1px",
-            height: "24px",
-            flexShrink: 0,
-            background: "#D1D5DC",
-            marginLeft: "8px",
-            marginRight: "8px",
-          }}
-        />
-
         <button
           onClick={() => setShowStyleGuideModal(true)}
           className="px-3 py-2 flex items-center gap-2 rounded-[10px] bg-[#F3F4F6] text-[#0A0A0A] font-medium transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300
@@ -1161,7 +1099,11 @@ export default function CollaborativePresentationEditor({
 
       {/* TOP PANELS (except AI Prompter) */}
       {activeTool !== "ai_prompter" && (
-        <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
+        <ToolPanel
+          activeTool={activeTool}
+          store={store}
+          setActiveTool={setActiveTool}
+        />
       )}
 
       <EditorBottomToolbar
@@ -1172,9 +1114,13 @@ export default function CollaborativePresentationEditor({
 
       {/* AI PROMPTER BELOW TOOLBAR */}
       {activeTool === "ai_prompter" && (
-        <ToolPanel activeTool={activeTool} store={store} setActiveTool={setActiveTool} />
+        <ToolPanel
+          activeTool={activeTool}
+          store={store}
+          setActiveTool={setActiveTool}
+        />
       )}
-      
+
       {/* Style Guide Modal */}
       <StyleGuideModal
         isOpen={showStyleGuideModal}

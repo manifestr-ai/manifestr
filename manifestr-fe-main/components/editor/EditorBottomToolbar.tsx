@@ -1075,7 +1075,7 @@ const tools: ToolItem[] = [
         />
       </svg>
     ),
-    editor_for: ["document", "presentation", "spreadsheet", "image", "chart"],
+    editor_for: ["document", "spreadsheet", "image", "chart"],
   },
   // {
   //   key: "format",

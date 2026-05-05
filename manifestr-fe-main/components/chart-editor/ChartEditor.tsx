@@ -5,7 +5,7 @@
  * Uses ToolPanel for chart-specific controls and EditorBottomToolbar for tool selection
  */
 
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import {
   Chart as ChartJS,
@@ -77,6 +77,7 @@ interface ChartEditorProps {
   generationId?: string;
   onStoreReady?: (store: any) => void;
   onActiveToolChange?: (tool: string | null) => void;
+  onDownloadReady?: (downloadFn: () => void) => void;
 }
 
 type TextAlign = "left" | "center" | "right";
@@ -125,6 +126,7 @@ export default function ChartEditor({
   generationId,
   onStoreReady,
   onActiveToolChange,
+  onDownloadReady,
 }: ChartEditorProps) {
   const router = useRouter();
   const chartRef = useRef<any>(null);
@@ -906,7 +908,7 @@ export default function ChartEditor({
   );
 
   // Download chart as PNG
-  const downloadChart = () => {
+  const downloadChart = useCallback(() => {
     if (chartRef.current) {
       const canvas = chartRef.current.canvas;
       const url = canvas.toDataURL("image/png");
@@ -915,7 +917,14 @@ export default function ChartEditor({
       link.href = url;
       link.click();
     }
-  };
+  }, [chartTitle]);
+
+  // Provide download function to parent component
+  useEffect(() => {
+    if (onDownloadReady) {
+      onDownloadReady(downloadChart);
+    }
+  }, [onDownloadReady, downloadChart]);
 
   const [borderWidth] = useState(2);
   const [opacity] = useState(0.8);
@@ -1098,9 +1107,12 @@ export default function ChartEditor({
   // Handle style guide selection
   const handleSelectStyleGuide = async (styleGuide: any) => {
     setShowStyleGuideModal(false);
-    showToast("Regenerating chart with selected style...");
+    
+    const brandName = styleGuide.brand_name || styleGuide.name;
+    showToast(`Preparing to apply "${brandName}" theme to your chart...`);
 
     try {
+      showToast(`Capturing current chart data...`);
       const currentChartData = {
         chartType,
         labels,
@@ -1111,53 +1123,53 @@ export default function ChartEditor({
         selectedColorScheme,
       };
 
-      if (generationId) {
-        // Update existing chart
-        const response = await api.post("/chart-generator/modify", {
-          generationId,
-          currentChart: currentChartData,
-          styleGuideId: styleGuide.id,
-          styleGuide: {
-            name: styleGuide.name,
-            primaryColor: styleGuide.primaryColor,
-            secondaryColor: styleGuide.secondaryColor,
-            accentColor: styleGuide.accentColor,
-            backgroundColor: styleGuide.backgroundColor,
-            textColor: styleGuide.textColor,
-            fontFamily: styleGuide.fontFamily,
-          },
-          modifyPrompt: `Regenerate this chart using the "${styleGuide.name}" style guide.`,
-        });
-
-        if (response.data.success) {
-          showToast("Chart regenerated successfully!");
-          window.location.reload();
-        }
-      } else {
-        // Generate new chart
-        const response = await api.post("/chart-generator/generate", {
-          prompt: `Generate a chart with this data using the "${styleGuide.name}" style guide`,
-          chartData: currentChartData,
-          styleGuideId: styleGuide.id,
-          styleGuide: {
-            name: styleGuide.name,
-            primaryColor: styleGuide.primaryColor,
-            secondaryColor: styleGuide.secondaryColor,
-            accentColor: styleGuide.accentColor,
-            backgroundColor: styleGuide.backgroundColor,
-            textColor: styleGuide.textColor,
-            fontFamily: styleGuide.fontFamily,
-          },
-        });
-
-        if (response.data.success && response.data.generationId) {
-          showToast("Chart generated successfully!");
-          router.push(`/chart-editor?id=${response.data.generationId}`);
-        }
+      if (!currentChartData || !labels.length || !datasets.length) {
+        showToast("No chart data to apply style guide");
+        return;
       }
-    } catch (error) {
-      console.error("Error applying style guide:", error);
-      showToast("Failed to apply style guide");
+
+      // Build payload matching the working format from InsertThemePanel
+      const payload = {
+        styleGuideId: styleGuide.id,
+        styleGuide: {
+          colors: styleGuide.colors,
+          typography: styleGuide.typography,
+          brandName: brandName,
+          logo: styleGuide.logo,
+        },
+        meta: {
+          editorType: "chart",
+          applyStyleGuide: true,
+        },
+        prompt: `Apply brand style guide: ${brandName}`,
+        chartData: currentChartData,
+      };
+
+      showToast(`Regenerating chart with "${brandName}" theme... Please wait, this may take a moment.`);
+      const response = await api.post("/chart-generator/modify", payload);
+
+      showToast(`Applying new theme to your chart...`);
+
+      if (response.data?.data?.chartData) {
+        const newChartData = response.data.data.chartData;
+        
+        // Update all chart state with the new data
+        if (newChartData.chartType) setChartType(newChartData.chartType);
+        if (newChartData.labels) setLabels(newChartData.labels);
+        if (newChartData.datasets) setDatasets(newChartData.datasets);
+        if (newChartData.chartTitle) setChartTitle(newChartData.chartTitle);
+        if (typeof newChartData.showLegend === 'boolean') setShowLegend(newChartData.showLegend);
+        if (typeof newChartData.showGrid === 'boolean') setShowGrid(newChartData.showGrid);
+        if (newChartData.selectedColorScheme) setSelectedColorScheme(newChartData.selectedColorScheme);
+        
+        showToast(`Chart regenerated with "${brandName}" theme successfully!`);
+      } else {
+        showToast("Chart regenerated successfully!");
+        window.location.reload();
+      }
+    } catch (error: any) {
+      console.error("❌ Error applying style guide:", error);
+      showToast(`Failed to apply style guide: ${error?.response?.data?.message || error?.message || "Unknown error"}`);
     }
   };
 

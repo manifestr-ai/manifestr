@@ -28,15 +28,13 @@ const sections = DEFAULT_SECTIONS.filter(
     section.name !== "videos",
 );
 
-type DrawingState =
-  | {
-      tool: "brush" | "pen";
-      color: string;
-      size: number;
-      opacity: number;
-      preset?: string;
-    }
-  | null;
+type DrawingState = {
+  tool: "brush" | "pen";
+  color: string;
+  size: number;
+  opacity: number;
+  preset?: string;
+} | null;
 
 type EffectState =
   | {
@@ -93,7 +91,8 @@ const getLargestCanvasRect = (container: HTMLElement) => {
   return best;
 };
 
-const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+const clamp = (v: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, v));
 
 const DrawingControls = ({
   drawing,
@@ -213,7 +212,9 @@ const EffectsControls = ({
 }: {
   effect: EffectState;
   setEffect: React.Dispatch<React.SetStateAction<EffectState>>;
-  onApplyGradient: (next?: Partial<Extract<EffectState, { tool: "gradient" }>>) => void;
+  onApplyGradient: (
+    next?: Partial<Extract<EffectState, { tool: "gradient" }>>,
+  ) => void;
   onApplyBlur: (next?: Partial<Extract<EffectState, { tool: "blur" }>>) => void;
   onClearInk: () => void;
   hasSelection: boolean;
@@ -265,7 +266,9 @@ const EffectsControls = ({
               type="button"
               onClick={() =>
                 setEffect((prev) =>
-                  prev && prev.tool === "gradient" ? { ...prev, angle: a } : prev,
+                  prev && prev.tool === "gradient"
+                    ? { ...prev, angle: a }
+                    : prev,
                 )
               }
               className={`px-2 py-1 rounded border text-[12px] ${
@@ -307,7 +310,8 @@ const EffectsControls = ({
                 prev && prev.tool === "gradient"
                   ? {
                       ...prev,
-                      applyTo: prev.applyTo === "selection" ? "page" : "selection",
+                      applyTo:
+                        prev.applyTo === "selection" ? "page" : "selection",
                     }
                   : prev,
               )
@@ -359,7 +363,9 @@ const EffectsControls = ({
               type="button"
               onClick={() => {
                 setEffect((prev) =>
-                  prev && prev.tool === "blur" ? { ...prev, radius: p.radius } : prev,
+                  prev && prev.tool === "blur"
+                    ? { ...prev, radius: p.radius }
+                    : prev,
                 );
                 onApplyBlur({ radius: p.radius });
               }}
@@ -401,7 +407,10 @@ const EffectsControls = ({
           onClick={() =>
             setEffect((prev) =>
               prev && prev.tool === "blur"
-                ? { ...prev, target: prev.target === "selection" ? "base" : "selection" }
+                ? {
+                    ...prev,
+                    target: prev.target === "selection" ? "base" : "selection",
+                  }
                 : prev,
             )
           }
@@ -565,7 +574,8 @@ const InkingOverlay = observer(
       const children = Array.isArray(page?.children) ? page.children : [];
       const existing = children.find((el: any) => el?.name === "ink-layer");
       if (existing) return existing;
-      if (!createIfMissing || typeof page?.addElement !== "function") return null;
+      if (!createIfMissing || typeof page?.addElement !== "function")
+        return null;
       const w = Number(store?.width) || 0;
       const h = Number(store?.height) || 0;
       if (w <= 0 || h <= 0) return null;
@@ -628,8 +638,10 @@ const InkingOverlay = observer(
       const scale = Math.min(canvasRect.width / w, canvasRect.height / h);
       const pagePixelWidth = w * scale;
       const pagePixelHeight = h * scale;
-      const pageLeft = canvasRect.left + (canvasRect.width - pagePixelWidth) / 2;
-      const pageTop = canvasRect.top + (canvasRect.height - pagePixelHeight) / 2;
+      const pageLeft =
+        canvasRect.left + (canvasRect.width - pagePixelWidth) / 2;
+      const pageTop =
+        canvasRect.top + (canvasRect.height - pagePixelHeight) / 2;
 
       const pageRectClient = {
         left: pageLeft,
@@ -655,7 +667,12 @@ const InkingOverlay = observer(
       if (!inside) return null;
       const w = Number(store?.width) || 0;
       const h = Number(store?.height) || 0;
-      if (w <= 0 || h <= 0 || pageRectClient.width <= 0 || pageRectClient.height <= 0)
+      if (
+        w <= 0 ||
+        h <= 0 ||
+        pageRectClient.width <= 0 ||
+        pageRectClient.height <= 0
+      )
         return null;
       const x = ((clientX - pageRectClient.left) / pageRectClient.width) * w;
       const y = ((clientY - pageRectClient.top) / pageRectClient.height) * h;
@@ -691,7 +708,8 @@ const InkingOverlay = observer(
       if (!ctx) return;
 
       const page = store?.activePage;
-      const children = page && Array.isArray(page?.children) ? page.children : [];
+      const children =
+        page && Array.isArray(page?.children) ? page.children : [];
       const ink = getInkElement(false);
 
       ctx.clearRect(0, 0, c.width, c.height);
@@ -742,7 +760,10 @@ const InkingOverlay = observer(
       scheduleCommit(true);
     }, [inkRevision, active]);
 
-    const drawSegment = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+    const drawSegment = (
+      from: { x: number; y: number },
+      to: { x: number; y: number },
+    ) => {
       const c = ensureCanvas();
       const ctx = c?.getContext("2d");
       if (!c || !ctx) return;
@@ -755,7 +776,10 @@ const InkingOverlay = observer(
         ctx.strokeStyle = "#000000";
       } else if (drawing) {
         ctx.globalCompositeOperation = "source-over";
-        ctx.globalAlpha = Math.max(0, Math.min(1, Number(drawing.opacity) || 1));
+        ctx.globalAlpha = Math.max(
+          0,
+          Math.min(1, Number(drawing.opacity) || 1),
+        );
         ctx.lineWidth = Math.max(1, Number(drawing.size) || 1);
         ctx.strokeStyle = drawing.color || "#111827";
       } else {
@@ -793,7 +817,11 @@ const InkingOverlay = observer(
           e.stopPropagation();
           updateEraserCircle(e.clientX, e.clientY);
           if (!drawingRef.current) return;
-          if (pointerIdRef.current !== null && e.pointerId !== pointerIdRef.current) return;
+          if (
+            pointerIdRef.current !== null &&
+            e.pointerId !== pointerIdRef.current
+          )
+            return;
           const p = clientToPage(e.clientX, e.clientY);
           if (!p) return;
           const last = lastPointRef.current;
@@ -808,7 +836,11 @@ const InkingOverlay = observer(
         onPointerUp={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (pointerIdRef.current !== null && e.pointerId !== pointerIdRef.current) return;
+          if (
+            pointerIdRef.current !== null &&
+            e.pointerId !== pointerIdRef.current
+          )
+            return;
           drawingRef.current = false;
           pointerIdRef.current = null;
           lastPointRef.current = null;
@@ -817,7 +849,11 @@ const InkingOverlay = observer(
         onPointerCancel={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (pointerIdRef.current !== null && e.pointerId !== pointerIdRef.current) return;
+          if (
+            pointerIdRef.current !== null &&
+            e.pointerId !== pointerIdRef.current
+          )
+            return;
           drawingRef.current = false;
           pointerIdRef.current = null;
           lastPointRef.current = null;
@@ -865,15 +901,17 @@ const EditorUI = observer(
     effect: EffectState;
     setEffect: React.Dispatch<React.SetStateAction<EffectState>>;
     onApplyGradient: () => void;
-    onApplyBlur: (next?: Partial<Extract<EffectState, { tool: "blur" }>>) => void;
+    onApplyBlur: (
+      next?: Partial<Extract<EffectState, { tool: "blur" }>>,
+    ) => void;
     onClearInk: () => void;
     hasSelection: boolean;
     inkRevision: number;
   }) => {
-  return (
-    <div className="flex flex-col h-full w-full bg-[#e7e7e7]">
-      {/* TOP CENTER TOGGLE */}
-      {/* <div className="flex justify-center pt-4">
+    return (
+      <div className="flex flex-col h-full w-full bg-[#e7e7e7]">
+        {/* TOP CENTER TOGGLE */}
+        {/* <div className="flex justify-center pt-4">
         <div className="bg-white rounded-full shadow-sm p-1 flex gap-1">
           <button className="px-4 py-1.5 rounded-full bg-gray-100 text-sm font-medium">
             Image
@@ -884,35 +922,35 @@ const EditorUI = observer(
         </div>
       </div> */}
 
-      {/* CANVAS AREA */}
-      <div
-        ref={workspaceContainerRef}
-        className="flex-grow flex items-center justify-center relative  overflow-hidden"
-      >
-        <Workspace store={store} pageControlsEnabled={false} />
-        <InkingOverlay
-          store={store}
-          containerRef={workspaceContainerRef}
-          drawing={drawing}
-          eraser={effect && effect.tool === "erase" ? effect : null}
-          inkRevision={inkRevision}
-        />
-        {drawing ? (
-          <DrawingControls drawing={drawing} setDrawing={setDrawing} />
-        ) : (
-          <EffectsControls
-            effect={effect}
-            setEffect={setEffect}
-            onApplyGradient={onApplyGradient}
-            onApplyBlur={onApplyBlur}
-            onClearInk={onClearInk}
-            hasSelection={hasSelection}
+        {/* CANVAS AREA */}
+        <div
+          ref={workspaceContainerRef}
+          className="flex-grow flex items-center justify-center relative  overflow-hidden"
+        >
+          <Workspace store={store} pageControlsEnabled={false} />
+          <InkingOverlay
+            store={store}
+            containerRef={workspaceContainerRef}
+            drawing={drawing}
+            eraser={effect && effect.tool === "erase" ? effect : null}
+            inkRevision={inkRevision}
           />
-        )}
+          {drawing ? (
+            <DrawingControls drawing={drawing} setDrawing={setDrawing} />
+          ) : (
+            <EffectsControls
+              effect={effect}
+              setEffect={setEffect}
+              onApplyGradient={onApplyGradient}
+              onApplyBlur={onApplyBlur}
+              onClearInk={onClearInk}
+              hasSelection={hasSelection}
+            />
+          )}
+        </div>
       </div>
-    </div>
-  );
-},
+    );
+  },
 );
 
 const PhotoEditor = observer(function PhotoEditor({
@@ -1009,57 +1047,92 @@ const PhotoEditor = observer(function PhotoEditor({
 
   const handleSelectStyleGuide = async (styleGuide: any) => {
     setShowStyleGuideModal(false);
-    showToast('Regenerating image with selected style...', 'info');
+    
+    const brandName = styleGuide.brand_name || styleGuide.name;
+    showToast(`Preparing to apply "${brandName}" theme...`, "info");
 
     try {
-      const imageIdParam = router.query.id;
-      const actualImageId = typeof imageIdParam === 'string' ? imageIdParam : Array.isArray(imageIdParam) ? imageIdParam[0] : undefined;
-
-      if (actualImageId) {
-        // Update existing image
-        const response = await api.post('/image-generator/modify', {
-          generationId: actualImageId,
-          styleGuideId: styleGuide.id,
-          styleGuide: {
-            name: styleGuide.name,
-            primaryColor: styleGuide.primaryColor,
-            secondaryColor: styleGuide.secondaryColor,
-            accentColor: styleGuide.accentColor,
-            backgroundColor: styleGuide.backgroundColor,
-            textColor: styleGuide.textColor,
-            fontFamily: styleGuide.fontFamily,
-          },
-          modifyPrompt: `Regenerate this image using the "${styleGuide.name}" style guide.`,
-        });
-
-        if (response.data.success && response.data.imageUrl) {
-          showToast('Image regenerated successfully!', 'success');
-          window.location.reload();
+      // Get the current image URL from the store
+      // Try to get the base64 data URL from the store
+      let imageUrl: string = "";
+      
+      try {
+        showToast(`Capturing current image...`, "info");
+        // Call toDataURL with proper options - it returns a Promise!
+        if (store?.toDataURL) {
+          imageUrl = await store.toDataURL();
         }
-      } else {
-        // Generate new image
-        const response = await api.post('/image-generator/generate', {
-          prompt: `Generate an image using the "${styleGuide.name}" style guide`,
-          styleGuideId: styleGuide.id,
-          styleGuide: {
-            name: styleGuide.name,
-            primaryColor: styleGuide.primaryColor,
-            secondaryColor: styleGuide.secondaryColor,
-            accentColor: styleGuide.accentColor,
-            backgroundColor: styleGuide.backgroundColor,
-            textColor: styleGuide.textColor,
-            fontFamily: styleGuide.fontFamily,
-          },
-        });
-
-        if (response.data.success && response.data.generationId) {
-          showToast('Image generated successfully!', 'success');
-          router.push(`/image-editor?id=${response.data.generationId}`);
+        
+        // Validate that we got a proper data URL string
+        if (!imageUrl || typeof imageUrl !== 'string') {
+          console.error("❌ toDataURL did not return a valid string:", typeof imageUrl);
+          
+          // Fallback: try to get the source image URL directly
+          const baseImage = store?.pages?.[0]?.children?.find(
+            (c: any) => c.type === "image" && (c.name === "base-image" || !c.name)
+          );
+          
+          if (baseImage && baseImage.src) {
+            imageUrl = baseImage.src;
+            console.log("✅ Using base image src as fallback:", imageUrl.substring(0, 50));
+          }
         }
+      } catch (err) {
+        console.error("❌ Error getting image URL:", err);
       }
-    } catch (error) {
-      console.error('Error applying style guide:', error);
-      showToast('Failed to apply style guide', 'error');
+      
+      if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim() === "") {
+        showToast("No image loaded to apply style guide", "error");
+        console.error("❌ No valid imageUrl found");
+        return;
+      }
+
+      console.log("✅ Got imageUrl, length:", imageUrl.length, "type:", typeof imageUrl);
+
+      // Build payload matching the working format from InsertThemePanel
+      const payload = {
+        styleGuideId: styleGuide.id,
+        styleGuide: {
+          colors: styleGuide.colors,
+          typography: styleGuide.typography,
+          brandName: brandName,
+          logo: styleGuide.logo,
+        },
+        meta: {
+          editorType: "image",
+          applyStyleGuide: true,
+        },
+        prompt: `Apply brand style guide: ${brandName}`,
+        imageUrl: imageUrl,
+      };
+
+      console.log("📤 Sending payload with imageUrl type:", typeof payload.imageUrl);
+      showToast(`Regenerating image with "${brandName}" theme... Please wait, this may take a moment.`, "info");
+
+      const response = await api.post("/image-generator/modify", payload);
+
+      showToast(`Applying new theme to your image...`, "info");
+
+      if (response.data?.data?.imageUrl && store) {
+        // Load new image into Polotno
+        const img = store.pages[0]?.children?.find(
+          (c: any) => c.type === "image",
+        );
+        if (img) {
+          img.set({ src: response.data.data.imageUrl });
+        }
+        showToast(`Image regenerated with "${brandName}" theme successfully!`, "success");
+      } else {
+        // Fallback to page reload if we can't update the image directly
+        showToast("Image regenerated successfully!", "success");
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch (error: any) {
+      console.error("❌ Failed to apply style guide:", error);
+      showToast(
+        `Failed to apply style guide: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
+        "error"
+      );
     }
   };
 
@@ -1159,19 +1232,24 @@ const PhotoEditor = observer(function PhotoEditor({
     }
   };
 
-  const applyBlur = (next?: Partial<Extract<EffectState, { tool: "blur" }>>) => {
+  const applyBlur = (
+    next?: Partial<Extract<EffectState, { tool: "blur" }>>,
+  ) => {
     if (!page) return;
     const current =
       effect && effect.tool === "blur" ? { ...effect, ...(next || {}) } : null;
     if (!current) return;
 
     const radius = Math.max(0, Number(current.radius) || 0);
-    const applyTo = current.target === "selection" && hasSelection ? "selection" : "base";
+    const applyTo =
+      current.target === "selection" && hasSelection ? "selection" : "base";
 
     const targets =
       applyTo === "selection"
         ? selectedElements
-        : pageChildren.filter((c: any) => c?.type === "image" && c?.name === "base-image");
+        : pageChildren.filter(
+            (c: any) => c?.type === "image" && c?.name === "base-image",
+          );
 
     const fallbackTargets =
       targets.length > 0
@@ -1210,8 +1288,6 @@ const PhotoEditor = observer(function PhotoEditor({
         />
       </div>
       {/* BOTTOM TOOLBAR */}
-
-      
 
       {/* TOP PANELS (except AI Prompter) */}
       {activeTool !== "ai_prompter" && (

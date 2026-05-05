@@ -20,12 +20,14 @@ export default function InsertThemePanel({
   const { success } = useToast();
 
   const handleSelectStyleGuide = async (styleGuide: any) => {
-    console.log("🎨 Regenerating content with style guide:", styleGuide);
+    console.log(" Regenerating content with style guide:", styleGuide);
+
+    const brandName = styleGuide.brand_name || styleGuide.name;
 
     try {
       setShowStyleGuideModal(false);
       success(
-        `🔄 Regenerating ${editorType} with "${styleGuide.brand_name || styleGuide.name}" theme...`,
+        `Preparing to apply "${brandName}" theme to your ${editorType}...`,
       );
 
       // Different API endpoints for different editor types
@@ -35,7 +37,7 @@ export default function InsertThemePanel({
         styleGuide: {
           colors: styleGuide.colors,
           typography: styleGuide.typography,
-          brandName: styleGuide.brand_name || styleGuide.name,
+          brandName: brandName,
           logo: styleGuide.logo,
         },
         meta: {
@@ -45,23 +47,27 @@ export default function InsertThemePanel({
       };
 
       if (editorType === "document") {
+        success(`Capturing current document content...`);
         endpoint = "/document-generator/modify";
-        payload.prompt = `Redesign this document with brand style guide: ${styleGuide.brand_name || styleGuide.name}`;
+        payload.prompt = `Redesign this document with brand style guide: ${brandName}`;
         payload.documentData =
           editor?.getHTML() || "<p>Professional Document</p>";
       } else if (editorType === "image") {
+        success(`Capturing current image...`);
         endpoint = "/image-generator/modify";
-        payload.prompt = `Apply brand style guide: ${styleGuide.brand_name || styleGuide.name}`;
-        payload.imageUrl = store?.toDataURL?.() || "";
+        payload.prompt = `Apply brand style guide: ${brandName}`;
+        // toDataURL returns a Promise, so we need to await it
+        payload.imageUrl = store?.toDataURL ? await store.toDataURL() : "";
       }
 
       if (endpoint) {
+        success(`Regenerating ${editorType} with "${brandName}" theme... Please wait, this may take a moment.`);
         const response = await api.post(endpoint, payload);
 
         if (response.data?.data) {
-          console.log("✅ Content regenerated, reloading...");
+          console.log(" Content regenerated, reloading...");
+          success(`Applying new theme to your ${editorType}...`);
 
-          // Reload content based on type
           if (
             editorType === "document" &&
             response.data.data.documentData &&
@@ -69,7 +75,7 @@ export default function InsertThemePanel({
           ) {
             editor.commands.setContent(response.data.data.documentData);
             success(
-              `✅ Document regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`,
+              `Document regenerated with "${brandName}" theme successfully!`,
             );
           } else if (
             editorType === "image" &&
@@ -84,22 +90,23 @@ export default function InsertThemePanel({
               img.src = response.data.data.imageUrl;
             }
             success(
-              `✅ Image regenerated with "${styleGuide.brand_name || styleGuide.name}" theme!`,
+              `Image regenerated with "${brandName}" theme successfully!`,
             );
           } else {
+            success(`${editorType.charAt(0).toUpperCase() + editorType.slice(1)} regenerated successfully!`);
             // Force page reload
             setTimeout(() => window.location.reload(), 1000);
           }
         }
       } else {
         success(
-          `Style guide "${styleGuide.brand_name || styleGuide.name}" selected. Full regeneration coming soon!`,
+          `Style guide "${brandName}" selected. Full regeneration coming soon!`,
         );
       }
     } catch (error: any) {
       console.error("❌ Failed to regenerate:", error);
       success(
-        `⚠️ Processing... ${error?.response?.data?.message || error?.message || ""}`,
+        `Failed to apply style guide: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
       );
     }
   };

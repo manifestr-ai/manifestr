@@ -1,11 +1,22 @@
-import { useCallback } from 'react';
+import { useToast as useToastContext } from '../components/ui/Toast';
 
 export const useToast = () => {
-  const showToast = useCallback((message: string, type?: string) => {
-    console.log(`[Toast ${type || 'info'}]:`, message);
-    // You can integrate with a toast library here (react-hot-toast, sonner, etc.)
-    // For now, just logging to console
-  }, []);
+  const { success, error, info } = useToastContext();
 
-  return { showToast };
+  const showToast = (message: string, type?: 'success' | 'error' | 'info') => {
+    switch (type) {
+      case 'success':
+        success(message);
+        break;
+      case 'error':
+        error(message);
+        break;
+      case 'info':
+      default:
+        info(message);
+        break;
+    }
+  };
+
+  return { showToast, success, error, info };
 };

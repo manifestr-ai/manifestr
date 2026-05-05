@@ -69,12 +69,133 @@ export default function DocsEditor() {
   const handleZoomReset = () => setZoom(1);
 
   const handleDownload = async () => {
-    // ❌ REMOVED: Template download - NO MORE TEMPLATES!
-    // TODO: Implement actual document export functionality here
-    console.warn(
-      "Download functionality not yet implemented - templates removed",
-    );
-    alert("Document export feature coming soon!");
+    try {
+      // Get the HTML content from the editor
+      const htmlContent = editorInstance?.getHTML() || editorHTML;
+
+      if (
+        !htmlContent ||
+        htmlContent.trim() === "" ||
+        htmlContent === "<p></p>"
+      ) {
+        alert("No content to download");
+        return;
+      }
+
+      // Parse HTML to extract text and basic formatting
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, "text/html");
+
+      // Import docx library
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel } =
+        await import("docx");
+
+      // Convert HTML elements to docx paragraphs
+      const paragraphs: any[] = [];
+
+      const processNode = (node: any) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent?.trim();
+          if (text) {
+            paragraphs.push(
+              new Paragraph({
+                children: [new TextRun(text)],
+              }),
+            );
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const tagName = node.tagName.toLowerCase();
+          const text = node.textContent?.trim();
+
+          if (!text) return;
+
+          if (tagName === "h1") {
+            paragraphs.push(
+              new Paragraph({
+                text: text,
+                heading: HeadingLevel.HEADING_1,
+              }),
+            );
+          } else if (tagName === "h2") {
+            paragraphs.push(
+              new Paragraph({
+                text: text,
+                heading: HeadingLevel.HEADING_2,
+              }),
+            );
+          } else if (tagName === "h3") {
+            paragraphs.push(
+              new Paragraph({
+                text: text,
+                heading: HeadingLevel.HEADING_3,
+              }),
+            );
+          } else if (tagName === "p") {
+            const children: any[] = [];
+            node.childNodes.forEach((child: any) => {
+              const childText = child.textContent?.trim();
+              if (childText) {
+                const bold = child.tagName === "STRONG" || child.tagName === "B";
+                const italic = child.tagName === "EM" || child.tagName === "I";
+                children.push(
+                  new TextRun({ text: childText, bold, italics: italic }),
+                );
+              }
+            });
+
+            if (children.length === 0 && text) {
+              children.push(new TextRun(text));
+            }
+
+            if (children.length > 0) {
+              paragraphs.push(new Paragraph({ children }));
+            }
+          } else if (tagName === "li") {
+            paragraphs.push(
+              new Paragraph({
+                text: `• ${text}`,
+              }),
+            );
+          } else {
+            // Process child nodes
+            node.childNodes.forEach(processNode);
+          }
+        }
+      };
+
+      // Process all body children
+      doc.body.childNodes.forEach(processNode);
+
+      // Create document
+      const docxDoc = new Document({
+        sections: [
+          {
+            children:
+              paragraphs.length > 0
+                ? paragraphs
+                : [
+                    new Paragraph({
+                      children: [new TextRun("Empty Document")],
+                    }),
+                  ],
+          },
+        ],
+      });
+
+      // Generate and download
+      const blob = await Packer.toBlob(docxDoc);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `document_${new Date().getTime()}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      alert("Failed to download document. Please try again.");
+    }
   };
 
   // Use generated content if available, otherwise fall back to dummy
@@ -100,10 +221,16 @@ export default function DocsEditor() {
   console.log("🔍 docs-editor: content type:", typeof content);
   if (content && typeof content === "object") {
     console.log("🔍 docs-editor: content keys:", Object.keys(content));
-    console.log("🔍 docs-editor: content.html:", content.html?.substring(0, 100));
-    console.log("🔍 docs-editor: content.editorState:", typeof content.editorState);
+    console.log(
+      "🔍 docs-editor: content.html:",
+      content.html?.substring(0, 100),
+    );
+    console.log(
+      "🔍 docs-editor: content.editorState:",
+      typeof content.editorState,
+    );
   }
-  
+
   let savedHtmlContent = null;
   if (typeof content === "string") {
     savedHtmlContent = content;
@@ -111,74 +238,84 @@ export default function DocsEditor() {
     savedHtmlContent = content.html;
   } else if (content?.editorState) {
     // Backend might return editorState directly
-    savedHtmlContent = typeof content.editorState === "string" 
-      ? content.editorState 
-      : content.editorState?.html || null;
+    savedHtmlContent =
+      typeof content.editorState === "string"
+        ? content.editorState
+        : content.editorState?.html || null;
   }
 
-  console.log("🔍 docs-editor: savedHtmlContent preview:", savedHtmlContent?.substring(0, 200) || "null");
-  console.log("🔍 docs-editor: savedHtmlContent length:", savedHtmlContent?.length || 0);
+  console.log(
+    "🔍 docs-editor: savedHtmlContent preview:",
+    savedHtmlContent?.substring(0, 200) || "null",
+  );
+  console.log(
+    "🔍 docs-editor: savedHtmlContent length:",
+    savedHtmlContent?.length || 0,
+  );
 
   const handleSelectStyleGuide = async (styleGuide: any) => {
     setShowStyleGuideModal(false);
-    showToast("Regenerating document with selected style...", "info");
+
+    const brandName = styleGuide.brand_name || styleGuide.name;
+    showToast(
+      `Preparing to apply "${brandName}" theme to your document...`,
+      "info",
+    );
 
     try {
+      showToast(`Capturing current document content...`, "info");
       const currentContent = editorInstance?.getHTML() || editorHTML;
 
-      if (actualDocumentId) {
-        // Update existing document
-        const response = await api.post("/document-generator/modify", {
-          generationId: actualDocumentId,
-          currentDocument: { html: currentContent },
-          styleGuideId: styleGuide.id,
-          styleGuide: {
-            name: styleGuide.name,
-            primaryColor: styleGuide.primaryColor,
-            secondaryColor: styleGuide.secondaryColor,
-            accentColor: styleGuide.accentColor,
-            backgroundColor: styleGuide.backgroundColor,
-            textColor: styleGuide.textColor,
-            fontFamily: styleGuide.fontFamily,
-          },
-          modifyPrompt: `Regenerate this document using the "${styleGuide.name}" style guide.`,
-        });
-
-        if (response.data.success && response.data.modifiedDocument) {
-          showToast("Document regenerated successfully!", "success");
-          if (editorInstance?.commands?.setContent) {
-            editorInstance.commands.setContent(
-              response.data.modifiedDocument.html,
-            );
-          } else {
-            window.location.reload();
-          }
-        }
-      } else {
-        // Generate new document
-        const response = await api.post("/document-generator/generate", {
-          prompt: `Generate a document using the "${styleGuide.name}" style guide`,
-          content: { html: currentContent },
-          styleGuideId: styleGuide.id,
-          styleGuide: {
-            name: styleGuide.name,
-            primaryColor: styleGuide.primaryColor,
-            secondaryColor: styleGuide.secondaryColor,
-            accentColor: styleGuide.accentColor,
-            backgroundColor: styleGuide.backgroundColor,
-            textColor: styleGuide.textColor,
-            fontFamily: styleGuide.fontFamily,
-          },
-        });
-
-        if (response.data.success && response.data.generationId) {
-          showToast("Document generated successfully!", "success");
-          router.push(`/docs-editor?id=${response.data.generationId}`);
-        }
+      if (!currentContent || currentContent.trim() === "") {
+        showToast("No document content to apply style guide", "error");
+        return;
       }
-    } catch (error) {
-      console.error("Error applying style guide:", error);
-      showToast("Failed to apply style guide", "error");
+
+      // Build payload matching the working format from InsertThemePanel
+      const payload = {
+        styleGuideId: styleGuide.id,
+        styleGuide: {
+          colors: styleGuide.colors,
+          typography: styleGuide.typography,
+          brandName: brandName,
+          logo: styleGuide.logo,
+        },
+        meta: {
+          editorType: "document",
+          applyStyleGuide: true,
+        },
+        prompt: `Redesign this document with brand style guide: ${brandName}`,
+        documentData: currentContent,
+      };
+
+      showToast(
+        `Regenerating document with "${brandName}" theme... Please wait, this may take a moment.`,
+        "info",
+      );
+      const response = await api.post("/document-generator/modify", payload);
+
+      showToast(`Applying new theme to your document...`, "info");
+
+      if (response.data?.data?.documentData) {
+        if (editorInstance?.commands?.setContent) {
+          editorInstance.commands.setContent(response.data.data.documentData);
+        } else {
+          window.location.reload();
+        }
+        showToast(
+          `Document regenerated with "${brandName}" theme successfully!`,
+          "success",
+        );
+      } else {
+        showToast("Document regenerated successfully!", "success");
+        window.location.reload();
+      }
+    } catch (error: any) {
+      console.error("❌ Failed to apply style guide:", error);
+      showToast(
+        `Failed to apply style guide: ${error?.response?.data?.message || error?.message || "Unknown error"}`,
+        "error",
+      );
     }
   };
 
@@ -219,21 +356,22 @@ export default function DocsEditor() {
                   // Extract headings from TipTap editor (IDs are now built-in)
                   if (editor) {
                     const extractTipTapHeadings = () => {
-                      console.log('🚀 [Collab] Starting heading extraction...');
-                      
+                      console.log("🚀 [Collab] Starting heading extraction...");
+
                       // Reset the heading counter before extraction to ensure consistent IDs
                       resetHeadingCounter();
-                      
+
                       // Wait for DOM to render, then extract headings
                       setTimeout(() => {
                         const headingsData = [];
                         let headingIndex = 0;
-                        
+
                         editor.state.doc.descendants((node, pos) => {
-                          if (node.type.name === 'heading') {
+                          if (node.type.name === "heading") {
                             // Use the ID from the node attributes (set by our extension)
-                            const headingId = node.attrs.id || `heading-${headingIndex}`;
-                            
+                            const headingId =
+                              node.attrs.id || `heading-${headingIndex}`;
+
                             headingsData.push({
                               id: headingId,
                               level: node.attrs.level || 2,
@@ -242,26 +380,34 @@ export default function DocsEditor() {
                             headingIndex++;
                           }
                         });
-                        
-                        console.log('📋 [Collab] Extracted TipTap headings:', headingsData);
+
+                        console.log(
+                          "📋 [Collab] Extracted TipTap headings:",
+                          headingsData,
+                        );
                         setHeadings(headingsData);
-                        
+
                         // Verify IDs are in the DOM
                         setTimeout(() => {
-                          const allHeadingsInDom = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                          console.log('🔎 [Collab] Headings in DOM:', Array.from(allHeadingsInDom).map(el => ({
-                            tag: el.tagName,
-                            text: el.textContent?.substring(0, 30),
-                            id: el.id,
-                            dataId: el.getAttribute('data-id')
-                          })));
+                          const allHeadingsInDom = document.querySelectorAll(
+                            "h1, h2, h3, h4, h5, h6",
+                          );
+                          console.log(
+                            "🔎 [Collab] Headings in DOM:",
+                            Array.from(allHeadingsInDom).map((el) => ({
+                              tag: el.tagName,
+                              text: el.textContent?.substring(0, 30),
+                              id: el.id,
+                              dataId: el.getAttribute("data-id"),
+                            })),
+                          );
                         }, 500);
                       }, 300);
                     };
-                    
+
                     // Extract on mount and on updates
                     setTimeout(extractTipTapHeadings, 500);
-                    editor.on('update', extractTipTapHeadings);
+                    editor.on("update", extractTipTapHeadings);
                   }
                 }}
               />
@@ -277,21 +423,22 @@ export default function DocsEditor() {
                   // Extract headings from TipTap editor (IDs are now built-in)
                   if (editor) {
                     const extractTipTapHeadings = () => {
-                      console.log('🚀 [TipTap] Starting heading extraction...');
-                      
+                      console.log("🚀 [TipTap] Starting heading extraction...");
+
                       // Reset the heading counter before extraction to ensure consistent IDs
                       resetHeadingCounter();
-                      
+
                       // Wait for DOM to render, then extract headings
                       setTimeout(() => {
                         const headingsData = [];
                         let headingIndex = 0;
-                        
+
                         editor.state.doc.descendants((node, pos) => {
-                          if (node.type.name === 'heading') {
+                          if (node.type.name === "heading") {
                             // Use the ID from the node attributes (set by our extension)
-                            const headingId = node.attrs.id || `heading-${headingIndex}`;
-                            
+                            const headingId =
+                              node.attrs.id || `heading-${headingIndex}`;
+
                             headingsData.push({
                               id: headingId,
                               level: node.attrs.level || 2,
@@ -300,26 +447,34 @@ export default function DocsEditor() {
                             headingIndex++;
                           }
                         });
-                        
-                        console.log('📋 [TipTap] Extracted TipTap headings:', headingsData);
+
+                        console.log(
+                          "📋 [TipTap] Extracted TipTap headings:",
+                          headingsData,
+                        );
                         setHeadings(headingsData);
-                        
+
                         // Verify IDs are in the DOM
                         setTimeout(() => {
-                          const allHeadingsInDom = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                          console.log('🔎 [TipTap] Headings in DOM:', Array.from(allHeadingsInDom).map(el => ({
-                            tag: el.tagName,
-                            text: el.textContent?.substring(0, 30),
-                            id: el.id,
-                            dataId: el.getAttribute('data-id')
-                          })));
+                          const allHeadingsInDom = document.querySelectorAll(
+                            "h1, h2, h3, h4, h5, h6",
+                          );
+                          console.log(
+                            "🔎 [TipTap] Headings in DOM:",
+                            Array.from(allHeadingsInDom).map((el) => ({
+                              tag: el.tagName,
+                              text: el.textContent?.substring(0, 30),
+                              id: el.id,
+                              dataId: el.getAttribute("data-id"),
+                            })),
+                          );
                         }, 500);
                       }, 300);
                     };
-                    
+
                     // Extract on mount and on updates
                     setTimeout(extractTipTapHeadings, 500);
-                    editor.on('update', extractTipTapHeadings);
+                    editor.on("update", extractTipTapHeadings);
                   }
                 }}
               />
@@ -784,8 +939,11 @@ function DocxViewer({
 
     const extractHeadings = () => {
       console.log("🔍 Starting heading extraction...");
-      console.log("📄 HTML content length:", contentRef.current.innerHTML.length);
-      
+      console.log(
+        "📄 HTML content length:",
+        contentRef.current.innerHTML.length,
+      );
+
       let headingElements = contentRef.current.querySelectorAll(
         "h1, h2, h3, h4, h5, h6",
       );
@@ -812,17 +970,19 @@ function DocxViewer({
           const fontSize = parseFloat(styles.fontSize);
           const fontWeight = parseInt(styles.fontWeight);
           const isBold = fontWeight >= 600 || el.querySelector("strong, b");
-          
+
           // Check if it looks like a heading
-          const isLikelyHeading = 
+          const isLikelyHeading =
             (fontSize > 14 && isBold) || // Large and bold
             (text.length < 150 && isBold) || // Short and bold
             fontWeight >= 700 || // Very bold
             fontSize >= 18; // Very large
 
           if (isLikelyHeading) {
-            console.log(`✅ Found potential heading: "${text.substring(0, 50)}" (size: ${fontSize}, weight: ${fontWeight})`);
-            
+            console.log(
+              `✅ Found potential heading: "${text.substring(0, 50)}" (size: ${fontSize}, weight: ${fontWeight})`,
+            );
+
             // Determine heading level based on font size and weight
             let level = 2; // default to h2
             if (fontSize >= 24 || fontWeight >= 800) level = 1;
@@ -839,7 +999,11 @@ function DocxViewer({
           }
         });
 
-        console.log("✅ Converted", potentialHeadings.length, "elements to headings");
+        console.log(
+          "✅ Converted",
+          potentialHeadings.length,
+          "elements to headings",
+        );
         headingElements = contentRef.current.querySelectorAll(
           "h1, h2, h3, h4, h5, h6",
         );
@@ -875,7 +1039,7 @@ function DocxViewer({
       console.log("🔄 Content changed, re-extracting headings...");
       extractHeadings();
     });
-    
+
     observer.observe(contentRef.current, {
       childList: true,
       subtree: true,
