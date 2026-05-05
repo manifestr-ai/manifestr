@@ -207,7 +207,7 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
       });
       const image = targetPage.addElement({
         type: "image",
-        src: "/assets/dummy/tool-card-2.png",
+        src: "https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png",
         x: padX,
         y: Math.round(h * 0.24),
         width: Math.round(w * 0.8),
@@ -379,7 +379,7 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
     if (layoutKey === "full_image") {
       const image = targetPage.addElement({
         type: "image",
-        src: "/assets/dummy/tool-card-1.jpg",
+        src: "https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png",
         x: 0,
         y: 0,
         width: w,

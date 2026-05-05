@@ -2,26 +2,26 @@ import { useRouter } from 'next/router'
 import CldImage from '../ui/CldImage'
 
 const TOOL_IMAGES = {
-  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-3_bmpqki.jpg',
-  analyser: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229988_qqmda6.jpg',
-  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943914/Frame_2147229988-1_t5bpbd.jpg',
-  designStudio: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-5_nyawnk.jpg',
+  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
+  analyser: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
+  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
+  designStudio: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
   mLogo: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944350/Manifestr_Icon_Reverse_2_rwa1j0.svg',
-  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-2_dnxkir.jpg',
-  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-4_edhaou.jpg',
-  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943914/Frame_2147229006_s7kczy.jpg',
-  costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774943913/Frame_2147229006-1_ohfioc.jpg',
+  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
+  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
+  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
+  costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
 }
 
 const TOOL_THUMBS = {
-  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648466/Stra_knxfh3.png',
-  analyzer: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648468/Stra-2_vrwn3v.png',
-  'cost-ctrl': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648467/Stra-1_qiykoo.png',
-  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648465/Stra-8_zhxvh2.png',
-  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-6_bdrpoz.png',
-  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-5_oakd3c.png',
-  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-4_p60d5g.png',
-  'design-studio': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-3_qbmovn.png',
+  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
+  analyzer: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
+  'cost-ctrl': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
+  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
+  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
+  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
+  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
+  'design-studio': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
 }
 
 /* Shared with ToolsGrid desktop grid + landing ToolkitSection mobile accordion */

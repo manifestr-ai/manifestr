@@ -20,6 +20,7 @@ import { showLoader, hideLoader } from "../utils/loaderMsg";
 import { createVaultFolder, listFolders } from "../services/vault";
 import { setVaultFolders } from "../components/vault/vaultFolders";
 import { motion } from "framer-motion";
+import { VAULT_BANNER } from "../lib/vaultBanners";
 
 export default function Vault() {
   const [refresh, setRefresh] = useState(0);
@@ -792,11 +793,7 @@ export default function Vault() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Background image URL for the header
-  const headerBackgroundImage =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/assets/banners/wheel-banner.png`
-      : "http://localhost:3000/assets/banners/wheel-banner.png";
+  const headerBackgroundImage = VAULT_BANNER.mainPortal;
 
   const handleCreateFolder = async () => {
     const name = folderName.trim();

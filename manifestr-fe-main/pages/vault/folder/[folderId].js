@@ -17,6 +17,7 @@ import {
   getVaultFolderHref,
   setVaultFolders,
 } from "../../../components/vault/vaultFolders";
+import { VAULT_BANNER } from "../../../lib/vaultBanners";
 
 export default function VaultFolderDetailPage() {
   const router = useRouter();
@@ -153,10 +154,7 @@ export default function VaultFolderDetailPage() {
     }
   };
 
-  const headerBackgroundImage =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/assets/banners/wheel-banner.png`
-      : "http://localhost:3000/assets/banners/wheel-banner.png";
+  const headerBackgroundImage = VAULT_BANNER.mainPortal;
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredCards = useMemo(() => {
