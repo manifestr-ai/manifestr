@@ -536,108 +536,8 @@ export class RenderingAgent extends BaseAgent<ContentResponse, RenderResponse> {
     /**
      * 🆕 NEW METHOD: Convert semantic document JSON to Tiptap format for display
      */
-    /**
-     * Load template DOCX and fill it with AI-generated content
-     */
-    private async fillTemplateWithContent(semanticDocument: any, documentType: string): Promise<string> {
-        console.log('\n📄 Loading template and filling with content...');
-        
-        // Path to the template in the frontend public folder
-        const templatePath = path.join(__dirname, '../../../manifestr-fe-main/public/Merchandise_Operations_Template.docx');
-        
-        try {
-            // Read the template file
-            const templateBuffer = fs.readFileSync(templatePath);
-            console.log('✅ Template loaded successfully');
-            
-            // Convert DOCX to HTML using mammoth
-            const result = await mammoth.convertToHtml(
-                { buffer: templateBuffer },
-                {
-                    styleMap: [
-                        "p[style-name='Heading 1'] => h1:fresh",
-                        "p[style-name='Heading 2'] => h2:fresh",
-                        "p[style-name='Heading 3'] => h3:fresh",
-                    ]
-                }
-            );
-            
-            const templateHtml = result.value;
-            console.log('✅ Template converted to HTML:', templateHtml.length, 'chars');
-            
-            // Initialize Anthropic client
-            const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
-            if (!apiKey) {
-                throw new Error('ANTHROPIC_API_KEY or CLAUDE_API_KEY not configured');
-            }
-            
-            const anthropic = new Anthropic({ apiKey });
-            
-            // Prepare the semantic content as JSON string
-            const contentJson = JSON.stringify(semanticDocument, null, 2);
-            
-            console.log('🤖 Calling Claude to fill template with content...');
-            
-            // Call Claude to fill the template
-            const response = await anthropic.messages.create({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 8000,
-                temperature: 0.7,
-                system: `You are an expert document editor specializing in filling professional templates with relevant content.
-
-CRITICAL INSTRUCTIONS:
-1. You will receive an HTML template document and structured content data
-2. Fill the template fields with appropriate content from the data
-3. Preserve ALL HTML structure, styles, and formatting EXACTLY
-4. Replace placeholder text (like "_______", "___", empty fields) with actual content from the data
-5. Keep the same sections and structure - only fill in the content
-6. Return ONLY the filled HTML, no explanations or markdown code blocks
-7. Ensure all content is relevant and properly formatted`,
-                messages: [{
-                    role: 'user',
-                    content: `Fill this HTML template document with the provided content data:
-
-TEMPLATE HTML:
-${templateHtml}
-
-CONTENT DATA (JSON):
-${contentJson}
-
-Instructions:
-- Map the content data to appropriate sections in the template
-- Fill in all placeholder fields with relevant data
-- Keep the same section headings and structure
-- Ensure tables are filled with appropriate data if available
-- Replace generic text with specific content from the data
-- Maintain the professional formatting and style
-
-Return the complete filled HTML document (raw HTML only, no code blocks):`
-                }]
-            });
-            
-            let filledHtml = response.content[0].type === 'text' 
-                ? response.content[0].text.trim() 
-                : templateHtml;
-            
-            // Clean up response - remove markdown code blocks if present
-            if (filledHtml.startsWith('```html')) {
-                filledHtml = filledHtml.replace(/^```html\n?/, '').replace(/\n?```$/, '').trim();
-            } else if (filledHtml.startsWith('```')) {
-                filledHtml = filledHtml.replace(/^```\n?/, '').replace(/\n?```$/, '').trim();
-            }
-            
-            console.log('✅ Template filled successfully!');
-            console.log('📊 Tokens used:', response.usage.input_tokens + response.usage.output_tokens);
-            
-            return filledHtml;
-            
-        } catch (error) {
-            console.error('❌ Error filling template:', error);
-            console.error('Falling back to standard HTML generation...');
-            // Fallback to the original method if template loading fails
-            return this.generateHTMLFromScratch(documentType, semanticDocument);
-        }
-    }
+    // ❌ REMOVED: fillTemplateWithContent function - NO MORE TEMPLATES!
+    // All documents now generate purely from AI prompts via generateHTMLFromScratch
 
     /**
      * Convert semantic document to BEAUTIFUL STYLED HTML (NO MORE TIPTAP!)
@@ -650,8 +550,10 @@ Return the complete filled HTML document (raw HTML only, no code blocks):`
         console.log('🎨 ═══════════════════════════════════════════════');
         console.log('📄 Document Type:', documentType);
 
-        // Use template-based generation
-        return await this.fillTemplateWithContent(semanticDocument, documentType);
+        // 🚀 FIXED: Use semantic generation from scratch instead of template filling
+        // This generates TEXT-FIRST documents with proper structure, not table-heavy ops docs
+        console.log('🎯 Using semantic generation (no templates) for flexible document structure');
+        return await this.generateHTMLFromScratch(documentType, semanticDocument);
     }
 
     /**
@@ -1005,10 +907,15 @@ Return the complete filled HTML document (raw HTML only, no code blocks):`
                 // Primitive value
                 const valueString = String(value);
                 
-                if (valueString.includes('<') && valueString.includes('>')) {
-                    // Has HTML tags - render as-is (but sanitize first)
+                // Check if this is HTML content (contains HTML tags like <p>, <h1>, <table>, etc.)
+                const hasHTMLTags = /<\w+[^>]*>/.test(valueString);
+                
+                if (hasHTMLTags) {
+                    // Has HTML tags - render as-is WITHOUT escaping!
+                    // This preserves formatting from AI-generated content
                     html += `<div class="content-text">${valueString}</div>`;
                 } else {
+                    // Plain text - show with label and escape for safety
                     html += `<div class="content-text"><strong>${displayKey}:</strong> ${this.escapeHTML(valueString)}</div>`;
                 }
             }

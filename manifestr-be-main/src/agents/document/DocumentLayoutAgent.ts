@@ -20,143 +20,46 @@ export class DocumentLayoutAgent extends BaseAgent<IntentResponse, LayoutRespons
         }
 
 
-        const systemPrompt = `
-      You are a DOCUMENT ARCHITECT with expertise in professional document design across ALL industries and formats.
-      Your mission: Analyze the user's prompt and create a SEMANTIC JSON STRUCTURE that matches the REAL-WORLD format of the requested document type.
-      
-      ### 🎯 CRITICAL MISSION: FLEXIBLE DOCUMENT SCHEMA GENERATION
-      
-      **STEP 1: IDENTIFY THE DOCUMENT TYPE**
-      Analyze the user's prompt to determine what kind of document they're requesting:
-      - Business Letter (formal correspondence)
-      - Legal Document (contract, agreement, terms, policy)
-      - Checklist (task list, verification list, audit checklist)
-      - Run Sheet / Event Plan (schedule, timeline, event coordination)
-      - Instructions / Procedures (step-by-step guide, SOP, manual)
-      - Meeting Notes / Minutes (agenda, discussion, action items)
-      - Financial Document (invoice, budget, expense report, financial statement)
-      - Project Brief / Proposal (scope, deliverables, timeline, budget)
-      - Marketing Document (campaign brief, content plan, strategy doc)
-      - HR Document (job description, performance review, policy)
-      - Form / Application (questionnaire, registration, intake form)
-      - Resume / CV (professional profile, work history)
-      - Risk Assessment / Analysis (risk register, mitigation plan)
-      - Report / White Paper (research, findings, analysis)
-      - Standard Article / Blog Post (editorial content)
-      - Or ANY other professional document type
-      
-      **STEP 2: DESIGN THE SEMANTIC SCHEMA**
-      Create a JSON schema that matches how this document type is ACTUALLY structured in the real world.
-      
-      **EXAMPLES OF SEMANTIC SCHEMAS:**
-      
-      **Business Letter:**
-      {
-        "documentType": "business_letter",
-        "header": { "company": "...", "address": "...", "date": "..." },
-        "recipient": { "name": "...", "title": "...", "company": "..." },
-        "salutation": "Dear ...",
-        "body": { "opening": "...", "main_content": "...", "closing": "..." },
-        "signature": { "name": "...", "title": "..." }
-      }
-      
-      **Checklist:**
-      {
-        "documentType": "checklist",
-        "title": "...",
-        "description": "...",
-        "categories": [
-          {
-            "category": "Pre-Event",
-            "items": [
-              { "task": "...", "responsible": "...", "deadline": "...", "completed": false },
-              ...
-            ]
-          }
-        ]
-      }
-      
-      **Run Sheet / Event Plan:**
-      {
-        "documentType": "run_sheet",
-        "event": { "name": "...", "date": "...", "venue": "..." },
-        "schedule": [
-          { "time": "09:00", "activity": "...", "responsible": "...", "notes": "...", "duration": "30m" },
-          ...
-        ],
-        "contacts": [ { "role": "...", "name": "...", "phone": "..." } ]
-      }
-      
-      **Legal Document:**
-      {
-        "documentType": "legal_agreement",
-        "title": "...",
-        "parties": [ { "name": "...", "role": "Party A" }, ... ],
-        "effective_date": "...",
-        "clauses": [
-          { "number": "1", "title": "...", "content": "..." },
-          ...
-        ],
-        "signatures": [ { "party": "...", "date": "...", "signature": "[SIGNATURE]" } ]
-      }
-      
-      **Financial Document:**
-      {
-        "documentType": "invoice",
-        "invoice_number": "...",
-        "date": "...",
-        "from": { "company": "...", "address": "..." },
-        "to": { "client": "...", "address": "..." },
-        "line_items": [
-          { "description": "...", "quantity": 1, "rate": 100, "amount": 100 },
-          ...
-        ],
-        "subtotal": 100,
-        "tax": 10,
-        "total": 110
-      }
-      
-      **Resume:**
-      {
-        "documentType": "resume",
-        "personal_info": { "name": "...", "title": "...", "contact": {...} },
-        "summary": "...",
-        "experience": [
-          { "company": "...", "title": "...", "dates": "...", "responsibilities": [...] }
-        ],
-        "education": [...],
-        "skills": [...]
-      }
-      
-      ### 🚨 CRITICAL RULES:
-      1. **NO FIXED STRUCTURE**: Do NOT force a generic article/blog format unless that's what the prompt asks for
-      2. **ANALYZE FIRST**: Read the prompt carefully and identify the ACTUAL document type being requested
-      3. **SEMANTIC KEYS**: Use meaningful, professional key names that match the document domain
-      4. **ARRAYS FOR REPETITION**: Use arrays for repeated elements (items, clauses, schedule entries, etc.)
-      5. **HIERARCHICAL**: Organize content logically with proper nesting
-      6. **REAL-WORLD FORMAT**: The structure should match how professionals actually organize this document type
-      
-      ### 📋 YOUR OUTPUT:
-      Return ONLY the semantic JSON schema with placeholder descriptions (NO actual content yet).
-      
-      **Context:**
-      - User Prompt: "${input.originalPrompt}"
-      - Goal: ${input.metadata.goal}
-      - Audience: ${input.metadata.audience}
-      - Tone: ${input.metadata.tone}
-      
-      Return a JSON with TWO fields:
-      {
-        "documentType": "the_identified_type",
-        "schema": { ... the semantic structure ... }
-      }
-      `;
+        // 🚀 FIXED: Schema generation now defaults to SIMPLE, TEXT-FIRST structures
+        const systemPrompt = `You are a document structure architect. Analyze the user's request and create a MINIMAL semantic JSON schema.
+
+CRITICAL RULES:
+1. DEFAULT TO SIMPLE, TEXT-FIRST DOCUMENTS (articles, letters, reports, essays)
+2. Use flat structures with: title, introduction, body sections, conclusion
+3. ONLY use tables/complex structures if the user EXPLICITLY requests them (e.g., "create a table", "tracking sheet", "operations doc")
+4. Keep schemas MINIMAL - focus on the SPECIFIC request, not comprehensive templates
+5. Use semantic keys matching the user's actual request (not generic "operations" templates)
+6. Return schema with placeholder values only
+
+BAD (what NOT to do): Creating detailed "HR Operations" docs with 9 sections, tables, KPIs when user just asks for "a document"
+GOOD (what to do): Creating simple text documents with title + 3-5 content sections
+
+OUTPUT FORMAT:
+{
+  "documentType": "identified_type",
+  "schema": { ... MINIMAL structure ... }
+}
+
+User's Goal: ${input.metadata.goal} | Audience: ${input.metadata.audience} | Tone: ${input.metadata.tone}`;
 
         // BYPASS SCHEMA - allow flexible semantic structures
+        // 🚀 OPTIMIZED: Reduced max_tokens from 16000 to 4000 (schema generation only needs ~500-2000 tokens)
+        // 🚀 FIXED: User message now clearly states the ACTUAL request instead of JSON dump
+        const userMessage = `Create a SIMPLE schema for: "${input.originalPrompt}"
+
+Document Type Hints:
+- Goal: ${input.metadata.goal}
+- Audience: ${input.metadata.audience}
+- Tone: ${input.metadata.tone}
+
+Remember: Keep it MINIMAL and TEXT-FIRST unless the user explicitly requests tables/complex structures.`;
+
         const generatedData: any = await generateJSON<any>(
             null,
             systemPrompt,
-            JSON.stringify(input)
+            userMessage,
+            10, // maxRetries
+            4000 // maxTokens - schema generation doesn't need 16k!
         );
 
         // Store the semantic schema in a flexible format
