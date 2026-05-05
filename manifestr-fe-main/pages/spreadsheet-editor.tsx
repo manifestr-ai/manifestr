@@ -32,7 +32,7 @@ export default function SpreadsheetEditor() {
   const [univerAPI, setUniverAPI] = useState(null);
   const { loading, error, status, content, id } = useGenerationLoader();
   const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
-  const { success } = useToast();
+  const { success, error: toastError } = useToast();
   
   // Use useMemo to prevent data reference changes from causing re-renders
   const data = React.useMemo(() => content || spreadsheetData, [content]);
@@ -42,6 +42,15 @@ export default function SpreadsheetEditor() {
     typeof id === "string" ? id : Array.isArray(id) ? id[0] : undefined;
 
   const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
+
+  // Allow panels (e.g. Style tab) to open the theme modal.
+  React.useEffect(() => {
+    const handler = () => setShowStyleGuideModal(true);
+    window.addEventListener("spreadsheet:open-style-guide", handler as any);
+    return () => {
+      window.removeEventListener("spreadsheet:open-style-guide", handler as any);
+    };
+  }, []);
   
   // Handle style guide selection - REGENERATE with style guide
   const handleSelectStyleGuide = async (styleGuide: any) => {
@@ -121,7 +130,7 @@ export default function SpreadsheetEditor() {
     } catch (error: any) {
       console.error('❌ Failed to regenerate spreadsheet:', error);
       const errorMsg = error?.response?.data?.message || error?.message || 'Unknown error';
-      success(`⚠️ Regeneration in progress... Check console: ${errorMsg}`);
+      toastError(`Failed to apply theme: ${errorMsg}`);
     }
   };
 
@@ -587,6 +596,7 @@ export default function SpreadsheetEditor() {
             store={univerAPI} 
             setActiveTool={setActiveTool}
             generationId={actualGenerationId}
+            onOpenThemePicker={() => setShowStyleGuideModal(true)}
           />
         )}
 
@@ -603,6 +613,7 @@ export default function SpreadsheetEditor() {
             store={univerAPI} 
             setActiveTool={setActiveTool}
             generationId={actualGenerationId}
+            onOpenThemePicker={() => setShowStyleGuideModal(true)}
           />
         )}
         

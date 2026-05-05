@@ -1,10 +1,498 @@
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { useToast } from "../../../ui/Toast";
 
 interface FormulasPanelProps {
   store: any;
 }
 
+function colIndexToA1Letter(zeroBasedCol: number): string {
+  let n = zeroBasedCol + 1;
+  let s = "";
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    s = String.fromCharCode(65 + rem) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
+}
+
+function cellToA1(row: number, col: number): string {
+  return `${colIndexToA1Letter(col)}${row + 1}`;
+}
+
+function rangeToA1(sr: number, sc: number, er: number, ec: number): string {
+  const a = cellToA1(sr, sc);
+  const b = cellToA1(er, ec);
+  return sr === er && sc === ec ? a : `${a}:${b}`;
+}
+
 export default function FormulasPanel({ store }: FormulasPanelProps) {
+  const { success, error: showError } = useToast();
+  const [showCurrencyOptions, setShowCurrencyOptions] = useState(false);
+  const [showDateOptions, setShowDateOptions] = useState(false);
+  const [showRoundOptions, setShowRoundOptions] = useState(false);
+  const [showDurationOptions, setShowDurationOptions] = useState(false);
+
+  const getActiveInfo = useCallback(() => {
+    if (!store) return null;
+    try {
+      const workbook = store.getActiveWorkbook();
+      if (!workbook) return null;
+      const sheet = workbook.getActiveSheet();
+      if (!sheet) return null;
+      const selection = sheet.getSelection();
+      return { workbook, sheet, selection };
+    } catch {
+      return null;
+    }
+  }, [store]);
+
+  const getPosition = useCallback((sheet: any, selection: any) => {
+    let row = 0,
+      col = 0,
+      numRows = 1,
+      numCols = 1;
+    try {
+      const activeRange =
+        selection && typeof selection.getActiveRange === "function"
+          ? selection.getActiveRange()
+          : typeof sheet.getActiveRange === "function"
+            ? sheet.getActiveRange()
+            : null;
+      if (activeRange) {
+        if (typeof activeRange.getRange === "function") {
+          const r = activeRange.getRange();
+          row = r?.startRow ?? 0;
+          col = r?.startColumn ?? 0;
+          const endRow = r?.endRow ?? row;
+          const endCol = r?.endColumn ?? col;
+          numRows = endRow - row + 1;
+          numCols = endCol - col + 1;
+        } else if (
+          typeof activeRange.getRow === "function" &&
+          typeof activeRange.getColumn === "function"
+        ) {
+          row = activeRange.getRow();
+          col = activeRange.getColumn();
+          if (typeof activeRange.getHeight === "function") {
+            numRows = activeRange.getHeight();
+          }
+          if (typeof activeRange.getWidth === "function") {
+            numCols = activeRange.getWidth();
+          }
+          if (typeof activeRange.getLastRow === "function") {
+            numRows = activeRange.getLastRow() - row + 1;
+          }
+          if (typeof activeRange.getLastColumn === "function") {
+            numCols = activeRange.getLastColumn() - col + 1;
+          }
+        }
+      } else if (selection && typeof selection.getCurrentCell === "function") {
+        const activeCell = selection.getCurrentCell();
+        if (activeCell) {
+          row = activeCell.actualRow ?? activeCell.row ?? 0;
+          col = activeCell.actualColumn ?? activeCell.column ?? 0;
+        }
+      }
+    } catch {
+      /* keep defaults */
+    }
+    return { row, col, numRows, numCols };
+  }, []);
+
+  const setFormulaAt = useCallback(
+    (sheet: any, row: number, col: number, formulaOrExpr: string) => {
+      const cell = sheet.getRange(row, col, 1, 1);
+      const withEq = formulaOrExpr.trim().startsWith("=")
+        ? formulaOrExpr.trim()
+        : `=${formulaOrExpr.trim()}`;
+      const withoutEq = withEq.startsWith("=") ? withEq.slice(1) : withEq;
+
+      // Different Univer builds vary: some expect "=SUM(A1:A2)", others "SUM(A1:A2)".
+      if (typeof cell.setFormula === "function") {
+        try {
+          cell.setFormula(withEq);
+          return true;
+        } catch {
+          try {
+            cell.setFormula(withoutEq);
+            return true;
+          } catch {
+            // fall through
+          }
+        }
+      }
+      if (typeof cell.setValue === "function") {
+        try {
+          cell.setValue(withEq);
+          return true;
+        } catch {
+          try {
+            cell.setValue(withoutEq);
+            return true;
+          } catch {
+            // fall through
+          }
+        }
+        return true;
+      }
+      return false;
+    },
+    [],
+  );
+
+  const applyNumberFormatToSelection = useCallback(
+    (pattern: string) => {
+      const info = getActiveInfo();
+      if (!info) {
+        showError("Select a cell or range first.");
+        return;
+      }
+      const { sheet, selection } = info;
+      const { row, col, numRows, numCols } = getPosition(sheet, selection);
+      try {
+        for (let r = 0; r < numRows; r++) {
+          for (let c = 0; c < numCols; c++) {
+            const cell = sheet.getRange(row + r, col + c, 1, 1);
+            if (typeof cell.setNumberFormat === "function") {
+              cell.setNumberFormat(pattern);
+            }
+          }
+        }
+        success("Number format applied.");
+      } catch {
+        showError("Could not apply number format.");
+      }
+    },
+    [getActiveInfo, getPosition, showError, success],
+  );
+
+  const currencyOptions = useMemo(
+    () => [
+      { label: "USD ($) 2 decimals", pattern: "$#,##0.00" },
+      { label: "USD ($) no decimals", pattern: "$#,##0" },
+      { label: "EUR (€) 2 decimals", pattern: "€#,##0.00" },
+      { label: "GBP (£) 2 decimals", pattern: "£#,##0.00" },
+      { label: "INR (₹) 2 decimals", pattern: "₹#,##0.00" },
+    ],
+    [],
+  );
+
+  const dateOptions = useMemo(
+    () => [
+      { label: "MM/DD/YYYY", pattern: "mm/dd/yyyy" },
+      { label: "DD/MM/YYYY", pattern: "dd/mm/yyyy" },
+      { label: "YYYY-MM-DD", pattern: "yyyy-mm-dd" },
+      { label: "MMM D, YYYY", pattern: "mmm d, yyyy" },
+      { label: "DD-MMM-YYYY", pattern: "dd-mmm-yyyy" },
+      { label: "Time (HH:MM)", pattern: "hh:mm" },
+      { label: "Time (HH:MM:SS)", pattern: "hh:mm:ss" },
+    ],
+    [],
+  );
+
+  const roundOptions = useMemo(
+    () => [
+      { label: "0 decimals", pattern: "0" },
+      { label: "1 decimal", pattern: "0.0" },
+      { label: "2 decimals", pattern: "0.00" },
+      { label: "3 decimals", pattern: "0.000" },
+    ],
+    [],
+  );
+
+  const durationOptions = useMemo(
+    () => [
+      { label: "h:mm", pattern: "[h]:mm" },
+      { label: "h:mm:ss", pattern: "[h]:mm:ss" },
+      { label: "mm:ss", pattern: "mm:ss" },
+    ],
+    [],
+  );
+
+  const handleSum = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row: sr, col: sc, numRows, numCols } = getPosition(
+      sheet,
+      selection,
+    );
+    const er = sr + numRows - 1;
+    const ec = sc + numCols - 1;
+    const maxRows =
+      typeof sheet.getMaxRows === "function" ? sheet.getMaxRows() : 1048576;
+    const maxCols =
+      typeof sheet.getMaxColumns === "function" ? sheet.getMaxColumns() : 16384;
+
+    let outRow = sr;
+    let outCol = sc;
+    let expr: string;
+
+    if (numRows === 1 && numCols === 1) {
+      outRow = sr;
+      outCol = sc;
+      expr = sr > 0 ? `SUM(${rangeToA1(0, sc, sr - 1, sc)})` : "SUM()";
+    } else {
+      expr = `SUM(${rangeToA1(sr, sc, er, ec)})`;
+      if (er + 1 < maxRows) {
+        outRow = er + 1;
+        outCol = sc;
+      } else if (ec + 1 < maxCols) {
+        outRow = sr;
+        outCol = ec + 1;
+      } else {
+        outRow = sr;
+        outCol = sc;
+      }
+    }
+
+    if (setFormulaAt(sheet, outRow, outCol, expr)) {
+      success("Inserted SUM formula.");
+    } else {
+      showError("Could not insert formula.");
+    }
+  }, [getActiveInfo, getPosition, setFormulaAt, showError, success]);
+
+  const handleAverage = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row: sr, col: sc, numRows, numCols } = getPosition(
+      sheet,
+      selection,
+    );
+    const er = sr + numRows - 1;
+    const ec = sc + numCols - 1;
+    const maxRows =
+      typeof sheet.getMaxRows === "function" ? sheet.getMaxRows() : 1048576;
+    const maxCols =
+      typeof sheet.getMaxColumns === "function" ? sheet.getMaxColumns() : 16384;
+
+    let outRow = sr;
+    let outCol = sc;
+    let expr: string;
+
+    if (numRows === 1 && numCols === 1) {
+      outRow = sr;
+      outCol = sc;
+      expr =
+        sr > 0 ? `AVERAGE(${rangeToA1(0, sc, sr - 1, sc)})` : "AVERAGE()";
+    } else {
+      expr = `AVERAGE(${rangeToA1(sr, sc, er, ec)})`;
+      if (er + 1 < maxRows) {
+        outRow = er + 1;
+        outCol = sc;
+      } else if (ec + 1 < maxCols) {
+        outRow = sr;
+        outCol = ec + 1;
+      } else {
+        outRow = sr;
+        outCol = sc;
+      }
+    }
+
+    if (setFormulaAt(sheet, outRow, outCol, expr)) {
+      success("Inserted AVERAGE formula.");
+    } else {
+      showError("Could not insert formula.");
+    }
+  }, [getActiveInfo, getPosition, setFormulaAt, showError, success]);
+
+  // ROUND in this UI behaves like "round formatting" (avoid circular/self-references).
+  const handleRound = useCallback(() => {
+    setShowRoundOptions((v) => !v);
+  }, []);
+
+  const handleIf = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row: sr, col: sc } = getPosition(sheet, selection);
+    let expr: string;
+    if (sc > 0) {
+      const ref = cellToA1(sr, sc - 1);
+      expr = `IF(${ref}>0,"Yes","No")`;
+    } else if (sr > 0) {
+      const ref = cellToA1(sr - 1, sc);
+      expr = `IF(${ref}>0,"Yes","No")`;
+    } else {
+      expr = `IF(1=1,"Yes","No")`;
+    }
+    if (setFormulaAt(sheet, sr, sc, expr)) {
+      success("Inserted IF formula.");
+    } else {
+      showError("Could not insert formula.");
+    }
+  }, [getActiveInfo, getPosition, setFormulaAt, showError, success]);
+
+  const handleVlookup = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row: sr, col: sc } = getPosition(sheet, selection);
+    if (sr === 0 && sc === 0) {
+      showError(
+        "For VLOOKUP, select a cell to the right of or below the lookup value.",
+      );
+      return;
+    }
+    let lookupR = sr;
+    let lookupC = sc;
+    if (sc > 0) {
+      lookupC = sc - 1;
+    } else {
+      lookupR = sr - 1;
+    }
+    const lookup = cellToA1(lookupR, lookupC);
+    if (typeof window === "undefined") return;
+    const tableRange =
+      window.prompt("Table range for VLOOKUP (A1 notation):", "$A$1:$D$20") ??
+      "";
+    if (tableRange.trim() === "") return;
+    const colIndexStr =
+      window.prompt("Return column index (1-based):", "2") ?? "";
+    const colIndex = Number(colIndexStr);
+    const exactStr =
+      window.prompt("Exact match? (true/false)", "false") ?? "false";
+    const exact = exactStr.trim().toLowerCase() === "true";
+    const safeCol = Number.isFinite(colIndex) && colIndex > 0 ? colIndex : 2;
+    const expr = `VLOOKUP(${lookup},${tableRange.trim()},${safeCol},${exact ? "TRUE" : "FALSE"})`;
+    if (setFormulaAt(sheet, sr, sc, expr)) {
+      success("Inserted VLOOKUP formula (adjust lookup value and table range as needed).");
+    } else {
+      showError("Could not insert formula.");
+    }
+  }, [getActiveInfo, getPosition, setFormulaAt, showError, success]);
+
+  const handleIndex = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row: sr, col: sc } = getPosition(sheet, selection);
+    if (typeof window === "undefined") return;
+    const arrayRange =
+      window.prompt("Array range for INDEX (A1 notation):", "$A$1:$D$20") ?? "";
+    if (arrayRange.trim() === "") return;
+    const rowNumStr = window.prompt("Row number within array:", "1") ?? "1";
+    const colNumStr = window.prompt("Column number within array:", "1") ?? "1";
+    const rowNum = Number(rowNumStr);
+    const colNum = Number(colNumStr);
+    const safeRow = Number.isFinite(rowNum) && rowNum > 0 ? rowNum : 1;
+    const safeCol = Number.isFinite(colNum) && colNum > 0 ? colNum : 1;
+    const expr = `INDEX(${arrayRange.trim()},${safeRow},${safeCol})`;
+    if (setFormulaAt(sheet, sr, sc, expr)) {
+      success("Inserted INDEX formula (adjust array and row/column numbers as needed).");
+    } else {
+      showError("Could not insert formula.");
+    }
+  }, [getActiveInfo, getPosition, setFormulaAt, showError, success]);
+
+  const handleConcat = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row: sr, col: sc, numRows, numCols } = getPosition(
+      sheet,
+      selection,
+    );
+    let expr: string;
+    if (numCols >= 2) {
+      expr = `CONCAT(${cellToA1(sr, sc)},${cellToA1(sr, sc + 1)})`;
+    } else if (sc > 0) {
+      expr = `CONCAT(${cellToA1(sr, sc - 1)},${cellToA1(sr, sc)})`;
+    } else {
+      expr = `CONCAT(${cellToA1(sr, sc)},"")`;
+    }
+    if (setFormulaAt(sheet, sr, sc, expr)) {
+      success("Inserted CONCAT formula.");
+    } else {
+      showError("Could not insert formula.");
+    }
+  }, [getActiveInfo, getPosition, setFormulaAt, showError, success]);
+
+  const handleCurrency = useCallback(() => {
+    setShowCurrencyOptions((v) => !v);
+  }, []);
+
+  const handlePercentage = useCallback(() => {
+    const info = getActiveInfo();
+    if (!info) {
+      showError("Select a cell or range first.");
+      return;
+    }
+    const { sheet, selection } = info;
+    const { row, col, numRows, numCols } = getPosition(sheet, selection);
+
+    try {
+      for (let r = 0; r < numRows; r++) {
+        for (let c = 0; c < numCols; c++) {
+          const cell = sheet.getRange(row + r, col + c, 1, 1);
+          try {
+            const v = typeof cell.getValue === "function" ? cell.getValue() : undefined;
+            // Users often type "3" expecting "3%". In spreadsheets, percent formatting
+            // interprets 3 as 300%. Convert numbers >= 1 to their fractional form.
+            if (typeof v === "number" && Number.isFinite(v)) {
+              const abs = Math.abs(v);
+              if (abs >= 1) {
+                if (typeof cell.setValue === "function") {
+                  cell.setValue(v / 100);
+                }
+              }
+            }
+            if (typeof cell.setNumberFormat === "function") {
+              cell.setNumberFormat("0.00%");
+            }
+          } catch {
+            // ignore per-cell failures
+          }
+        }
+      }
+      success("Percentage format applied.");
+    } catch {
+      showError("Could not apply percentage format.");
+    }
+  }, [getActiveInfo, getPosition, showError, success]);
+
+  const handleDates = useCallback(() => {
+    setShowDateOptions((v) => !v);
+  }, []);
+
+  const handleDurations = useCallback(() => {
+    setShowDurationOptions((v) => !v);
+  }, []);
+
+  const handleCustom = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const pattern = window.prompt(
+      "Enter a custom number format pattern (Excel-style), e.g. #,##0.00 or \"$\"#,##0",
+    );
+    if (pattern === null || pattern.trim() === "") return;
+    applyNumberFormatToSelection(pattern.trim());
+  }, [applyNumberFormatToSelection]);
+
+  const handleExcelCompatible = useCallback(() => {
+    applyNumberFormatToSelection("General");
+  }, [applyNumberFormatToSelection]);
+
   if (!store) return null;
 
   return (
@@ -20,6 +508,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleSum}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -124,6 +613,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleAverage}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -227,6 +717,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleRound}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -325,6 +816,23 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
               ROUND
             </span>
           </button>
+          {showRoundOptions && (
+            <div className="absolute mt-[86px] bg-white border border-[#E5E7EB] rounded-md shadow-sm p-1">
+              {roundOptions.map((opt) => (
+                <button
+                  key={opt.pattern}
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={() => {
+                    applyNumberFormatToSelection(opt.pattern);
+                    setShowRoundOptions(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -342,6 +850,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[65px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleIf}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -457,6 +966,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleVlookup}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -561,6 +1071,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleIndex}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -676,6 +1187,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleConcat}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -791,6 +1303,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleCurrency}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -832,12 +1345,30 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
               Currency
             </span>
           </button>
+          {showCurrencyOptions && (
+            <div className="absolute mt-[86px] bg-white border border-[#E5E7EB] rounded-md shadow-sm p-1">
+              {currencyOptions.map((opt) => (
+                <button
+                  key={opt.pattern}
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={() => {
+                    applyNumberFormatToSelection(opt.pattern);
+                    setShowCurrencyOptions(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Percentage */}
           <button
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handlePercentage}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -892,6 +1423,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleDates}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -947,6 +1479,23 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
               Dates
             </span>
           </button>
+          {showDateOptions && (
+            <div className="absolute mt-[86px] bg-white border border-[#E5E7EB] rounded-md shadow-sm p-1">
+              {dateOptions.map((opt) => (
+                <button
+                  key={opt.pattern}
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={() => {
+                    applyNumberFormatToSelection(opt.pattern);
+                    setShowDateOptions(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -964,6 +1513,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleDurations}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1006,12 +1556,30 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
               Durations
             </span>
           </button>
+          {showDurationOptions && (
+            <div className="absolute mt-[86px] bg-white border border-[#E5E7EB] rounded-md shadow-sm p-1">
+              {durationOptions.map((opt) => (
+                <button
+                  key={opt.pattern}
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={() => {
+                    applyNumberFormatToSelection(opt.pattern);
+                    setShowDurationOptions(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Custom */}
           <button
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleCustom}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1074,6 +1642,7 @@ export default function FormulasPanel({ store }: FormulasPanelProps) {
             className="flex flex-col items-center justify-center w-[80px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleExcelCompatible}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -1,11 +1,431 @@
-import React from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useToast } from "../../../ui/Toast";
 
 interface DataPanelProps {
   store: any;
 }
 
 export default function DataPanel({ store }: DataPanelProps) {
+  const { success, error: showError, info } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showSortOptions, setShowSortOptions] = useState(false);
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
+
   if (!store) return null;
+
+  const getActiveInfo = useCallback(() => {
+    try {
+      const workbook = store.getActiveWorkbook?.();
+      const sheet = workbook?.getActiveSheet?.();
+      const selection = sheet?.getSelection?.();
+      if (!workbook || !sheet) return null;
+      return { workbook, sheet, selection };
+    } catch {
+      return null;
+    }
+  }, [store]);
+
+  const getPosition = useCallback((sheet: any, selection: any) => {
+    let row = 0,
+      col = 0,
+      numRows = 1,
+      numCols = 1;
+    try {
+      const activeRange =
+        selection && typeof selection.getActiveRange === "function"
+          ? selection.getActiveRange()
+          : typeof sheet.getActiveRange === "function"
+            ? sheet.getActiveRange()
+            : null;
+      if (activeRange) {
+        if (typeof activeRange.getRange === "function") {
+          const r = activeRange.getRange();
+          row = r?.startRow ?? 0;
+          col = r?.startColumn ?? 0;
+          const endRow = r?.endRow ?? row;
+          const endCol = r?.endColumn ?? col;
+          numRows = endRow - row + 1;
+          numCols = endCol - col + 1;
+        } else if (
+          typeof activeRange.getRow === "function" &&
+          typeof activeRange.getColumn === "function"
+        ) {
+          row = activeRange.getRow();
+          col = activeRange.getColumn();
+          if (typeof activeRange.getHeight === "function") {
+            numRows = activeRange.getHeight();
+          }
+          if (typeof activeRange.getWidth === "function") {
+            numCols = activeRange.getWidth();
+          }
+          if (typeof activeRange.getLastRow === "function") {
+            numRows = activeRange.getLastRow() - row + 1;
+          }
+          if (typeof activeRange.getLastColumn === "function") {
+            numCols = activeRange.getLastColumn() - col + 1;
+          }
+        }
+      }
+    } catch {
+      // defaults
+    }
+    return { row, col, numRows, numCols };
+  }, []);
+
+  const safeToComparable = useCallback((v: any) => {
+    if (v === null || v === undefined) return { type: "empty", value: "" };
+    if (typeof v === "number" && Number.isFinite(v))
+      return { type: "number", value: v };
+    const s = String(v);
+    const asNum = Number(s);
+    if (s.trim() !== "" && Number.isFinite(asNum))
+      return { type: "number", value: asNum };
+    return { type: "string", value: s.toLowerCase() };
+  }, []);
+
+  const sortOptions = useMemo(
+    () => [
+      { id: "asc", label: "A → Z / Small → Large" },
+      { id: "desc", label: "Z → A / Large → Small" },
+    ],
+    [],
+  );
+
+  const handleSort = useCallback(
+    async (direction: "asc" | "desc") => {
+      const info0 = getActiveInfo();
+      if (!info0) {
+        showError("Select a range to sort first.");
+        return;
+      }
+      const { sheet, selection } = info0;
+      const { row, col, numRows, numCols } = getPosition(sheet, selection);
+      if (numRows < 2) {
+        showError("Select at least 2 rows to sort.");
+        return;
+      }
+
+      try {
+        // Read values into a 2D array.
+        const rows: any[][] = [];
+        for (let r = 0; r < numRows; r++) {
+          const currentRow: any[] = [];
+          for (let c = 0; c < numCols; c++) {
+            const cell = sheet.getRange(row + r, col + c, 1, 1);
+            const v = typeof cell.getValue === "function" ? cell.getValue() : "";
+            currentRow.push(v);
+          }
+          rows.push(currentRow);
+        }
+
+        // Stable sort by the first column in the selection.
+        const decorated = rows.map((r, idx) => ({
+          idx,
+          key: safeToComparable(r[0]),
+          row: r,
+        }));
+        decorated.sort((a, b) => {
+          const ak = a.key;
+          const bk = b.key;
+          if (ak.type !== bk.type) {
+            // numbers first, then strings, then empty
+            const order = { number: 0, string: 1, empty: 2 } as any;
+            return order[ak.type] - order[bk.type];
+          }
+          if (ak.value < bk.value) return direction === "asc" ? -1 : 1;
+          if (ak.value > bk.value) return direction === "asc" ? 1 : -1;
+          return a.idx - b.idx;
+        });
+
+        // Write values back.
+        for (let r = 0; r < numRows; r++) {
+          for (let c = 0; c < numCols; c++) {
+            const cell = sheet.getRange(row + r, col + c, 1, 1);
+            if (typeof cell.setValue === "function") {
+              cell.setValue(decorated[r].row[c]);
+            }
+          }
+        }
+
+        success("Sorted selection.");
+      } catch (e) {
+        console.error(e);
+        showError("Sort failed for this selection.");
+      } finally {
+        setShowSortOptions(false);
+      }
+    },
+    [getActiveInfo, getPosition, safeToComparable, showError, success],
+  );
+
+  const handleFilter = useCallback(
+    (mode: "equals" | "contains") => {
+      const info0 = getActiveInfo();
+      if (!info0) {
+        showError("Select a range to filter first.");
+        return;
+      }
+      const { sheet, selection } = info0;
+      const { row, col, numRows, numCols } = getPosition(sheet, selection);
+      if (numRows < 2) {
+        showError("Select at least 2 rows to filter.");
+        return;
+      }
+      if (typeof window === "undefined") return;
+      const needle = window.prompt(
+        `Filter ${mode === "equals" ? "equals" : "contains"} (matches first column of selection):`,
+      );
+      if (needle === null) return;
+      const q = needle.trim().toLowerCase();
+      setShowFilterOptions(false);
+
+      try {
+        for (let r = 0; r < numRows; r++) {
+          const cell = sheet.getRange(row + r, col, 1, 1);
+          const v = typeof cell.getValue === "function" ? cell.getValue() : "";
+          const s = String(v ?? "").toLowerCase();
+          const match = mode === "equals" ? s === q : s.includes(q);
+
+          const targetRow = row + r;
+          // Prefer a visibility API if available, otherwise collapse by row height.
+          if (typeof sheet.setRowVisible === "function") {
+            sheet.setRowVisible(targetRow, match);
+          } else if (typeof sheet.setRowHeight === "function") {
+            sheet.setRowHeight(targetRow, match ? undefined : 0);
+          }
+        }
+        success("Filter applied (use Ungroup to show all if needed).");
+      } catch (e) {
+        console.error(e);
+        showError("Filter failed in this Univer build.");
+      }
+    },
+    [getActiveInfo, getPosition, showError, success],
+  );
+
+  const handleClearFilter = useCallback(() => {
+    const info0 = getActiveInfo();
+    if (!info0) return;
+    const { sheet, selection } = info0;
+    const { row, numRows } = getPosition(sheet, selection);
+    try {
+      for (let r = 0; r < numRows; r++) {
+        const targetRow = row + r;
+        if (typeof sheet.setRowVisible === "function") {
+          sheet.setRowVisible(targetRow, true);
+        } else if (typeof sheet.setRowHeight === "function") {
+          // "undefined" usually resets to default in many APIs; otherwise no-op.
+          sheet.setRowHeight(targetRow, undefined);
+        }
+      }
+      success("Filter cleared.");
+    } catch {
+      showError("Could not clear filter.");
+    } finally {
+      setShowFilterOptions(false);
+    }
+  }, [getActiveInfo, getPosition, showError, success]);
+
+  const handleTextToColumns = useCallback(() => {
+    const info0 = getActiveInfo();
+    if (!info0) {
+      showError("Select cells first.");
+      return;
+    }
+    const { sheet, selection } = info0;
+    const { row, col, numRows, numCols } = getPosition(sheet, selection);
+    if (typeof window === "undefined") return;
+    const delim =
+      window.prompt("Delimiter for splitting (e.g. , | ; | space):", ",") ??
+      ",";
+    const delimiter = delim === "space" ? " " : delim;
+    if (delimiter.trim() === "") return;
+
+    try {
+      for (let r = 0; r < numRows; r++) {
+        for (let c = 0; c < numCols; c++) {
+          const cell = sheet.getRange(row + r, col + c, 1, 1);
+          const v = typeof cell.getValue === "function" ? cell.getValue() : "";
+          const parts = String(v ?? "").split(delimiter);
+          for (let i = 0; i < parts.length; i++) {
+            const out = sheet.getRange(row + r, col + c + i, 1, 1);
+            if (typeof out.setValue === "function") out.setValue(parts[i]);
+          }
+        }
+      }
+      success("Split into columns.");
+    } catch (e) {
+      console.error(e);
+      showError("Text to Columns failed.");
+    }
+  }, [getActiveInfo, getPosition, showError, success]);
+
+  const handleGroup = useCallback(() => {
+    const info0 = getActiveInfo();
+    if (!info0) return;
+    const { sheet, selection } = info0;
+    const { row, numRows } = getPosition(sheet, selection);
+    if (numRows < 2) {
+      showError("Select multiple rows to group (collapse).");
+      return;
+    }
+    try {
+      // Collapse all but first row in selection.
+      for (let r = 1; r < numRows; r++) {
+        const targetRow = row + r;
+        if (typeof sheet.setRowVisible === "function") {
+          sheet.setRowVisible(targetRow, false);
+        } else if (typeof sheet.setRowHeight === "function") {
+          sheet.setRowHeight(targetRow, 0);
+        }
+      }
+      success("Grouped (collapsed) rows.");
+    } catch {
+      showError("Group failed.");
+    }
+  }, [getActiveInfo, getPosition, showError, success]);
+
+  const handleUngroup = useCallback(() => {
+    const info0 = getActiveInfo();
+    if (!info0) return;
+    const { sheet, selection } = info0;
+    const { row, numRows } = getPosition(sheet, selection);
+    try {
+      for (let r = 0; r < numRows; r++) {
+        const targetRow = row + r;
+        if (typeof sheet.setRowVisible === "function") {
+          sheet.setRowVisible(targetRow, true);
+        } else if (typeof sheet.setRowHeight === "function") {
+          sheet.setRowHeight(targetRow, undefined);
+        }
+      }
+      success("Ungrouped (expanded) rows.");
+    } catch {
+      showError("Ungroup failed.");
+    }
+  }, [getActiveInfo, getPosition, showError, success]);
+
+  const parseCsv = useCallback((text: string) => {
+    // Simple CSV parser with quoted fields support.
+    const rows: string[][] = [];
+    let row: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const next = text[i + 1];
+
+      if (ch === '"' && inQuotes && next === '"') {
+        cur += '"';
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (!inQuotes && (ch === "," || ch === "\t")) {
+        row.push(cur);
+        cur = "";
+        continue;
+      }
+      if (!inQuotes && (ch === "\n" || ch === "\r")) {
+        if (ch === "\r" && next === "\n") i++;
+        row.push(cur);
+        cur = "";
+        rows.push(row);
+        row = [];
+        continue;
+      }
+      cur += ch;
+    }
+    row.push(cur);
+    rows.push(row);
+    return rows.filter((r) => r.length > 1 || (r[0] ?? "").trim() !== "");
+  }, []);
+
+  const handleImportClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleImportFile = useCallback(
+    async (file: File) => {
+      const info0 = getActiveInfo();
+      if (!info0) {
+        showError("Spreadsheet not ready.");
+        return;
+      }
+      const { sheet, selection } = info0;
+      const { row, col } = getPosition(sheet, selection);
+
+      const text = await file.text();
+      const data = parseCsv(text);
+      if (data.length === 0) {
+        showError("No data found in file.");
+        return;
+      }
+
+      try {
+        for (let r = 0; r < data.length; r++) {
+          for (let c = 0; c < data[r].length; c++) {
+            const cell = sheet.getRange(row + r, col + c, 1, 1);
+            const raw = data[r][c];
+            const n = Number(raw);
+            const value =
+              raw.trim() !== "" && Number.isFinite(n) && !/^0\d+/.test(raw)
+                ? n
+                : raw;
+            if (typeof cell.setValue === "function") cell.setValue(value);
+          }
+        }
+        success(`Imported ${data.length} rows.`);
+      } catch (e) {
+        console.error(e);
+        showError("Import failed.");
+      }
+    },
+    [getActiveInfo, getPosition, parseCsv, showError, success],
+  );
+
+  const handleExport = useCallback(() => {
+    const info0 = getActiveInfo();
+    if (!info0) {
+      showError("Select a range to export.");
+      return;
+    }
+    const { sheet, selection } = info0;
+    const { row, col, numRows, numCols } = getPosition(sheet, selection);
+    if (typeof window === "undefined") return;
+
+    try {
+      const lines: string[] = [];
+      for (let r = 0; r < numRows; r++) {
+        const fields: string[] = [];
+        for (let c = 0; c < numCols; c++) {
+          const cell = sheet.getRange(row + r, col + c, 1, 1);
+          const v = typeof cell.getValue === "function" ? cell.getValue() : "";
+          const s = String(v ?? "");
+          const escaped =
+            /[",\n\r\t]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+          fields.push(escaped);
+        }
+        lines.push(fields.join(","));
+      }
+      const csv = lines.join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "export.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      success("Exported selection to CSV.");
+    } catch (e) {
+      console.error(e);
+      showError("Export failed.");
+    }
+  }, [getActiveInfo, getPosition, showError, success]);
 
   return (
     <div className="h-[102px] bg-[#ffffff] border-b border-[#E5E7EB] flex items-center justify-start px-0 overflow-x-auto">
@@ -20,6 +440,7 @@ export default function DataPanel({ store }: DataPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={() => setShowSortOptions((v) => !v)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -76,12 +497,27 @@ export default function DataPanel({ store }: DataPanelProps) {
               Sort
             </span>
           </button>
+          {showSortOptions && (
+            <div className="absolute mt-[86px] bg-white border border-[#E5E7EB] rounded-md shadow-sm p-1 z-50">
+              {sortOptions.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={() => handleSort(opt.id as any)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Filter */}
           <button
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={() => setShowFilterOptions((v) => !v)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -116,6 +552,31 @@ export default function DataPanel({ store }: DataPanelProps) {
               Filter
             </span>
           </button>
+          {showFilterOptions && (
+            <div className="absolute mt-[86px] bg-white border border-[#E5E7EB] rounded-md shadow-sm p-1 z-50">
+              <button
+                type="button"
+                className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                onClick={() => handleFilter("equals")}
+              >
+                Equals…
+              </button>
+              <button
+                type="button"
+                className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                onClick={() => handleFilter("contains")}
+              >
+                Contains…
+              </button>
+              <button
+                type="button"
+                className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                onClick={handleClearFilter}
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -133,6 +594,7 @@ export default function DataPanel({ store }: DataPanelProps) {
             className="flex flex-col items-center justify-center w-[80px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleTextToColumns}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -199,6 +661,7 @@ export default function DataPanel({ store }: DataPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleGroup}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -275,6 +738,7 @@ export default function DataPanel({ store }: DataPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
+            onClick={handleUngroup}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -334,72 +798,7 @@ export default function DataPanel({ store }: DataPanelProps) {
             className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
             tabIndex={0}
             type="button"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-            >
-              <path
-                d="M10 2.5V12.5"
-                stroke="#364153"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M14.1654 6.66667L9.9987 2.5L5.83203 6.66667"
-                stroke="#364153"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5"
-                stroke="#364153"
-                stroke-width="1.66667"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-
-            <span
-              className="
-                  text-[9px]
-                  font-inter
-                  font-normal
-                  not-italic
-                  leading-[11.25px]
-                  tracking-[0.167px]
-                  text-[#4A5565]
-                  mt-0.5
-                  group-hover:text-[#18181b]
-                  transition-colors
-                "
-              style={{ fontFamily: "Inter" }}
-            >
-              Import
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className=" w-px h-[50px] bg-[#E3E4EA]" />
-      {/* Export */}
-      <div className="flex flex-col items-center min-w-[100px]">
-        <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
-          Export
-        </span>
-
-        <div className="flex flex-row items-center gap-[34px]">
-          {/* Export */}
-          <button
-            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
-            tabIndex={0}
-            type="button"
+            onClick={handleImportClick}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -424,6 +823,85 @@ export default function DataPanel({ store }: DataPanelProps) {
               />
               <path
                 d="M5.83203 8.33594L9.9987 12.5026L14.1654 8.33594"
+                stroke="#364153"
+                stroke-width="1.66667"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span
+              className="
+                  text-[9px]
+                  font-inter
+                  font-normal
+                  not-italic
+                  leading-[11.25px]
+                  tracking-[0.167px]
+                  text-[#4A5565]
+                  mt-0.5
+                  group-hover:text-[#18181b]
+                  transition-colors
+                "
+              style={{ fontFamily: "Inter" }}
+            >
+              Import
+            </span>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.tsv,text/csv,text/tab-separated-values"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              handleImportFile(file);
+              // reset value so importing same file again triggers change
+              e.currentTarget.value = "";
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className=" w-px h-[50px] bg-[#E3E4EA]" />
+      {/* Export */}
+      <div className="flex flex-col items-center min-w-[100px]">
+        <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
+          Export
+        </span>
+
+        <div className="flex flex-row items-center gap-[34px]">
+          {/* Export */}
+          <button
+            className="flex flex-col items-center justify-center w-[44px]  rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+            tabIndex={0}
+            type="button"
+            onClick={handleExport}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M10 2.5V12.5"
+                stroke="#364153"
+                stroke-width="1.66667"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M14.1654 6.66667L9.9987 2.5L5.83203 6.66667"
+                stroke="#364153"
+                stroke-width="1.66667"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5"
                 stroke="#364153"
                 stroke-width="1.66667"
                 stroke-linecap="round"

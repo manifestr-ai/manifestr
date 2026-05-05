@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { BorderStyleTypes, BorderType } from "@univerjs/core";
 
 interface FormatPanelProps {
@@ -16,6 +17,15 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   const [frozenCols, setFrozenCols] = useState(0);
   const [freezeRowsRuleId, setFreezeRowsRuleId] = useState<string | null>(null);
   const [freezeColsRuleId, setFreezeColsRuleId] = useState<string | null>(null);
+  const [showRotateOptions, setShowRotateOptions] = useState(false);
+  const [lastRotation, setLastRotation] = useState<number>(0);
+  const rotateBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [rotateMenuPos, setRotateMenuPos] = useState<{
+    left: number;
+    bottom: number;
+    maxHeight: number;
+    minWidth: number;
+  } | null>(null);
   
   if (!store) return null;
 
@@ -670,28 +680,120 @@ export default function FormatPanel({ store }: FormatPanelProps) {
   };
 
   // Text Rotate
-  const handleRotate = () => {
-    console.log('🔵 Text Rotate clicked!');
+  const rotationOptions = useMemo(
+    () => [
+      { label: "Rotate Up (90°)", angle: -90 },
+      { label: "Rotate Right (90°)", angle: 90 },
+      { label: "Angle Up (45°)", angle: -45 },
+      { label: "Angle Down (45°)", angle: 45 },
+      { label: "Horizontal (0°)", angle: 0 },
+    ],
+    [],
+  );
+
+  const applyRotation = (angle: number) => {
     const info = getActiveInfo();
     if (!info) return;
-    
     const { sheet, selection } = info;
     const { row, col, numRows, numCols } = getPosition(sheet, selection);
-    
+
     try {
       for (let r = 0; r < numRows; r++) {
         for (let c = 0; c < numCols; c++) {
           const cell = sheet.getRange(row + r, col + c, 1, 1);
+          // Univer facade cells often support setTextRotation(deg).
+          // Fallbacks included for other implementations.
           try {
-            cell.setTextRotation(45); // Rotate 45 degrees
-          } catch (e) {}
+            if (typeof cell.setTextRotation === "function") {
+              cell.setTextRotation(angle);
+              continue;
+            }
+          } catch {}
+          try {
+            if (typeof cell.setTextRotation === "function") cell.setTextRotation(angle);
+          } catch {}
+          try {
+            if (typeof cell.setRotation === "function") cell.setRotation(angle);
+          } catch {}
         }
       }
-      console.log('✅ Rotated text 45°');
+      setLastRotation(angle);
+      console.log(`✅ Rotated text ${angle}°`);
     } catch (error) {
-      console.error('❌ Text rotate failed:', error);
+      console.error("❌ Text rotate failed:", error);
+    } finally {
+      setShowRotateOptions(false);
     }
   };
+
+  const handleRotate = () => {
+    setShowRotateOptions((v) => !v);
+  };
+
+  const handleRotateCycle = () => {
+    // Cycles through a common sequence: 0 → 45 → 90 → -45 → -90 → 0
+    const seq = [0, 45, 90, -45, -90];
+    const idx = Math.max(0, seq.indexOf(lastRotation));
+    const next = seq[(idx + 1) % seq.length];
+    applyRotation(next);
+  };
+
+  // Position rotate menu as a portal so it isn't clipped by the panel container.
+  useEffect(() => {
+    if (!showRotateOptions) return;
+    const el = rotateBtnRef.current;
+    if (!el) return;
+
+    const compute = () => {
+      const rect = el.getBoundingClientRect();
+      const margin = 8;
+      const desiredWidth = 240;
+      const left = Math.min(
+        Math.max(margin, rect.right - desiredWidth),
+        window.innerWidth - desiredWidth - margin,
+      );
+      const maxHeight = Math.min(320, Math.max(120, rect.top - margin));
+      // Anchor the menu right above the button.
+      // Using `bottom` lets the menu grow upward from the button reliably.
+      const bottom = window.innerHeight - rect.top + margin;
+
+      setRotateMenuPos({
+        left,
+        bottom,
+        maxHeight,
+        minWidth: desiredWidth,
+      });
+    };
+
+    compute();
+    window.addEventListener("resize", compute);
+    window.addEventListener("scroll", compute, true);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("scroll", compute, true);
+    };
+  }, [showRotateOptions]);
+
+  useEffect(() => {
+    if (!showRotateOptions) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowRotateOptions(false);
+    };
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (rotateBtnRef.current && rotateBtnRef.current.contains(target)) return;
+      const menuEl = document.getElementById("spreadsheet-rotate-menu");
+      if (menuEl && menuEl.contains(target)) return;
+      setShowRotateOptions(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("mousedown", onMouseDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("mousedown", onMouseDown);
+    };
+  }, [showRotateOptions]);
 
   const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6B7280', '#000000', '#FFFFFF'];
 
@@ -832,7 +934,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
         <span className="w-[128px] flex-shrink-0 text-[#6A7282] text-center font-inter text-[12px] not-italic font-normal leading-[16px] mb-3">
           Text Tools
         </span>
-        <div className="flex flex-row items-center gap-[34px]">
+        <div className="flex flex-row items-center gap-[34px] relative">
           <button onClick={handleWrap} className="flex flex-col items-center justify-center w-[44px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2" tabIndex={0} type="button">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M13.332 13.3359L10.832 15.8359L13.332 18.3359" stroke="#364153" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
@@ -855,7 +957,7 @@ export default function FormatPanel({ store }: FormatPanelProps) {
             </span>
           </button>
 
-          <button onClick={handleRotate} className="flex flex-col items-center justify-center w-[44px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2" tabIndex={0} type="button">
+          <button ref={rotateBtnRef} onClick={handleRotate} className="flex flex-col items-center justify-center w-[44px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2" tabIndex={0} type="button">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M17.5 10C17.5 11.4834 17.0601 12.9334 16.236 14.1668C15.4119 15.4001 14.2406 16.3614 12.8701 16.9291C11.4997 17.4968 9.99168 17.6453 8.53683 17.3559C7.08197 17.0665 5.7456 16.3522 4.6967 15.3033C3.64781 14.2544 2.9335 12.918 2.64411 11.4632C2.35472 10.0083 2.50325 8.50032 3.07091 7.12987C3.63856 5.75943 4.59986 4.58809 5.83323 3.76398C7.0666 2.93987 8.51664 2.5 10 2.5C12.1 2.5 14.1083 3.33333 15.6167 4.78333L17.5 6.66667" stroke="#364153" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M17.4987 2.5V6.66667H13.332" stroke="#364153" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
@@ -864,6 +966,60 @@ export default function FormatPanel({ store }: FormatPanelProps) {
               Rotate
             </span>
           </button>
+          {showRotateOptions &&
+            rotateMenuPos &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                id="spreadsheet-rotate-menu"
+                className="bg-white border border-[#E5E7EB] rounded-md shadow-lg p-1 z-[9999] overflow-auto"
+                style={{
+                  position: "fixed",
+                  left: rotateMenuPos.left,
+                  bottom: rotateMenuPos.bottom,
+                  maxHeight: rotateMenuPos.maxHeight,
+                  minWidth: rotateMenuPos.minWidth,
+                }}
+              >
+                <button
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={handleRotateCycle}
+                >
+                  Cycle rotation
+                </button>
+                <div className="h-px bg-[#E5E7EB] my-1" />
+                {rotationOptions.map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                    onClick={() => applyRotation(opt.angle)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+                <div className="h-px bg-[#E5E7EB] my-1" />
+                <button
+                  type="button"
+                  className="block text-left w-full px-2 py-1 text-[12px] hover:bg-[#E9EBF0] rounded"
+                  onClick={() => {
+                    if (typeof window === "undefined") return;
+                    const v = window.prompt(
+                      "Custom angle (degrees):",
+                      String(lastRotation),
+                    );
+                    if (v === null) return;
+                    const n = Number(v);
+                    if (!Number.isFinite(n)) return;
+                    applyRotation(n);
+                  }}
+                >
+                  Custom angle…
+                </button>
+              </div>,
+              document.body,
+            )}
         </div>
       </div>
     </div>
