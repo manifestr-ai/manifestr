@@ -15,6 +15,8 @@ import PaywallEvents from "../../components/admin/monetization/PaywallEvents";
 import TopRevenueUsersTable from "../../components/admin/monetization/TopRevenueUsersTable";
 
 import { getAdminMonetizationData } from "../../services/admin/monetization";
+import OverviewFilters from "../../components/admin/overview/OverviewFilters";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 function SectionLabel({ children }) {
   return (
@@ -29,6 +31,8 @@ function SectionLabel({ children }) {
 export default function AdminMonetization() {
   const [monetizationData, setMonetizationData] = useState(null);
   const [error, setError] = useState(false);
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
 
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -41,14 +45,14 @@ export default function AdminMonetization() {
 
   useEffect(() => {
     if (user?.is_admin) {
-      getAdminMonetizationData()
+      getAdminMonetizationData(apiParams)
         .then((data) => {
           if (!data) setError(true);
           else setMonetizationData(data);
         })
         .catch(() => setError(true));
     }
-  }, [user]);
+  }, [user, apiParams]);
 
   if (loading ) {
     return <div className="p-6">Loading...</div>;
@@ -72,10 +76,16 @@ export default function AdminMonetization() {
             <MonetizationHeader
               title={monetizationData?.header?.title}
               subtitle={monetizationData?.header?.subtitle}
-              filters={monetizationData?.filters}
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
+              <OverviewFilters
+                searchPlaceholder="Search revenue, plans, and tags..."
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
+              />
+
               {/* Core Revenue Metrics */}
               <SectionLabel>Core Revenue Metrics</SectionLabel>
 

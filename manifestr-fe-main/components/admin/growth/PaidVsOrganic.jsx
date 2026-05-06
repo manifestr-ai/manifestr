@@ -1,8 +1,7 @@
-// Paid = dark (#1e293b), Organic = gray-blue (#94a3b8)
-// Paid starts at 12-o'clock going clockwise, Organic fills the rest
-const LEGEND = [
-  { label: 'Organic', color: '#18181b' },
-  { label: 'Paid', color: '#94a3b8' },
+// Returning = dark, New = light grey — slice order matches legend (Returning first clockwise from 12 o'clock).
+const DEFAULT_LEGEND = [
+  { label: 'Returning', color: '#18181b' },
+  { label: 'New', color: '#94a3b8' },
 ]
 
 const CX = 115.5
@@ -24,7 +23,7 @@ function slicePath(startAngle, endAngle) {
   return `M ${CX} ${CY} L ${s.x} ${s.y} A ${R} ${R} 0 ${large} 1 ${e.x} ${e.y} Z`
 }
 
-function labelXY(midAngle, offset = 38) {
+function labelXY(midAngle, offset = 42) {
   const rad = ((midAngle - 90) * Math.PI) / 180
   return {
     x: CX + offset * Math.cos(rad),
@@ -33,26 +32,23 @@ function labelXY(midAngle, offset = 38) {
 }
 
 export default function PaidVsOrganic({ data }) {
-  const title = data?.title || 'Paid vs Organic'
-  const organic = data?.organic ?? 62
-  const paid = data?.paid ?? 38
-  const legend = data?.legend || LEGEND
-  const total = organic + paid
+  const title = data?.title || 'By User Type'
+  const returningPct = Math.round(data?.returningPct ?? data?.organic ?? 0)
+  const newPct = Math.round(data?.newPct ?? data?.paid ?? 0)
+  const legend = data?.legend || DEFAULT_LEGEND
+  const total = returningPct + newPct || 1
 
-  // Paid starts at 0° (12-o'clock), Organic fills the rest
-  const paidAngle = (paid / total) * 360
-  const organicAngle = (organic / total) * 360
+  const returningAngle = (returningPct / total) * 360
+  const retStart = 0
+  const retEnd = returningAngle
+  const newStart = retEnd
+  const newEnd = 360
 
-  const paidStart = 0
-  const paidEnd = paidAngle
-  const organicStart = paidEnd
-  const organicEnd = 360
+  const retMid = retStart + returningAngle / 2
+  const newMid = newStart + (360 - returningAngle) / 2
 
-  const paidMid = paidStart + paidAngle / 2
-  const organicMid = organicStart + organicAngle / 2
-
-  const paidLabel = labelXY(paidMid, 52)
-  const organicLabel = labelXY(organicMid, 42)
+  const retLabel = labelXY(retMid, 52)
+  const newLabel = labelXY(newMid, 48)
 
   return (
     <div className="w-full flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] lg:p-[18px] flex flex-col gap-4 lg:gap-6">
@@ -60,33 +56,33 @@ export default function PaidVsOrganic({ data }) {
 
       <div className="flex flex-col items-center gap-4">
         <svg viewBox="0 0 231 231" width="231" height="231">
-          <path d={slicePath(paidStart, paidEnd)} fill="#1e293b" />
-          <path d={slicePath(organicStart, organicEnd)} fill="#94a3b8" />
+          <path d={slicePath(retStart, retEnd)} fill="#18181b" />
+          <path d={slicePath(newStart, newEnd)} fill="#94a3b8" />
 
           <text
-            x={paidLabel.x}
-            y={paidLabel.y}
+            x={retLabel.x}
+            y={retLabel.y}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="white"
-            fontSize="16"
+            fontSize="15"
             fontWeight="600"
-            fontFamily="HK Grotesk, sans-serif"
+            fontFamily="system-ui, sans-serif"
           >
-            ${paid}K
+            {returningPct}%
           </text>
 
           <text
-            x={organicLabel.x}
-            y={organicLabel.y}
+            x={newLabel.x}
+            y={newLabel.y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="white"
-            fontSize="16"
+            fill="#18181b"
+            fontSize="15"
             fontWeight="600"
-            fontFamily="HK Grotesk, sans-serif"
+            fontFamily="system-ui, sans-serif"
           >
-            ${organic}K
+            {newPct}%
           </text>
         </svg>
 

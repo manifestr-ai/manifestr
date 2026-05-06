@@ -10,13 +10,13 @@ const LEGEND = [
   { label: 'New', color: '#a1a1aa' },
 ]
 
-export default function ReturningVsNewChart({ data }) {
+export default function ReturningVsNewChart({ data, onRangeChange }) {
   const title = data?.title || 'Returning vs New Users'
   const months = data?.months || MONTHS
   const yLabels = data?.yLabels || Y_LABELS
   const returning = data?.returning || RETURNING
   const newUsers = data?.newUsers || NEW_USERS
-  const maxValue = data?.max || 500
+  const maxValue = Math.max(data?.max ?? 0, 1)
   const legend = data?.legend || LEGEND
   const filterOptions = data?.filterOptions || ['last 7d', 'last 30d', 'last 90d']
   const defaultFilter = data?.selectedFilter || filterOptions[1] || filterOptions[0]
@@ -26,6 +26,10 @@ export default function ReturningVsNewChart({ data }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedRange, setSelectedRange] = useState(defaultFilter)
   const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    if (data?.selectedFilter) setSelectedRange(data.selectedFilter)
+  }, [data?.selectedFilter])
 
   useEffect(() => {
     function handleOutsideClick(event) {
@@ -51,9 +55,18 @@ export default function ReturningVsNewChart({ data }) {
           {isDropdownOpen && (
             <div className="absolute right-0 top-full mt-1 z-20 min-w-[140px] bg-white border border-[#e4e4e7] rounded-[6px] shadow-sm py-1">
               {filterOptions.map((opt) => (
-                <button key={opt} type="button" onClick={() => { setSelectedRange(opt); setIsDropdownOpen(false) }}
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    setSelectedRange(opt)
+                    setIsDropdownOpen(false)
+                    onRangeChange?.(opt)
+                  }}
                   className={`block w-full text-left px-3 py-2 text-[14px] leading-5 ${selectedRange === opt ? 'bg-[#f4f4f5] text-[#18181b] font-medium' : 'text-[#52525b] hover:bg-[#f4f4f5]'}`}
-                >{opt}</button>
+                >
+                  {opt}
+                </button>
               ))}
             </div>
           )}
@@ -74,16 +87,16 @@ export default function ReturningVsNewChart({ data }) {
                 onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)}>
                 <div
                   className={`w-[12px] rounded-t-sm transition-colors ${hoverIdx === i ? 'bg-[#525252]' : 'bg-[#a1a1aa]'}`}
-                  style={{ height: `${(newUsers[i] / maxValue) * 100}%` }}
+                  style={{ height: `${((newUsers[i] ?? 0) / maxValue) * 100}%` }}
                 />
                 <div
                   className={`w-[12px] rounded-t-sm transition-colors ${hoverIdx === i ? 'bg-[#09090b]' : 'bg-[#18181b]'}`}
-                  style={{ height: `${(returning[i] / maxValue) * 100}%` }}
+                  style={{ height: `${((returning[i] ?? 0) / maxValue) * 100}%` }}
                 />
                 {hoverIdx === i && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 pointer-events-none">
                     <div className="bg-[#18181b] text-white text-[12px] font-medium leading-[18px] px-2 py-1 rounded-[6px] whitespace-nowrap shadow-lg">
-                      {months[i]}: R {returning[i]} · N {newUsers[i]}
+                      {months[i]}: R {returning[i] ?? 0} · N {newUsers[i] ?? 0}
                     </div>
                     <div className="w-0 h-0 mx-auto border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#18181b]" />
                   </div>

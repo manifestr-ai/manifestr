@@ -1,5 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { ChevronDown, Search } from "lucide-react";
+import { ADMIN_DEFAULT_SELECTIONS } from "../../../contexts/AdminDashboardFiltersContext";
 
 const DEFAULT_FILTERS = {
   Timeframe: ["Last 7d", "Last 30d", "Last 90d", "This year", "All time"],
@@ -7,6 +8,13 @@ const DEFAULT_FILTERS = {
   Persona: ["All personas", "Freelancer", "Agency", "Enterprise"],
   Device: ["All devices", "Desktop", "Mobile", "Tablet"],
 };
+
+const GLOBAL_FILTER_ORDER = [
+  "Timeframe",
+  "Cohort",
+  "Persona",
+  "Device",
+];
 
 function FilterDropdown({ label, options, value, onChange, disabled }) {
   const [open, setOpen] = useState(false);
@@ -23,7 +31,6 @@ function FilterDropdown({ label, options, value, onChange, disabled }) {
 
   const displayLabel = value || label;
 
-  // Close dropdown if becoming disabled while open
   useEffect(() => {
     if (disabled && open) setOpen(false);
   }, [disabled, open]);
@@ -75,29 +82,68 @@ function FilterDropdown({ label, options, value, onChange, disabled }) {
   );
 }
 
+function mergeFilterDefinitions(apiFilters) {
+  const base = { ...DEFAULT_FILTERS, ...(apiFilters || {}) };
+  const keys = new Set(Object.keys(base));
+  const ordered = [];
+
+  for (const k of GLOBAL_FILTER_ORDER) {
+    if (keys.has(k)) {
+      ordered.push([k, base[k]]);
+      keys.delete(k);
+    }
+  }
+  const rest = [...keys].sort();
+  for (const k of rest) {
+    ordered.push([k, base[k]]);
+  }
+  return ordered;
+}
+
 export default function OverviewFilters({
   filters = DEFAULT_FILTERS,
   searchPlaceholder = "Search files, content, and tags...",
   onFiltersChange,
+  /** When using shared admin dashboard state, parent passes these and omits defaultSelections. */
+  selections: controlledSelections,
+  search: controlledSearch,
+  /** @deprecated — use controlled `selections` from AdminDashboardFiltersContext */
+  defaultSelections,
 }) {
-  const [searchValue, setSearchValue] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState({});
+  const mergedDefaults = {
+    ...ADMIN_DEFAULT_SELECTIONS,
+    ...(defaultSelections || {}),
+  };
+
+  const isControlled =
+    controlledSelections !== undefined && controlledSearch !== undefined;
+
+  const [internalSearch, setInternalSearch] = useState("");
+  const [internalSelected, setInternalSelected] = useState(() => ({
+    ...mergedDefaults,
+  }));
+
+  const searchValue = isControlled ? controlledSearch : internalSearch;
+  const selectedFilters = isControlled ? controlledSelections : internalSelected;
+
   const normalizedFilters = useMemo(
-    () => (filters && Object.keys(filters).length ? filters : DEFAULT_FILTERS),
+    () => mergeFilterDefinitions(filters),
     [filters],
   );
 
   const updateFilter = (label, value) => {
+    if (isControlled) {
+      const next = { ...selectedFilters, [label]: value };
+      onFiltersChange?.({ search: searchValue, filters: next });
+      return;
+    }
     const next = { ...selectedFilters, [label]: value };
-    setSelectedFilters(next);
-    onFiltersChange?.({ search: searchValue, filters: next });
+    setInternalSelected(next);
+    onFiltersChange?.({ search: internalSearch, filters: next });
   };
-
-  const filterEntries = Object.entries(normalizedFilters);
 
   return (
     <div className="relative flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
-      {/* Search — matches Feature Adoption / AiPerformanceFilters: 400px, h-10, rounded-[6px] */}
       <div className="w-full shrink-0 lg:w-[400px] lg:max-w-[400px]">
         <div className="flex h-10 items-center gap-2 rounded-[6px] border border-[#e4e4e7] bg-white px-3">
           <Search
@@ -110,17 +156,20 @@ export default function OverviewFilters({
             value={searchValue}
             onChange={(e) => {
               const v = e.target.value;
-              setSearchValue(v);
-              onFiltersChange?.({ search: v, filters: selectedFilters });
+              if (isControlled) {
+                onFiltersChange?.({ search: v, filters: selectedFilters });
+              } else {
+                setInternalSearch(v);
+                onFiltersChange?.({ search: v, filters: selectedFilters });
+              }
             }}
             className="min-w-0 flex-1 bg-transparent text-[16px] font-normal leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
           />
         </div>
       </div>
 
-      {/* Dropdowns — mobile: 2×2 grid; desktop: row, auto width (Feature Adoption / AiPerformanceFilters) */}
       <div className="grid w-full min-w-0 grid-cols-2 gap-2 lg:flex lg:w-auto lg:flex-nowrap lg:items-center lg:gap-2">
-        {filterEntries.map(([label, options]) => (
+        {normalizedFilters.map(([label, options]) => (
           <FilterDropdown
             key={label}
             label={label}
@@ -128,9 +177,6 @@ export default function OverviewFilters({
             value={selectedFilters[label]}
             onChange={(value) => updateFilter(label, value)}
             disabled={
-              label.toLowerCase() === "cohort" ||
-              label.toLowerCase() === "persona" ||
-              label.toLowerCase() === "device" ||
               label.toLowerCase() === "channel" ||
               label.toLowerCase() === "plan" ||
               label.toLowerCase() === "region" ||
@@ -138,8 +184,7 @@ export default function OverviewFilters({
               label.toLowerCase() === "segment" ||
               label.toLowerCase() === "stage" ||
               label.toLowerCase() === "tool" ||
-              label.toLowerCase() === "feature" ||
-              label.toLowerCase() === "role"
+              label.toLowerCase() === "feature"
             }
           />
         ))}

@@ -15,18 +15,11 @@ import ChurnAnalysisBreakdown from "../../components/admin/retention/ChurnAnalys
 import ChurnBreakdownChart from "../../components/admin/retention/ChurnBreakdownChart";
 
 import { getAdminRetentionData } from "../../services/admin/retention";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 export default function AdminRetention() {
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
   const [retentionData, setRetentionData] = useState(null);
   const [error, setError] = useState(false);
 
@@ -45,11 +38,11 @@ export default function AdminRetention() {
     if (user?.is_admin) {
       fetchRetention();
     }
-  }, [user?.is_admin, filters]);
+  }, [user?.is_admin, apiParams]);
 
   const fetchRetention = async () => {
     try {
-      const data = await getAdminRetentionData(filters);
+      const data = await getAdminRetentionData(apiParams);
       if (!data) {
         setError(true);
       } else {
@@ -87,7 +80,9 @@ export default function AdminRetention() {
               <OverviewFilters
                 filters={retentionData?.filters?.options}
                 searchPlaceholder={retentionData?.filters?.searchPlaceholder}
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
         
 

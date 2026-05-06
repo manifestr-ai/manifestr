@@ -9,6 +9,8 @@ import { observer } from "mobx-react-lite";
 import { Button, Menu, MenuItem, Popover, Position } from "@blueprintjs/core";
 import pptxgen from "pptxgenjs";
 import api from "../../lib/api";
+import { trackDeckExport } from "../../lib/productAnalytics";
+import { useSlideDwellTracking } from "../../hooks/useSlideDwellTracking";
 import deck1 from "../../assets/decks/Deck.1.polotno.json";
 import deck2 from "../../assets/decks/Deck.2.polotno.json";
 import deck5 from "../../assets/decks/Deck.5.poltno.json";
@@ -74,6 +76,7 @@ const EditorUI = observer(({ store }: { store: any }) => {
         }
 
         pptx.writeFile({ fileName: "presentation.pptx" });
+        trackDeckExport("pptx");
     } catch (err) {
         console.error("Failed to generate PPTX:", err);
         alert("Failed to generate PowerPoint. Please try PDF instead.");
@@ -85,7 +88,10 @@ const EditorUI = observer(({ store }: { store: any }) => {
         <MenuItem 
             icon="document" 
             text="Download PDF" 
-            onClick={() => store.saveAsPDF({ fileName: "presentation.pdf" })} 
+            onClick={() => {
+              store.saveAsPDF({ fileName: "presentation.pdf" });
+              trackDeckExport("pdf");
+            }} 
         />
         <MenuItem 
             icon="presentation" 
@@ -166,6 +172,8 @@ export default function PresentationEditor({
   useEffect(() => {
     onStoreReady?.(store);
   }, [store, onStoreReady]);
+
+  useSlideDwellTracking(store, generationId);
 
   // Auto-save Logic
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">("saved");

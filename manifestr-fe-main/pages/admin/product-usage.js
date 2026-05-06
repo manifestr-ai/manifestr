@@ -24,6 +24,7 @@ import TransitionDropoffsFunnel from "../../components/admin/product-usage/Trans
 import MultiToolUsage from "../../components/admin/product-usage/MultiToolUsage";
 import ToolPairingMatrix from "../../components/admin/product-usage/ToolPairingMatrix";
 import { getAdminProductUsageData } from "../../services/admin/product-usage";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 function SectionLabel({ children }) {
   return (
@@ -34,19 +35,11 @@ function SectionLabel({ children }) {
 }
 // { productUsageData }
 export default function AdminProductUsage() {
-
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
   
   const [productUsageData, setProductUsageData] = useState(null);
+  const [productUsageLoading, setProductUsageLoading] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState(false);
@@ -79,8 +72,10 @@ export default function AdminProductUsage() {
   useEffect(() => {
     if (user?.is_admin) {
       const fetchProductUsage = async () => {
+        setProductUsageLoading(true);
+        setError(false);
         try {
-          const data = await getAdminProductUsageData(filters);
+          const data = await getAdminProductUsageData(apiParams);
           if (!data) {
             setError(true);
           } else {
@@ -88,14 +83,30 @@ export default function AdminProductUsage() {
           }
         } catch {
           setError(true);
+        } finally {
+          setProductUsageLoading(false);
         }
       };
       fetchProductUsage();
     }
-  }, [user?.is_admin, filters]);
+  }, [user?.is_admin, apiParams]);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">Failed to load data</div>;
+
+  if (user?.is_admin && (productUsageLoading || productUsageData == null)) {
+    return (
+      <div className="admin-card-theme min-h-screen bg-white">
+        <AdminHeader />
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
+          <AdminSidebar />
+          <div className="flex flex-1 items-center justify-center p-6 text-[#71717a]">
+            Loading product usage…
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <>
       <Head>
@@ -117,7 +128,9 @@ export default function AdminProductUsage() {
               <OverviewFilters
                 filters={productUsageData?.filters?.options}
                 searchPlaceholder={productUsageData?.filters?.searchPlaceholder}
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
 
               {/* ── Core Metrics ── */}

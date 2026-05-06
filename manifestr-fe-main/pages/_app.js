@@ -30,8 +30,17 @@ import { ToastProvider } from "../components/ui/Toast";
 import "../styles/global.css";
 import { useEffect } from "react";
 import { LoaderProvider } from "../components/ui/LoaderProvider";
+import { AdminDashboardFiltersProvider } from "../contexts/AdminDashboardFiltersContext";
 
 const POLOTNO_EDITOR_PAGES = ["/presentation-editor", "/image-editor"];
+
+function AdminDashboardShell({ children }) {
+  const router = useRouter();
+  if (!router.pathname.startsWith("/admin")) return children;
+  return (
+    <AdminDashboardFiltersProvider>{children}</AdminDashboardFiltersProvider>
+  );
+}
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -88,11 +97,13 @@ export default function App({ Component, pageProps }) {
           <SidebarProvider>
             <ToastProvider>
               <LoaderProvider>
-                {Component.getLayout ? (
-                  Component.getLayout(<Component {...pageProps} />)
-                ) : (
-                  <Component {...pageProps} />
-                )}
+                <AdminDashboardShell>
+                  {Component.getLayout ? (
+                    Component.getLayout(<Component {...pageProps} />)
+                  ) : (
+                    <Component {...pageProps} />
+                  )}
+                </AdminDashboardShell>
               </LoaderProvider>
             </ToastProvider>
           </SidebarProvider>

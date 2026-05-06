@@ -20,18 +20,11 @@ import PredictiveSignalsSection from "../../components/admin/ai-performance/Pred
 
 import { getAdminAiPerformanceData } from "../../services/admin/ai-performance";
 import OverviewFilters from "../../components/admin/overview/OverviewFilters";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 export default function AdminAiPerformance() {
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
 
   const [aiPerformanceData, setAiPerformanceData] = useState(null);
   const [error, setError] = useState(false);
@@ -51,11 +44,11 @@ export default function AdminAiPerformance() {
     if (user?.is_admin) {
       fetchAiPerformance();
     }
-  }, [user?.is_admin, filters]);
+  }, [user?.is_admin, apiParams]);
 
   const fetchAiPerformance = async () => {
     try {
-      const data = await getAdminAiPerformanceData(filters);
+      const data = await getAdminAiPerformanceData(apiParams);
       if (!data) {
         setError(true);
       } else {
@@ -98,7 +91,9 @@ export default function AdminAiPerformance() {
                 searchPlaceholder={
                   aiPerformanceData?.filters?.searchPlaceholder
                 }
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
 
               {/* Metrics: acceptance rate, edit/accept ratio, regen per output, time to generate */}

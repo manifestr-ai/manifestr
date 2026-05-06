@@ -8,11 +8,15 @@ export default function ChannelBarChart({ data }) {
   const title = data?.title || 'CAC by Channel'
   const xLabels = data?.xLabels || X_LABELS
   const values = data?.values || VALUES
-  const maxValue = data?.max || 200
+  const maxValue = Math.max(data?.max ?? 0, 1)
   const yLabels = data?.yLabels || Y_LABELS
   const footer = data?.footer || 'Customer Acquisition Cost ($)'
+  const valueFormat = data?.valueFormat || 'currency'
   const BAR_H = 160
   const [hoverIdx, setHoverIdx] = useState(null)
+
+  const formatHover = (v) =>
+    valueFormat === 'percent' ? `${v}%` : `$${v}`
 
   return (
     <div className="w-full flex-1 min-w-0 bg-white border border-[#e4e4e7] rounded-xl p-[14px] lg:p-[18px] flex flex-col gap-4 lg:gap-6">
@@ -38,7 +42,7 @@ export default function ChannelBarChart({ data }) {
                 {hoverIdx === i && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 pointer-events-none">
                     <div className="bg-[#18181b] text-white text-[12px] font-medium leading-[18px] px-2 py-1 rounded-[6px] whitespace-nowrap shadow-lg">
-                      ${v}
+                      {formatHover(v)}
                     </div>
                     <div className="w-0 h-0 mx-auto border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#18181b]" />
                   </div>

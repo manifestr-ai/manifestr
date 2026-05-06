@@ -34,6 +34,7 @@ import EditorBottomToolbar from "../editor/EditorBottomToolbar";
 import ToolPanel from "../editor/panels/presentation-editor/ToolPanel";
 import StyleGuideModal from "../editor/StyleGuideModal";
 import { useToast } from "../ui/Toast";
+import { useSlideDwellTracking } from "../../hooks/useSlideDwellTracking";
 
 const ALL_DECKS = [deck1, deck2, deck5, deck6, deck7, deck8, deck11, deck15];
 
@@ -262,6 +263,8 @@ export default function CollaborativePresentationEditor({
       onStoreReady(store);
     }
   }, [store, onStoreReady]);
+
+  useSlideDwellTracking(store, generationId);
 
   useEffect(() => {
     if (store) {
