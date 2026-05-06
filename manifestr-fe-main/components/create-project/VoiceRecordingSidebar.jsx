@@ -1,10 +1,13 @@
-import { CheckCircle2, Circle, AlertCircle, Edit2 } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, Circle, AlertCircle, Edit2, Check, X } from 'lucide-react'
 
 export default function VoiceRecordingSidebar({ 
   capturedFields = {}, 
   progressCount = 0, 
   totalFields = 8,
-  transcript = ''
+  transcript = '',
+  refinedValues = {},
+  onRefine
 }) {
   const fields = {
     core: [
@@ -71,6 +74,8 @@ export default function VoiceRecordingSidebar({
               <DetailItem 
                 key={field.id} 
                 field={field}
+                refinedValue={refinedValues[field.id]}
+                onRefine={onRefine}
               />
             ))}
           </div>
@@ -86,6 +91,8 @@ export default function VoiceRecordingSidebar({
               <DetailItem 
                 key={field.id} 
                 field={field}
+                refinedValue={refinedValues[field.id]}
+                onRefine={onRefine}
               />
             ))}
           </div>
@@ -109,7 +116,10 @@ export default function VoiceRecordingSidebar({
   )
 }
 
-function DetailItem({ field }) {
+function DetailItem({ field, refinedValue, onRefine }) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(refinedValue || '')
+  
   const IconComponent = field.captured ? CheckCircle2 : Circle
   const iconColor = field.captured 
     ? 'text-[#06b6d4]' // cyan/teal for captured
@@ -117,18 +127,70 @@ function DetailItem({ field }) {
       ? 'text-[#fbbf24]' // yellow for warning
       : 'text-[#d1d5db]' // light gray for not captured
 
+  const handleSave = () => {
+    if (onRefine && editValue.trim()) {
+      onRefine(field.id, editValue.trim())
+    }
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setEditValue(refinedValue || '')
+    setIsEditing(false)
+  }
+
   return (
-    <div className="flex items-center justify-between py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
-      <div className="flex items-center gap-3">
-        <IconComponent className={`w-4 h-4 ${iconColor} flex-shrink-0`} />
-        <span className="text-[13px] font-medium text-[#101828]">
-          {field.label}
-        </span>
+    <div className="flex flex-col py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <IconComponent className={`w-4 h-4 ${iconColor} flex-shrink-0`} />
+          <span className="text-[13px] font-medium text-[#101828]">
+            {field.label}
+          </span>
+        </div>
+        <button 
+          onClick={() => setIsEditing(!isEditing)}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] text-[#99a1af] hover:text-[#6b7280] transition-colors"
+        >
+          <Edit2 className="w-3.5 h-3.5" />
+          <span>Refine</span>
+        </button>
       </div>
-      <button className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] text-[#99a1af] hover:text-[#6b7280] transition-colors">
-        <Edit2 className="w-3.5 h-3.5" />
-        <span>Refine</span>
-      </button>
+      
+      {isEditing && (
+        <div className="mt-2 ml-7 flex flex-col gap-2">
+          <textarea
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            placeholder={`Enter ${field.label.toLowerCase()}...`}
+            className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06b6d4] focus:border-transparent resize-none"
+            rows={3}
+            autoFocus
+          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#06b6d4] text-white text-[12px] rounded-md hover:bg-[#0891b2] transition-colors"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>Save</span>
+            </button>
+            <button
+              onClick={handleCancel}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-200 text-gray-700 text-[12px] rounded-md hover:bg-gray-300 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {!isEditing && refinedValue && (
+        <div className="mt-2 ml-7 text-[12px] text-[#6b7280] bg-[#f0f9ff] px-3 py-2 rounded-md border border-[#bae6fd]">
+          {refinedValue}
+        </div>
+      )}
     </div>
   )
 }

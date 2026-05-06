@@ -48,16 +48,11 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
         if (!editingField) return
         const onDocClick = (e) => {
             if (editingContainerRef.current && editingContainerRef.current.contains(e.target)) return
-            const current = editingField
-            const sectionKey = fieldToSection[current]
-            handleSave(current)
-            if (sectionKey) {
-                setExpandedSections((prev) => ({ ...prev, [sectionKey]: false }))
-            }
+            handleSave(editingField)
         }
         document.addEventListener('mousedown', onDocClick)
         return () => document.removeEventListener('mousedown', onDocClick)
-    }, [editingField, tempValue])
+    }, [editingField])
 
     const toggleSection = (section) => {
         setExpandedSections((prev) => ({
@@ -100,7 +95,10 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     <>
                         <div
                             className="flex flex-col gap-1 flex-1 cursor-pointer"
-                            onClick={() => handleEdit(fieldKey, currentValue)}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(fieldKey, currentValue)
+                            }}
                         >
                             <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
                                 {label}
@@ -111,14 +109,17 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                             </p>
                         </div>
                         <button
-                            onClick={() => handleEdit(fieldKey, currentValue)}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(fieldKey, currentValue)
+                            }}
                             className="ml-4 p-2 hover:bg-base-muted rounded-md transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
                             <Pencil className="w-4 h-4 text-base-muted-foreground" />
                         </button>
                     </>
                 ) : (
-                    <div className="flex flex-col gap-3 flex-1">
+                    <div className="flex flex-col gap-3 flex-1" onClick={(e) => e.stopPropagation()}>
                         <div className="flex flex-col gap-1">
                             <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
                                 {label}
@@ -127,20 +128,33 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                                 type="text"
                                 value={tempValue}
                                 onChange={(e) => setTempValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleSave(fieldKey)
+                                    } else if (e.key === 'Escape') {
+                                        handleCancel()
+                                    }
+                                }}
                                 className="text-[14px] leading-[24px] font-medium text-base-foreground px-3 py-2 border border-[#e4e4e7] rounded-md focus:outline-none focus:ring-2 focus:ring-base-secondary focus:border-transparent"
                                 autoFocus
                             />
                         </div>
                         <div className="flex gap-2 items-center">
                             <button
-                                onClick={() => handleSave(fieldKey)}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleSave(fieldKey)
+                                }}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#18181b] text-white rounded-md hover:opacity-90 transition-opacity text-[12px] leading-[18px] font-medium cursor-pointer"
                             >
                                 <Check className="w-3.5 h-3.5" />
                                 Save
                             </button>
                             <button
-                                onClick={handleCancel}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleCancel()
+                                }}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e4e4e7] text-base-foreground rounded-md hover:bg-base-muted transition-colors text-[12px] leading-[18px] font-medium cursor-pointer"
                             >
                                 <X className="w-3.5 h-3.5" />

@@ -98,7 +98,9 @@ export default function AiPrompterPanel({
         console.error(
           " This means the editor instance was not passed correctly",
         );
-        toast.error("Editor not available. Please refresh the page and try again.");
+        toast.error(
+          "Editor not available. Please refresh the page and try again.",
+        );
       }
     },
     onError: (error) => {
@@ -773,17 +775,27 @@ export default function AiPrompterPanel({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (10MB limit for documents, 5MB for images)
-    const isDocument = [
-      "text/plain",
-      "application/msword",
-      "application/vnd.ms-word",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ].includes(file.type) || file.name.match(/\.(txt|doc|docx)$/i);
+    // Block all image uploads in dropzone
+    if (file.type.startsWith("image/") || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
+      toast.error("Images are not allowed in the dropzone");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
 
-    const maxSize = isDocument ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    // Validate file size (10MB limit for documents)
+    const isDocument =
+      [
+        "text/plain",
+        "application/msword",
+        "application/vnd.ms-word",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ].includes(file.type) || file.name.match(/\.(txt|doc|docx)$/i);
+
+    const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error(`File size must be less than ${isDocument ? '10' : '5'} MB`);
+      toast.error("File size must be less than 10 MB");
       return;
     }
 
@@ -832,20 +844,18 @@ export default function AiPrompterPanel({
     }
 
     // Validate file type based on editor type (for non-document files)
-    if (editorType === "image" && !file.type.startsWith("image/")) {
-      toast.error("Please upload an image file or a document (.txt, .doc, .docx)");
-      return;
-    }
-
     if (
       editorType === "spreadsheet" &&
       ![
         "text/csv",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(file.type)
+      ].includes(file.type) &&
+      !isDocument
     ) {
-      toast.error("Please upload a CSV or Excel file, or a document (.txt, .doc, .docx)");
+      toast.error(
+        "Please upload a CSV or Excel file, or a document (.txt, .doc, .docx)",
+      );
       return;
     }
 
@@ -1637,10 +1647,14 @@ export default function AiPrompterPanel({
                           </span>
                         </div>
                         <span className="text-[#64748B] text-xs sm:text-sm mt-1 text-center">
-                          Upload images, or documents with prompts{" "}
-                          <span className="font-medium text-[#4B5563]">(.txt, .doc, .docx)</span>
+                          Upload documents with prompts{" "}
+                          <span className="font-medium text-[#4B5563]">
+                            (.txt, .doc, .docx)
+                          </span>
                           <br />
-                          <span className="text-[10px]">Images: 5 MB max | Documents: 10 MB max</span>
+                          <span className="text-[10px]">
+                            Documents: 10 MB max
+                          </span>
                         </span>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full">
@@ -1682,7 +1696,7 @@ export default function AiPrompterPanel({
                             name="file-upload"
                             type="file"
                             className="hidden"
-                            accept="image/*,.txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            accept=".txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                             onChange={handleFileUpload}
                             disabled={isProcessing}
                           />
