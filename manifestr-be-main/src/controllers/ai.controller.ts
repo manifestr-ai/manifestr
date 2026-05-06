@@ -230,10 +230,67 @@ export class AIController extends BaseController {
 
           updated = jobData[0];
         } else {
-          return res.status(403).json({
-            status: "error",
-            message: "No edit access to this document",
-          });
+          // Check if user has edit access via collab project
+          console.log(
+            `🔍 User not in document_collaborators, checking collab project edit access...`,
+          );
+
+          // Step 1: Check if document is in any collab project
+          const { data: projectDocs } = await supabaseAdmin
+            .from("collab_project_documents")
+            .select("collab_project_id")
+            .eq("document_id", id);
+
+          let hasEditAccess = false;
+
+          if (projectDocs && projectDocs.length > 0) {
+            // Step 2: Check if user is a member with edit rights (admin or editor)
+            const projectIds = projectDocs.map((pd) => pd.collab_project_id);
+            const { data: membership } = await supabaseAdmin
+              .from("collab_project_members")
+              .select("role, collab_project_id")
+              .eq("user_id", userId)
+              .in("collab_project_id", projectIds)
+              .eq("status", "accepted")
+              .in("role", ["owner", "admin", "editor"])
+              .limit(1)
+              .single();
+
+            if (membership) {
+              console.log(
+                ` User has edit access via collab project (${membership.role})`,
+              );
+              hasEditAccess = true;
+
+              // Update directly without userId check
+              const { data: jobData, error: updateError } = await supabaseAdmin
+                .from("generation_jobs")
+                .update({
+                  result: { editorState: content },
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", id)
+                .select();
+
+              if (updateError || !jobData || jobData.length === 0) {
+                console.error("❌ Failed to update:", updateError);
+                return res.status(500).json({
+                  status: "error",
+                  message: "Failed to save changes",
+                  details: updateError?.message,
+                });
+              }
+
+              updated = jobData[0];
+            }
+          }
+
+          if (!hasEditAccess) {
+            return res.status(403).json({
+              status: "error",
+              message: "No edit access to this document",
+            });
+          }
         }
       }
 
@@ -1250,17 +1307,70 @@ export class AIController extends BaseController {
 
           job = jobData;
         } else {
-          // DEBUG: Show all collaborators for this document
-          const { data: allCollabs } = await supabaseAdmin
-            .from("document_collaborators")
-            .select("user_id, role, status")
+          // Check if user has access via collab project
+          console.log(
+            `🔍 User not in document_collaborators, checking collab project access...`,
+          );
+
+          // Step 1: Check if document is in any collab project
+          const { data: projectDocs } = await supabaseAdmin
+            .from("collab_project_documents")
+            .select("collab_project_id")
             .eq("document_id", id);
 
-          console.log(
-            `❌ User not found as collaborator. All collaborators for this doc:`,
-            allCollabs,
-          );
-          console.log(`   Looking for user_id: ${userId}`);
+          if (projectDocs && projectDocs.length > 0) {
+            console.log(
+              `📁 Document is in ${projectDocs.length} collab project(s)`,
+            );
+
+            // Step 2: Check if user is a member of any of these projects
+            const projectIds = projectDocs.map((pd) => pd.collab_project_id);
+            const { data: membership } = await supabaseAdmin
+              .from("collab_project_members")
+              .select("role, collab_project_id")
+              .eq("user_id", userId)
+              .in("collab_project_id", projectIds)
+              .eq("status", "accepted")
+              .limit(1)
+              .single();
+
+            if (membership) {
+              console.log(
+                ` User is member of collab project (${membership.role}), granting access`,
+              );
+
+              // Get job without user_id check (collab project access)
+              const { data: jobData } = await supabaseAdmin
+                .from("generation_jobs")
+                .select("*")
+                .eq("id", id)
+                .single();
+
+              job = jobData;
+            } else {
+              console.log(
+                `❌ User not a member of any collab project containing this document`,
+              );
+            }
+          } else {
+            console.log(
+              `❌ Document not in any collab project, denying access`,
+            );
+          }
+
+          // DEBUG: Show all collaborators for this document
+          if (!job) {
+            const { data: allCollabs } = await supabaseAdmin
+              .from("document_collaborators")
+              .select("user_id, role, status")
+              .eq("document_id", id);
+
+            console.log(
+              `❌ User not found as collaborator. All collaborators for this doc:`,
+              allCollabs,
+            );
+            console.log(`   Looking for user_id: ${userId}`);
+          }
         }
       }
 

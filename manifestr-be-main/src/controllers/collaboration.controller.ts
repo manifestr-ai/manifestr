@@ -228,7 +228,7 @@ export class CollaborationController extends BaseController {
                         email_confirm: true, // Auto-confirm email
                         user_metadata: {
                             first_name: emailPrefix,
-                            last_name: 'Invited User',
+                            last_name: '',
                             invited_user: true // Mark as invited user
                         }
                     });
@@ -248,8 +248,8 @@ export class CollaborationController extends BaseController {
                         .insert({
                             id: inviteeUserId,
                             email: email.toLowerCase().trim(),
-                            first_name: emailPrefix, // Using emailPrefix from line 123
-                            last_name: 'Invited User',
+                            first_name: emailPrefix,
+                            last_name: '',
                             email_verified: true,
                             onboarding_completed: false,
                             promotional_emails: false,
@@ -783,6 +783,31 @@ export class CollaborationController extends BaseController {
                         .single();
                     
                     console.log(`✅ Auto-added as owner in document_collaborators`);
+                } else {
+                    // Check if user has access via collab project
+                    console.log(`🔍 Checking collab project access for session start...`);
+                    
+                    const { data: projectDocs } = await supabaseAdmin
+                        .from('collab_project_documents')
+                        .select('collab_project_id')
+                        .eq('document_id', documentId);
+                    
+                    if (projectDocs && projectDocs.length > 0) {
+                        const projectIds = projectDocs.map(pd => pd.collab_project_id);
+                        const { data: membership } = await supabaseAdmin
+                            .from('collab_project_members')
+                            .select('role')
+                            .eq('user_id', userId)
+                            .in('collab_project_id', projectIds)
+                            .eq('status', 'accepted')
+                            .limit(1)
+                            .single();
+                        
+                        if (membership) {
+                            hasAccess = true;
+                            console.log(`✅ User has access via collab project (${membership.role})`);
+                        }
+                    }
                 }
             }
 
@@ -853,6 +878,8 @@ export class CollaborationController extends BaseController {
             const userId = (req as any).user?.userId;
 
             // Check access
+            let hasAccess = false;
+            
             const { data: access } = await supabaseAdmin
                 .from('document_collaborators')
                 .select('role')
@@ -861,7 +888,34 @@ export class CollaborationController extends BaseController {
                 .eq('status', 'accepted')
                 .single();
 
-            if (!access) {
+            if (access) {
+                hasAccess = true;
+            } else {
+                // Check if user has access via collab project
+                const { data: projectDocs } = await supabaseAdmin
+                    .from('collab_project_documents')
+                    .select('collab_project_id')
+                    .eq('document_id', documentId);
+                
+                if (projectDocs && projectDocs.length > 0) {
+                    const projectIds = projectDocs.map(pd => pd.collab_project_id);
+                    const { data: membership } = await supabaseAdmin
+                        .from('collab_project_members')
+                        .select('role')
+                        .eq('user_id', userId)
+                        .in('collab_project_id', projectIds)
+                        .eq('status', 'accepted')
+                        .limit(1)
+                        .single();
+                    
+                    if (membership) {
+                        hasAccess = true;
+                        console.log(`✅ User has active users access via collab project (${membership.role})`);
+                    }
+                }
+            }
+
+            if (!hasAccess) {
                 return res.status(403).json({ error: 'No access to this document' });
             }
 

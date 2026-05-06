@@ -14,6 +14,7 @@ import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
 import { supabaseAdmin } from '../lib/supabase';
 import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import postmarkService from '../services/PostmarkService';
 
 export class CollabProjectsController extends BaseController {
     public basePath = '/collab-projects';
@@ -518,17 +519,94 @@ export class CollabProjectsController extends BaseController {
             }
 
             // Find user by email
-            const { data: invitedUser } = await supabaseAdmin
+            let { data: invitedUser } = await supabaseAdmin
                 .from('users')
                 .select('id, email, first_name, last_name')
                 .eq('email', email.toLowerCase().trim())
                 .single();
 
+            let userCreated = false;
+            let defaultPassword = '';
+
+            // If user doesn't exist, create them automatically
             if (!invitedUser) {
-                return res.status(404).json({ 
-                    status: 'error',
-                    message: 'User not found. They need to sign up first.' 
-                });
+                console.log(`📝 User ${email} doesn't exist. Creating account...`);
+                
+                try {
+                    const emailPrefix = email.split('@')[0];
+                    defaultPassword = 'Manifestr123!'; // Default password for invited users
+                    
+                    // Create user in Supabase Auth
+                    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                        email: email.toLowerCase().trim(),
+                        password: defaultPassword,
+                        email_confirm: true, // Auto-confirm email
+                        user_metadata: {
+                            first_name: emailPrefix,
+                            last_name: '',
+                            invited_user: true
+                        }
+                    });
+
+                    if (authError) {
+                        console.error('❌ Failed to create auth user:', authError);
+                        throw authError;
+                    }
+
+                    const newUserId = authUser.user.id;
+                    console.log(`✅ Auth user created: ${newUserId}`);
+
+                    // Create user record in users table
+                    const { error: userInsertError } = await supabaseAdmin
+                        .from('users')
+                        .insert({
+                            id: newUserId,
+                            email: email.toLowerCase().trim(),
+                            first_name: emailPrefix,
+                            last_name: '',
+                            email_verified: true,
+                            onboarding_completed: false,
+                            promotional_emails: false,
+                            tier: 'free',
+                            wins_balance: 100,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        });
+                    
+                    if (userInsertError) {
+                        if (userInsertError.code === '23505') {
+                            console.log('⚠️ User already exists in users table (duplicate, OK)');
+                        } else {
+                            console.error('❌ Failed to create in users table:', userInsertError);
+                            throw userInsertError;
+                        }
+                    } else {
+                        console.log('✅ User created in users table');
+                    }
+                    
+                    // Fetch the created user
+                    const { data: verifyUser } = await supabaseAdmin
+                        .from('users')
+                        .select('id, email, first_name, last_name')
+                        .eq('id', newUserId)
+                        .single();
+                    
+                    if (!verifyUser) {
+                        throw new Error('User was not created in users table despite successful insert');
+                    }
+                    
+                    invitedUser = verifyUser;
+                    userCreated = true;
+                    console.log('✅ Verified user exists:', verifyUser);
+                    
+                } catch (createError) {
+                    console.error('❌ Failed to create user:', createError);
+                    return res.status(500).json({ 
+                        status: 'error',
+                        message: 'Could not create user account. Please try again.',
+                        details: (createError as Error).message 
+                    });
+                }
             }
 
             // Check if already a member
@@ -562,12 +640,59 @@ export class CollabProjectsController extends BaseController {
 
             console.log(`✅ Invited ${email} to collab ${projectId} as ${role || 'editor'}`);
 
+            // Get inviter details for email
+            const { data: inviter } = await supabaseAdmin
+                .from('users')
+                .select('first_name, last_name, email')
+                .eq('id', userId)
+                .single();
+            
+            const inviterName = inviter 
+                ? `${inviter.first_name} ${inviter.last_name}`.trim() || inviter.email 
+                : 'Someone';
+
+            // Get project details for email
+            const { data: project } = await supabaseAdmin
+                .from('collab_projects')
+                .select('name')
+                .eq('id', projectId)
+                .single();
+            
+            const projectName = project?.name || 'Collab Project';
+
+            // Send email notification
+            const inviteeName = `${invitedUser.first_name} ${invitedUser.last_name}`.trim() || invitedUser.email.split('@')[0];
+            const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/vault/collabs/${projectId}`;
+
+            try {
+                await postmarkService.sendCollabProjectInvite({
+                    inviteeEmail: email,
+                    inviteeName: inviteeName,
+                    inviterName: inviterName,
+                    projectName: projectName,
+                    role: role || 'editor',
+                    inviteLink: inviteLink,
+                    accountCreated: userCreated,
+                    defaultPassword: userCreated ? defaultPassword : undefined
+                });
+                console.log(`📧 Collab project invite email sent to ${email}`);
+            } catch (emailError) {
+                console.error(`⚠️ Failed to send email to ${email}:`, emailError);
+                // Continue anyway - member was added successfully
+            }
+
+            const responseMessage = userCreated
+                ? `Member invited successfully! Account created with password: ${defaultPassword}. An email has been sent with login details.`
+                : `Member invited successfully! An invitation email has been sent.`;
+
             return res.json({
                 status: 'success',
-                message: 'Member invited successfully',
+                message: responseMessage,
                 data: {
                     user: invitedUser,
-                    role: role || 'editor'
+                    role: role || 'editor',
+                    userCreated: userCreated,
+                    defaultPassword: userCreated ? defaultPassword : undefined
                 }
             });
 
