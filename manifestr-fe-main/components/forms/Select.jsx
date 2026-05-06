@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export default function Select({
   label,
@@ -14,6 +14,42 @@ export default function Select({
   ...props
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [openDirection, setOpenDirection] = useState('down') // 'down' | 'up'
+  const buttonRef = useRef(null)
+  const menuRef = useRef(null)
+
+  const close = () => setIsOpen(false)
+
+  const estimatedMenuMaxHeight = 240 // matches max-h-60
+  const measureAndFlipIfNeeded = () => {
+    if (typeof window === 'undefined') return
+    const buttonEl = buttonRef.current
+    if (!buttonEl) return
+    const rect = buttonEl.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    // Prefer opening down, but flip up when cramped.
+    if (spaceBelow < estimatedMenuMaxHeight && spaceAbove > spaceBelow) {
+      setOpenDirection('up')
+    } else {
+      setOpenDirection('down')
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) return
+    measureAndFlipIfNeeded()
+
+    const handleScrollOrResize = () => measureAndFlipIfNeeded()
+    window.addEventListener('resize', handleScrollOrResize)
+    // capture scroll so it works inside scroll containers too
+    window.addEventListener('scroll', handleScrollOrResize, true)
+    return () => {
+      window.removeEventListener('resize', handleScrollOrResize)
+      window.removeEventListener('scroll', handleScrollOrResize, true)
+    }
+  }, [isOpen])
 
   return (
     <div className={`flex flex-col gap-1.5 items-start relative w-full ${className}`}>
@@ -31,7 +67,8 @@ export default function Select({
       <div className="relative w-full">
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          ref={buttonRef}
+          onClick={() => setIsOpen((v) => !v)}
           className={`border rounded-md w-full flex items-center justify-between gap-2 px-3 py-2 ${
             error ? 'border-[#fca5a5]' : 'border-[#e4e4e7]'
           } ${fieldClassName || 'bg-base-background'}`}
@@ -51,17 +88,22 @@ export default function Select({
         {isOpen && (
           <>
             <div
-              className="fixed inset-0 z-10"
-              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-[55]"
+              onClick={close}
             />
-            <div className="absolute z-20 mt-1 w-full bg-white border border-[#e4e4e7] rounded-md shadow-lg max-h-60 overflow-auto">
+            <div
+              ref={menuRef}
+              className={`absolute z-[60] w-full bg-white border border-[#e4e4e7] rounded-md shadow-lg max-h-60 overflow-auto ${
+                openDirection === 'up' ? 'bottom-full mb-1' : 'mt-1'
+              }`}
+            >
               {options.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => {
                     onChange({ target: { value: option.value } })
-                    setIsOpen(false)
+                    close()
                   }}
                   className={`w-full text-left px-3 py-2 text-b2-regular hover:bg-slate-50 transition-colors ${
                     value === option.value ? 'bg-slate-50 font-medium' : 'text-base-foreground'
