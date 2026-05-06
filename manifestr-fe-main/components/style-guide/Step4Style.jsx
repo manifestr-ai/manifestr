@@ -275,6 +275,10 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                 const isHeading = style.name.toLowerCase().includes('heading')
                 const fontSize = parseInt(style.fontSize)
                 const displaySize = isHeading ? fontSize * 1.2 : fontSize
+                const isBodyLike = style.name.toLowerCase().includes('body') || style.name.toLowerCase().includes('caption')
+                const sampleText = isBodyLike
+                  ? 'The quick brown fox jumps over the lazy dog. This is a sample body text to preview the typography style.'
+                  : 'The Quick Brown Fox Jumps Over The Lazy Dog'
 
                 return (
                   <div key={style.id} className="border-b border-[#e4e4e7] pb-4 last:border-b-0 last:pb-0">
@@ -294,14 +298,10 @@ export default function StyleGuideStep4Style({ data, updateData, onBack, onNext,
                                 style.fontWeight === 'Light' ? '300' : '400',
                         lineHeight: style.lineHeight,
                         letterSpacing: style.letterSpacing,
-                        fontStyle: 'italic'
                       }}
                       className="text-[#18181b] break-words"
                     >
-                      {style.name.includes('Heading') && 'The Quick Brown Fox Jumps Over The Lazy Dog'}
-                      {style.name.includes('Sub') && 'The Quick Brown Fox Jumps Over The Lazy Dog'}
-                      {style.name.includes('Body') && 'The quick brown fox jumps over the lazy dog. This is a sample body text to preview the typography style.'}
-                      {style.name === 'Caption' && 'The quick brown fox jumps over the lazy dog.'}
+                      {sampleText}
                     </div>
                   </div>
                 )
