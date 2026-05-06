@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import pptxgen from "pptxgenjs";
 import { Button, Menu, MenuItem, Popover, Position } from "@blueprintjs/core";
+import { trackDeckExport } from "../../lib/productAnalytics";
 
 // Dynamically import ShareModal to avoid SSR issues
 const ShareModal = dynamic(() => import('../collaboration/ShareModal'), { ssr: false });
@@ -52,6 +53,7 @@ const downloadPPTX = async (store) => {
     }
 
     pptx.writeFile({ fileName: "presentation.pptx" });
+    trackDeckExport("pptx");
   } catch (err) {
     console.error("Failed to generate PPTX:", err);
   }
@@ -235,9 +237,10 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                                 
                                 text="PDF"
                                 disabled={!store}
-                                onClick={() =>
-                                    store?.saveAsPDF({ fileName: "presentation.pdf" })
-                                }
+                                onClick={() => {
+                                    store?.saveAsPDF({ fileName: "presentation.pdf" });
+                                    trackDeckExport("pdf");
+                                }}
                                 />
                                 <MenuItem
                               

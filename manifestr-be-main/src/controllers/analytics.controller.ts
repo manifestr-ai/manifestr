@@ -4,15 +4,19 @@
  * Endpoints for tracking events from frontend and retrieving analytics data
  */
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import EventTrackingService, { EventCategory } from '../services/EventTracking.service';
+import { AuthRequest, optionalAuth } from '../middleware/auth.middleware';
+import { BaseController } from './base.controller';
 
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
-  sessionId?: string;
+function resolveTrackingUser(req: AuthRequest): {
+  userId?: string;
+  email?: string;
+} {
+  if (!req.user || req.user.userId === 'anonymous') {
+    return {};
+  }
+  return { userId: req.user.userId, email: req.user.email };
 }
 
 /**
@@ -37,11 +41,13 @@ export const trackEvent = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const { userId, email } = resolveTrackingUser(req);
+
     // Track event
     const event = await EventTrackingService.track({
-      userId: req.user?.id,
-      userEmail: req.user?.email,
-      sessionId: req.sessionId,
+      userId,
+      userEmail: email,
+      sessionId: (req as AuthRequest & { sessionId?: string }).sessionId,
       eventName,
       eventCategory,
       eventAction,
@@ -85,10 +91,12 @@ export const trackFeatureUsage = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    const { userId, email } = resolveTrackingUser(req);
+
     const event = await EventTrackingService.trackFeatureUsage({
-      userId: req.user?.id,
-      userEmail: req.user?.email,
-      sessionId: req.sessionId,
+      userId,
+      userEmail: email,
+      sessionId: (req as AuthRequest & { sessionId?: string }).sessionId,
       featureName,
       action,
       resourceId,
@@ -115,13 +123,13 @@ export const trackFeatureUsage = async (req: AuthRequest, res: Response) => {
  */
 export const getUserEvents = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    if (!req.user?.userId || req.user.userId === 'anonymous') {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const limit = parseInt(req.query.limit as string) || 100;
     
-    const events = await EventTrackingService.getUserEvents(req.user.id, limit);
+    const events = await EventTrackingService.getUserEvents(req.user.userId, limit);
 
     res.json({
       success: true,
@@ -143,11 +151,11 @@ export const getUserEvents = async (req: AuthRequest, res: Response) => {
  */
 export const getActivationStatus = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    if (!req.user?.userId || req.user.userId === 'anonymous') {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const activation = await EventTrackingService.getUserActivationStatus(req.user.id);
+    const activation = await EventTrackingService.getUserActivationStatus(req.user.userId);
 
     res.json({
       success: true,
@@ -172,11 +180,11 @@ export const getActivationStatus = async (req: AuthRequest, res: Response) => {
  */
 export const getUserSessions = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.id) {
+    if (!req.user?.userId || req.user.userId === 'anonymous') {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const sessions = await EventTrackingService.getActiveSessions(req.user.id);
+    const sessions = await EventTrackingService.getActiveSessions(req.user.userId);
 
     res.json({
       success: true,
@@ -207,7 +215,9 @@ export const getAnalyticsStats = async (req: AuthRequest, res: Response) => {
     } = req.query;
 
     // If userId not provided, use authenticated user's ID
-    const targetUserId = userId as string || req.user?.id;
+    const targetUserId =
+      (userId as string) ||
+      (req.user?.userId !== 'anonymous' ? req.user?.userId : undefined);
 
     const events = await EventTrackingService.getEventAnalytics({
       eventName: eventName as string,
@@ -244,6 +254,31 @@ export const getAnalyticsStats = async (req: AuthRequest, res: Response) => {
     });
   }
 };
+
+/**
+ * Mounted at /analytics — POST /track and /track-feature accept optional auth
+ * (logged-in users get user_id on events; anonymous calls are ignored for user_id).
+ */
+export class AnalyticsApiController extends BaseController {
+  public basePath = '/analytics';
+
+  protected initializeRoutes(): void {
+    this.routes = [
+      {
+        verb: 'POST',
+        path: '/track',
+        handler: trackEvent,
+        middlewares: [optionalAuth],
+      },
+      {
+        verb: 'POST',
+        path: '/track-feature',
+        handler: trackFeatureUsage,
+        middlewares: [optionalAuth],
+      },
+    ];
+  }
+}
 
 export default {
   trackEvent,

@@ -313,10 +313,11 @@ import { API_BASE_URL, ENDPOINTS } from '../config'
 //   },
 // }
 
-export const getAdminPlatformHealthData = async () => {
+export const getAdminPlatformHealthData = async (params = {}) => {
   try {
     const res = await api.get(ENDPOINTS.ADMIN.PLATFORM_HEALTH, {
       baseURL: API_BASE_URL,
+      params,
     })
 
     return res?.data?.details || null

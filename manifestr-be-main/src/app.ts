@@ -23,6 +23,9 @@ import { CollabProjectsController } from './controllers/collab-projects.controll
 import { AdminController } from './controllers/admin.controller';
 import { ThreadsController } from './controllers/threads.controller';
 import { UserStatsController } from './controllers/user.stats.controller';
+import { AnalyticsApiController } from './controllers/analytics.controller';
+
+const serverStartedAt = new Date();
 
 class App {
     public app: Application;
@@ -145,6 +148,7 @@ class App {
             new CollabProjectsController(), // Collab projects/folders
             new ThreadsController(), // NEW: Threaded commenting/feedback system
             new UserStatsController(), // User statistics and achievements
+            new AnalyticsApiController(), // Client analytics (/analytics/track)
         ];
 
         controllers.forEach((controller) => {
@@ -181,7 +185,10 @@ class App {
                     message: 'Application is healthy',
                     details: {
                         database: 'connected',
-                        supabase: 'connected'
+                        supabase: 'connected',
+                        process_uptime_seconds: Math.floor(process.uptime()),
+                        server_started_at: serverStartedAt.toISOString(),
+                        now: new Date().toISOString(),
                     },
                 });
             } catch (error) {
@@ -190,6 +197,9 @@ class App {
                     message: 'Database connection error',
                     details: {
                         error: error instanceof Error ? error.message : 'Unknown error',
+                        process_uptime_seconds: Math.floor(process.uptime()),
+                        server_started_at: serverStartedAt.toISOString(),
+                        now: new Date().toISOString(),
                     },
                 });
             }

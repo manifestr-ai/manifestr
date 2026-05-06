@@ -15,20 +15,13 @@ import RecentActivityFeed from "../../components/admin/overview/RecentActivityFe
 import AlertsFeed from "../../components/admin/overview/AlertsFeed";
 
 import { getAdminOverviewData } from "../../services/admin/overview";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 export default function AdminOverview() {
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
   const [overviewData, setOverviewData] = useState(null);
+  const [overviewLoading, setOverviewLoading] = useState(false);
   const [error, setError] = useState(false);
 
   const { user, loading } = useAuth();
@@ -46,21 +39,25 @@ export default function AdminOverview() {
     if (user?.is_admin) {
       fetchOverview()
     }
-  }, [user?.is_admin, filters])
+  }, [user?.is_admin, apiParams]);
 
   const fetchOverview = async () => {
+    setOverviewLoading(true);
+    setError(false);
     try {
-      const data = await getAdminOverviewData(filters)
-  
+      const data = await getAdminOverviewData(apiParams);
+
       if (!data) {
-        setError(true)
+        setError(true);
       } else {
-        setOverviewData(data)
+        setOverviewData(data);
       }
     } catch {
-      setError(true)
+      setError(true);
+    } finally {
+      setOverviewLoading(false);
     }
-  }
+  };
 
   // UI States
   if (loading) {
@@ -69,6 +66,20 @@ export default function AdminOverview() {
 
   if (error) {
     return <div className="p-6 text-red-500">Failed to load data</div>;
+  }
+
+  if (user?.is_admin && (overviewLoading || overviewData == null)) {
+    return (
+      <div className="admin-card-theme min-h-screen bg-white">
+        <AdminHeader />
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
+          <AdminSidebar />
+          <div className="flex flex-1 items-center justify-center p-6 text-[#71717a]">
+            Loading overview…
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // if (!overviewData) {
@@ -101,7 +112,9 @@ export default function AdminOverview() {
               <OverviewFilters
                 filters={overviewData?.filters?.options}
                 searchPlaceholder={overviewData?.filters?.searchPlaceholder}
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
 
               {/* KPI metrics — 2 per row mobile, 3 per row desktop */}

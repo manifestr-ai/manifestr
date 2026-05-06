@@ -14,6 +14,7 @@ import { changePassword, getSessions, revokeSession, updateSecurityAlerts, delet
 import DeleteAccountModal from '../components/ui/DeleteAccountModal'
 import LogoutModal from '../components/ui/LogoutModal'
 import { normalizeUrl } from '../utils/url'
+import { trackAiStyleSettingSelected } from '../lib/productAnalytics'
 
 const tabs = ['General', 'Profile', 'Team', 'Plans', 'Billings', 'Security']
 
@@ -3473,7 +3474,10 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                          onClick={() => setToneOfVoice(tone.id)}
+                          onClick={() => {
+                          setToneOfVoice(tone.id)
+                          trackAiStyleSettingSelected('tone', tone.id, tone.title)
+                        }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -3520,7 +3524,10 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                          onClick={() => setToneOfVoice(tone.id)}
+                          onClick={() => {
+                          setToneOfVoice(tone.id)
+                          trackAiStyleSettingSelected('tone', tone.id, tone.title)
+                        }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -3569,7 +3576,10 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                     return (
                       <motion.button
                         key={level}
-                        onClick={() => setFormalityLevel(level)}
+                        onClick={() => {
+                          setFormalityLevel(level)
+                          trackAiStyleSettingSelected('formality', level, level)
+                        }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={`h-[40px] px-3 py-[10px] rounded-md text-[14px] font-medium leading-[20px] transition-colors border ${isSelected
@@ -3619,7 +3629,10 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                          onClick={() => setPersonalityOverlay(personality.id)}
+                          onClick={() => {
+                          setPersonalityOverlay(personality.id)
+                          trackAiStyleSettingSelected('personality', personality.id, personality.title)
+                        }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -3666,7 +3679,10 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
-                          onClick={() => setPersonalityOverlay(personality.id)}
+                          onClick={() => {
+                          setPersonalityOverlay(personality.id)
+                          trackAiStyleSettingSelected('personality', personality.id, personality.title)
+                        }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'

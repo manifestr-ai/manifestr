@@ -20,6 +20,7 @@ import TopCollaborativeProjects from "../../components/admin/feature-adoption/To
 import TeamTable from "../../components/admin/feature-adoption/TeamTable";
 import { getAdminFeatureAdoptionData } from "../../services/admin/feature-adoption";
 import OverviewFilters from "../../components/admin/overview/OverviewFilters";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 function SectionLabel({ children }) {
   return (
@@ -32,16 +33,8 @@ function SectionLabel({ children }) {
 }
 
 export default function AdminFeatureAdoption() {
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
   const [featureAdoptionData, setFeatureAdoptionData] = useState(null);
   const [error, setError] = useState(false);
 
@@ -58,11 +51,11 @@ export default function AdminFeatureAdoption() {
     if (user?.is_admin) {
       fetchFeatureAdoption();
     }
-  }, [user?.is_admin, filters]);
+  }, [user?.is_admin, apiParams]);
 
   const fetchFeatureAdoption = async () => {
     try {
-      const data = await getAdminFeatureAdoptionData(filters);
+      const data = await getAdminFeatureAdoptionData(apiParams);
       if (!data) {
         setError(true);
       } else {
@@ -110,7 +103,9 @@ export default function AdminFeatureAdoption() {
               <OverviewFilters
                 filters={featureAdoptionData?.filters?.options}
                 searchPlaceholder={featureAdoptionData?.filters?.searchPlaceholder}
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
 
               {/* KPI: Adoption Stages */}

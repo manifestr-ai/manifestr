@@ -23,6 +23,16 @@ const defaultMonths = [
 const safeMax = (arr?: number[]) =>
   Math.max(...(arr && arr.length ? arr : [0]), 10);
 
+function parseAdminAudienceQuery(req: AuthRequest) {
+  const cohort =
+    typeof req.query.cohort === "string" ? req.query.cohort : "All cohorts";
+  const persona =
+    typeof req.query.persona === "string" ? req.query.persona : "All personas";
+  const device =
+    typeof req.query.device === "string" ? req.query.device : "All devices";
+  return { cohort, persona, device };
+}
+
 export class AdminController extends BaseController {
   public basePath = "/api/admin";
 
@@ -116,6 +126,15 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
+      const { cohort, persona, device } = parseAdminAudienceQuery(req);
+      const audienceUserIds = await SupabaseDB.resolveAdminAudienceUserIds({
+        sinceIso: since,
+        days,
+        cohort,
+        persona,
+        device,
+      });
+
       // =========================
       // STEP 2: FETCH DATA (DYNAMIC)
       // =========================
@@ -130,23 +149,26 @@ export class AdminController extends BaseController {
         activatedUsers,
         totalJobs,
         failedJobs,
+        weeklyCreators,
       ] = await Promise.all([
-        SupabaseDB.getUsersCount(since, search),
+        SupabaseDB.getUsersCount(since, search, audienceUserIds),
 
-        SupabaseDB.getNewUsersLastDays(days),
-        SupabaseDB.getNewUsersPreviousDays(days),
+        SupabaseDB.getNewUsersLastDays(days, audienceUserIds),
+        SupabaseDB.getNewUsersPreviousDays(days, audienceUserIds),
 
-        SupabaseDB.getUserGrowthMonthly(since),
+        SupabaseDB.getUserGrowthMonthly(since, audienceUserIds),
 
-        SupabaseDB.getRecentUsers(5, since),
+        SupabaseDB.getRecentUsers(5, since, audienceUserIds),
 
-        SupabaseDB.getDAU(since),
-        SupabaseDB.getMAU(since),
+        SupabaseDB.getDAU(since, audienceUserIds),
+        SupabaseDB.getMAU(since, audienceUserIds),
 
-        SupabaseDB.getActivatedUsersCount(since),
+        SupabaseDB.getActivatedUsersCount(since, audienceUserIds),
 
-        SupabaseDB.getTotalJobsCount(since),
-        SupabaseDB.getFailedJobsCount(since),
+        SupabaseDB.getTotalJobsCount(since, audienceUserIds),
+        SupabaseDB.getFailedJobsCount(since, audienceUserIds),
+
+        SupabaseDB.getWeeklyActiveCreatorsComparison(audienceUserIds),
       ]);
 
       // =========================
@@ -165,6 +187,73 @@ export class AdminController extends BaseController {
       const failureRate = totalJobs
         ? ((failedJobs / totalJobs) * 100).toFixed(1) + "%"
         : "0%";
+
+      const wauCurrent = weeklyCreators.currentWindow;
+      const wauPrevious = weeklyCreators.previousWindow;
+      const jobsEver = weeklyCreators.jobsEver;
+
+      /** Product engagement proxy — not subscription churn (billing not integrated). */
+      const churnAlerts =
+        jobsEver === 0
+          ? [
+              {
+                id: "churn-1",
+                title: "No Activity Baseline Yet",
+                description:
+                  "Churn trends will appear once users run generations.",
+                severity: "info",
+                time: "now",
+              },
+            ]
+          : wauPrevious === 0 && wauCurrent === 0
+            ? [
+                {
+                  id: "churn-1",
+                  title: "No Recent Generation Activity",
+                  description:
+                    "No active creators in the last 14 days — check product health.",
+                  severity: "warning",
+                  time: "now",
+                },
+              ]
+            : wauPrevious === 0
+              ? [
+                  {
+                    id: "churn-1",
+                    title: "Activity Baseline Forming",
+                    description: `${wauCurrent} active creator${
+                      wauCurrent === 1 ? "" : "s"
+                    } in the last 7 days.`,
+                    severity: "info",
+                    time: "now",
+                  },
+                ]
+              : (() => {
+                  const dropPct =
+                    ((wauPrevious - wauCurrent) / wauPrevious) * 100;
+                  if (dropPct >= 30) {
+                    return [
+                      {
+                        id: "churn-1",
+                        title: "Weekly Active Creators Dropped",
+                        description: `Down ${dropPct.toFixed(
+                          0,
+                        )}% vs the prior 7 days (${wauCurrent} vs ${wauPrevious}).`,
+                        severity: "warning",
+                        time: "now",
+                      },
+                    ];
+                  }
+                  return [
+                    {
+                      id: "churn-1",
+                      title: "No Churn Spike",
+                      description: `Weekly active creators: ${wauCurrent} (previous 7d: ${wauPrevious}).`,
+                      severity: "info",
+                      time: "now",
+                    },
+                  ];
+                })();
 
       // =========================
       // STEP 4: SAFE CHART DATA
@@ -259,7 +348,7 @@ export class AdminController extends BaseController {
               period: getPeriodLabel(timeframe),
             },
             {
-              title: "MRR",
+              title: "MRR (Monthly Recurring Revenue)",
               value: "$0",
               change: "0%",
               period: "no billing data",
@@ -285,6 +374,9 @@ export class AdminController extends BaseController {
           max: Math.max(...series, 1),
           change: growthChange,
           period: getPeriodLabel(timeframe),
+          valueUnit: "count",
+          primaryMetric: "lastCount",
+          headlineValue: series.length ? series[series.length - 1] : 0,
         },
 
         // =========================
@@ -378,15 +470,7 @@ export class AdminController extends BaseController {
             },
           ],
 
-          churn: [
-            {
-              id: "churn-1",
-              title: "No Churn Data",
-              description: "Churn tracking not available",
-              severity: "info",
-              time: "now",
-            },
-          ],
+          churn: churnAlerts,
         },
       };
 
@@ -407,6 +491,46 @@ export class AdminController extends BaseController {
    */
   private getGrowth = async (req: AuthRequest, res: Response) => {
     try {
+      const parseSignupsChartRange = (
+        raw: unknown,
+      ):
+        | "last_7d"
+        | "last_30d"
+        | "last_90d"
+        | "all_time" => {
+        const s = String(raw ?? "")
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, "_")
+          .replace(/-/g, "_");
+        if (s === "last_7d") return "last_7d";
+        if (s === "last_30d") return "last_30d";
+        if (s === "last_90d") return "last_90d";
+        if (s === "all_time" || s === "alltime") return "all_time";
+        return "last_30d";
+      };
+
+      /** Same buckets as signups; coerces `all_time` → last 90d (no all-time bar chart). */
+      const parseReturningChartRange = (
+        raw: unknown,
+      ): "last_7d" | "last_30d" | "last_90d" => {
+        const r = parseSignupsChartRange(raw);
+        if (r === "all_time") return "last_90d";
+        return r;
+      };
+
+      const chartRangeToUi = (
+        r: "last_7d" | "last_30d" | "last_90d" | "all_time",
+      ) => {
+        const m: Record<string, string> = {
+          last_7d: "last 7d",
+          last_30d: "last 30d",
+          last_90d: "last 90d",
+          all_time: "all time",
+        };
+        return m[r] ?? "last 30d";
+      };
+
       const timeframeRaw = req.query.timeframe;
       const searchRaw = req.query.search;
 
@@ -414,6 +538,13 @@ export class AdminController extends BaseController {
         typeof timeframeRaw === "string" ? timeframeRaw : "Last 30d";
 
       const search = typeof searchRaw === "string" ? searchRaw : undefined;
+
+      const signupsChartRange = parseSignupsChartRange(
+        req.query.signupsChartRange,
+      );
+      const returningChartRange = parseReturningChartRange(
+        req.query.returningChartRange,
+      );
 
       const timeframeMap: Record<string, number | null> = {
         "Last 7d": 7,
@@ -429,33 +560,50 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
+      const { cohort, persona, device } = parseAdminAudienceQuery(req);
+      const audienceUserIds = await SupabaseDB.resolveAdminAudienceUserIds({
+        sinceIso: since,
+        days,
+        cohort,
+        persona,
+        device,
+      });
+
       const [
         totalUsers,
         newUsers30d,
         newUsersPrev30d,
         dau,
         mau,
-        signupsMonthly,
+        signupsRolling,
         returningVsNew,
-        topUsers,
+        healthAndPower,
         regionValues,
+        sourceBreakdown,
         activatedUsers,
+        returningSharePct,
       ] = await Promise.all([
-        SupabaseDB.getUsersCount(since, search),
-        SupabaseDB.getNewUsersLastDays(days),
-        SupabaseDB.getNewUsersPreviousDays(days),
+        SupabaseDB.getUsersCount(since, search, audienceUserIds),
+        SupabaseDB.getNewUsersLastDays(days, audienceUserIds),
+        SupabaseDB.getNewUsersPreviousDays(days, audienceUserIds),
 
-        SupabaseDB.getDAU(since),
-        SupabaseDB.getMAU(since),
+        SupabaseDB.getDAU(since, audienceUserIds),
+        SupabaseDB.getMAU(since, audienceUserIds),
 
-        SupabaseDB.getUserGrowthMonthly(since),
-        SupabaseDB.getReturningVsNewMonthly(since),
+        SupabaseDB.getSignupsSeriesForChartRange(signupsChartRange),
+        SupabaseDB.getReturningVsNewForChartRange(returningChartRange),
 
-        SupabaseDB.getPowerUsers(since),
-        SupabaseDB.getUsersByRegion(since),
+        SupabaseDB.getHealthMetricsAndPowerUsers(since, audienceUserIds),
+        SupabaseDB.getUsersByRegion(since, audienceUserIds),
+        SupabaseDB.getSignupSourceBreakdown(since),
 
-        SupabaseDB.getActivatedUsersCount(since),
+        SupabaseDB.getActivatedUsersCount(since, audienceUserIds),
+
+        SupabaseDB.getReturningSharePct(days),
       ]);
+
+      const healthMetrics = healthAndPower.healthMetrics;
+      const topUsers = healthAndPower.powerUsers;
 
       // -------------------------
       // Derived Metrics
@@ -477,27 +625,19 @@ export class AdminController extends BaseController {
       // Growth Series
       // -------------------------
 
-      const months = signupsMonthly?.months?.length
-        ? signupsMonthly.months
+      const months = signupsRolling?.labels?.length
+        ? signupsRolling.labels
         : defaultMonths;
 
-      const signupSeries = signupsMonthly?.values?.length
-        ? signupsMonthly.values
+      const signupSeries = signupsRolling?.values?.length
+        ? signupsRolling.values
         : Array(12).fill(0);
 
       const returning = returningVsNew?.returning || Array(12).fill(0);
       const newUsersSeries = returningVsNew?.newUsers || Array(12).fill(0);
-
-      // -------------------------
-      // User Type %
-      // -------------------------
-
-      const totalNew = newUsersSeries.reduce((a, b) => a + b, 0);
-      const totalReturning = returning.reduce((a, b) => a + b, 0);
-      const total = totalNew + totalReturning || 1;
-
-      const returningPct = Math.round((totalReturning / total) * 100);
-      const newPct = 100 - returningPct;
+      const barLabels = returningVsNew?.labels?.length
+        ? returningVsNew.labels
+        : defaultMonths;
 
       // -------------------------
       // Response
@@ -506,6 +646,43 @@ export class AdminController extends BaseController {
       const zero12 = Array(12).fill(0);
 
       const formatPct = (v: string | number) => `${v}%`;
+
+      const chartMax = Math.max(
+        ...signupSeries,
+        ...returning,
+        ...newUsersSeries,
+        1,
+      );
+      const ySteps = 5;
+      const yCeil = Math.max(Math.ceil(chartMax / 100) * 100, 10);
+      const yTick = yCeil / ySteps;
+      const returningYLabels = Array.from({ length: ySteps + 1 }, (_, i) =>
+        String(Math.round((ySteps - i) * yTick)),
+      );
+
+      const signupChangeNum = parseFloat(String(signupChange)) || 0;
+      const changeVariant =
+        signupChangeNum > 0
+          ? "positive"
+          : signupChangeNum < 0
+            ? "negative"
+            : "neutral";
+
+      const pctShareAxis = (values: number[]) => {
+        const peak = Math.max(...values, 0);
+        const cap = Math.max(10, Math.ceil(peak / 10) * 10);
+        const steps = 5;
+        const tick = cap / steps;
+        const yLabels = Array.from({ length: steps + 1 }, (_, i) =>
+          `${Math.round((steps - i) * tick)}%`,
+        );
+        return { max: cap, yLabels };
+      };
+
+      const regionVals = regionValues || [0, 0, 0, 0];
+      const sourceVals = sourceBreakdown || [0, 0, 0, 0];
+      const regionAxis = pctShareAxis(regionVals);
+      const sourceAxis = pctShareAxis(sourceVals);
 
       const data = {
         header: {
@@ -523,9 +700,9 @@ export class AdminController extends BaseController {
               "This year",
               "All time",
             ],
-            Channel: ["All channels", "Organic", "Paid", "Referral", "Direct"],
-            Plan: ["All plans", "Starter", "Pro", "Enterprise"],
-            Region: ["All regions", "N. America", "Europe", "Asia", "Other"],
+            Cohort: ["All cohorts", "New users", "Returning", "Power users"],
+            Persona: ["All personas", "Freelancer", "Agency", "Enterprise"],
+            Device: ["All devices", "Desktop", "Mobile", "Tablet"],
           },
         },
 
@@ -553,7 +730,7 @@ export class AdminController extends BaseController {
           },
           {
             title: "Returning Users",
-            value: `${returningPct}%`,
+            value: `${returningSharePct}%`,
             change: "0%",
             period: `vs last ${days}d`,
           },
@@ -565,12 +742,21 @@ export class AdminController extends BaseController {
         signupsOverTime: {
           title: "Signups Over Time",
           filterOptions: ["last 7d", "last 30d", "last 90d", "all time"],
-          selectedFilter: timeframe.toLowerCase(),
+          selectedFilter: chartRangeToUi(signupsChartRange),
           months,
           series: signupSeries,
           max: Math.max(...signupSeries, 1),
           change: formatPct(signupChange),
           period: `vs last ${days}d`,
+          valueUnit: "count",
+          changeVariant,
+          /** Bold headline: signup growth vs prior period (chart stays monthly counts). */
+          primaryMetric: "growth",
+          headlinePercent: formatPct(signupChange),
+          headlineValue:
+            signupSeries.length > 0
+              ? signupSeries[signupSeries.length - 1]
+              : 0,
         },
 
         // =========================
@@ -579,12 +765,12 @@ export class AdminController extends BaseController {
         returningVsNew: {
           title: "Returning vs New Users",
           filterOptions: ["last 7d", "last 30d", "last 90d"],
-          selectedFilter: timeframe.toLowerCase(),
-          months: returningVsNew?.months || defaultMonths,
-          yLabels: ["600", "500", "400", "300", "200", "0"],
+          selectedFilter: chartRangeToUi(returningChartRange),
+          months: barLabels,
+          yLabels: returningYLabels,
           returning,
           newUsers: newUsersSeries,
-          max: Math.max(...returning, ...newUsersSeries, 10),
+          max: chartMax,
           legend: [
             { label: "Returning", color: "#18181b" },
             { label: "New", color: "#a1a1aa" },
@@ -597,22 +783,24 @@ export class AdminController extends BaseController {
         breakdownByRegion: {
           title: "By Region",
           xLabels: ["N. America", "Europe", "Asia", "Other"],
-          values: regionValues || [0, 0, 0, 0],
-          max: 50,
-          yLabels: ["50%", "40%", "30%", "20%", "10%", "0%"],
+          values: regionVals,
+          max: regionAxis.max,
+          yLabels: regionAxis.yLabels,
           footer: "Share of users (%)",
+          valueFormat: "percent",
         },
 
         // =========================
-        // SOURCE (NO DATA)
+        // SOURCE (analytics_events signup UTMs)
         // =========================
         breakdownBySource: {
           title: "By Source",
           xLabels: ["Organic", "Paid Search", "Referral", "Direct"],
-          values: [0, 0, 0, 0],
-          max: 50,
-          yLabels: ["50%", "40%", "30%", "20%", "10%", "0%"],
+          values: sourceVals,
+          max: sourceAxis.max,
+          yLabels: sourceAxis.yLabels,
           footer: "Share of users (%)",
+          valueFormat: "percent",
         },
 
         // =========================
@@ -620,8 +808,10 @@ export class AdminController extends BaseController {
         // =========================
         breakdownByUserType: {
           title: "By User Type",
-          organic: returningPct,
-          paid: newPct,
+          returningPct: returningSharePct,
+          newPct: Math.min(100, Math.max(0, 100 - returningSharePct)),
+          organic: returningSharePct,
+          paid: Math.min(100, Math.max(0, 100 - returningSharePct)),
           legend: [
             { label: "Returning", color: "#18181b" },
             { label: "New", color: "#94a3b8" },
@@ -629,12 +819,12 @@ export class AdminController extends BaseController {
         },
 
         // =========================
-        // USER HEALTH (LIMITED)
+        // USER HEALTH
         // =========================
         userHealthScore: {
           title: "User Health Score",
-          averageScore: 0,
-          distribution: {
+          averageScore: healthMetrics?.averageScore ?? 0,
+          distribution: healthMetrics?.distribution ?? {
             green: { label: "Healthy", range: "≥70", count: 0, pct: 0 },
             amber: { label: "At Risk", range: "40–69", count: 0, pct: 0 },
             red: { label: "Critical", range: "<40", count: 0, pct: 0 },
@@ -696,13 +886,26 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
-      const [users, jobs] = await Promise.all([
+      const now = Date.now();
+      const churnPrevSinceIso = new Date(
+        now - 2 * (days || 30) * 86400000,
+      ).toISOString();
+
+      const [
+        users,
+        jobs,
+        reactivation,
+        churnSeries,
+        churnWindowJobs,
+      ] = await Promise.all([
         SupabaseDB.getAllUsers(since),
         SupabaseDB.getAllJobs(since),
+        SupabaseDB.getReactivationRate(days || 30),
+        SupabaseDB.getMonthlyCustomerChurnSeries(),
+        SupabaseDB.getAllJobs(churnPrevSinceIso),
       ]);
 
       const totalUsers = users.length;
-      const now = Date.now();
 
       // =========================
       // USER MAP (OPTIMIZATION)
@@ -731,6 +934,102 @@ export class AdminController extends BaseController {
 
       const churnRate = 100 - avgRetention;
       const churnedAccounts = totalUsers - activeUsers;
+
+      // =========================
+      // CHURNED USER IDs (active in [now-2d, now-d], inactive in [now-d, now])
+      // =========================
+      const windowStart = now - (days || 30) * 86400000;
+      const prevWindowStart = now - 2 * (days || 30) * 86400000;
+
+      const activeIdsCurrent = new Set<string>();
+      const activeIdsPrev = new Set<string>();
+      (churnWindowJobs || []).forEach((j: any) => {
+        const t = new Date(j.created_at).getTime();
+        const uid = j.user_id as string;
+        if (!uid) return;
+        if (t >= windowStart && t <= now) activeIdsCurrent.add(uid);
+        else if (t >= prevWindowStart && t < windowStart)
+          activeIdsPrev.add(uid);
+      });
+
+      const churnedUserIds: string[] = [];
+      activeIdsPrev.forEach((uid) => {
+        if (!activeIdsCurrent.has(uid)) churnedUserIds.push(uid);
+      });
+
+      // Pull churned user records (they may pre-date `since`)
+      const churnedUsers = await SupabaseDB.getUsersBasicById(churnedUserIds);
+
+      const churnSourceRows = await SupabaseDB.getChurnedUserSourceMix(
+        churnedUserIds,
+      );
+
+      // =========================
+      // BY PLAN (users.tier)
+      // =========================
+      const planLabel = (t?: string | null) => {
+        const v = (t || "").toLowerCase().trim();
+        if (v === "free" || v === "starter") return "Starter";
+        if (v === "pro") return "Pro";
+        if (v === "enterprise") return "Enterprise";
+        return "Other";
+      };
+      const planBuckets: Record<string, number> = {};
+      churnedUsers.forEach((u: any) => {
+        const k = planLabel(u.tier);
+        planBuckets[k] = (planBuckets[k] || 0) + 1;
+      });
+      const planTotal = Object.values(planBuckets).reduce((a, b) => a + b, 0);
+      const byPlanRows =
+        planTotal > 0
+          ? Object.entries(planBuckets)
+              .map(([label, count]) => ({
+                label,
+                value: Math.round((count / planTotal) * 100),
+              }))
+              .sort((a, b) => b.value - a.value)
+          : [
+              { label: "Starter", value: 0 },
+              { label: "Pro", value: 0 },
+              { label: "Enterprise", value: 0 },
+            ];
+
+      // =========================
+      // BY REGION proxy (users.country)
+      // =========================
+      const regionBuckets: Record<string, number> = {
+        "N. America": 0,
+        Europe: 0,
+        Asia: 0,
+        Other: 0,
+      };
+      churnedUsers.forEach((u: any) => {
+        const k = SupabaseDB.regionFromCountry(u.country);
+        regionBuckets[k]++;
+      });
+      const regionTotal = Object.values(regionBuckets).reduce(
+        (a, b) => a + b,
+        0,
+      );
+      const byRegionRows = (
+        ["N. America", "Europe", "Asia", "Other"] as const
+      ).map((label) => ({
+        label,
+        value:
+          regionTotal > 0
+            ? Math.round((regionBuckets[label] / regionTotal) * 100)
+            : 0,
+      }));
+
+      // =========================
+      // CHURN TREND axis scaling
+      // =========================
+      const churnSeriesMax = Math.max(...(churnSeries.values || [0]), 0);
+      const churnAxisMax = Math.max(6, Math.ceil(churnSeriesMax / 5) * 5);
+      const churnYStep = churnAxisMax / 6;
+      const churnYLabels = Array.from({ length: 7 }, (_, i) =>
+        `${Math.round((6 - i) * churnYStep)}%`,
+      );
 
       // =========================
       // COHORT GROUPING
@@ -890,7 +1189,7 @@ export class AdminController extends BaseController {
           {
             id: "reactivationRate",
             title: "Reactivation Rate",
-            value: "0%",
+            value: `${reactivation?.rate ?? 0}%`,
             change: "0%",
             period: `vs last ${days}d`,
           },
@@ -965,20 +1264,24 @@ export class AdminController extends BaseController {
         },
 
         // =========================
-        // CHURN TREND
+        // CHURN TREND (real customer churn; revenue churn left at 0 — no billing)
         // =========================
         churnRateTrend: {
           title: "Churn Trend",
           filterOptions: ["Both", "Customer Churn", "Revenue Churn"],
-          months: defaultMonths,
-          yLabels: ["6%", "5%", "4%", "3%", "2%", "1%", "0%"],
-          max: 6,
+          months: churnSeries?.months?.length
+            ? churnSeries.months
+            : defaultMonths,
+          yLabels: churnYLabels,
+          max: churnAxisMax,
           min: 0,
           series: [
             {
               label: "Customer Churn",
               color: "#18181b",
-              data: Array(12).fill(churnRate || 0),
+              data: churnSeries?.values?.length
+                ? churnSeries.values
+                : Array(12).fill(0),
             },
             {
               label: "Revenue Churn",
@@ -1042,49 +1345,36 @@ export class AdminController extends BaseController {
         },
 
         // =========================
-        // CHURN ANALYSIS (ZERO SAFE)
+        // CHURN ANALYSIS (real where data exists)
         // =========================
         churnAnalysis: {
           title: "Churn Analysis",
           byPlan: {
             title: "By Plan",
-            rows: [
-              { label: "Starter", value: 0 },
-              { label: "Pro", value: 0 },
-              { label: "Enterprise", value: 0 },
-            ],
+            rows: byPlanRows,
           },
           bySegment: {
-            title: "By Segment",
-            rows: [
-              { label: "SMB", value: 0 },
-              { label: "Mid-Market", value: 0 },
-              { label: "Enterprise", value: 0 },
-            ],
+            title: "By Region",
+            rows: byRegionRows,
           },
           bySource: {
             title: "By Source",
-            rows: [
-              { label: "Organic", value: 0 },
-              { label: "Paid Search", value: 0 },
-              { label: "Referral", value: 0 },
-              { label: "Direct", value: 0 },
-            ],
+            rows: churnSourceRows,
           },
         },
 
         // =========================
-        // CHURN REASONS (ZERO SAFE)
+        // CHURN REASONS (no exit-survey data tracked yet)
         // =========================
         churnReasons: {
           title: "Churn Reasons",
           subtitle: `${churnedAccounts || 0} churned accounts`,
           segments: [
-            { label: "Price", value: 0, color: "#18181b" },
-            { label: "Missing features", value: 0, color: "#52525b" },
-            { label: "Competitor", value: 0, color: "#8696b0" },
-            { label: "Low usage", value: 0, color: "#a1a1aa" },
-            { label: "Other", value: 0, color: "#d4d4d8" },
+            {
+              label: "Not tracked yet",
+              value: 100,
+              color: "#e4e4e7",
+            },
           ],
         },
       };
@@ -1124,129 +1414,36 @@ export class AdminController extends BaseController {
 
       const days = timeframeMap[timeframe] ?? 30;
 
-      const since = days
-        ? new Date(Date.now() - days * 86400000).toISOString()
-        : undefined;
+      const analytics = await SupabaseDB.getLifecycleAnalytics(
+        days,
+        search,
+        timeframe,
+      );
 
-      const { users, jobs } = await SupabaseDB.getUsersWithActivity(since);
+      const stages = analytics.stages;
+      const lifecycleStages = analytics.stageCards;
+      const totalUsers = analytics.totalUsers;
+      const segmentByKey = new Map(
+        analytics.segmentDetail.map((d) => [d.key, d]),
+      );
 
-      const now = Date.now();
+      const calcChange = (current: number, previous: number) => {
+        if (!previous || previous === 0) return "0%";
 
-      // =========================
-      // MAP user → activity timestamps
-      // =========================
-      const activityMap = new Map<string, number[]>();
+        const change = ((current - previous) / previous) * 100;
+        const sign = change > 0 ? "+" : "";
 
-      jobs.forEach((j: any) => {
-        if (!activityMap.has(j.user_id)) {
-          activityMap.set(j.user_id, []);
-        }
-        activityMap.get(j.user_id)!.push(new Date(j.created_at).getTime());
-      });
-
-      // =========================
-      // STAGE COUNTERS
-      // =========================
-      const stages = {
-        new: 0,
-        activated: 0,
-        engaged: 0,
-        power_user: 0,
-        at_risk: 0,
-        dormant: 0,
-        churned: 0,
-        reactivated: 0,
+        return `${sign}${change.toFixed(1)}%`;
       };
 
-      // =========================
-      // USER CLASSIFICATION
-      // =========================
-      users.forEach((u: any) => {
-        const created = new Date(u.created_at).getTime();
-        const userJobs = activityMap.get(u.id) || [];
+      const periodLabel =
+        timeframe === "All time"
+          ? "vs prior period"
+          : timeframe === "Last 7d"
+            ? "vs prior 7d"
+            : `vs prior ${days}d`;
 
-        const sessions = userJobs.length;
-
-        const lastActivity = userJobs.length ? Math.max(...userJobs) : created;
-
-        const daysSinceActive = (now - lastActivity) / 86400000;
-
-        // 🔥 ORDER MATTERS (VERY IMPORTANT)
-
-        if (sessions === 0) {
-          // never used product
-          stages.new++;
-        } else if (sessions <= 3 && daysSinceActive <= 7) {
-          stages.activated++;
-        } else if (sessions > 3 && sessions <= 15 && daysSinceActive <= 14) {
-          stages.engaged++;
-        } else if (sessions > 15 && daysSinceActive <= 14) {
-          stages.power_user++;
-        } else if (daysSinceActive > 14 && daysSinceActive <= 30) {
-          stages.at_risk++;
-        } else if (daysSinceActive > 30 && daysSinceActive <= 60) {
-          stages.dormant++;
-        } else if (daysSinceActive > 60) {
-          stages.churned++;
-        }
-      });
-
-      // =========================
-      // REACTIVATED USERS (REAL LOGIC)
-      // =========================
-      const reactivatedUsers = new Set<string>();
-
-      users.forEach((u: any) => {
-        const userJobs = activityMap.get(u.id) || [];
-        if (userJobs.length < 2) return;
-
-        const sorted = userJobs.sort((a, b) => a - b);
-
-        for (let i = 1; i < sorted.length; i++) {
-          const gapDays = (sorted[i] - sorted[i - 1]) / 86400000;
-
-          // gap >30 days and then came back recently
-          if (gapDays > 30 && now - sorted[i] <= 30 * 86400000) {
-            reactivatedUsers.add(u.id);
-            break;
-          }
-        }
-      });
-
-      stages.reactivated = reactivatedUsers.size;
-
-      const totalUsers = users.length;
-
-      // =========================
-      // BUILD STAGES
-      // =========================
-      const buildStage = (key: string, label: string, color: string) => {
-        const value = (stages as any)[key] || 0;
-
-        return {
-          key,
-          label,
-          value,
-          share: totalUsers ? Math.round((value / totalUsers) * 100) : 0,
-          color,
-        };
-      };
-
-      const lifecycleStages = [
-        buildStage("new", "New", "#1e293b"),
-        buildStage("activated", "Activated", "#334155"),
-        buildStage("engaged", "Engaged", "#475569"),
-        buildStage("power_user", "Power User", "#64748b"),
-        buildStage("at_risk", "At Risk", "#94a3b8"),
-        buildStage("dormant", "Dormant", "#a1a1aa"),
-        buildStage("churned", "Churned", "#d4d4d8"),
-        buildStage("reactivated", "Reactivated", "#7c3aed"),
-      ];
-
-      // =========================
-      // FINAL RESPONSE
-      // =========================
-      const zero = 0;
+      const engagedPower = stages.engaged + stages.power_user;
 
       const formatNumber = (n: number) => n.toLocaleString();
 
@@ -1278,7 +1475,10 @@ export class AdminController extends BaseController {
               "Churned",
               "Reactivated",
             ],
-            Persona: ["All personas", "Founder", "Operator", "Investor"],
+            Role: ["All roles", "Founder", "Operator", "Investor"],
+            Cohort: ["All cohorts", "New users", "Returning", "Power users"],
+            Persona: ["All personas", "Freelancer", "Agency", "Enterprise"],
+            Device: ["All devices", "Desktop", "Mobile", "Tablet"],
           },
         },
 
@@ -1290,29 +1490,29 @@ export class AdminController extends BaseController {
             id: "total",
             title: "Total Users",
             value: formatNumber(totalUsers),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(totalUsers, analytics.prev.totalUsers),
+            period: periodLabel,
           },
           {
             id: "engaged",
             title: "Engaged + Power",
-            value: formatNumber(stages.engaged + stages.power_user),
-            change: "0%",
-            period: "vs last 30d",
+            value: formatNumber(engagedPower),
+            change: calcChange(engagedPower, analytics.prev.engagedPower),
+            period: periodLabel,
           },
           {
             id: "atRisk",
             title: "At Risk",
             value: formatNumber(stages.at_risk),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(stages.at_risk, analytics.prev.atRisk),
+            period: periodLabel,
           },
           {
             id: "reactivated",
             title: "Reactivated (30d)",
             value: formatNumber(stages.reactivated),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(stages.reactivated, analytics.prev.reactivated),
+            period: periodLabel,
           },
         ],
 
@@ -1397,6 +1597,7 @@ export class AdminController extends BaseController {
             } as any;
 
             const meta = config[s.key] || {};
+            const seg = segmentByKey.get(s.key);
 
             return {
               id: s.key,
@@ -1406,10 +1607,9 @@ export class AdminController extends BaseController {
               description: meta.desc || "",
               users: formatNumber(s.value),
 
-              // 🔥 FIXED (NO N/A)
-              avgOutputs: "0",
+              avgOutputs: seg?.avgOutputs ?? "0",
               revenueValue: "$0",
-              lastActivity: "0d",
+              lastActivity: seg?.lastActivity ?? "—",
 
               actions: meta.actions || [],
             };
@@ -1456,77 +1656,35 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
-      const [jobs, users] = await Promise.all([
-        SupabaseDB.getAllJobs(since),
-        SupabaseDB.getAllUsers(since),
-      ]);
+      const [kpiWindows, jobs, chartSeries, behaviourData, engagementExtras, deckFunnelExtras] =
+        await Promise.all([
+          SupabaseDB.getProductUsageCoreKpis(days),
+          SupabaseDB.getAllJobs(since),
+          SupabaseDB.getProductUsageChartSeries(),
+          SupabaseDB.getProductUsageBehaviourData(days),
+          SupabaseDB.getProductUsageEngagementExtras(since),
+          SupabaseDB.getProductUsageDeckFunnelExtras({ since, days }),
+        ]);
 
-      const totalUsers = users.length;
-      const totalOutputs = jobs.length;
+      const curKpi = kpiWindows.current;
+      const prevKpi = kpiWindows.previous;
+      const curB = behaviourData.current;
+      const prevB = behaviourData.previous;
 
-      // =========================
-      // OUTPUTS PER USER
-      // =========================
-      const outputsMap: Record<string, number> = {};
+      const periodLabel =
+        timeframe === "Last 7d" ? "vs prior 7d" : `vs prior ${days}d`;
 
-      jobs.forEach((j: any) => {
-        outputsMap[j.user_id] = (outputsMap[j.user_id] || 0) + 1;
-      });
+      const pctChange = (current: number, previous: number) => {
+        if (!Number.isFinite(previous) || previous === 0) return "0%";
+        const ch = ((current - previous) / previous) * 100;
+        const sign = ch > 0 ? "+" : "";
+        return `${sign}${ch.toFixed(1)}%`;
+      };
 
-      const outputsPerUser = totalUsers > 0 ? totalOutputs / totalUsers : 0;
-
-      // =========================
-      // TIME TO FIRST OUTPUT
-      // =========================
-      const firstOutputMap: Record<string, number> = {};
-
-      jobs.forEach((j: any) => {
-        const t = new Date(j.created_at).getTime();
-
-        if (!firstOutputMap[j.user_id] || t < firstOutputMap[j.user_id]) {
-          firstOutputMap[j.user_id] = t;
-        }
-      });
-
-      const timeDiffs: number[] = [];
-
-      users.forEach((u: any) => {
-        const created = new Date(u.created_at).getTime();
-        const first = firstOutputMap[u.id];
-
-        if (first) {
-          timeDiffs.push((first - created) / (1000 * 60 * 60)); // hours
-        }
-      });
-
-      const avgTimeToFirst =
-        timeDiffs.length > 0
-          ? timeDiffs.reduce((a, b) => a + b, 0) / timeDiffs.length
-          : 0;
-
-      // =========================
-      // SESSION FREQUENCY (approx)
-      // =========================
-      const sessionsPerUser = totalUsers > 0 ? totalOutputs / totalUsers : 0;
-
-      // =========================
-      // COMPLETION RATE (REALISTIC PROXY)
-      // =========================
-      const completedJobs = jobs.filter(
-        (j: any) => j.status === "completed",
-      ).length;
-
-      const completionRate =
-        totalOutputs > 0 ? (completedJobs / totalOutputs) * 100 : 0;
-
-      const abandonmentRate = 100 - completionRate;
-
-      // =========================
-      // SAFE ARRAYS
-      // =========================
-      const outputsArray = Object.values(outputsMap);
-
-      const zero12 = Array(12).fill(0);
+      const durLabel =
+        curKpi.avgDurMin < 1
+          ? `${Math.max(0, Math.round(curKpi.avgDurMin * 10) / 10)} min`
+          : `${Math.round(curKpi.avgDurMin)} min`;
 
       const ALL_TOOLS = [
         "The Deck",
@@ -1583,74 +1741,97 @@ export class AdminController extends BaseController {
         // =========================
         stats: [
           {
+            id: "outputs-per-user",
             title: "Outputs per User",
-            value: outputsPerUser.toFixed(2),
-            change: "0%",
-            period: "vs last 30d",
+            value: curKpi.outputsPerUser.toFixed(2),
+            change: pctChange(curKpi.outputsPerUser, prevKpi.outputsPerUser),
+            period: periodLabel,
           },
           {
+            id: "time-to-first-output",
             title: "Time to First Output",
-            value: `${avgTimeToFirst.toFixed(1)} hrs`,
-            change: "0%",
-            period: "vs last 30d",
+            value: `${curKpi.avgTimeToFirst.toFixed(1)} hrs`,
+            change: pctChange(curKpi.avgTimeToFirst, prevKpi.avgTimeToFirst),
+            period: periodLabel,
           },
           {
+            id: "session-frequency",
             title: "Session Frequency",
-            value: `${sessionsPerUser.toFixed(1)} / mo`,
-            change: "0%",
-            period: "vs last 30d",
+            value: `${curKpi.sessionFreqPerMo.toFixed(1)} / mo`,
+            change: pctChange(
+              curKpi.sessionFreqPerMo,
+              prevKpi.sessionFreqPerMo,
+            ),
+            period: periodLabel,
           },
           {
+            id: "avg-session-duration",
             title: "Avg Session Duration",
-            value: "0 min",
-            change: "0%",
-            period: "vs last 30d",
+            value: durLabel,
+            change: pctChange(curKpi.avgDurMin, prevKpi.avgDurMin),
+            period: periodLabel,
           },
           {
+            id: "completion-rate",
             title: "Completion Rate",
-            value: `${completionRate.toFixed(0)}%`,
-            change: "0%",
-            period: "vs last 30d",
+            value: `${curKpi.completionRate.toFixed(0)}%`,
+            change: pctChange(
+              curKpi.completionRate,
+              prevKpi.completionRate,
+            ),
+            period: periodLabel,
           },
           {
+            id: "abandonment-rate",
             title: "Abandonment Rate",
-            value: `${abandonmentRate.toFixed(0)}%`,
-            change: "0%",
-            period: "vs last 30d",
+            value: `${curKpi.abandonmentRate.toFixed(0)}%`,
+            change: pctChange(
+              curKpi.abandonmentRate,
+              prevKpi.abandonmentRate,
+            ),
+            period: periodLabel,
           },
         ],
 
         behaviourStats: [
           {
+            id: "behaviour-rewrites-per-output",
             title: "Rewrites per Output",
-            value: "0",
-            change: "0%",
-            period: "vs last 30d",
+            value:
+              curB.rewritesPerOutput >= 10
+                ? curB.rewritesPerOutput.toFixed(1)
+                : curB.rewritesPerOutput.toFixed(2),
+            change: pctChange(curB.rewritesPerOutput, prevB.rewritesPerOutput),
+            period: periodLabel,
           },
           {
+            id: "behaviour-accept-rate",
             title: "Accept Rate",
-            value: "0%",
-            change: "0%",
-            period: "vs last 30d",
+            value: `${curB.acceptRate.toFixed(0)}%`,
+            change: pctChange(curB.acceptRate, prevB.acceptRate),
+            period: periodLabel,
           },
           {
+            id: "behaviour-edit-rate",
             title: "Edit Rate",
-            value: "0%",
-            change: "0%",
-            period: "vs last 30d",
+            value: `${curB.editRate.toFixed(0)}%`,
+            change: pctChange(curB.editRate, prevB.editRate),
+            period: periodLabel,
           },
         ],
+
+        rewritesVsAccepts: behaviourData.rewritesVsAccepts,
 
         // =========================
         // CHARTS (FIXED)
         // =========================
         decksPerUser: {
           title: "Outputs per User",
-          months: defaultMonths,
-          yLabels: ["3.0", "2.5", "2.0", "1.5", "1.0", "0.5"],
-          min: 0.5,
-          max: 3.0,
-          data: outputsArray.length ? outputsArray.slice(0, 12) : zero12,
+          months: chartSeries.monthLabels,
+          yLabels: chartSeries.decksYLabels,
+          min: chartSeries.decksYMin,
+          max: chartSeries.decksYMax,
+          data: chartSeries.outputsPerUser,
         },
 
         timeToFirstOutput: {
@@ -1658,25 +1839,25 @@ export class AdminController extends BaseController {
           xLabels: ["0h", "6h", "1d", "3d", "5d", "10d", "14d"],
           yLabels: ["100%", "80%", "60%", "40%", "20%", "0%"],
           max: 100,
-          data: timeDiffs.length ? timeDiffs.slice(0, 7) : zero12,
+          data: chartSeries.timeToFirstCdf,
         },
 
         sessionFrequency: {
           title: "Session Frequency (avg / user / month)",
-          months: defaultMonths,
-          yLabels: ["12", "10", "8", "6", "4", "2"],
-          min: 2,
-          max: 12,
-          data: outputsArray.length ? outputsArray.slice(0, 12) : zero12,
+          months: chartSeries.monthLabels,
+          yLabels: chartSeries.sessFreqYLabels,
+          min: chartSeries.sessFreqYMin,
+          max: chartSeries.sessFreqYMax,
+          data: chartSeries.sessionFreqPerUser,
         },
 
         sessionDuration: {
           title: "Avg Session Duration (mins)",
-          months: defaultMonths,
-          yLabels: ["35", "30", "25", "20", "15", "10"],
-          min: 10,
-          max: 35,
-          data: zero12,
+          months: chartSeries.monthLabels,
+          yLabels: chartSeries.sessDurYLabels,
+          min: chartSeries.sessDurYMin,
+          max: chartSeries.sessDurYMax,
+          data: chartSeries.sessionDurationMins,
         },
 
         // =========================
@@ -1685,23 +1866,39 @@ export class AdminController extends BaseController {
         slideTypes: {
           title: "Slide Types",
           slices: [
-            { label: "Title + Content", value: 0 },
-            { label: "Comparison", value: 0 },
-            { label: "Chart", value: 0 },
-            { label: "Quote", value: 0 },
-            { label: "Others", value: 0 },
+            {
+              label: "Title + Content",
+              value: 0,
+              color: "#334155",
+              textColor: "white",
+            },
+            {
+              label: "Comparison",
+              value: 0,
+              color: "#1e293b",
+              textColor: "white",
+            },
+            { label: "Chart", value: 0, color: "#e2e8f0", textColor: "#09090b" },
+            {
+              label: "Quote",
+              value: 0,
+              color: "#475569",
+              textColor: "white",
+            },
+            {
+              label: "Others",
+              value: 0,
+              color: "#94a3b8",
+              textColor: "white",
+            },
           ],
         },
 
-        exportTypes: {
-          title: "Export Types",
-          slices: [
-            { label: "PDF", value: 0 },
-            { label: "PPTX", value: 0 },
-            { label: "DOCX", value: 0 },
-            { label: "Other", value: 0 },
-          ],
-        },
+        exportTypes: engagementExtras.exportTypes,
+
+        aiStyleSettingsUsage: engagementExtras.aiStyleSettingsUsage,
+
+        slideTimeHeatmap: engagementExtras.slideTimeHeatmap,
 
         // =========================
         // TOOL USAGE (IMPORTANT)
@@ -1752,26 +1949,31 @@ export class AdminController extends BaseController {
         },
 
         // =========================
+        // SLIDE FUNNEL + DECK COMPLETION (presentation jobs + dwell/export analytics)
+        // =========================
+        slideDropoff: deckFunnelExtras.slideDropoff,
+
+        slideRewritesVsAccepts: deckFunnelExtras.slideRewritesVsAccepts,
+
+        rewritesVsAcceptsFlows: deckFunnelExtras.rewritesVsAcceptsFlows,
+
+        // =========================
         // BOUNCE + COMPLETION
         // =========================
         bouncedDecks: {
           title: "Bounced Decks",
-          value: `${abandonmentRate.toFixed(0)}%`,
+          value: `${deckFunnelExtras.presentationBounce.current.rate.toFixed(0)}%`,
           valueLabel: "bounce rate",
-          change: "0%",
-          period: "vs last 30d",
+          change: pctChange(
+            deckFunnelExtras.presentationBounce.current.rate,
+            deckFunnelExtras.presentationBounce.previous.rate,
+          ),
+          period: periodLabel,
           description: "Total started vs completed decks.",
-          breakdown: "(0 started, 0 exported)",
+          breakdown: `(${deckFunnelExtras.presentationBounce.current.started.toLocaleString()} started, ${deckFunnelExtras.presentationBounce.current.exported.toLocaleString()} exported)`,
         },
 
-        completionTime: {
-          title: "Completion Time",
-          months: defaultMonths,
-          yLabels: ["35m", "30m", "25m", "20m", "15m", "10m"],
-          min: 10,
-          max: 35,
-          data: zero12,
-        },
+        completionTime: deckFunnelExtras.completionTime,
       };
 
       return res.json({
@@ -1821,6 +2023,12 @@ export class AdminController extends BaseController {
           SupabaseDB.getDocumentCollaborators(since),
         ]);
 
+      const bundle = await SupabaseDB.computeAdminFeatureAdoptionBundle({
+        days,
+        collabMembers,
+        docCollaborators,
+      });
+
       const totalUsers = users.length;
 
       // =========================
@@ -1833,22 +2041,32 @@ export class AdminController extends BaseController {
       });
 
       // =========================
-      // ADOPTION FUNNEL
+      // ADOPTION FUNNEL (cohort signups in window ∩ jobs in window)
       // =========================
-      const discovered = totalUsers;
-
-      let firstUse = 0;
-      let repeat = 0;
-      let habitual = 0;
-
-      jobCountMap.forEach((count) => {
-        if (count >= 1) firstUse++;
-        if (count >= 2) repeat++;
-        if (count >= 4) habitual++;
-      });
+      const discovered = bundle.funnelCurr.discovered;
+      const firstUse = bundle.funnelCurr.firstUse;
+      const repeat = bundle.funnelCurr.repeat;
+      const habitual = bundle.funnelCurr.habitual;
 
       const percent = (val: number) =>
         discovered > 0 ? ((val / discovered) * 100).toFixed(1) : "0";
+
+      const calcChange = (current: number, previous: number) => {
+        if (!previous || previous === 0) return "0%";
+        const change = ((current - previous) / previous) * 100;
+        const sign = change > 0 ? "+" : "";
+        return `${sign}${change.toFixed(1)}%`;
+      };
+
+      const getPeriodLabel = (tf: string) => {
+        if (tf === "Last 7d") return "vs prev 7d";
+        if (tf === "Last 30d") return "vs prev 30d";
+        if (tf === "Last 90d") return "vs prev 90d";
+        if (tf === "This year") return "vs prior year window";
+        return "vs prior window";
+      };
+
+      const periodLabel = getPeriodLabel(timeframe);
 
       // =========================
       // COLLABORATION
@@ -1901,16 +2119,25 @@ export class AdminController extends BaseController {
       }));
 
       // =========================
-      // MEMBERS TREND (SAFE)
-      // =========================
-      const avgMembers = Math.floor(membersAdded / 12);
-
-      // =========================
       // FINAL RESPONSE
       // =========================
-      const zero12 = Array(12).fill(0);
-
       const format = (n: number) => n.toLocaleString();
+
+      const top5Projects = collabProjects.slice(0, 5);
+      const memberCountsTop5 = top5Projects.map(
+        (p: any) => projectMemberMap.get(p.id) || 0,
+      );
+      const maxMembersTop5 = Math.max(...memberCountsTop5, 1);
+
+      const membersMax = Math.max(bundle.membersAdded.max, 10);
+      const membersYLabels = [0, 1, 2, 3, 4, 5].map((i) =>
+        String(Math.round((membersMax * (5 - i)) / 5)),
+      );
+
+      const commentMax = Math.max(bundle.commentsPerDocument.max, 1);
+      const commentYLabels = [0, 1, 2, 3, 4, 5].map((i) =>
+        String(Math.round((commentMax * (5 - i)) / 5)),
+      );
 
       const data = {
         header: {
@@ -1954,29 +2181,41 @@ export class AdminController extends BaseController {
             id: "discovered",
             title: "Discovered",
             value: format(discovered),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(
+              bundle.funnelCurr.discovered,
+              bundle.funnelPrev.discovered,
+            ),
+            period: periodLabel,
           },
           {
             id: "firstUse",
             title: "First Use",
             value: format(firstUse),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(
+              bundle.funnelCurr.firstUse,
+              bundle.funnelPrev.firstUse,
+            ),
+            period: periodLabel,
           },
           {
             id: "repeatUse",
             title: "Repeat Use",
             value: format(repeat),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(
+              bundle.funnelCurr.repeat,
+              bundle.funnelPrev.repeat,
+            ),
+            period: periodLabel,
           },
           {
             id: "habitual",
             title: "Habitual",
             value: format(habitual),
-            change: "0%",
-            period: "vs last 30d",
+            change: calcChange(
+              bundle.funnelCurr.habitual,
+              bundle.funnelPrev.habitual,
+            ),
+            period: periodLabel,
           },
         ],
 
@@ -2021,7 +2260,12 @@ export class AdminController extends BaseController {
           title: "Funnel per Feature",
           subtitle:
             "Adoption depth for each tracked feature — Discovered → First Use → Repeat Use → Habitual.",
-          features: [],
+          features: bundle.featureAdoptionGrid.features.map((f) => ({
+            id: f.id,
+            name: f.name,
+            stages: f.stages,
+            adoptionScore: f.adoptionScore,
+          })),
         },
 
         // =========================
@@ -2033,7 +2277,7 @@ export class AdminController extends BaseController {
             "Adoption depth for all tracked features across all four stages.",
           periods: ["Discovered", "First Use", "Repeat", "Habitual"],
           keys: ["discovered", "firstUse", "repeat", "habitual"],
-          rows: [],
+          rows: bundle.topFeatures.rows,
         },
 
         // =========================
@@ -2052,7 +2296,7 @@ export class AdminController extends BaseController {
             { key: "repeat", label: "Repeat", color: "#71717a" },
             { key: "habitual", label: "Habitual", color: "#a1a1aa" },
           ],
-          plans: [],
+          plans: bundle.planBreakdown.plans,
         },
 
         roleBreakdown: {
@@ -2068,7 +2312,7 @@ export class AdminController extends BaseController {
             { key: "repeat", label: "Repeat", color: "#71717a" },
             { key: "habitual", label: "Habitual", color: "#a1a1aa" },
           ],
-          plans: [],
+          plans: bundle.roleBreakdown.plans,
         },
 
         regionBreakdown: {
@@ -2084,7 +2328,7 @@ export class AdminController extends BaseController {
             { key: "repeat", label: "Repeat", color: "#71717a" },
             { key: "habitual", label: "Habitual", color: "#a1a1aa" },
           ],
-          plans: [],
+          plans: bundle.regionBreakdown.plans,
         },
 
         // =========================
@@ -2093,31 +2337,35 @@ export class AdminController extends BaseController {
         workspacesCreated: {
           title: "Workspaces Created",
           total: `${workspacesCreated} total workspaces`,
-          rows: collabProjects.slice(0, 5).map((p: any) => ({
-            name: p.name,
-            users: format(projectMemberMap.get(p.id) || 0),
-            percent: 0,
-          })),
+          rows: top5Projects.map((p: any, i: number) => {
+            const n = memberCountsTop5[i] ?? 0;
+            return {
+              name: p.name,
+              users: format(n),
+              percent:
+                Math.round((n / maxMembersTop5) * 1000) / 10,
+            };
+          }),
         },
 
         membersAdded: {
           title: "Members Added",
-          months: defaultMonths,
-          yLabels: ["250", "200", "150", "100", "50", "0"],
-          max: 250,
-          bars: Array(12).fill(avgMembers),
-          trend: Array(12).fill(avgMembers),
+          months: bundle.membersAdded.months,
+          yLabels: membersYLabels,
+          max: membersMax,
+          bars: bundle.membersAdded.bars,
+          trend: bundle.membersAdded.trend,
           timeframeOptions: ["Monthly", "Weekly", "Yearly"],
           selectedTimeframe: "Monthly",
         },
 
         commentsPerDocument: {
           title: "Comments per Document",
-          days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-          yLabels: ["10", "8", "6", "4", "2", "0"],
-          min: 0,
-          max: 10,
-          data: zero12,
+          days: bundle.commentsPerDocument.days,
+          yLabels: commentYLabels,
+          min: bundle.commentsPerDocument.min,
+          max: commentMax,
+          data: bundle.commentsPerDocument.data,
         },
 
         sharedVsSolo: {
@@ -2505,73 +2753,44 @@ export class AdminController extends BaseController {
         ? new Date(Date.now() - days * 86400000).toISOString()
         : undefined;
 
-      const jobs = await SupabaseDB.getAllJobs(since);
+      // Compute event-backed bundle, plus reuse aiFeedback helper (already real).
+      const [bundle, aiFeedbackValues] = await Promise.all([
+        SupabaseDB.computeAdminAiPerformanceBundle({ days }),
+        SupabaseDB.getAiFeedbackOutcomePercents(since, []),
+      ]);
 
-      const total = jobs.length;
+      const calcChangePct = (current: number, previous: number) => {
+        if (!previous || previous === 0) return "0%";
+        const change = ((current - previous) / previous) * 100;
+        const sign = change > 0 ? "+" : "";
+        return `${sign}${change.toFixed(1)}%`;
+      };
 
-      // =========================
-      // STATUS COUNTS
-      // =========================
-      const success = jobs.filter((j) => j.status === "completed").length;
-      const failed = jobs.filter((j) => j.status === "failed").length;
-      const pending = jobs.filter((j) => j.status === "pending").length;
+      const calcChangeAbs = (
+        current: number,
+        previous: number,
+        unit: string,
+      ) => {
+        if (!previous && !current) return `0${unit}`;
+        const delta = current - previous;
+        const sign = delta > 0 ? "+" : "";
+        return `${sign}${delta.toFixed(1)}${unit}`;
+      };
 
-      const successRate = total > 0 ? (success / total) * 100 : 0;
+      const periodLabel = (() => {
+        if (timeframe === "Last 7d") return "vs prev 7d";
+        if (timeframe === "Last 30d") return "vs prev 30d";
+        if (timeframe === "Last 90d") return "vs prev 90d";
+        if (timeframe === "This year") return "vs prior year window";
+        return "vs prior window";
+      })();
 
-      // =========================
-      // LATENCY (APPROX FROM progress)
-      // =========================
-      const latencies = jobs
-        .map((j) => j.progress)
-        .filter((v) => typeof v === "number");
-
-      const avgLatency =
-        latencies.length > 0
-          ? latencies.reduce((a, b) => a + b, 0) / latencies.length
-          : 0;
-
-      // =========================
-      // REGENERATIONS (FAILURE PROXY)
-      // =========================
-      const regenCount = failed;
-      const regenPerOutput = total > 0 ? regenCount / total : 0;
-
-      // =========================
-      // COMPLETION (REALISTIC)
-      // =========================
-      const completedPct = successRate;
-      const pendingPct = total > 0 ? (pending / total) * 100 : 0;
-      const failedPct = total > 0 ? (failed / total) * 100 : 0;
-
-      // =========================
-      // LATENCY SERIES
-      // =========================
-      const latencySeries = jobs
-        .slice(0, 12)
-        .map((j) => (typeof j.progress === "number" ? j.progress : 0));
-
-      // =========================
-      // ERROR LOGS
-      // =========================
-      const errorLogs = jobs
-        .filter((j) => j.status === "failed")
-        .slice(0, 5)
-        .map((j, i) => ({
-          id: `err-${i}`,
-          severity: "Error",
-          message: j.error_message || "Generation failed",
-          timestamp: new Date(j.created_at).toUTCString(),
-          model: "AI",
-          tool: j.type || "unknown",
-          detail: j.error || "N/A",
-        }));
-
-      // =========================
-      // FINAL RESPONSE
-      // =========================
-      const zero12 = Array(12).fill(0);
-
-      const format = (n: number) => n.toLocaleString();
+      // Latency trend yLabels (chart appends "ms"). Anchor to bundle.max.
+      const trendMaxMs = Math.max(bundle.latencyTrend.max, 1000);
+      const yStep = trendMaxMs / 5;
+      const yLabels = [5, 4, 3, 2, 1, 0].map((i) =>
+        String(Math.round(yStep * i)),
+      );
 
       const data = {
         header: {
@@ -2605,44 +2824,55 @@ export class AdminController extends BaseController {
               id: "acceptance",
               icon: "acceptance",
               title: "Output Acceptance Rate",
-              value: `${successRate.toFixed(1)}%`,
-              change: "0%",
-              period: "vs last 30d",
+              value: `${bundle.acceptanceRate.toFixed(1)}%`,
+              change: calcChangePct(
+                bundle.acceptanceRate,
+                bundle.acceptanceRatePrev,
+              ),
+              period: periodLabel,
             },
             {
               id: "editAccept",
               icon: "editAccept",
               title: "Edit vs Accept Ratio",
-              value: "0 : 0",
-              change: "0",
-              period: "no edit tracking",
+              value: "—",
+              change: "",
+              period: "no edit tracking yet",
             },
             {
               id: "regenerations",
               icon: "regenerations",
               title: "Regen per Output",
-              value: `${regenPerOutput.toFixed(2)}×`,
-              change: "0×",
-              period: "vs last 30d",
+              value: `${bundle.regenPerOutput.toFixed(2)}×`,
+              change: calcChangeAbs(
+                bundle.regenPerOutput,
+                bundle.regenPerOutputPrev,
+                "×",
+              ),
+              period: periodLabel,
             },
             {
               id: "latency",
               icon: "latency",
               title: "Avg Time to Generate",
-              value: `${avgLatency.toFixed(1)}s`,
-              change: "0s",
-              period: "vs last 30d",
+              value: `${bundle.avgLatencyCurrSec.toFixed(1)}s`,
+              change: calcChangeAbs(
+                bundle.avgLatencyCurrSec,
+                bundle.avgLatencyPrevSec,
+                "s",
+              ),
+              period: periodLabel,
             },
           ],
         },
 
         // =========================
-        // SUCCESS
+        // SUCCESS (percentages)
         // =========================
         promptSuccess: {
           title: "Prompt Success",
-          success,
-          failed,
+          success: bundle.promptSuccess.successPct,
+          failed: bundle.promptSuccess.failedPct,
           legend: [
             { label: "Success", color: "#8696b0" },
             { label: "Failed", color: "#18181b" },
@@ -2650,18 +2880,21 @@ export class AdminController extends BaseController {
         },
 
         // =========================
-        // LATENCY TREND
+        // LATENCY TREND (event/job durations bucketed across window)
         // =========================
         latencyTrend: {
           title: "Latency",
-          filterOptions: ["Both"],
-          selectedFilter: "Both",
-          months: defaultMonths,
-          yLabels: ["10", "8", "6", "4", "2", "0"],
-          max: 10,
+          filterOptions: ["Latency"],
+          selectedFilter: "Latency",
+          months: bundle.latencyTrend.labels,
+          yLabels,
+          max: trendMaxMs,
           series: [
-            { label: "Latency", color: "#18181b", data: latencySeries },
-            { label: "Baseline", color: "#8696b0", data: zero12 },
+            {
+              label: "Latency",
+              color: "#18181b",
+              data: bundle.latencyTrend.series,
+            },
           ],
         },
 
@@ -2670,25 +2903,19 @@ export class AdminController extends BaseController {
         // =========================
         regenerations: {
           title: "Regenerations",
-          subtitle: `${regenCount} total regenerations`,
-          rows: [
-            {
-              label: "All",
-              caption: "Failure proxy",
-              value: format(regenCount),
-            },
-          ],
+          subtitle: `${bundle.regenerations.total.toLocaleString()} total failed generations`,
+          rows: bundle.regenerations.rows,
         },
 
         // =========================
-        // FEEDBACK (ZERO)
+        // FEEDBACK (real via getAiFeedbackOutcomePercents)
         // =========================
         aiFeedback: {
           title: "AI Feedback",
           xLabels: ["Positive", "Neutral", "Negative"],
           yLabels: ["100%", "80%", "60%", "40%", "20%", "0%"],
           max: 100,
-          values: [0, 0, 0],
+          values: aiFeedbackValues,
         },
 
         // =========================
@@ -2696,13 +2923,25 @@ export class AdminController extends BaseController {
         // =========================
         completionRate: {
           title: "Prompt Completion Rate",
-          filterOptions: ["Last 30d"],
-          selectedFilter: "Last 30d",
-          total,
+          filterOptions: [timeframe],
+          selectedFilter: timeframe,
+          total: bundle.completion.total,
           bars: [
-            { label: "Completed", value: completedPct, color: "#18181b" },
-            { label: "Partial", value: pendingPct, color: "#8696b0" },
-            { label: "Abandoned", value: failedPct, color: "#e4e4e7" },
+            {
+              label: "Completed",
+              value: bundle.completion.completedPct,
+              color: "#18181b",
+            },
+            {
+              label: "Partial",
+              value: bundle.completion.partialPct,
+              color: "#8696b0",
+            },
+            {
+              label: "Abandoned",
+              value: bundle.completion.abandonedPct,
+              color: "#e4e4e7",
+            },
           ],
         },
 
@@ -2711,8 +2950,8 @@ export class AdminController extends BaseController {
         // =========================
         aiLogs: {
           title: "AI Logs",
-          errors: errorLogs,
-          timeouts: [],
+          errors: bundle.logs.errors,
+          timeouts: bundle.logs.timeouts,
         },
 
         // =========================
@@ -2720,37 +2959,12 @@ export class AdminController extends BaseController {
         // =========================
         aiAlerts: {
           title: "Alerts",
-          failureSpikes:
-            failed > 10
-              ? [
-                  {
-                    id: "fs-1",
-                    title: "Failure spike detected",
-                    severity: "Critical",
-                    model: "AI",
-                    description: "High failure rate detected",
-                    metric: `${failed} failures`,
-                    time: "recent",
-                  },
-                ]
-              : [],
-          latencyIssues:
-            avgLatency > 8
-              ? [
-                  {
-                    id: "lat-1",
-                    title: "High latency detected",
-                    severity: "Warning",
-                    description: "Latency above threshold",
-                    metric: `${avgLatency.toFixed(1)}s`,
-                    time: "recent",
-                  },
-                ]
-              : [],
+          failureSpikes: bundle.alerts.failureSpikes,
+          latencyIssues: bundle.alerts.latencyIssues,
         },
 
         // =========================
-        // DRIFT (ZERO)
+        // DRIFT (no model-level baselines yet)
         // =========================
         driftAlerts: {
           title: "Drift Alerts",
@@ -2758,7 +2972,7 @@ export class AdminController extends BaseController {
         },
 
         // =========================
-        // PREDICTIVE (ZERO)
+        // PREDICTIVE (no churn model yet — predictive surfaces stay empty)
         // =========================
         predictiveSignals: {
           highActivityCohorts: { cohorts: [] },
@@ -2802,90 +3016,23 @@ export class AdminController extends BaseController {
 
       const days = timeframeMap[timeframe] ?? 30;
 
-      const since = days
-        ? new Date(Date.now() - days * 86400000).toISOString()
-        : undefined;
+      const bundle = await SupabaseDB.computeAdminPlatformHealthBundle({ days });
 
-      const jobs = await SupabaseDB.getAllJobs(since);
-
-      const total = jobs.length;
-
-      const failed = jobs.filter((j) => j.status === "failed").length;
-      const timeout = jobs.filter((j) => j.status === "timeout").length;
-
-      const errorRate = total > 0 ? (failed / total) * 100 : 0;
-      const timeoutRate = total > 0 ? (timeout / total) * 100 : 0;
-
-      // =========================
-      // LATENCY (APPROX FROM progress)
-      // =========================
-      const latencies = jobs
-        .map((j) => j.progress)
-        .filter((v) => typeof v === "number");
-
-      const avgLatency =
-        latencies.length > 0
-          ? latencies.reduce((a, b) => a + b, 0) / latencies.length
-          : 0;
-
-      // =========================
-      // ENDPOINT AGGREGATION
-      // =========================
-      const endpointMap = new Map<string, any>();
-
-      jobs.forEach((j: any) => {
-        const key = j.type || "unknown";
-
-        if (!endpointMap.has(key)) {
-          endpointMap.set(key, {
-            endpoint: key,
-            calls: 0,
-            errors: 0,
-            latencies: [],
-          });
-        }
-
-        const entry = endpointMap.get(key);
-
-        entry.calls++;
-        entry.latencies.push(typeof j.progress === "number" ? j.progress : 0);
-
-        if (j.status === "failed") {
-          entry.errors++;
-        }
-      });
-
-      const percentile = (arr: number[], p: number) => {
-        if (!arr.length) return 0;
-        const sorted = [...arr].sort((a, b) => a - b);
-        const idx = Math.floor((p / 100) * sorted.length);
-        return sorted[idx] || 0;
+      const calcChangePct = (current: number, previous: number) => {
+        if (!previous && !current) return "0%";
+        if (!previous) return `+${current.toFixed(2)}%`;
+        const delta = current - previous;
+        const sign = delta > 0 ? "+" : "";
+        return `${sign}${delta.toFixed(2)}%`;
       };
 
-      const endpointRows = Array.from(endpointMap.values()).map((val, i) => ({
-        id: `ep-${i}`,
-        endpoint: val.endpoint,
-        method: "POST",
-        p50: percentile(val.latencies, 50),
-        p95: percentile(val.latencies, 95),
-        p99: percentile(val.latencies, 99),
-        errorRate: val.calls ? (val.errors / val.calls) * 100 : 0,
-        callsPerHour: val.calls, // ⚠️ approximation
-        status: val.errors > 5 ? "degraded" : "healthy",
-      }));
-
-      // =========================
-      // API PERCENTILES
-      // =========================
-      const p50 = percentile(latencies, 50);
-      const p95 = percentile(latencies, 95);
-      const p99 = percentile(latencies, 99);
-
-      // =========================
-      // FINAL RESPONSE
-      // =========================
-      const format = (n: number) => n.toLocaleString();
-      const zero12 = Array(12).fill(0);
+      const periodLabel = (() => {
+        if (timeframe === "Last 7d") return "vs prev 7d";
+        if (timeframe === "Last 30d") return "vs prev 30d";
+        if (timeframe === "Last 90d") return "vs prev 90d";
+        if (timeframe === "This year") return "vs prior year window";
+        return "vs prior window";
+      })();
 
       const data = {
         header: {
@@ -2894,62 +3041,82 @@ export class AdminController extends BaseController {
             "Engineering and reliability visibility — API performance, queues, logs, and real-time alerts.",
         },
 
+        filters: {
+          searchPlaceholder: "Search incidents, services, alerts...",
+          options: {
+            Timeframe: [
+              "Last 7d",
+              "Last 30d",
+              "Last 90d",
+              "This year",
+              "All time",
+            ],
+          },
+        },
+
         // =========================
         // API PERFORMANCE
         // =========================
         apiPercentiles: {
           title: "API Response Time",
-          p50,
-          p95,
-          p99,
-          status: errorRate > 1 ? "warning" : "healthy",
-          statusLabel: errorRate > 1 ? "Elevated" : "Healthy",
-          period: "Based on job latency (approx)",
+          p50: bundle.apiPercentiles.p50,
+          p95: bundle.apiPercentiles.p95,
+          p99: bundle.apiPercentiles.p99,
+          status: bundle.apiPercentiles.status,
+          statusLabel: bundle.apiPercentiles.statusLabel,
+          period: `Based on generation-job duration · ${timeframe.toLowerCase()}`,
         },
 
         errorRate: {
           title: "Error Rate",
-          value: `${errorRate.toFixed(2)}%`,
-          change: "0%",
-          period: "vs last period",
-          status: errorRate > 1 ? "warning" : "healthy",
-          statusLabel: errorRate > 1 ? "Elevated" : "Normal",
+          value: `${bundle.errorRate.valuePct.toFixed(2)}%`,
+          change: calcChangePct(
+            bundle.errorRate.valuePct,
+            bundle.errorRate.prevPct,
+          ),
+          period: periodLabel,
+          status: bundle.errorRate.status,
+          statusLabel: bundle.errorRate.statusLabel,
         },
 
         timeoutRate: {
           title: "Timeout Rate",
-          value: `${timeoutRate.toFixed(2)}%`,
-          change: "0%",
-          period: "vs last period",
-          status: timeoutRate > 1 ? "warning" : "healthy",
-          statusLabel: timeoutRate > 1 ? "Elevated" : "Normal",
+          value: `${bundle.timeoutRate.valuePct.toFixed(2)}%`,
+          change: calcChangePct(
+            bundle.timeoutRate.valuePct,
+            bundle.timeoutRate.prevPct,
+          ),
+          period: periodLabel,
+          status: bundle.timeoutRate.status,
+          statusLabel: bundle.timeoutRate.statusLabel,
         },
 
         // =========================
-        // UPTIME (FAKE SAFE)
+        // UPTIME (no infra monitoring yet)
         // =========================
         uptime: {
-          title: "Uptime (30d)",
-          value: "0%",
-          change: "0%",
-          period: "requires infra monitoring",
+          title: "Uptime",
+          value: (() => {
+            const totalSec = Math.max(0, Math.floor(process.uptime()));
+            const days = Math.floor(totalSec / 86400);
+            const hrs = Math.floor((totalSec % 86400) / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            if (days > 0) return `${days}d ${hrs}h`;
+            if (hrs > 0) return `${hrs}h ${mins}m`;
+            return `${mins}m`;
+          })(),
+          change: "",
+          period: "Process uptime (since last restart)",
           status: "healthy",
-          statusLabel: "Unknown",
+          statusLabel: "Healthy",
         },
 
         // =========================
-        // ENDPOINTS
+        // ENDPOINTS (job-type performance proxy)
         // =========================
         endpointPerformance: {
           title: "Endpoint Performance",
-          rows: endpointRows.map((r) => ({
-            ...r,
-            p50: Math.round(r.p50),
-            p95: Math.round(r.p95),
-            p99: Math.round(r.p99),
-            errorRate: +r.errorRate.toFixed(2),
-            callsPerHour: r.callsPerHour,
-          })),
+          rows: bundle.endpointPerformance.rows,
         },
 
         // =========================
@@ -2958,67 +3125,21 @@ export class AdminController extends BaseController {
         monitoring: {
           queue: {
             title: "Queue Delays",
-            value: avgLatency.toFixed(1),
-            unit: "s avg",
-            status: "unknown",
-            statusLabel: "Approx",
-            period: "derived from jobs",
-            subRows: [
-              {
-                label: "AI queue",
-                value: avgLatency,
-                unit: "s",
-                max: 10,
-                status: "unknown",
-              },
-              {
-                label: "Export queue",
-                value: 0,
-                unit: "s",
-                max: 10,
-                status: "unknown",
-              },
-              {
-                label: "Notification queue",
-                value: 0,
-                unit: "s",
-                max: 10,
-                status: "unknown",
-              },
-            ],
+            value: bundle.monitoring.queue.value,
+            unit: bundle.monitoring.queue.unit,
+            status: bundle.monitoring.queue.status,
+            statusLabel: bundle.monitoring.queue.statusLabel,
+            period: bundle.monitoring.queue.period,
+            subRows: bundle.monitoring.queue.subRows,
           },
-
           exports: {
             title: "Export Processing Time",
-            value: avgLatency.toFixed(1),
-            unit: "s avg",
-            status: "unknown",
-            statusLabel: "Approx",
-            period: "no export tracking",
-            subRows: [
-              { label: "PDF", value: 0, unit: "s", max: 30, status: "unknown" },
-              {
-                label: "PPTX",
-                value: 0,
-                unit: "s",
-                max: 30,
-                status: "unknown",
-              },
-              {
-                label: "DOCX",
-                value: 0,
-                unit: "s",
-                max: 30,
-                status: "unknown",
-              },
-              {
-                label: "XLSX",
-                value: 0,
-                unit: "s",
-                max: 30,
-                status: "unknown",
-              },
-            ],
+            value: bundle.monitoring.exports.value,
+            unit: bundle.monitoring.exports.unit,
+            status: bundle.monitoring.exports.status,
+            statusLabel: bundle.monitoring.exports.statusLabel,
+            period: bundle.monitoring.exports.period,
+            subRows: bundle.monitoring.exports.subRows,
           },
         },
 
@@ -3027,24 +3148,9 @@ export class AdminController extends BaseController {
         // =========================
         systemLogs: {
           title: "System Logs",
-
-          incidents: jobs
-            .filter((j) => j.status === "failed")
-            .slice(0, 3)
-            .map((j, i) => ({
-              id: `inc-${i}`,
-              title: j.error_message || "Failure",
-              severity: "High",
-              status: "Active",
-              service: j.type || "AI",
-              timestamp: new Date(j.created_at).toUTCString(),
-              duration: "0 min",
-              detail: j.error || "Unknown error",
-            })),
-
-          deploys: [],
-
-          releases: [],
+          incidents: bundle.systemLogs.incidents,
+          deploys: bundle.systemLogs.deploys,
+          releases: bundle.systemLogs.releases,
         },
 
         // =========================
@@ -3052,21 +3158,7 @@ export class AdminController extends BaseController {
         // =========================
         realtimeAlerts: {
           title: "Real-Time System Alerts",
-          alerts:
-            failed > 5
-              ? [
-                  {
-                    id: "rta-1",
-                    title: "Failure spike detected",
-                    severity: "Critical",
-                    status: "Active",
-                    service: "AI",
-                    timestamp: "now",
-                    description: "High failure rate",
-                    metric: `${failed} failures`,
-                  },
-                ]
-              : [],
+          alerts: bundle.realtimeAlerts.alerts,
         },
 
         // =========================
@@ -3074,19 +3166,8 @@ export class AdminController extends BaseController {
         // =========================
         failuresAlerts: {
           title: "Failures & Alerts",
-          subtitle: "Recent incidents",
-          alerts: jobs
-            .filter((j) => j.status === "failed")
-            .slice(0, 5)
-            .map((j, i) => ({
-              id: `alert-${i}`,
-              service: j.type || "AI",
-              title: j.error_message || "Failure",
-              severity: "High",
-              status: "Active",
-              timestamp: new Date(j.created_at).toUTCString(),
-              description: j.error || "Unknown error",
-            })),
+          subtitle: "Recent generation incidents",
+          alerts: bundle.failuresAlerts.alerts,
         },
       };
 

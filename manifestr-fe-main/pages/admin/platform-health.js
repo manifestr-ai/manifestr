@@ -13,12 +13,16 @@ import QueueAndExportsMonitor from '../../components/admin/platform-health/Queue
 import SystemLogsSection from '../../components/admin/platform-health/SystemLogsSection'
 import RealtimeSystemAlerts from '../../components/admin/platform-health/RealtimeSystemAlerts'
 import FailuresAlertsList from '../../components/admin/platform-health/FailuresAlertsList'
+import OverviewFilters from '../../components/admin/overview/OverviewFilters'
 
 import { getAdminPlatformHealthData } from '../../services/admin/platform-health'
+import { useAdminDashboardFilters } from '../../contexts/AdminDashboardFiltersContext'
 
 export default function AdminPlatformHealth() {
   const [platformHealthData, setplatformHealthData] = useState(null)
   const [error, setError] = useState(false)
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters()
 
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -33,14 +37,14 @@ export default function AdminPlatformHealth() {
   // 📡 Fetch data
   useEffect(() => {
     if (user?.is_admin) {
-      getAdminPlatformHealthData()
+      getAdminPlatformHealthData(apiParams)
         .then((res) => {
           if (!res) setError(true)
           else setplatformHealthData(res)
         })
         .catch(() => setError(true))
     }
-  }, [user])
+  }, [user?.is_admin, apiParams])
 
   if (loading) return <div className="p-6">Loading...</div>
   if (error) return <div className="p-6 text-red-500">Failed to load</div>
@@ -62,6 +66,16 @@ export default function AdminPlatformHealth() {
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
+              <OverviewFilters
+                filters={platformHealthData?.filters?.options}
+                searchPlaceholder={
+                  platformHealthData?.filters?.searchPlaceholder
+                }
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
+              />
+
               {/* Metrics: p50/p95/p99 + error rate + timeout rate + uptime */}
               <div className="flex flex-col gap-4 lg:flex-row lg:gap-[18px] lg:flex-nowrap">
                 <APIPercentilesCard data={platformHealthData?.apiPercentiles} />

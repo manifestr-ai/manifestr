@@ -6,28 +6,20 @@ import Head from "next/head";
 import AdminHeader from "../../components/admin/AdminHeader";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import LifecycleHeader from "../../components/admin/lifecycle/LifecycleHeader";
-import AiPerformanceFilters from "../../components/admin/ai-performance/AiPerformanceFilters";
 import StatCard from "../../components/admin/overview/StatCard";
 import LifecycleStagesChart from "../../components/admin/lifecycle/LifecycleStagesChart";
 import UserSegmentsTable from "../../components/admin/lifecycle/UserSegmentsTable";
 
 import { getAdminLifecycleData } from "../../services/admin/lifecycle";
 import OverviewFilters from "../../components/admin/overview/OverviewFilters";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
 
 export default function AdminLifecycle() {
-
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
   
   const [lifecycleData, setLifecycleData] = useState(null);
+  const [lifecycleLoading, setLifecycleLoading] = useState(false);
   const [error, setError] = useState(false);
 
   const { user, loading } = useAuth();
@@ -45,11 +37,13 @@ export default function AdminLifecycle() {
     if (user?.is_admin) {
       fetchLifecycle();
     }
-  }, [user?.is_admin, filters]);
+  }, [user?.is_admin, apiParams]);
 
   const fetchLifecycle = async () => {
+    setLifecycleLoading(true);
+    setError(false);
     try {
-      const data = await getAdminLifecycleData(filters);
+      const data = await getAdminLifecycleData(apiParams);
       if (!data) {
         setError(true);
       } else {
@@ -57,11 +51,27 @@ export default function AdminLifecycle() {
       }
     } catch {
       setError(true);
+    } finally {
+      setLifecycleLoading(false);
     }
   };
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">Failed to load data</div>;
+
+  if (user?.is_admin && (lifecycleLoading || lifecycleData == null)) {
+    return (
+      <div className="admin-card-theme min-h-screen bg-white">
+        <AdminHeader />
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
+          <AdminSidebar />
+          <div className="flex flex-1 items-center justify-center p-6 text-[#71717a]">
+            Loading lifecycle…
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const stats = lifecycleData?.stats || [];
 
@@ -83,15 +93,12 @@ export default function AdminLifecycle() {
             />
 
             <div className="relative z-0 flex-1 flex flex-col gap-4 px-4 py-4 bg-white lg:gap-6 lg:px-8 lg:py-6">
-              {/* <AiPerformanceFilters
-                searchPlaceholder={lifecycleData?.filters?.searchPlaceholder}
-                options={lifecycleData?.filters?.options}
-                onFiltersChange={handleFiltersChange}
-              /> */}
-               <OverviewFilters
+              <OverviewFilters
                 filters={lifecycleData?.filters?.options}
                 searchPlaceholder={lifecycleData?.filters?.searchPlaceholder}
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
 
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[18px]">

@@ -16,21 +16,24 @@ import UserHealthScoreCard from "../../components/admin/growth/UserHealthScoreCa
 import PowerUsersTable from "../../components/admin/growth/PowerUsersTable";
 
 import { getAdminGrowthData } from "../../services/admin/growth";
+import { useAdminDashboardFilters } from "../../contexts/AdminDashboardFiltersContext";
+
+const CHART_LABEL_TO_API = {
+  "last 7d": "last_7d",
+  "last 30d": "last_30d",
+  "last 90d": "last_90d",
+  "all time": "all_time",
+};
 
 export default function AdminGrowth() {
-  const [filters, setFilters] = useState({
-    timeframe: "Last 30d",
-    search: "",
-  });
-  const handleFiltersChange = ({ search, filters: selected }) => {
-    setFilters({
-      timeframe: selected?.Timeframe || "Last 30d",
-      search: search || "",
-    });
-  };
+  const { apiParams, applyFiltersChange, selections, search } =
+    useAdminDashboardFilters();
 
   const [growthData, setGrowthData] = useState(null);
+  const [growthLoading, setGrowthLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [signupsChartRange, setSignupsChartRange] = useState("last_30d");
+  const [returningChartRange, setReturningChartRange] = useState("last_30d");
 
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -45,28 +48,49 @@ export default function AdminGrowth() {
   // 📡 Fetch data
   useEffect(() => {
     if (user?.is_admin) {
-      fetchGrowth()
+      fetchGrowth();
     }
-  }, [user?.is_admin, filters])
+  }, [user?.is_admin, apiParams, signupsChartRange, returningChartRange]);
 
   const fetchGrowth = async () => {
+    setGrowthLoading(true);
+    setError(false);
     try {
-      const data = await getAdminGrowthData(filters)
-  
+      const data = await getAdminGrowthData({
+        ...apiParams,
+        signupsChartRange,
+        returningChartRange,
+      });
+
       if (!data) {
-        setError(true)
+        setError(true);
       } else {
-        setGrowthData(data)
+        setGrowthData(data);
       }
     } catch {
-      setError(true)
+      setError(true);
+    } finally {
+      setGrowthLoading(false);
     }
-  }
+  };
 
   // UI states
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">Failed to load data</div>;
-  // if (!growthData) return <div className="p-6">No data available</div>
+
+  if (user?.is_admin && (growthLoading || growthData == null)) {
+    return (
+      <div className="admin-card-theme min-h-screen bg-white">
+        <AdminHeader />
+        <div className="flex min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
+          <AdminSidebar />
+          <div className="flex flex-1 items-center justify-center p-6 text-[#71717a]">
+            Loading growth metrics…
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const stats = Array.isArray(growthData?.stats) ? growthData.stats : [];
 
@@ -93,7 +117,9 @@ export default function AdminGrowth() {
               <OverviewFilters
                 filters={growthData?.filters?.options}
                 searchPlaceholder={growthData?.filters?.searchPlaceholder}
-                onFiltersChange={handleFiltersChange}
+                selections={selections}
+                search={search}
+                onFiltersChange={applyFiltersChange}
               />
 
               {/* KPI */}
@@ -106,10 +132,24 @@ export default function AdminGrowth() {
               {/* Charts */}
               <div className="flex flex-col gap-4 lg:flex-row lg:gap-[18px]">
                 <div className="w-full lg:flex-1">
-                  <DauMauTrend data={growthData?.signupsOverTime} />
+                  <DauMauTrend
+                    data={growthData?.signupsOverTime}
+                    onRangeChange={(label) =>
+                      setSignupsChartRange(
+                        CHART_LABEL_TO_API[label] || "last_30d",
+                      )
+                    }
+                  />
                 </div>
                 <div className="w-full lg:flex-1">
-                  <ReturningVsNewChart data={growthData?.returningVsNew} />
+                  <ReturningVsNewChart
+                    data={growthData?.returningVsNew}
+                    onRangeChange={(label) =>
+                      setReturningChartRange(
+                        CHART_LABEL_TO_API[label] || "last_30d",
+                      )
+                    }
+                  />
                 </div>
               </div>
 

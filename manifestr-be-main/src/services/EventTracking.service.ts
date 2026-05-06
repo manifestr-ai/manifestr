@@ -391,6 +391,39 @@ export class EventTrackingService {
   }
 
   /**
+   * Read `feature_adoption` rows from `analytics_events` (same store as {@link trackFeatureUsage}).
+   * Used by admin dashboards; keep limit bounded for API latency.
+   */
+  static async getFeatureAdoptionAnalyticsRows(
+    startIso: string,
+    endIsoExclusive?: string,
+    limit = 15000,
+  ): Promise<
+    Array<{
+      user_id: string | null;
+      event_name: string;
+      event_action: string;
+    }>
+  > {
+    let q = supabaseAdmin
+      .from("analytics_events")
+      .select("user_id, event_name, event_action")
+      .eq("event_category", "feature_adoption")
+      .gte("created_at", startIso)
+      .limit(limit);
+    if (endIsoExclusive) {
+      q = q.lt("created_at", endIsoExclusive);
+    }
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data || []) as Array<{
+      user_id: string | null;
+      event_name: string;
+      event_action: string;
+    }>;
+  }
+
+  /**
    * Track User Activation Milestones
    */
   static async trackActivation(options: {

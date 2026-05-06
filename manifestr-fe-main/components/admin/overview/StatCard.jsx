@@ -51,7 +51,7 @@ export default function StatCard({ title, value, change, period = 'vs last 30d',
                 ? UserMinus
           : titleKey.includes('returning users')
             ? RefreshCw
-          : titleKey === 'mrr'
+            : titleKey.includes('mrr')
             ? DollarSign
             : titleKey.includes('revenue this month')
               ? Wallet
