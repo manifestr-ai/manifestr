@@ -21,7 +21,6 @@ export default function Step4TalkToMe({ projectData = {}, updateProjectData }) {
     keyImpact: false,
   })
   const [isProcessing, setIsProcessing] = useState(false)
-  const [refinedValues, setRefinedValues] = useState({})
 
   const recognitionRef = useRef(null)
   const transcriptRef = useRef('')
@@ -110,52 +109,11 @@ export default function Step4TalkToMe({ projectData = {}, updateProjectData }) {
     setCapturedFields(newCapturedFields)
   }
 
-  const handleRefine = (fieldId, value) => {
-    const updatedRefinedValues = {
-      ...refinedValues,
-      [fieldId]: value
-    }
-    
-    setRefinedValues(updatedRefinedValues)
-    
-    // Mark field as captured when refined
-    setCapturedFields(prev => ({
-      ...prev,
-      [fieldId]: true
-    }))
-
-    // Immediately save to projectData when refined
-    if (updateProjectData) {
-      const fieldMapping = {
-        documentType: 'voiceDocumentType',
-        documentName: 'documentName',
-        projectName: 'projectBrandName',
-        websiteUrl: 'websiteUrl',
-        supportingLinks: 'voiceSupportingLinks',
-        deadlines: 'timeline',
-        purpose: 'primaryObjective',
-        keyMessage: 'keyMessage',
-        audience: 'primaryAudience',
-        keyImpact: 'voiceKeyImpact',
-      }
-      
-      const projectDataKey = fieldMapping[fieldId]
-      if (projectDataKey) {
-        updateProjectData({
-          [projectDataKey]: value,
-          [`refined_${fieldId}`]: value,
-          voiceRefinedValues: updatedRefinedValues
-        })
-      }
-    }
-  }
-
   const handleStartRecording = () => {
     if (recognitionRef.current) {
       transcriptRef.current = ''
       setTranscript('')
       setInterimTranscript('')
-      setRefinedValues({})
       setCapturedFields({
         documentType: false,
         documentName: false,
@@ -212,23 +170,6 @@ export default function Step4TalkToMe({ projectData = {}, updateProjectData }) {
           
           setCapturedFields(newCapturedFields)
 
-          // Populate refinedValues with extracted data so users can see and refine them
-          const initialRefinedValues = {
-            documentType: extractedData.documentType || '',
-            documentName: extractedData.documentName || '',
-            projectName: extractedData.projectName || '',
-            websiteUrl: extractedData.websiteUrl || '',
-            supportingLinks: extractedData.supportingLinks || '',
-            deadlines: extractedData.deadlines || '',
-            purpose: extractedData.purpose || '',
-            keyMessage: extractedData.keyMessage || '',
-            audience: extractedData.audience || '',
-            keyImpact: extractedData.keyImpact || '',
-          }
-          
-          console.log('📝 Setting refined values:', initialRefinedValues)
-          setRefinedValues(initialRefinedValues)
-
           // Save all data to projectData - NO DATA LOSS!
           if (updateProjectData) {
             updateProjectData({
@@ -254,9 +195,6 @@ export default function Step4TalkToMe({ projectData = {}, updateProjectData }) {
               // Additional extracted info
               voiceKeyImpact: extractedData.keyImpact,
               voiceSupportingLinks: extractedData.supportingLinks,
-              
-              // Store all refined values (initially same as extracted)
-              voiceRefinedValues: initialRefinedValues,
             })
           }
           
@@ -290,6 +228,47 @@ export default function Step4TalkToMe({ projectData = {}, updateProjectData }) {
   const sentences = displayTranscript.split(/[.!?]/).filter(s => s.trim())
   const displaySentences = sentences.slice(-3)
 
+  // Maps the sidebar field id -> the corresponding key on `projectData`.
+  // Keeps backend/data shape unchanged; just lets the user refine values inline.
+  const fieldKeyMap = {
+    documentType: 'voiceDocumentType',
+    documentName: 'documentName',
+    projectName: 'projectBrandName',
+    websiteUrl: 'websiteUrl',
+    supportingLinks: 'voiceSupportingLinks',
+    deadlines: 'timeline',
+    purpose: 'primaryObjective',
+    keyMessage: 'keyMessage',
+    audience: 'primaryAudience',
+    keyImpact: 'voiceKeyImpact',
+  }
+
+  const fieldValues = {
+    documentType: projectData?.voiceDocumentType || '',
+    documentName: projectData?.documentName || '',
+    projectName: projectData?.projectBrandName || '',
+    websiteUrl: projectData?.websiteUrl || '',
+    supportingLinks: projectData?.voiceSupportingLinks || '',
+    deadlines: projectData?.timeline || '',
+    purpose: projectData?.primaryObjective || '',
+    keyMessage: projectData?.keyMessage || '',
+    audience: projectData?.primaryAudience || '',
+    keyImpact: projectData?.voiceKeyImpact || '',
+  }
+
+  const handleRefineField = (fieldId, nextValue) => {
+    const projectKey = fieldKeyMap[fieldId]
+    if (!projectKey) return
+
+    const trimmed = typeof nextValue === 'string' ? nextValue.trim() : nextValue
+
+    if (typeof updateProjectData === 'function') {
+      updateProjectData({ [projectKey]: trimmed })
+    }
+
+    setCapturedFields((prev) => ({ ...prev, [fieldId]: !!trimmed }))
+  }
+
   const progressCount = Object.values(capturedFields).filter(Boolean).length
   const totalFields = 8
 
@@ -300,11 +279,11 @@ export default function Step4TalkToMe({ projectData = {}, updateProjectData }) {
         <div className="hidden lg:block">
           <VoiceRecordingSidebar 
             capturedFields={capturedFields}
+            fieldValues={fieldValues}
             progressCount={progressCount}
             totalFields={totalFields}
             transcript={transcript}
-            refinedValues={refinedValues}
-            onRefine={handleRefine}
+            onRefineField={handleRefineField}
           />
         </div>
       )}

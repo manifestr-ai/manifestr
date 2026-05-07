@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import {
   Sparkles,
   History,
@@ -33,6 +33,7 @@ export default function AiPrompterPanel({
   generationId,
 }: AiPrompterPanelProps) {
   const toast = useToast();
+  const dropzoneFileInputId = useId();
   const [activeTab, setActiveTab] = useState("Freestyle");
   const [mode, setMode] = useState("Prompt Mode");
   const [isRecording, setIsRecording] = useState(false);
@@ -62,6 +63,7 @@ export default function AiPrompterPanel({
   // Dropzone document preview state
   const [extractedDocText, setExtractedDocText] = useState("");
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [isDropzoneDragging, setIsDropzoneDragging] = useState(false);
 
   // AI Prompter hook
   const {
@@ -75,6 +77,7 @@ export default function AiPrompterPanel({
     processUploadedFile,
     processBrief,
     clearHistory,
+    clearError,
   } = useAiPrompter({
     editorType,
     onSuccess: async (result) => {
@@ -98,9 +101,7 @@ export default function AiPrompterPanel({
         console.error(
           " This means the editor instance was not passed correctly",
         );
-        toast.error(
-          "Editor not available. Please refresh the page and try again.",
-        );
+        toast.error("Editor not available. Please refresh the page and try again.");
       }
     },
     onError: (error) => {
@@ -768,90 +769,102 @@ export default function AiPrompterPanel({
     }
   };
 
-  // Handle file upload
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
+  // Read a plain-text file in the browser (no backend call needed).
+  const readPlainTextFile = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        resolve(typeof result === "string" ? result : "");
+      };
+      reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+      reader.readAsText(file);
+    });
+
+  // Process a single file (used by both <input> change and drag-and-drop).
+  const processFile = async (file: File | null | undefined) => {
     if (!file) return;
 
-    // Block all image uploads in dropzone
-    if (file.type.startsWith("image/") || file.name.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i)) {
-      toast.error("Images are not allowed in the dropzone");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      return;
-    }
-
-    // Validate file size (10MB limit for documents)
+    clearError();
     const isDocument =
       [
         "text/plain",
         "application/msword",
         "application/vnd.ms-word",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ].includes(file.type) || file.name.match(/\.(txt|doc|docx)$/i);
+      ].includes(file.type) || /\.(txt|doc|docx)$/i.test(file.name);
 
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = isDocument ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error("File size must be less than 10 MB");
+      toast.error(`File size must be less than ${isDocument ? "10" : "5"} MB`);
       return;
     }
 
-    // Handle document uploads (txt, doc, docx) - EXTRACT AND PREVIEW
+    // Documents: txt/doc/docx → show editable extracted text in the dropzone
     if (isDocument) {
-      console.log("📄 Document file detected, extracting text...");
+      const isPlainText =
+        file.type === "text/plain" || /\.txt$/i.test(file.name);
+
+      // Plain text: extract entirely client-side (no backend dependency).
+      if (isPlainText) {
+        try {
+          const text = await readPlainTextFile(file);
+          if (!text.trim()) {
+            toast.error("This text file appears to be empty.");
+            return;
+          }
+          setExtractedDocText(text);
+          setUploadedFileName(file.name);
+          toast.success(`"${file.name}" loaded. Review the text below, then tap Send Prompt.`);
+          return;
+        } catch (error) {
+          console.error("❌ Failed to read text file:", error);
+          toast.error("Couldn't read this text file. Please try another.");
+          return;
+        }
+      }
+
+      // .doc/.docx: still tries the server extractor, but never crashes the UI on failure.
       try {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await api.post("/api/uploads/extract-text", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const response = await api.post("/api/uploads/extract-text", formData);
 
-        const extractedText = response.data.data.extractedText;
-        console.log(
-          `✅ Extracted ${extractedText.length} characters from ${file.name}`,
-        );
-
-        if (!extractedText || extractedText.trim().length === 0) {
+        const extractedText = response?.data?.data?.extractedText || "";
+        if (!extractedText.trim()) {
           toast.error(
-            "No text could be extracted from the document. Please ensure the file contains readable text.",
+            "No text could be extracted from this document. Try saving it as .txt and uploading again.",
           );
           return;
         }
 
-        // Set extracted text for preview (don't send yet!)
         setExtractedDocText(extractedText);
         setUploadedFileName(file.name);
-
-        // Reset file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+        toast.success(`"${file.name}" loaded. Review the text below, then tap Send Prompt.`);
         return;
       } catch (error: any) {
         console.error("❌ Document text extraction failed:", error);
         toast.error(
-          `Failed to extract text from document: ${error.response?.data?.message || error.message || "Unknown error"}`,
+          "Couldn't extract text from this document. As a workaround, save the file as .txt and drop it here.",
         );
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
         return;
       }
     }
 
     // Validate file type based on editor type (for non-document files)
+    if (editorType === "image" && !file.type.startsWith("image/")) {
+      toast.error("Please upload an image file or a document (.txt, .doc, .docx)");
+      return;
+    }
+
     if (
       editorType === "spreadsheet" &&
       ![
         "text/csv",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(file.type) &&
-      !isDocument
+      ].includes(file.type)
     ) {
       toast.error(
         "Please upload a CSV or Excel file, or a document (.txt, .doc, .docx)",
@@ -863,14 +876,53 @@ export default function AiPrompterPanel({
 
     try {
       await processUploadedFile(file, currentData || undefined);
+      toast.success(`"${file.name}" uploaded successfully.`);
+    } catch (error) {
+      // Error is already surfaced by the hook (toast inside useAiPrompter).
+    }
+  };
 
-      // Reset file input
+  // Handle file upload from <input type="file">
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    try {
+      await processFile(file);
+    } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error) {
-      // Error is already handled by the hook
     }
+  };
+
+  // Drag-and-drop handlers for the Dropzone tab
+  const handleDropzoneDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDropzoneDragging) setIsDropzoneDragging(true);
+  };
+
+  const handleDropzoneDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only clear when actually leaving the dropzone, not when entering a child element.
+    if (
+      e.currentTarget instanceof Node &&
+      e.relatedTarget instanceof Node &&
+      e.currentTarget.contains(e.relatedTarget)
+    ) {
+      return;
+    }
+    setIsDropzoneDragging(false);
+  };
+
+  const handleDropzoneDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDropzoneDragging(false);
+    const file = e.dataTransfer?.files?.[0];
+    await processFile(file);
   };
 
   // Handle sending extracted document text as prompt
@@ -1302,13 +1354,14 @@ export default function AiPrompterPanel({
             {/* Row 3: Talk To Me */}
             {activeTab === "Talk To Me" && (
               <div
-                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
+                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] max-h-[70vh] overflow-y-auto"
                 style={{
                   background:
                     "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
+                  overscrollBehavior: "contain",
                 }}
               >
-                <div className="flex flex-col items-center gap-1 p-6 sm:p-10">
+                <div className="flex flex-col items-center gap-1 p-6 sm:p-10 w-full">
                   <div className="flex flex-col items-center gap-2 mb-8 sm:mb-10">
                     <div className="flex items-center gap-3">
                       <div
@@ -1403,20 +1456,25 @@ export default function AiPrompterPanel({
                     {isProcessing && !isRecording
                       ? "Processing..."
                       : isRecording
-                        ? voiceTranscript ||
-                          "Listening... Click 'Send Prompt' when ready"
+                        ? "Listening... Click 'Send Prompt' when ready"
                         : "Ready to record"}
                   </p>
 
-                  {/* Show transcript while recording */}
+                  {/* Show transcript while recording (scrollable so long transcripts
+                      never push the Send Prompt button off-screen) */}
                   {isRecording && voiceTranscript && (
-                    <div className="mt-4 px-6 py-3 bg-white/80 rounded-xl border border-[#E2E8F0] max-w-md mx-auto">
+                    <div className="mt-4 w-full max-w-md mx-auto px-6 py-3 bg-white/80 rounded-xl border border-[#E2E8F0]">
                       <p className="text-sm text-[#45556C] font-medium mb-1">
                         Transcript:
                       </p>
-                      <p className="text-sm text-[#1E293B]">
-                        {voiceTranscript}
-                      </p>
+                      <div
+                        className="text-sm text-[#1E293B] max-h-[180px] overflow-y-auto pr-1"
+                        style={{ overscrollBehavior: "contain" }}
+                      >
+                        <p className="whitespace-pre-wrap break-words">
+                          {voiceTranscript}
+                        </p>
+                      </div>
                     </div>
                   )}
 
@@ -1469,11 +1527,23 @@ export default function AiPrompterPanel({
             {/* Row 3: Dropzone */}
             {activeTab === "Dropzone" && (
               <div
-                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
-                }}
+                onDragOver={handleDropzoneDragOver}
+                onDragEnter={handleDropzoneDragOver}
+                onDragLeave={handleDropzoneDragLeave}
+                onDrop={handleDropzoneDrop}
+                className={`flex flex-col items-center justify-center rounded-[24px] border shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] transition-colors ${
+                  isDropzoneDragging
+                    ? "border-2 border-dashed border-[#62748E] bg-[rgba(98,116,142,0.06)]"
+                    : "border-white/90"
+                }`}
+                style={
+                  isDropzoneDragging
+                    ? undefined
+                    : {
+                        background:
+                          "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
+                      }
+                }
               >
                 <div className="flex flex-col items-center gap-2 sm:gap-4 p-6 sm:p-10 w-full">
                   {/* Show extracted text preview if available */}
@@ -1647,14 +1717,10 @@ export default function AiPrompterPanel({
                           </span>
                         </div>
                         <span className="text-[#64748B] text-xs sm:text-sm mt-1 text-center">
-                          Upload documents with prompts{" "}
-                          <span className="font-medium text-[#4B5563]">
-                            (.txt, .doc, .docx)
-                          </span>
+                          Upload images, or documents with prompts{" "}
+                          <span className="font-medium text-[#4B5563]">(.txt, .doc, .docx)</span>
                           <br />
-                          <span className="text-[10px]">
-                            Documents: 10 MB max
-                          </span>
+                          <span className="text-[10px]">Images: 5 MB max | Documents: 10 MB max</span>
                         </span>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full">
@@ -1666,7 +1732,7 @@ export default function AiPrompterPanel({
                           Import from drive
                         </button>
                         <label
-                          htmlFor="file-upload"
+                          htmlFor={dropzoneFileInputId}
                           className={`
                             flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-[14px]
                             border border-white/40
@@ -1692,11 +1758,11 @@ export default function AiPrompterPanel({
                           )}
                           <input
                             ref={fileInputRef}
-                            id="file-upload"
-                            name="file-upload"
+                            id={dropzoneFileInputId}
+                            name="dropzone-file-upload"
                             type="file"
                             className="hidden"
-                            accept=".txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            accept="image/*,.txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                             onChange={handleFileUpload}
                             disabled={isProcessing}
                           />
