@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Folder, Type, Palette, Grid, FileText, Plus, ArrowRight, ChevronUp, ChevronDown } from 'lucide-react'
+import { Folder, Type, Palette, Grid, FileText, Plus, ArrowRight, ChevronUp, ChevronDown, X } from 'lucide-react'
 import Button from '../ui/Button'
 import Select from '../forms/Select'
 
@@ -91,6 +91,29 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
 
   const rowHeights = [104, 88, 64, 64, 60, 60, 56, 56, 56, 48]
 
+  const parsePx = (raw) => {
+    const parsed = parseInt(String(raw || '').replace('px', ''), 10)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  const clampPreviewPx = (raw, maxPx) => {
+    const parsed = parsePx(raw)
+    if (parsed == null) return raw
+    return `${Math.min(parsed, maxPx)}px`
+  }
+
+  const previewLineHeightPx = (fontSizeRaw, lineHeightRaw, maxPx) => {
+    const fontSize = parsePx(fontSizeRaw)
+    const lineHeight = parsePx(lineHeightRaw)
+    if (fontSize == null && lineHeight == null) return lineHeightRaw
+
+    // If user leaves line-height at something tiny (e.g. 16px) but bumps font-size to 34px,
+    // the preview gets clipped. Keep line-height at least fontSize * 1.1.
+    const minFromFont = fontSize != null ? Math.ceil(fontSize * 1.1) : null
+    const resolved = Math.max(lineHeight ?? 0, minFromFont ?? 0)
+    return `${Math.min(resolved, maxPx)}px`
+  }
+
   const openAddFont = () => {
     setNewStyleName('')
     setNewStyleFont('Inter')
@@ -115,6 +138,10 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
     }
     updateData({ typography: [...typographyStyles, newStyle] })
     setIsAddFontOpen(false)
+  }
+
+  const removeStyle = (id) => {
+    updateData({ typography: typographyStyles.filter((s) => s.id !== id) })
   }
 
   return (
@@ -192,7 +219,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
           {/* Typography Table Card (Figma: 1120px, r=16, shadow) */}
           <div className="w-full flex justify-center mb-12">
             <div className="w-full max-w-[1120px]">
-              <div className="bg-white rounded-[16px] shadow-[0px_4px_30px_rgba(26,28,33,0.05)] overflow-hidden">
+              <div className="bg-white rounded-[16px] shadow-[0px_4px_30px_rgba(26,28,33,0.05)] overflow-visible">
                 {/* Top action row */}
                 <div className="px-[24px] py-[16px] border-b border-[#E0E2E7]">
                   <Button
@@ -208,7 +235,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
                 </div>
 
                 <div className="sg-typoGrid bg-white">
-                  <div className="no-scrollbar overflow-x-auto">
+                  <div className="no-scrollbar overflow-x-auto overflow-y-visible">
                     <div className="min-w-[1120px]">
                       {/* Header */}
                       <div
@@ -230,33 +257,74 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
                           className="grid"
                           style={{
                             gridTemplateColumns: '329px 150px 150px 151px 150px 190px',
-                            height: rowHeights[index] || 56,
+                            ...(index < defaultStyles.length
+                              ? { height: rowHeights[index] || 56 }
+                              : { minHeight: 72 }),
                           }}
                         >
                           <div className="sg-cellStyle flex items-center">
-                            <div
-                              style={{
-                                fontFamily: style.font,
-                                fontSize: style.fontSize,
-                                fontWeight:
-                                  style.fontWeight === 'Bold'
-                                    ? '700'
-                                    : style.fontWeight === 'SemiBold'
-                                      ? '600'
-                                      : style.fontWeight === 'Medium'
-                                        ? '500'
-                                        : style.fontWeight === 'Regular'
-                                          ? '400'
-                                          : style.fontWeight === 'Light'
-                                            ? '300'
-                                            : '400',
-                                lineHeight: style.lineHeight,
-                                letterSpacing: style.letterSpacing,
-                              }}
-                              className="text-[#18181b] whitespace-nowrap"
-                            >
-                              {style.name}
-                            </div>
+                            {index >= defaultStyles.length ? (
+                              <div className="flex items-center justify-between gap-3 w-full min-w-0">
+                                <div
+                                  style={{
+                                    fontFamily: style.font,
+                                    // Keep the table layout stable even if users type huge sizes.
+                                    fontSize: clampPreviewPx(style.fontSize, 40),
+                                    fontWeight:
+                                      style.fontWeight === 'Bold'
+                                        ? '700'
+                                        : style.fontWeight === 'SemiBold'
+                                          ? '600'
+                                          : style.fontWeight === 'Medium'
+                                            ? '500'
+                                            : style.fontWeight === 'Regular'
+                                              ? '400'
+                                              : style.fontWeight === 'Light'
+                                                ? '300'
+                                                : '400',
+                                    lineHeight: previewLineHeightPx(style.fontSize, style.lineHeight, 44),
+                                    letterSpacing: style.letterSpacing,
+                                  }}
+                                  className="text-[#18181b] whitespace-nowrap truncate"
+                                  title={style.name}
+                                >
+                                  {style.name}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => removeStyle(style.id)}
+                                  className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-md border border-[#e4e4e7] bg-white text-[#71717a] hover:text-[#18181b] hover:bg-[#f4f4f5]"
+                                  aria-label={`Remove ${style.name}`}
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div
+                                style={{
+                                  fontFamily: style.font,
+                                  fontSize: style.fontSize,
+                                  fontWeight:
+                                    style.fontWeight === 'Bold'
+                                      ? '700'
+                                      : style.fontWeight === 'SemiBold'
+                                        ? '600'
+                                        : style.fontWeight === 'Medium'
+                                          ? '500'
+                                          : style.fontWeight === 'Regular'
+                                            ? '400'
+                                            : style.fontWeight === 'Light'
+                                              ? '300'
+                                              : '400',
+                                  lineHeight: style.lineHeight,
+                                  letterSpacing: style.letterSpacing,
+                                }}
+                                className="text-[#18181b] whitespace-nowrap"
+                              >
+                                {style.name}
+                              </div>
+                            )}
                           </div>
 
                           <div className="sg-cellControl flex items-center">

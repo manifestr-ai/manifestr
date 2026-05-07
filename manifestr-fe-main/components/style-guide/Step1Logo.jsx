@@ -258,7 +258,11 @@ export default function StyleGuideStep1Logo({ data, updateData, onBack, onNext, 
 
             {/* Upload Zone */}
             <div className="mt-6">
-              <LogoUploadZone onFilesChange={handleFilesChange} />
+              <LogoUploadZone
+                logos={uploadedFiles}
+                onFilesAdded={handleFilesChange}
+                onLogosChange={(nextLogos) => updateData({ logos: nextLogos })}
+              />
             </div>
           </Card>
 
