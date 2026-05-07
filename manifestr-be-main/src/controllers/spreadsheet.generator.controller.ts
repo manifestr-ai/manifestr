@@ -4,6 +4,7 @@ import SupabaseDB from '../lib/supabase-db';
 import { supabaseAdmin } from '../lib/supabase';
 import { generateJSON } from '../lib/claude';
 import { detectSpreadsheetCategory, getSpreadsheetPrompt } from '../agents/spreadsheet/SpreadsheetTemplates';
+import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 
 interface GenerateSpreadsheetRequest {
     prompt: string;
@@ -17,6 +18,13 @@ interface ModifySpreadsheetRequest {
     userId?: string;
     meta?: any;
     generationId?: string;
+    styleGuideId?: string;
+    styleGuide?: {
+        colors?: any;
+        typography?: any;
+        brandName?: string;
+        logo?: any;
+    };
 }
 
 export class SpreadsheetGeneratorController extends BaseController {
@@ -44,19 +52,19 @@ export class SpreadsheetGeneratorController extends BaseController {
             {
                 verb: 'POST',
                 path: '/generate',
-                middlewares: [this.extendTimeout.bind(this)], // 🔥 Add timeout extension
+                middlewares: [authenticateToken, this.extendTimeout.bind(this)],
                 handler: this.generateSpreadsheet.bind(this),
             },
             {
                 verb: 'POST',
                 path: '/modify',
-                middlewares: [this.extendTimeout.bind(this)], // 🔥 Add timeout extension
+                middlewares: [authenticateToken, this.extendTimeout.bind(this)],
                 handler: this.modifySpreadsheet.bind(this),
             },
         ];
     }
 
-    private async generateSpreadsheet(req: Request, res: Response) {
+    private async generateSpreadsheet(req: AuthRequest, res: Response) {
         try {
             const { prompt, userId, meta } = req.body as GenerateSpreadsheetRequest;
 
@@ -64,8 +72,7 @@ export class SpreadsheetGeneratorController extends BaseController {
                 return res.status(400).json({ error: 'Missing required field: prompt' });
             }
 
-            const defaultUserId = 'dcbe9e7d-3aca-48c7-b3de-ba8d4e39ba0b';
-            const jobUserId = userId || (req as any).user?.userId || defaultUserId;
+            const jobUserId = req.user!.userId;
 
             console.log(`📊 Generating spreadsheet for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
@@ -224,20 +231,22 @@ IMPORTANT: Return a JSON object with this exact structure:
         }
     }
 
-    private async modifySpreadsheet(req: Request, res: Response) {
+    private async modifySpreadsheet(req: AuthRequest, res: Response) {
         try {
-            const { prompt, spreadsheetData, userId, meta, generationId } = req.body as ModifySpreadsheetRequest;
+            const { prompt, spreadsheetData, userId, meta, generationId, styleGuideId, styleGuide } = req.body as ModifySpreadsheetRequest;
 
             if (!prompt || !spreadsheetData) {
                 return res.status(400).json({ error: 'Missing required fields: prompt and spreadsheetData' });
             }
 
-            const defaultUserId = 'dcbe9e7d-3aca-48c7-b3de-ba8d4e39ba0b';
-            const jobUserId = userId || (req as any).user?.userId || defaultUserId;
+            const jobUserId = req.user!.userId;
 
             console.log(`📊 Modifying spreadsheet for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
             console.log(`📊 Spreadsheet data size: ${JSON.stringify(spreadsheetData).length} bytes`);
+            if (styleGuide) {
+                console.log(`🎨 Applying style guide: ${styleGuide.brandName || 'Unknown'}`);
+            }
             
             // Check if we're updating an existing generation
             let job: any;
@@ -279,6 +288,15 @@ CRITICAL RULES:
 - If adding columns/rows, maintain proper formatting
 - Return the COMPLETE modified spreadsheet in the same JSON format
 - For large spreadsheets, be efficient and only modify what's necessary
+${styleGuide ? `
+STYLE GUIDE APPLICATION:
+- Apply the brand colors to headers and important cells
+- Use the specified typography for text elements
+- Maintain professional appearance with the brand palette
+- Primary Color: ${styleGuide.colors?.primary || 'N/A'}
+- Secondary Color: ${styleGuide.colors?.secondary || 'N/A'}
+- Font Family: ${styleGuide.typography?.fontFamily || 'N/A'}
+` : ''}
 `;
 
             // Limit the spreadsheet data sent to Claude to avoid token limits
@@ -307,6 +325,17 @@ USER MODIFICATION REQUEST: "${prompt}"
 
 CURRENT SPREADSHEET DATA:
 ${JSON.stringify(truncatedData, null, 2)}
+${styleGuide ? `
+STYLE GUIDE TO APPLY:
+- Brand Name: ${styleGuide.brandName || 'N/A'}
+- Primary Color: ${styleGuide.colors?.primary || 'N/A'}
+- Secondary Color: ${styleGuide.colors?.secondary || 'N/A'}
+- Background Color: ${styleGuide.colors?.background || 'N/A'}
+- Text Color: ${styleGuide.colors?.text || 'N/A'}
+- Font Family: ${styleGuide.typography?.fontFamily || 'N/A'}
+
+Please apply these brand colors and typography to the spreadsheet's headers, important cells, and overall styling.
+` : ''}
 
 Please modify the spreadsheet according to the user's request and return the COMPLETE modified version.
 Maintain the same JSON structure.

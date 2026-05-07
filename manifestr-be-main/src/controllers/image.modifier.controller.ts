@@ -82,14 +82,30 @@ export class ImageModifierController extends BaseController {
 
             console.log(`📝 Job created: ${job.id}`);
 
-            // 2. Download the original image and convert to base64
-            console.log(`📥 Downloading original image...`);
-            const imageResponse = await axios.get(imageUrl, {
-                responseType: 'arraybuffer',
-                timeout: 30000
-            });
-            const originalImageBase64 = Buffer.from(imageResponse.data, 'binary').toString('base64');
-            console.log(`✅ Original image downloaded and converted to base64`);
+            // 2. Get the original image as base64
+            let originalImageBase64: string;
+            
+            // Check if imageUrl is already base64 (data:image/... format)
+            if (imageUrl.startsWith('data:')) {
+                console.log(`📥 Image is already base64, extracting data...`);
+                // Extract base64 data from data URL
+                const base64Match = imageUrl.match(/^data:image\/[a-z]+;base64,(.+)$/);
+                if (base64Match && base64Match[1]) {
+                    originalImageBase64 = base64Match[1];
+                    console.log(`✅ Extracted base64 data (${originalImageBase64.length} chars)`);
+                } else {
+                    throw new Error('Invalid base64 data URL format');
+                }
+            } else {
+                // It's a URL, download it
+                console.log(`📥 Downloading image from URL...`);
+                const imageResponse = await axios.get(imageUrl, {
+                    responseType: 'arraybuffer',
+                    timeout: 30000
+                });
+                originalImageBase64 = Buffer.from(imageResponse.data, 'binary').toString('base64');
+                console.log(`✅ Image downloaded and converted to base64`);
+            }
 
             // 3. Generate an intelligent editing prompt
             const promptRefiner = `

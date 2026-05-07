@@ -56,8 +56,43 @@ export default function InsertThemePanel({
         success(`Capturing current image...`);
         endpoint = "/image-generator/modify";
         payload.prompt = `Apply brand style guide: ${brandName}`;
-        // toDataURL returns a Promise, so we need to await it
-        payload.imageUrl = store?.toDataURL ? await store.toDataURL() : "";
+        
+        // Get image data
+        const imageDataUrl = store?.toDataURL ? await store.toDataURL() : "";
+        
+        if (!imageDataUrl) {
+          throw new Error("Failed to capture current image");
+        }
+        
+        // Upload image to storage first to avoid 413 error
+        try {
+          success("Uploading current image...");
+          
+          // Convert base64 to blob
+          const base64Data = imageDataUrl.split(',')[1];
+          const mimeType = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: mimeType });
+          
+          // Upload to backend
+          const formData = new FormData();
+          formData.append('file', blob, 'current-image.png');
+          
+          const uploadResponse = await api.post('/api/uploads/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          
+          payload.imageUrl = uploadResponse.data.data.url;
+          console.log("✅ Image uploaded for theme application");
+        } catch (uploadError) {
+          console.error("❌ Image upload failed:", uploadError);
+          throw new Error("Failed to upload image");
+        }
       }
 
       if (endpoint) {

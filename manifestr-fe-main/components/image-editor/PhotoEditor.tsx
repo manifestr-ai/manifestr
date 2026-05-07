@@ -1052,20 +1052,17 @@ const PhotoEditor = observer(function PhotoEditor({
     showToast(`Preparing to apply "${brandName}" theme...`, "info");
 
     try {
-      // Get the current image URL from the store
-      // Try to get the base64 data URL from the store
-      let imageUrl: string = "";
+      // Get the current image from the store
+      let imageDataUrl: string = "";
       
       try {
         showToast(`Capturing current image...`, "info");
-        // Call toDataURL with proper options - it returns a Promise!
         if (store?.toDataURL) {
-          imageUrl = await store.toDataURL();
+          imageDataUrl = await store.toDataURL();
         }
         
-        // Validate that we got a proper data URL string
-        if (!imageUrl || typeof imageUrl !== 'string') {
-          console.error("❌ toDataURL did not return a valid string:", typeof imageUrl);
+        if (!imageDataUrl || typeof imageDataUrl !== 'string') {
+          console.error("❌ toDataURL did not return a valid string:", typeof imageDataUrl);
           
           // Fallback: try to get the source image URL directly
           const baseImage = store?.pages?.[0]?.children?.find(
@@ -1073,23 +1070,56 @@ const PhotoEditor = observer(function PhotoEditor({
           );
           
           if (baseImage && baseImage.src) {
-            imageUrl = baseImage.src;
-            console.log("✅ Using base image src as fallback:", imageUrl.substring(0, 50));
+            imageDataUrl = baseImage.src;
+            console.log("✅ Using base image src as fallback");
           }
         }
       } catch (err) {
-        console.error("❌ Error getting image URL:", err);
+        console.error("❌ Error getting image:", err);
       }
       
-      if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.trim() === "") {
+      if (!imageDataUrl || typeof imageDataUrl !== 'string' || imageDataUrl.trim() === "") {
         showToast("No image loaded to apply style guide", "error");
-        console.error("❌ No valid imageUrl found");
+        console.error("❌ No valid image data found");
         return;
       }
 
-      console.log("✅ Got imageUrl, length:", imageUrl.length, "type:", typeof imageUrl);
+      console.log("✅ Got image data");
 
-      // Build payload matching the working format from InsertThemePanel
+      // Upload image to storage first to avoid 413 payload too large error
+      let uploadedImageUrl: string;
+      
+      try {
+        showToast("Uploading image...", "info");
+        
+        // Convert base64 to blob
+        const base64Data = imageDataUrl.split(',')[1];
+        const mimeType = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        
+        // Upload to backend
+        const formData = new FormData();
+        formData.append('file', blob, 'current-image.png');
+        
+        const uploadResponse = await api.post('/api/uploads/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        
+        uploadedImageUrl = uploadResponse.data.data.url;
+        console.log("✅ Image uploaded:", uploadedImageUrl);
+      } catch (uploadError) {
+        console.error("❌ Image upload failed:", uploadError);
+        showToast("Failed to upload image", "error");
+        return;
+      }
+
+      // Build payload with uploaded URL instead of base64
       const payload = {
         styleGuideId: styleGuide.id,
         styleGuide: {
@@ -1103,10 +1133,10 @@ const PhotoEditor = observer(function PhotoEditor({
           applyStyleGuide: true,
         },
         prompt: `Apply brand style guide: ${brandName}`,
-        imageUrl: imageUrl,
+        imageUrl: uploadedImageUrl,
       };
 
-      console.log("📤 Sending payload with imageUrl type:", typeof payload.imageUrl);
+      console.log("📤 Sending payload with uploaded URL");
       showToast(`Regenerating image with "${brandName}" theme... Please wait, this may take a moment.`, "info");
 
       const response = await api.post("/image-generator/modify", payload);
