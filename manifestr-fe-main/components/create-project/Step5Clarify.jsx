@@ -2,6 +2,154 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ArrowRight, Pencil, CheckCircle2, Check, X } from 'lucide-react'
 
+// Module-scope components keep their identity stable across parent renders.
+// Defining them inside Step5Clarify caused every keystroke to remount inputs
+// (because each render produced a new component type), which is what made the
+// page feel like it was "reloading" while typing.
+
+function EditableField({
+    label,
+    fieldKey,
+    value,
+    placeholder = 'Not specified',
+    editingField,
+    editingContainerRef,
+    tempValue,
+    setTempValue,
+    handleEdit,
+    handleSave,
+    handleCancel,
+}) {
+    const isEditing = editingField === fieldKey
+    const currentValue = value || ''
+    const displayValue = currentValue || placeholder
+
+    return (
+        <motion.div
+            whileHover={{ scale: 1.01, y: -2 }}
+            whileTap={{ scale: 0.99 }}
+            ref={isEditing ? editingContainerRef : null}
+            data-editing-field={isEditing ? 'true' : undefined}
+            className="flex items-center justify-between px-4 py-4 bg-white border border-[#e4e4e7] rounded-lg hover:shadow-md transition-all duration-200 group"
+        >
+            {!isEditing ? (
+                <>
+                    <div
+                        className="flex flex-col gap-1 flex-1 cursor-pointer"
+                        onClick={() => handleEdit(fieldKey, currentValue)}
+                    >
+                        <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
+                            {label}
+                        </p>
+                        <p className={`text-[14px] leading-[24px] font-medium ${currentValue ? 'text-base-foreground' : 'text-base-muted-foreground'
+                            }`}>
+                            {displayValue}
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => handleEdit(fieldKey, currentValue)}
+                        className="ml-4 p-2 hover:bg-base-muted rounded-md transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                    >
+                        <Pencil className="w-4 h-4 text-base-muted-foreground" />
+                    </button>
+                </>
+            ) : (
+                <div className="flex flex-col gap-3 flex-1">
+                    <div className="flex flex-col gap-1">
+                        <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
+                            {label}
+                        </p>
+                        <input
+                            type="text"
+                            value={tempValue}
+                            onChange={(e) => setTempValue(e.target.value)}
+                            className="text-[14px] leading-[24px] font-medium text-base-foreground px-3 py-2 border border-[#e4e4e7] rounded-md focus:outline-none focus:ring-2 focus:ring-base-secondary focus:border-transparent"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="flex gap-2 items-center">
+                        <button
+                            onClick={() => handleSave(fieldKey)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#18181b] text-white rounded-md hover:opacity-90 transition-opacity text-[12px] leading-[18px] font-medium cursor-pointer"
+                        >
+                            <Check className="w-3.5 h-3.5" />
+                            Save
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e4e4e7] text-base-foreground rounded-md hover:bg-base-muted transition-colors text-[12px] leading-[18px] font-medium cursor-pointer"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+        </motion.div>
+    )
+}
+
+function CollapsibleSection({
+    title,
+    subtitle,
+    sectionKey,
+    children,
+    defaultExpanded = true,
+    expandedSections,
+    toggleSection,
+}) {
+    const isExpanded = expandedSections[sectionKey] ?? defaultExpanded
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white border border-[#e4e4e7] rounded-lg overflow-hidden"
+        >
+            {/* Header */}
+            <motion.button
+                whileHover={{ backgroundColor: '#e4e4e7' }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => toggleSection(sectionKey)}
+                className="w-full flex items-center justify-between px-6 py-6 bg-[#f4f4f5] transition-colors cursor-pointer"
+            >
+                <div className="flex flex-col gap-1 items-start text-left">
+                    <h3 className="text-[18px] leading-[30px] font-medium text-base-foreground">
+                        {title}
+                    </h3>
+                    <p className="text-[14px] leading-[24px] text-base-muted-foreground+">
+                        {subtitle}
+                    </p>
+                </div>
+                <motion.div
+                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <ChevronDown className="w-6 h-6 text-base-foreground shrink-0" />
+                </motion.div>
+            </motion.button>
+
+            {/* Content */}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                        className="overflow-hidden"
+                    >
+                        <div className="px-6 pb-6">
+                            {children}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    )
+}
+
 export default function Step5Clarify({ onSkip, projectData, updateProjectData, selectedTool }) {
     const [expandedSections, setExpandedSections] = useState({
         documentOverview: true,
@@ -44,16 +192,6 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
 
     const editingContainerRef = useRef(null)
 
-    useEffect(() => {
-        if (!editingField) return
-        const onDocClick = (e) => {
-            if (editingContainerRef.current && editingContainerRef.current.contains(e.target)) return
-            handleSave(editingField)
-        }
-        document.addEventListener('mousedown', onDocClick)
-        return () => document.removeEventListener('mousedown', onDocClick)
-    }, [editingField])
-
     const toggleSection = (section) => {
         setExpandedSections((prev) => ({
             ...prev,
@@ -78,152 +216,35 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
         setTempValue("")
     }
 
-    const EditableField = ({ label, fieldKey, value, placeholder = "Not specified" }) => {
-        const isEditing = editingField === fieldKey
-        const currentValue = value || ""
-        const displayValue = currentValue || placeholder
+    useEffect(() => {
+        if (!editingField) return
+        const onDocClick = (e) => {
+            if (editingContainerRef.current && editingContainerRef.current.contains(e.target)) return
+            const current = editingField
+            const sectionKey = fieldToSection[current]
+            handleSave(current)
+            if (sectionKey) {
+                setExpandedSections((prev) => ({ ...prev, [sectionKey]: false }))
+            }
+        }
+        document.addEventListener('mousedown', onDocClick)
+        return () => document.removeEventListener('mousedown', onDocClick)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editingField, tempValue])
 
-        return (
-            <motion.div
-                whileHover={{ scale: 1.01, y: -2 }}
-                whileTap={{ scale: 0.99 }}
-                ref={isEditing ? editingContainerRef : null}
-                data-editing-field={isEditing ? 'true' : undefined}
-                className="flex items-center justify-between px-4 py-4 bg-white border border-[#e4e4e7] rounded-lg hover:shadow-md transition-all duration-200 group"
-            >
-                {!isEditing ? (
-                    <>
-                        <div
-                            className="flex flex-col gap-1 flex-1 cursor-pointer"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                handleEdit(fieldKey, currentValue)
-                            }}
-                        >
-                            <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
-                                {label}
-                            </p>
-                            <p className={`text-[14px] leading-[24px] font-medium ${currentValue ? 'text-base-foreground' : 'text-base-muted-foreground'
-                                }`}>
-                                {displayValue}
-                            </p>
-                        </div>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                handleEdit(fieldKey, currentValue)
-                            }}
-                            className="ml-4 p-2 hover:bg-base-muted rounded-md transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                        >
-                            <Pencil className="w-4 h-4 text-base-muted-foreground" />
-                        </button>
-                    </>
-                ) : (
-                    <div className="flex flex-col gap-3 flex-1" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex flex-col gap-1">
-                            <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
-                                {label}
-                            </p>
-                            <input
-                                type="text"
-                                value={tempValue}
-                                onChange={(e) => setTempValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSave(fieldKey)
-                                    } else if (e.key === 'Escape') {
-                                        handleCancel()
-                                    }
-                                }}
-                                className="text-[14px] leading-[24px] font-medium text-base-foreground px-3 py-2 border border-[#e4e4e7] rounded-md focus:outline-none focus:ring-2 focus:ring-base-secondary focus:border-transparent"
-                                autoFocus
-                            />
-                        </div>
-                        <div className="flex gap-2 items-center">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleSave(fieldKey)
-                                }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#18181b] text-white rounded-md hover:opacity-90 transition-opacity text-[12px] leading-[18px] font-medium cursor-pointer"
-                            >
-                                <Check className="w-3.5 h-3.5" />
-                                Save
-                            </button>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleCancel()
-                                }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e4e4e7] text-base-foreground rounded-md hover:bg-base-muted transition-colors text-[12px] leading-[18px] font-medium cursor-pointer"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </motion.div>
-        )
+    const editableFieldProps = {
+        editingField,
+        editingContainerRef,
+        tempValue,
+        setTempValue,
+        handleEdit,
+        handleSave,
+        handleCancel,
     }
 
-    const CollapsibleSection = ({
-        title,
-        subtitle,
-        sectionKey,
-        children,
-        defaultExpanded = true
-    }) => {
-        const isExpanded = expandedSections[sectionKey] ?? defaultExpanded
-
-        return (
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white border border-[#e4e4e7] rounded-lg overflow-hidden"
-            >
-                {/* Header */}
-                <motion.button
-                    whileHover={{ backgroundColor: '#e4e4e7' }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => toggleSection(sectionKey)}
-                    className="w-full flex items-center justify-between px-6 py-6 bg-[#f4f4f5] transition-colors cursor-pointer"
-                >
-                    <div className="flex flex-col gap-1 items-start text-left">
-                        <h3 className="text-[18px] leading-[30px] font-medium text-base-foreground">
-                            {title}
-                        </h3>
-                        <p className="text-[14px] leading-[24px] text-base-muted-foreground+">
-                            {subtitle}
-                        </p>
-                    </div>
-                    <motion.div
-                        animate={{ rotate: isExpanded ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <ChevronDown className="w-6 h-6 text-base-foreground shrink-0" />
-                    </motion.div>
-                </motion.button>
-
-                {/* Content */}
-                <AnimatePresence>
-                    {isExpanded && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                            className="overflow-hidden"
-                        >
-                            <div className="px-6 pb-6">
-                                {children}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-        )
+    const collapsibleSectionProps = {
+        expandedSections,
+        toggleSection,
     }
 
     const toolTitle = selectedTool?.title || 'Project'
@@ -320,6 +341,7 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Document Overview"
                     subtitle="Core identifiers and links"
                     sectionKey="documentOverview"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <div className="flex flex-col gap-3">
@@ -327,16 +349,19 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                             label="Document Name"
                             fieldKey="documentName"
                             value={data.documentName}
+                            {...editableFieldProps}
                         />
                         <EditableField
                             label="Project / Brand Name"
                             fieldKey="projectBrandName"
                             value={data.projectBrandName}
+                            {...editableFieldProps}
                         />
                         <EditableField
                             label="Website / URL"
                             fieldKey="websiteUrl"
                             value={data.websiteUrl}
+                            {...editableFieldProps}
                         />
                     </div>
                 </CollapsibleSection>
@@ -346,12 +371,14 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Purpose & Objectives"
                     subtitle="Why this document exists"
                     sectionKey="purposeObjectives"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <EditableField
                         label="Primary Objective"
                         fieldKey="primaryObjective"
                         value={data.primaryObjective}
+                        {...editableFieldProps}
                     />
                 </CollapsibleSection>
 
@@ -360,12 +387,14 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Key Message"
                     subtitle="What must land clearly?"
                     sectionKey="keyMessage"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <EditableField
                         label="Key Message"
                         fieldKey="keyMessage"
                         value={data.keyMessage}
+                        {...editableFieldProps}
                     />
                 </CollapsibleSection>
 
@@ -374,6 +403,7 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Audience & Impact"
                     subtitle="Who is this for, and what should they think/feel/do?"
                     sectionKey="audienceImpact"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <div className="flex flex-col gap-3">
@@ -381,22 +411,26 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                             label="Primary Audience"
                             fieldKey="primaryAudience"
                             value={data.primaryAudience}
+                            {...editableFieldProps}
                         />
                         <div className="grid grid-cols-3 gap-3">
                             <EditableField
                                 label="Think"
                                 fieldKey="think"
                                 value={data.think}
+                                {...editableFieldProps}
                             />
                             <EditableField
                                 label="Feel"
                                 fieldKey="feel"
                                 value={data.feel}
+                                {...editableFieldProps}
                             />
                             <EditableField
                                 label="Do"
                                 fieldKey="do"
                                 value={data.do}
+                                {...editableFieldProps}
                             />
                         </div>
                     </div>
@@ -407,12 +441,14 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="KPIs & Success"
                     subtitle="How will we measure impact?"
                     sectionKey="kpisSuccess"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <EditableField
                         label="Success Definition"
                         fieldKey="successDefinition"
                         value={data.successDefinition}
+                        {...editableFieldProps}
                     />
                 </CollapsibleSection>
 
@@ -421,17 +457,20 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Structure & Output Preferences"
                     subtitle="Format and depth"
                     sectionKey="structureOutput"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <EditableField
                         label="Structure"
                         fieldKey="structure"
                         value={data.structure}
+                        {...editableFieldProps}
                     />
                     <EditableField
                         label="Tone"
                         fieldKey="tone"
                         value={data.tone}
+                        {...editableFieldProps}
                     />
                 </CollapsibleSection>
 
@@ -440,6 +479,7 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Requirements & Constraints"
                     subtitle="Guardrails & sensitivity"
                     sectionKey="requirementsConstraints"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <div className="flex items-center justify-between px-4 py-4 bg-white border border-[#e4e4e7] rounded-lg">
@@ -469,17 +509,20 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Evidence & Benchmarks"
                     subtitle="Should we include competitor benchmarks?"
                     sectionKey="evidenceBenchmarks"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <EditableField
                         label="Dependencies"
                         fieldKey="dependencies"
                         value={data.dependencies}
+                        {...editableFieldProps}
                     />
                     <EditableField
                         label="Approvers"
                         fieldKey="approvers"
                         value={data.approvers}
+                        {...editableFieldProps}
                     />
                 </CollapsibleSection>
 
@@ -488,22 +531,26 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                     title="Deliverables • Timeline • Budget"
                     subtitle="What we'll hand over & when"
                     sectionKey="deliverablesTimeline"
+                    {...collapsibleSectionProps}
                 >
                     <div style={{ height: '20px' }} />
                     <EditableField
                         label="Deliverables"
                         fieldKey="deliverables"
                         value={data.deliverables}
+                        {...editableFieldProps}
                     />
                     <EditableField
                         label="Timeline"
                         fieldKey="timeline"
                         value={data.timeline}
+                        {...editableFieldProps}
                     />
                     <EditableField
                         label="Budget"
                         fieldKey="budget"
                         value={data.budget}
+                        {...editableFieldProps}
                     />
                 </CollapsibleSection>
             </div>

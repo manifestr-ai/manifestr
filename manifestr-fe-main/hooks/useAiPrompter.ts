@@ -283,9 +283,7 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const uploadResponse = await api.post('/api/uploads/direct', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const uploadResponse = await api.post('/api/uploads/direct', formData);
 
       const uploadedFileUrl = uploadResponse.data.data.url;
       console.log(' File uploaded:', uploadedFileUrl);
@@ -371,6 +369,10 @@ Constraints: ${briefData.constraints}
     }
   }, [modifyContent, generateContent, onError]);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     isProcessing,
     error,
@@ -382,7 +384,8 @@ Constraints: ${briefData.constraints}
     processUploadedFile,
     processBrief,
     addToHistory,
-    clearHistory
+    clearHistory,
+    clearError,
   };
 }
 

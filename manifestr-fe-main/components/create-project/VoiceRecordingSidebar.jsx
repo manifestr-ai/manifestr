@@ -1,32 +1,43 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, Circle, AlertCircle, Edit2, Check, X } from 'lucide-react'
 
-export default function VoiceRecordingSidebar({ 
-  capturedFields = {}, 
-  progressCount = 0, 
+export default function VoiceRecordingSidebar({
+  capturedFields = {},
+  fieldValues = {},
+  progressCount = 0,
   totalFields = 8,
   transcript = '',
-  refinedValues = {},
-  onRefine
+  onRefineField,
 }) {
+  const [editingFieldId, setEditingFieldId] = useState(null)
+
   const fields = {
     core: [
-      { id: 'documentType', label: 'Document Type', icon: CheckCircle2, captured: capturedFields.documentType },
-      { id: 'documentName', label: 'Document Name', icon: CheckCircle2, captured: capturedFields.documentName },
-      { id: 'projectName', label: 'Project Name', icon: CheckCircle2, captured: capturedFields.projectName },
-      { id: 'websiteUrl', label: 'Website URL', icon: CheckCircle2, captured: capturedFields.websiteUrl },
-      { id: 'supportingLinks', label: 'Supporting Links', icon: CheckCircle2, captured: capturedFields.supportingLinks },
-      { id: 'deadlines', label: 'Deadlines', icon: AlertCircle, captured: capturedFields.deadlines, warning: true },
-      { id: 'purpose', label: 'Purpose', icon: AlertCircle, captured: capturedFields.purpose, warning: true },
+      { id: 'documentType', label: 'Document Type', captured: capturedFields.documentType },
+      { id: 'documentName', label: 'Document Name', captured: capturedFields.documentName },
+      { id: 'projectName', label: 'Project Name', captured: capturedFields.projectName },
+      { id: 'websiteUrl', label: 'Website URL', captured: capturedFields.websiteUrl },
+      { id: 'supportingLinks', label: 'Supporting Links', captured: capturedFields.supportingLinks },
+      { id: 'deadlines', label: 'Deadlines', captured: capturedFields.deadlines, warning: true },
+      { id: 'purpose', label: 'Purpose', captured: capturedFields.purpose, warning: true },
     ],
     strategic: [
-      { id: 'keyMessage', label: 'Key Message', icon: AlertCircle, captured: capturedFields.keyMessage, warning: true },
-      { id: 'audience', label: 'Audience', icon: AlertCircle, captured: capturedFields.audience, warning: true },
-      { id: 'keyImpact', label: 'Key Impact', icon: AlertCircle, captured: capturedFields.keyImpact, warning: true },
+      { id: 'keyMessage', label: 'Key Message', captured: capturedFields.keyMessage, warning: true },
+      { id: 'audience', label: 'Audience', captured: capturedFields.audience, warning: true },
+      { id: 'keyImpact', label: 'Key Impact', captured: capturedFields.keyImpact, warning: true },
     ],
   }
 
   const progressPercentage = (progressCount / totalFields) * 100
+
+  const handleStartEdit = (fieldId) => setEditingFieldId(fieldId)
+  const handleCancelEdit = () => setEditingFieldId(null)
+  const handleSaveEdit = (fieldId, nextValue) => {
+    if (typeof onRefineField === 'function') {
+      onRefineField(fieldId, nextValue)
+    }
+    setEditingFieldId(null)
+  }
 
   return (
     <div className="fixed left-0 top-[80px] h-[calc(100vh-80px)] w-[344px] bg-white border-r border-[#e5e7eb] overflow-y-auto z-40">
@@ -71,11 +82,14 @@ export default function VoiceRecordingSidebar({
           </h3>
           <div className="flex flex-col">
             {fields.core.map((field) => (
-              <DetailItem 
-                key={field.id} 
+              <DetailItem
+                key={field.id}
                 field={field}
-                refinedValue={refinedValues[field.id]}
-                onRefine={onRefine}
+                value={fieldValues[field.id] || ''}
+                isEditing={editingFieldId === field.id}
+                onStartEdit={() => handleStartEdit(field.id)}
+                onCancel={handleCancelEdit}
+                onSave={(nextValue) => handleSaveEdit(field.id, nextValue)}
               />
             ))}
           </div>
@@ -88,11 +102,14 @@ export default function VoiceRecordingSidebar({
           </h3>
           <div className="flex flex-col">
             {fields.strategic.map((field) => (
-              <DetailItem 
-                key={field.id} 
+              <DetailItem
+                key={field.id}
                 field={field}
-                refinedValue={refinedValues[field.id]}
-                onRefine={onRefine}
+                value={fieldValues[field.id] || ''}
+                isEditing={editingFieldId === field.id}
+                onStartEdit={() => handleStartEdit(field.id)}
+                onCancel={handleCancelEdit}
+                onSave={(nextValue) => handleSaveEdit(field.id, nextValue)}
               />
             ))}
           </div>
@@ -116,81 +133,98 @@ export default function VoiceRecordingSidebar({
   )
 }
 
-function DetailItem({ field, refinedValue, onRefine }) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState(refinedValue || '')
-  
-  const IconComponent = field.captured ? CheckCircle2 : Circle
-  const iconColor = field.captured 
-    ? 'text-[#06b6d4]' // cyan/teal for captured
-    : field.warning 
-      ? 'text-[#fbbf24]' // yellow for warning
-      : 'text-[#d1d5db]' // light gray for not captured
+function DetailItem({ field, value, isEditing, onStartEdit, onCancel, onSave }) {
+  const [draft, setDraft] = useState(value || '')
 
-  const handleSave = () => {
-    if (onRefine && editValue.trim()) {
-      onRefine(field.id, editValue.trim())
+  useEffect(() => {
+    if (isEditing) {
+      setDraft(value || '')
     }
-    setIsEditing(false)
+  }, [isEditing, value])
+
+  const hasValue = !!(value && String(value).trim())
+  const isCaptured = field.captured || hasValue
+  const IconComponent = isCaptured ? CheckCircle2 : (field.warning ? AlertCircle : Circle)
+  const iconColor = isCaptured
+    ? 'text-[#06b6d4]'
+    : field.warning
+      ? 'text-[#fbbf24]'
+      : 'text-[#d1d5db]'
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      onCancel()
+    } else if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault()
+      onSave(draft.trim())
+    }
   }
 
-  const handleCancel = () => {
-    setEditValue(refinedValue || '')
-    setIsEditing(false)
-  }
-
-  return (
-    <div className="flex flex-col py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+  if (isEditing) {
+    return (
+      <div className="py-2.5 px-1">
+        <div className="flex items-center gap-2 mb-2">
           <IconComponent className={`w-4 h-4 ${iconColor} flex-shrink-0`} />
           <span className="text-[13px] font-medium text-[#101828]">
             {field.label}
           </span>
         </div>
-        <button 
-          onClick={() => setIsEditing(!isEditing)}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] text-[#99a1af] hover:text-[#6b7280] transition-colors"
-        >
-          <Edit2 className="w-3.5 h-3.5" />
-          <span>Refine</span>
-        </button>
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={2}
+          autoFocus
+          placeholder={`Add ${field.label.toLowerCase()}…`}
+          className="w-full text-[13px] leading-[18px] px-2.5 py-2 bg-white border border-[#e5e7eb] rounded-md focus:outline-none focus:border-[#18181b] focus:ring-1 focus:ring-[#18181b] resize-none"
+        />
+        <div className="flex items-center justify-end gap-1.5 mt-1.5">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-[12px] text-[#6b7280] hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onSave(draft.trim())}
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-[12px] text-white bg-[#18181b] hover:opacity-90 transition-opacity"
+          >
+            <Check className="w-3.5 h-3.5" />
+            Save
+          </button>
+        </div>
       </div>
-      
-      {isEditing && (
-        <div className="mt-2 ml-7 flex flex-col gap-2">
-          <textarea
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            placeholder={`Enter ${field.label.toLowerCase()}...`}
-            className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#06b6d4] focus:border-transparent resize-none"
-            rows={3}
-            autoFocus
-          />
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#06b6d4] text-white text-[12px] rounded-md hover:bg-[#0891b2] transition-colors"
-            >
-              <Check className="w-3.5 h-3.5" />
-              <span>Save</span>
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-200 text-gray-700 text-[12px] rounded-md hover:bg-gray-300 transition-colors"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Cancel</span>
-            </button>
-          </div>
+    )
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-2 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        <IconComponent className={`w-4 h-4 ${iconColor} flex-shrink-0 mt-[2px]`} />
+        <div className="min-w-0 flex-1">
+          <span className="text-[13px] font-medium text-[#101828]">
+            {field.label}
+          </span>
+          {hasValue && (
+            <p className="text-[12px] leading-[16px] text-[#6b7280] mt-0.5 line-clamp-2 break-words">
+              {value}
+            </p>
+          )}
         </div>
-      )}
-      
-      {!isEditing && refinedValue && (
-        <div className="mt-2 ml-7 text-[12px] text-[#6b7280] bg-[#f0f9ff] px-3 py-2 rounded-md border border-[#bae6fd]">
-          {refinedValue}
-        </div>
-      )}
+      </div>
+      <button
+        type="button"
+        onClick={onStartEdit}
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] text-[#99a1af] hover:text-[#6b7280] transition-colors flex-shrink-0"
+        aria-label={`Refine ${field.label}`}
+      >
+        <Edit2 className="w-3.5 h-3.5" />
+        <span>Refine</span>
+      </button>
     </div>
   )
 }
