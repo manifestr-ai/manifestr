@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
 import { supabaseAdmin } from '../lib/supabase';
 import { AuthRequest, authenticateToken } from '../middleware/auth.middleware';
+import notificationService from '../services/NotificationService';
 
 interface CreateThreadRequest {
     documentId: string;
@@ -195,6 +196,33 @@ export class ThreadsController extends BaseController {
                 return res.status(500).json({ error: 'Failed to create message' });
             }
 
+            const assigneeIds = Array.isArray(assignedTo)
+                ? assignedTo.filter((assigneeId) => assigneeId && assigneeId !== userId)
+                : [];
+
+            if (assigneeIds.length > 0) {
+                await notificationService.createBulkNotifications(
+                    [...new Set(assigneeIds)].map((assigneeId) => ({
+                        userId: assigneeId,
+                        actorUserId: userId,
+                        type: 'thread_assigned',
+                        category: 'mentions',
+                        severity: priority === 'urgent' || priority === 'high' ? 'critical' : 'important',
+                        title: `You've been assigned a thread`,
+                        body: initialMessage.substring(0, 180),
+                        entityType: 'thread',
+                        entityId: thread.id,
+                        actionUrl: `/collab-hub/threads?threadId=${thread.id}&documentId=${documentId}`,
+                        metadata: {
+                            documentId,
+                            documentType,
+                            threadId: thread.id,
+                            priority: priority || 'normal',
+                        },
+                    }))
+                );
+            }
+
             console.log(`✅ Thread created: ${thread.id}`);
 
             return res.json({
@@ -247,6 +275,49 @@ export class ThreadsController extends BaseController {
                 .from('threads')
                 .update({ updated_at: new Date().toISOString() })
                 .eq('id', threadId);
+
+            const { data: thread } = await supabaseAdmin
+                .from('threads')
+                .select('id, document_id, document_type, title, created_by, assigned_to')
+                .eq('id', threadId)
+                .single();
+
+            if (thread) {
+                const recipientIds = new Set<string>();
+
+                if (thread.created_by && thread.created_by !== userId) {
+                    recipientIds.add(thread.created_by);
+                }
+
+                if (Array.isArray(thread.assigned_to)) {
+                    thread.assigned_to.forEach((assigneeId: string) => {
+                        if (assigneeId && assigneeId !== userId) {
+                            recipientIds.add(assigneeId);
+                        }
+                    });
+                }
+
+                await notificationService.createBulkNotifications(
+                    [...recipientIds].map((recipientId) => ({
+                        userId: recipientId,
+                        actorUserId: userId,
+                        type: 'thread_reply',
+                        category: 'mentions',
+                        severity: 'normal',
+                        title: `New reply in ${thread.title || 'a thread'}`,
+                        body: content.substring(0, 180),
+                        entityType: 'thread',
+                        entityId: threadId,
+                        actionUrl: `/collab-hub/threads?threadId=${threadId}&documentId=${thread.document_id}`,
+                        metadata: {
+                            documentId: thread.document_id,
+                            documentType: thread.document_type,
+                            threadId,
+                            messageId: message.id,
+                        },
+                    }))
+                );
+            }
 
             console.log(`✅ Message added: ${message.id}`);
 
@@ -303,6 +374,31 @@ export class ThreadsController extends BaseController {
             if (updateError) {
                 console.error('❌ Error updating thread:', updateError);
                 return res.status(500).json({ error: 'Failed to update thread' });
+            }
+
+            if (Array.isArray(updates.assignedTo) && updates.assignedTo.length > 0) {
+                const assigneeIds = updates.assignedTo.filter((assigneeId) => assigneeId && assigneeId !== userId);
+
+                await notificationService.createBulkNotifications(
+                    [...new Set(assigneeIds)].map((assigneeId) => ({
+                        userId: assigneeId,
+                        actorUserId: userId,
+                        type: 'thread_assigned',
+                        category: 'mentions',
+                        severity: updates.priority === 'urgent' || updates.priority === 'high' ? 'critical' : 'important',
+                        title: `You've been assigned a thread`,
+                        body: thread.title || 'A thread needs your attention.',
+                        entityType: 'thread',
+                        entityId: threadId,
+                        actionUrl: `/collab-hub/threads?threadId=${threadId}&documentId=${thread.document_id}`,
+                        metadata: {
+                            documentId: thread.document_id,
+                            documentType: thread.document_type,
+                            threadId,
+                            priority: thread.priority,
+                        },
+                    }))
+                );
             }
 
             console.log(`✅ Thread updated: ${threadId}`);

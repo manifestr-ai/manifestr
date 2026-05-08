@@ -24,6 +24,7 @@ import { AdminController } from './controllers/admin.controller';
 import { ThreadsController } from './controllers/threads.controller';
 import { UserStatsController } from './controllers/user.stats.controller';
 import { AnalyticsApiController } from './controllers/analytics.controller';
+import { NotificationsController } from './controllers/notifications.controller';
 
 const serverStartedAt = new Date();
 
@@ -161,6 +162,7 @@ class App {
             new ThreadsController(), // NEW: Threaded commenting/feedback system
             new UserStatsController(), // User statistics and achievements
             new AnalyticsApiController(), // Client analytics (/analytics/track)
+            new NotificationsController(), // In-app notifications
         ];
 
         controllers.forEach((controller) => {

@@ -15,6 +15,7 @@ import { supabaseAdmin } from '../lib/supabase';
 import { authenticateToken } from '../middleware/auth.middleware';
 import crypto from 'crypto';
 import postmarkService from '../services/PostmarkService';
+import notificationService from '../services/NotificationService';
 
 export class CollaborationController extends BaseController {
     public basePath = '/collaborations';
@@ -427,6 +428,26 @@ export class CollaborationController extends BaseController {
                 console.error(`⚠️ Failed to send email to ${email}:`, emailError);
                 // Continue anyway - user was added to collaboration
             }
+
+            await notificationService.createNotification({
+                userId: inviteeUserId as string,
+                actorUserId: inviterId,
+                type: 'document_collaboration_invite',
+                category: 'access',
+                severity: 'important',
+                title: `You've been added to ${documentTitle}`,
+                body: `${inviterName} added you as ${role}.`,
+                entityType: 'document',
+                entityId: documentId,
+                actionUrl: `/docs-editor?id=${documentId}`,
+                metadata: {
+                    documentTitle,
+                    role,
+                    inviterName,
+                    inviteId: invite?.id,
+                    userCreated: !existingUser,
+                },
+            });
 
             console.log(`✅ ${inviterName} added ${email} to collaborate as ${role}`);
             

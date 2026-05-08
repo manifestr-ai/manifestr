@@ -17,7 +17,7 @@ export function FloatingSheetTab() {
 
 export function FloatingFAB() {
     return (
-        <button className="absolute bottom-4 right-8 w-16 h-16 bg-black rounded-full flex items-center justify-center shadow-2xl hover:scale-105 transition-transform z-50">
+        <button className="absolute bottom-4 right-4 w-14 h-14 bg-black rounded-full flex items-center justify-center shadow-2xl hover:scale-105 transition-transform z-50 sm:right-6 sm:w-16 sm:h-16 lg:right-8">
             <span className="text-white text-2xl font-serif italic">M.</span>
         </button>
     );

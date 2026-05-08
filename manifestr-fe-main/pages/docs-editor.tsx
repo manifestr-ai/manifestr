@@ -24,6 +24,9 @@ import { useToast } from "../hooks/useToast";
 import api from "../lib/api";
 import { useEffect } from "react";
 
+const EDITOR_BACKGROUND_IMAGE =
+  "https://res.cloudinary.com/dlifgfg6m/image/upload/v1778220832/background_presentation_editor_tnlrr7.png";
+
 export default function DocsEditor() {
   const router = useRouter();
   const { id: documentId } = router.query;
@@ -338,14 +341,25 @@ export default function DocsEditor() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-grow flex relative overflow-hidden">
+        <div
+          className="flex-grow flex relative overflow-hidden bg-[#f5f5f5]"
+          style={{
+            backgroundImage: `url(${EDITOR_BACKGROUND_IMAGE})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
+        >
           {/* Left Sidebar - Document Outline */}
           <div className="hidden md:block h-full">
             <DocumentOutline headings={headings} />
           </div>
 
           {/* Editor Container */}
-          <div className="flex-grow relative" style={{ zoom } as any}>
+          <div
+            className="flex-grow relative px-4 py-5 sm:px-8 lg:px-14"
+            style={{ zoom } as any}
+          >
             {/* Render with TipTap Editor */}
             {useCollaboration && actualDocumentId ? (
               <CollaborativeTiptapEditor

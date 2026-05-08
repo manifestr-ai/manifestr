@@ -176,17 +176,6 @@ export default function ToolCard({
               </div>
             )}
           </div>
-
-            {/* Start Now Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                if (onClick) onClick()
-              }}
-              className="w-full bg-[#18181b] hover:bg-[#27272a] active:bg-[#18181b] text-white font-bold text-[14px] leading-[20px] py-3 px-4 rounded-lg transition-colors duration-200 cursor-pointer shrink-0 mt-2"
-            >
-              Start Now
-            </button>
         </div>
         </motion.div>
       </div>

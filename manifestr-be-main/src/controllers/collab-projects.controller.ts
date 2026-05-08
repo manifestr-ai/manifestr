@@ -15,6 +15,7 @@ import { BaseController } from './base.controller';
 import { supabaseAdmin } from '../lib/supabase';
 import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 import postmarkService from '../services/PostmarkService';
+import notificationService from '../services/NotificationService';
 
 export class CollabProjectsController extends BaseController {
     public basePath = '/collab-projects';
@@ -172,6 +173,23 @@ export class CollabProjectsController extends BaseController {
                                 });
 
                             console.log(`✅ Added ${email} as ${role || 'editor'}`);
+
+                            await notificationService.createNotification({
+                                userId: user.id,
+                                actorUserId: userId,
+                                type: 'collab_invite',
+                                category: 'access',
+                                severity: 'important',
+                                title: `You've been added to ${project.name}`,
+                                body: `You now have ${role || 'editor'} access to this collab.`,
+                                entityType: 'collab_project',
+                                entityId: project.id,
+                                actionUrl: `/vault/collabs/${project.id}`,
+                                metadata: {
+                                    projectName: project.name,
+                                    role: role || 'editor',
+                                },
+                            });
                         } else {
                             console.log(`⚠️ User ${email} not found, skipping`);
                         }
@@ -680,6 +698,25 @@ export class CollabProjectsController extends BaseController {
                 console.error(`⚠️ Failed to send email to ${email}:`, emailError);
                 // Continue anyway - member was added successfully
             }
+
+            await notificationService.createNotification({
+                userId: invitedUser.id,
+                actorUserId: userId,
+                type: 'collab_invite',
+                category: 'access',
+                severity: 'important',
+                title: `You've been added to ${projectName}`,
+                body: `${inviterName} added you as ${role || 'editor'} in this collab.`,
+                entityType: 'collab_project',
+                entityId: projectId,
+                actionUrl: `/vault/collabs/${projectId}`,
+                metadata: {
+                    projectName,
+                    role: role || 'editor',
+                    inviterName,
+                    userCreated,
+                },
+            });
 
             const responseMessage = userCreated
                 ? `Member invited successfully! Account created with password: ${defaultPassword}. An email has been sent with login details.`

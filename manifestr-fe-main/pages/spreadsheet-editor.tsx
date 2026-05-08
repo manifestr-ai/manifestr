@@ -7,10 +7,7 @@ import TopHeader from "../components/spreadsheet/TopHeader";
 import UniverSheet from "../components/spreadsheet/UniverSheet";
 import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
-import {
-  FloatingSheetTab,
-  FloatingFAB,
-} from "../components/spreadsheet/FloatingElements";
+import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 import dynamic from "next/dynamic";
 import StyleGuideModal from "../components/editor/StyleGuideModal";
 import { useToast } from "../components/ui/Toast";
@@ -21,6 +18,9 @@ import useGenerationLoader from "../hooks/useGenerationLoader";
 import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 import EditorBottomToolbar from "../components/editor/EditorBottomToolbar";
 import ToolPanel from "../components/editor/panels/spreadsheet-editor/ToolPanel";
+
+const EDITOR_BACKGROUND_IMAGE =
+  "https://res.cloudinary.com/dlifgfg6m/image/upload/v1778220832/background_presentation_editor_tnlrr7.png";
 
 const CollaborativeUniverSheet = dynamic(
   () => import("../components/spreadsheet/CollaborativeUniverSheet"),
@@ -456,9 +456,17 @@ export default function SpreadsheetEditor() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-grow flex relative overflow-hidden bg-gray-100 ">
+        <div
+          className="flex-grow flex relative overflow-hidden bg-[#f5f5f5] px-3 py-3 pb-10 sm:px-6 lg:px-14"
+          style={{
+            backgroundImage: `url(${EDITOR_BACKGROUND_IMAGE})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
+        >
           {/* Grid Container (Card) */}
-          <div className="flex-grow bg-white rounded-lg shadow-sm overflow-hidden relative z-10">
+          <div className="flex-grow bg-white rounded-lg shadow-[0_18px_45px_-28px_rgba(15,23,42,0.55)] overflow-hidden relative z-10 border border-white/70">
             {useCollaboration && actualGenerationId ? (
               <CollaborativeUniverSheet
                 ref={univerRef}
@@ -503,7 +511,7 @@ export default function SpreadsheetEditor() {
 
           {/* Right Sidebar (Floating over grid on the right) - Hide when AI Prompter is active */}
           {activeTool !== "ai_prompter" && (
-            <div className="absolute right-[-12px] top-0 bottom-0 flex items-center z-20 pointer-events-none">
+            <div className="absolute right-3 top-0 bottom-0 flex items-center z-20 pointer-events-none sm:right-5 lg:right-8">
               <div className="pointer-events-auto">
                 <RightSidebar
                   onZoomIn={handleZoomIn}
@@ -518,7 +526,6 @@ export default function SpreadsheetEditor() {
           )}
 
           {/* Floating Elements */}
-          <FloatingSheetTab />
           <FloatingFAB />
         </div>
 

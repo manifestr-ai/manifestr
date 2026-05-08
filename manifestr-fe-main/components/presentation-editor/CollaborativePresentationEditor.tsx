@@ -37,6 +37,8 @@ import { useToast } from "../ui/Toast";
 import { useSlideDwellTracking } from "../../hooks/useSlideDwellTracking";
 
 const ALL_DECKS = [deck1, deck2, deck5, deck6, deck7, deck8, deck11, deck15];
+const PRESENTATION_EDITOR_BACKGROUND_IMAGE =
+  "https://res.cloudinary.com/dlifgfg6m/image/upload/v1778220832/background_presentation_editor_tnlrr7.png";
 
 // Generate consistent color for user
 const getUserColor = (userId: string): string => {
@@ -73,7 +75,15 @@ function pickFallbackDeck(): any {
 const PolotnoEditorUI = observer(
   ({ store, workspaceRef }: { store: any; workspaceRef: any }) => {
     return (
-      <div className="flex flex-1 h-full w-full overflow-hidden bg-[#e7e7e7]">
+      <div
+        className="flex flex-1 h-full w-full overflow-hidden bg-[#f5f5f5]"
+        style={{
+          backgroundImage: `url(${PRESENTATION_EDITOR_BACKGROUND_IMAGE})`,
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+        }}
+      >
         {/* LEFT SLIDE PANEL */}
         <div
           className="
@@ -110,6 +120,7 @@ const PolotnoEditorUI = observer(
 
           {/* SLIDES */}
           <div
+            className="no-scrollbar"
             style={{
               flex: 1,
               overflowY: "auto",
@@ -154,11 +165,26 @@ const PolotnoEditorUI = observer(
           ref={workspaceRef}
           className="flex-1 relative overflow-hidden"
           style={{
+            backgroundImage: `url(${PRESENTATION_EDITOR_BACKGROUND_IMAGE})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
             boxShadow: "-8px 0 32px -8px rgba(16,24,40,0.38)",
           }}
         >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage: `url(${PRESENTATION_EDITOR_BACKGROUND_IMAGE})`,
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+            }}
+          />
           <Workspace
             store={store}
+            backgroundColor="transparent"
             components={{
               PageControls: ({ page }) => (
                 <div
