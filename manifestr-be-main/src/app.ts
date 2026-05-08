@@ -37,6 +37,7 @@ class App {
         this.initializeMiddlewares();
         this.initializeRoutes();
         this.initializeControllers();
+        this.initializeErrorHandlers();
         setupSwagger(this.app);
     }
 
@@ -89,8 +90,9 @@ class App {
         // Explicit OPTIONS handler for preflight requests
         this.app.options('*', cors());
 
-        this.app.use(express.json({ limit: '50mb' }));
-        this.app.use(express.urlencoded({ limit: '50mb', extended: true }));
+        // Increase body size limits for large base64 images
+        this.app.use(express.json({ limit: '100mb' }));
+        this.app.use(express.urlencoded({ limit: '100mb', extended: true }));
         this.app.use(cookieParser());
 
         // ─────────────────────────────────────────────────────────────
@@ -163,6 +165,51 @@ class App {
 
         controllers.forEach((controller) => {
             this.app.use(controller.basePath, controller.Router());
+        });
+    }
+
+    private initializeErrorHandlers() {
+        // Global error handler for body parser errors (413, etc.)
+        this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+            // Ensure CORS headers are present even on errors
+            const origin = req.headers.origin;
+            if (origin) {
+                res.setHeader('Access-Control-Allow-Origin', origin);
+                res.setHeader('Access-Control-Allow-Credentials', 'true');
+            }
+
+            if (err.type === 'entity.too.large' || err.status === 413) {
+                console.error('❌ 413 Error: Request body too large', {
+                    limit: err.limit,
+                    length: err.length,
+                    path: req.path
+                });
+                return res.status(413).json({
+                    error: 'Request body too large',
+                    details: 'The image is too large to upload. Please try with a smaller image or reduce the quality.',
+                    maxSize: '100MB'
+                });
+            }
+
+            // Pass to next error handler if not a body size error
+            next(err);
+        });
+
+        // Final catch-all error handler
+        this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+            console.error('❌ Unhandled error:', err);
+            
+            // Ensure CORS headers
+            const origin = req.headers.origin;
+            if (origin) {
+                res.setHeader('Access-Control-Allow-Origin', origin);
+                res.setHeader('Access-Control-Allow-Credentials', 'true');
+            }
+
+            res.status(err.status || 500).json({
+                error: 'Internal server error',
+                details: err.message || 'Unknown error'
+            });
         });
     }
 
