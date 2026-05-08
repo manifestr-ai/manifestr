@@ -233,6 +233,7 @@ export default function ImageEditor() {
               <PhotoEditor 
                 key={imageUrl} 
                 imageSrc={imageUrl} 
+                jobId={actualImageId}
                 onStoreReady={setStore}
                 onActiveToolChange={setActiveTool}
               />
@@ -241,7 +242,8 @@ export default function ImageEditor() {
             <div className={activeUsers.length > 0 ? "pt-12" : ""} style={{ height: '100%' }}>
               <PhotoEditor 
                 key="default" 
-                imageSrc={imageUrl} 
+                imageSrc={imageUrl}
+                jobId={actualImageId}
                 onStoreReady={setStore}
                 onActiveToolChange={setActiveTool}
               />

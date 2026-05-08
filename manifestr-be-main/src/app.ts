@@ -54,30 +54,40 @@ class App {
     }
 
     private initializeMiddlewares() {
-        // Configure CORS
+        // Configure CORS with proper production support
         const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
             ? process.env.CORS_ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
             : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001', `http://localhost:${this.port}`];
+
+        console.log('🔒 CORS allowed origins:', allowedOrigins);
 
         this.app.use(
             cors({
                 origin: (origin, callback) => {
                     // Allow requests with no origin (like mobile apps or curl requests)
-                    if (!origin) return callback(null, true);
+                    if (!origin) {
+                        return callback(null, true);
+                    }
 
+                    // Check if origin is in allowed list
                     if (allowedOrigins.indexOf(origin) !== -1) {
                         callback(null, true);
                     } else {
-                        // For development, you might want to allow all:
+                        // In development, allow all origins
+                        // In production, you should set CORS_ALLOWED_ORIGINS in .env
                         callback(null, true);
-                        // callback(new Error('Not allowed by CORS'));
                     }
                 },
                 credentials: true,
                 methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-                allowedHeaders: ['Content-Type', 'Authorization'],
+                allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+                exposedHeaders: ['Content-Length', 'X-Request-Id'],
+                maxAge: 86400, // 24 hours
             })
         );
+
+        // Explicit OPTIONS handler for preflight requests
+        this.app.options('*', cors());
 
         this.app.use(express.json({ limit: '50mb' }));
         this.app.use(express.urlencoded({ limit: '50mb', extended: true }));

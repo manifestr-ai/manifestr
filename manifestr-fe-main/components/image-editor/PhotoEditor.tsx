@@ -957,7 +957,8 @@ const PhotoEditor = observer(function PhotoEditor({
   imageSrc = "/assets/dummy/dummy-trainer.jpg",
   onStoreReady,
   onActiveToolChange,
-}: PhotoEditorProps) {
+  jobId,
+}: PhotoEditorProps & { jobId?: string }) {
   const [store] = useState(() =>
     createStore({
       key: "ftRB7anj9zd88zwAlJKy",
@@ -1086,29 +1087,16 @@ const PhotoEditor = observer(function PhotoEditor({
 
       console.log("✅ Got image data");
 
-      // Upload image to storage first to avoid 413 payload too large error
+      // Upload image using base64 endpoint (avoids 413 and CORS issues)
       let uploadedImageUrl: string;
       
       try {
         showToast("Uploading image...", "info");
         
-        // Convert base64 to blob
-        const base64Data = imageDataUrl.split(',')[1];
-        const mimeType = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: mimeType });
-        
-        // Upload to backend
-        const formData = new FormData();
-        formData.append('file', blob, 'current-image.png');
-        
-        const uploadResponse = await api.post('/api/uploads/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        // Send base64 directly as JSON
+        const uploadResponse = await api.post('/api/uploads/upload-base64', {
+          imageData: imageDataUrl,
+          fileName: 'current-image.png'
         });
         
         uploadedImageUrl = uploadResponse.data.data.url;
@@ -1119,43 +1107,59 @@ const PhotoEditor = observer(function PhotoEditor({
         return;
       }
 
-      // Build payload with uploaded URL instead of base64
-      const payload = {
-        styleGuideId: styleGuide.id,
+      console.log("📤 Applying style guide via lightweight endpoint");
+      showToast(`Applying "${brandName}" colors to your image...`, "info");
+
+      // Use lightweight style guide endpoint
+      const response = await api.post("/image-generator/apply-style-guide", {
+        imageUrl: uploadedImageUrl,
         styleGuide: {
           colors: styleGuide.colors,
           typography: styleGuide.typography,
           brandName: brandName,
-          logo: styleGuide.logo,
+          name: brandName
         },
-        meta: {
-          editorType: "image",
-          applyStyleGuide: true,
-        },
-        prompt: `Apply brand style guide: ${brandName}`,
-        imageUrl: uploadedImageUrl,
-      };
-
-      console.log("📤 Sending payload with uploaded URL");
-      showToast(`Regenerating image with "${brandName}" theme... Please wait, this may take a moment.`, "info");
-
-      const response = await api.post("/image-generator/modify", payload);
+        jobId: jobId // Pass job ID so backend can update the DB
+      });
 
       showToast(`Applying new theme to your image...`, "info");
 
       if (response.data?.data?.imageUrl && store) {
-        // Load new image into Polotno
-        const img = store.pages[0]?.children?.find(
-          (c: any) => c.type === "image",
+        const newImageUrl = response.data.data.imageUrl;
+        console.log("🎨 Got modified image URL:", newImageUrl);
+        
+        // Find the image element in Polotno store
+        const page = store.pages[0];
+        const imgElement = page?.children?.find(
+          (c: any) => c.type === "image"
         );
-        if (img) {
-          img.set({ src: response.data.data.imageUrl });
+        
+        if (imgElement) {
+          console.log("🔄 Replacing image in store...");
+          
+          // Force update the image source
+          imgElement.set({ 
+            src: newImageUrl,
+            // Preserve original dimensions and position
+            x: imgElement.x,
+            y: imgElement.y,
+            width: imgElement.width,
+            height: imgElement.height
+          });
+          
+          // Force store to recognize the change
+          store.history.clear();
+          store.selectElements([]);
+          
+          console.log("✅ Image replaced successfully!");
+          showToast(`Image styled with "${brandName}" theme successfully!`, "success");
+        } else {
+          console.warn("⚠️ No image element found in store");
+          showToast("Image regenerated successfully!", "success");
         }
-        showToast(`Image regenerated with "${brandName}" theme successfully!`, "success");
       } else {
-        // Fallback to page reload if we can't update the image directly
-        showToast("Image regenerated successfully!", "success");
-        setTimeout(() => window.location.reload(), 1000);
+        console.error("❌ No image URL in response:", response.data);
+        showToast("Failed to get modified image", "error");
       }
     } catch (error: any) {
       console.error("❌ Failed to apply style guide:", error);

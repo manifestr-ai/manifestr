@@ -42,7 +42,9 @@ export class UploadController extends BaseController {
     protected initializeRoutes(): void {
         this.routes = [
             { verb: 'POST', path: '/presign', handler: this.getPresignedUrl, middlewares: [authenticateToken] },
-            { verb: 'POST', path: '/direct', handler: this.directUpload, middlewares: [uploadImage.single('file')] },
+            { verb: 'POST', path: '/direct', handler: this.directUpload, middlewares: [authenticateToken, uploadImage.single('file')] },
+            { verb: 'POST', path: '/upload', handler: this.directUpload, middlewares: [authenticateToken, uploadImage.single('file')] },
+            { verb: 'POST', path: '/upload-base64', handler: this.uploadBase64, middlewares: [authenticateToken] },
             { verb: 'POST', path: '/extract-text', handler: this.extractDocumentText, middlewares: [documentUpload.single('file')] }
         ];
     }
@@ -175,6 +177,102 @@ export class UploadController extends BaseController {
 
         } catch (error) {
             console.error('❌ File upload failed:', error);
+            return res.status(500).json({ 
+                status: "error", 
+                message: (error as Error).message 
+            });
+        }
+    }
+
+    /**
+     * Upload base64 image data as JSON (avoids multipart size limits)
+     */
+    private uploadBase64 = async (req: AuthRequest, res: Response) => {
+        try {
+            const { imageData, fileName } = req.body;
+            
+            if (!imageData) {
+                return res.status(400).json({ status: "error", message: "No image data provided" });
+            }
+
+            // Extract base64 data and mime type
+            let base64Data: string;
+            let mimeType: string;
+            
+            if (imageData.startsWith('data:')) {
+                // It's a data URL
+                const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
+                if (!matches) {
+                    return res.status(400).json({ status: "error", message: "Invalid data URL format" });
+                }
+                mimeType = matches[1];
+                base64Data = matches[2];
+            } else {
+                // Assume it's already base64 without data URL prefix
+                base64Data = imageData;
+                mimeType = 'image/png'; // Default
+            }
+
+            // Convert base64 to buffer
+            const buffer = Buffer.from(base64Data, 'base64');
+            
+            // Generate unique filename
+            const extension = fileName ? path.extname(fileName) : '.png';
+            const uniqueFileName = `${uuidv4()}${extension}`;
+            const userId = req.user?.userId || 'anonymous';
+            const filePath = `${userId}/uploads/${uniqueFileName}`;
+
+            let fileUrl: string;
+
+            try {
+                // Try Supabase Storage first
+                const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+                    .from('generated-images')
+                    .upload(filePath, buffer, {
+                        contentType: mimeType,
+                        upsert: true
+                    });
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                const { data: urlData } = supabaseAdmin.storage
+                    .from('generated-images')
+                    .getPublicUrl(filePath);
+                
+                fileUrl = urlData.publicUrl;
+                console.log(`✅ Base64 image uploaded to Supabase Storage: ${fileUrl}`);
+            } catch (supabaseError: any) {
+                // Fallback to local storage
+                console.log(`⚠️ Supabase Storage unavailable, using local storage...`);
+                
+                const fs = require('fs');
+                const localDir = path.join(process.cwd(), 'public/uploads/user-uploads');
+                if (!fs.existsSync(localDir)) {
+                    fs.mkdirSync(localDir, { recursive: true });
+                }
+                
+                const localPath = path.join(localDir, uniqueFileName);
+                fs.writeFileSync(localPath, buffer);
+                
+                const baseUrl = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 8000}`;
+                fileUrl = `${baseUrl}/uploads/user-uploads/${uniqueFileName}`;
+                console.log(`✅ Base64 image saved to local storage: ${fileUrl}`);
+            }
+
+            return res.json({
+                status: "success",
+                data: {
+                    url: fileUrl,
+                    fileName: uniqueFileName,
+                    size: buffer.length,
+                    mimeType: mimeType
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Base64 upload failed:', error);
             return res.status(500).json({ 
                 status: "error", 
                 message: (error as Error).message 

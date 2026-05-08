@@ -9,12 +9,14 @@ interface InsertThemePanelProps {
   editorType: EditorType;
   store?: any;
   editor?: any;
+  jobId?: string;
 }
 
 export default function InsertThemePanel({
   editorType,
   store,
   editor,
+  jobId,
 }: InsertThemePanelProps) {
   const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
   const { success } = useToast();
@@ -54,8 +56,7 @@ export default function InsertThemePanel({
           editor?.getHTML() || "<p>Professional Document</p>";
       } else if (editorType === "image") {
         success(`Capturing current image...`);
-        endpoint = "/image-generator/modify";
-        payload.prompt = `Apply brand style guide: ${brandName}`;
+        endpoint = "/image-generator/apply-style-guide";
         
         // Get image data
         const imageDataUrl = store?.toDataURL ? await store.toDataURL() : "";
@@ -64,31 +65,24 @@ export default function InsertThemePanel({
           throw new Error("Failed to capture current image");
         }
         
-        // Upload image to storage first to avoid 413 error
+        // Upload image using base64 endpoint
         try {
           success("Uploading current image...");
           
-          // Convert base64 to blob
-          const base64Data = imageDataUrl.split(',')[1];
-          const mimeType = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
-          const byteCharacters = atob(base64Data);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: mimeType });
-          
-          // Upload to backend
-          const formData = new FormData();
-          formData.append('file', blob, 'current-image.png');
-          
-          const uploadResponse = await api.post('/api/uploads/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
+          const uploadResponse = await api.post('/api/uploads/upload-base64', {
+            imageData: imageDataUrl,
+            fileName: 'current-image.png'
           });
-          
+
           payload.imageUrl = uploadResponse.data.data.url;
-          console.log("✅ Image uploaded for theme application");
+          payload.styleGuide = {
+            colors: styleGuide.colors,
+            typography: styleGuide.typography,
+            brandName: brandName,
+            name: brandName
+          };
+          payload.jobId = jobId; // Pass job ID so backend can update the DB
+          console.log("✅ Image uploaded for style guide application");
         } catch (uploadError) {
           console.error("❌ Image upload failed:", uploadError);
           throw new Error("Failed to upload image");
@@ -96,7 +90,7 @@ export default function InsertThemePanel({
       }
 
       if (endpoint) {
-        success(`Regenerating ${editorType} with "${brandName}" theme... Please wait, this may take a moment.`);
+        success(`Applying "${brandName}" theme...`);
         const response = await api.post(endpoint, payload);
 
         if (response.data?.data) {
@@ -117,16 +111,38 @@ export default function InsertThemePanel({
             response.data.data.imageUrl &&
             store
           ) {
-            // Load new image into Polotno
-            const img = store.pages[0].children.find(
-              (c: any) => c.type === "image",
+            const newImageUrl = response.data.data.imageUrl;
+            console.log("🎨 Got modified image URL:", newImageUrl);
+            
+            // Find the image element in Polotno store
+            const page = store.pages[0];
+            const imgElement = page?.children?.find(
+              (c: any) => c.type === "image"
             );
-            if (img) {
-              img.src = response.data.data.imageUrl;
+            
+            if (imgElement) {
+              console.log("🔄 Replacing image in store...");
+              
+              // Force update the image source using .set() method for MobX reactivity
+              imgElement.set({ 
+                src: newImageUrl,
+                // Preserve original dimensions and position
+                x: imgElement.x,
+                y: imgElement.y,
+                width: imgElement.width,
+                height: imgElement.height
+              });
+              
+              // Force store to recognize the change
+              store.history.clear();
+              store.selectElements([]);
+              
+              console.log("✅ Image replaced successfully and persisted!");
+              success(`Image styled with "${brandName}" theme successfully!`);
+            } else {
+              console.warn("⚠️ No image element found in store");
+              success(`Image regenerated with "${brandName}" theme successfully!`);
             }
-            success(
-              `Image regenerated with "${brandName}" theme successfully!`,
-            );
           } else {
             success(`${editorType.charAt(0).toUpperCase() + editorType.slice(1)} regenerated successfully!`);
             // Force page reload

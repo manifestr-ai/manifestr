@@ -34,6 +34,12 @@ export class ImageGeneratorController extends BaseController {
                 handler: this.generateImage.bind(this),
                 middlewares: [authenticateToken, this.extendTimeout.bind(this)],
             },
+            {
+                verb: 'POST',
+                path: '/apply-style-guide',
+                handler: this.applyStyleGuide.bind(this),
+                middlewares: [authenticateToken, this.extendTimeout.bind(this)],
+            },
         ];
     }
 
@@ -275,6 +281,283 @@ export class ImageGeneratorController extends BaseController {
             return res.status(500).json({ 
                 error: 'Internal server error', 
                 details: error?.response?.data || (error instanceof Error ? error.message : String(error)) 
+            });
+        }
+    }
+
+    /**
+     * Lightweight style guide application endpoint
+     * Uses minimal tokens and simpler prompts
+     */
+    private async applyStyleGuide(req: AuthRequest, res: Response) {
+        try {
+            const { imageUrl, styleGuide, prompt, jobId } = req.body;
+
+            if (!imageUrl || !styleGuide) {
+                return res.status(400).json({ error: 'Missing required fields: imageUrl and styleGuide' });
+            }
+
+            const jobUserId = req.user!.userId;
+            console.log(`🎨 Applying style guide for user ${jobUserId}...`);
+
+            // Download image and convert to base64
+            let originalImageBase64: string;
+            if (imageUrl.startsWith('data:')) {
+                const base64Match = imageUrl.match(/^data:image\/[a-z]+;base64,(.+)$/);
+                if (base64Match && base64Match[1]) {
+                    originalImageBase64 = base64Match[1];
+                } else {
+                    throw new Error('Invalid base64 data URL format');
+                }
+            } else {
+                const imageResponse = await axios.get(imageUrl, {
+                    responseType: 'arraybuffer',
+                    timeout: 30000
+                });
+                originalImageBase64 = Buffer.from(imageResponse.data, 'binary').toString('base64');
+            }
+
+            // Simple, minimal-token prompt for style guide
+            const stylePrompt = `IMPORTANT: Apply these brand colors to the image: Primary ${styleGuide.colors?.primary}, Secondary ${styleGuide.colors?.secondary}. The returned image MUST have NEW color grading applied - adjust tones, shadows, highlights, and color temperature to match the brand palette. Keep the composition identical but ensure visible color changes are applied throughout the image.`;
+            
+            console.log(`🎯 Style prompt: ${stylePrompt}`);
+
+            const apiKey = process.env.GEMINI_API_KEY;
+            if (!apiKey) {
+                throw new Error("GEMINI_API_KEY is not set");
+            }
+
+            // Quick Gemini API call with retry
+            let response;
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    console.log(`🔄 Attempt ${attempt}/2: Calling Gemini API...`);
+                    response = await axios.post(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+                        {
+                            contents: [{
+                                parts: [
+                                    { text: stylePrompt },
+                                    {
+                                        inline_data: {
+                                            mime_type: "image/png",
+                                            data: originalImageBase64
+                                        }
+                                    }
+                                ]
+                            }],
+                            generationConfig: {
+                                responseModalities: ["IMAGE"]
+                            }
+                        },
+                        {
+                            headers: { 'Content-Type': 'application/json' },
+                            timeout: 60000
+                        }
+                    );
+                    console.log(`✅ Gemini API call succeeded on attempt ${attempt}`);
+                    break;
+                } catch (apiError: any) {
+                    const errorMsg = apiError.response?.data?.error?.message || apiError.message;
+                    const isRateLimitError = errorMsg.includes('high demand') || 
+                                           errorMsg.includes('quota') || 
+                                           errorMsg.includes('rate limit') ||
+                                           apiError.response?.status === 429;
+                    
+                    console.error(`❌ Gemini API error (attempt ${attempt}/2):`, errorMsg);
+                    
+                    if (isRateLimitError && attempt < 2) {
+                        console.log(`⏳ Rate limit detected. Waiting 2s before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        continue;
+                    }
+                    
+                    if (attempt === 2) throw apiError;
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+            }
+
+            // Extract image from response - try multiple locations
+            console.log('🔍 Checking Gemini API response for image...');
+            console.log('📋 Response status:', response?.status);
+            console.log('📋 Response has data:', !!response?.data);
+            console.log('📋 Response has candidates:', !!response?.data?.candidates);
+            console.log('📋 Number of candidates:', response?.data?.candidates?.length);
+            
+            // Log the full structure (limited to avoid huge logs)
+            if (response?.data?.candidates?.[0]) {
+                console.log('📋 First candidate structure:', JSON.stringify({
+                    finishReason: response.data.candidates[0].finishReason,
+                    hasContent: !!response.data.candidates[0].content,
+                    hasParts: !!response.data.candidates[0].content?.parts,
+                    partsCount: response.data.candidates[0].content?.parts?.length,
+                    partTypes: response.data.candidates[0].content?.parts?.map((p: any) => Object.keys(p))
+                }, null, 2));
+            }
+            
+            let base64ModifiedImage = null;
+            
+            // Try 1: candidates[0].content.parts[x].inline_data.data
+            if (!base64ModifiedImage && response?.data?.candidates?.[0]?.content?.parts) {
+                console.log('🔍 Try 1: Checking parts.inline_data.data...');
+                const parts = response.data.candidates[0].content.parts;
+                console.log('📋 Parts:', parts.map((p: any, i: number) => ({
+                    index: i,
+                    keys: Object.keys(p),
+                    hasInlineData: !!p.inline_data,
+                    hasMimeType: !!p.inline_data?.mime_type,
+                    mimeType: p.inline_data?.mime_type,
+                    hasData: !!p.inline_data?.data,
+                    dataLength: p.inline_data?.data?.length
+                })));
+                
+                const imagePart = parts.find(
+                    (part: any) => part.inline_data?.mime_type?.startsWith('image/')
+                );
+                base64ModifiedImage = imagePart?.inline_data?.data;
+                if (base64ModifiedImage) console.log('✅ Found image in parts.inline_data.data');
+            }
+            
+            // Try 2: candidates[0].content.parts[x].inlineData.data (camelCase)
+            if (!base64ModifiedImage && response?.data?.candidates?.[0]?.content?.parts) {
+                console.log('🔍 Try 2: Checking parts.inlineData.data (camelCase)...');
+                const imagePart = response.data.candidates[0].content.parts.find(
+                    (part: any) => part.inlineData?.mimeType?.startsWith('image/')
+                );
+                base64ModifiedImage = imagePart?.inlineData?.data;
+                if (base64ModifiedImage) console.log('✅ Found image in parts.inlineData.data');
+            }
+            
+            // Try 3: predictions array (old format)
+            if (!base64ModifiedImage && response?.data?.predictions?.[0]) {
+                console.log('🔍 Try 3: Checking predictions array...');
+                base64ModifiedImage = response.data.predictions[0].bytesBase64Encoded;
+                if (base64ModifiedImage) console.log('✅ Found image in predictions array');
+            }
+
+            if (!base64ModifiedImage) {
+                console.error('❌ No image found in response.');
+                
+                // Check if there's a text response instead (model rejection)
+                const textResponse = response?.data?.candidates?.[0]?.content?.parts?.find(
+                    (part: any) => part.text
+                )?.text;
+                
+                if (textResponse) {
+                    console.error('⚠️ Model returned text instead of image:', textResponse);
+                    throw new Error(`AI rejected the request: ${textResponse.substring(0, 200)}`);
+                }
+                
+                // Check for safety ratings or finish reason
+                const finishReason = response?.data?.candidates?.[0]?.finishReason;
+                if (finishReason && finishReason !== 'STOP') {
+                    console.error('⚠️ Unexpected finish reason:', finishReason);
+                    throw new Error(`AI stopped with reason: ${finishReason}`);
+                }
+                
+                console.error('Full response data:', JSON.stringify(response?.data, null, 2));
+                throw new Error('No image returned from AI. The model may have rejected the request or the response format changed.');
+            }
+            
+            console.log(`✅ Extracted base64 image (${base64ModifiedImage.length} characters)`);
+
+            // Upload to storage
+            const imageBuffer = Buffer.from(base64ModifiedImage, 'base64');
+            const fileName = `styled-${Date.now()}.png`;
+            const filePath = `${jobUserId}/styled-images/${fileName}`;
+
+            let modifiedImageUrl: string;
+            try {
+                await supabaseAdmin.storage
+                    .from('generated-images')
+                    .upload(filePath, imageBuffer, {
+                        contentType: 'image/png',
+                        upsert: true
+                    });
+                
+                const { data: urlData } = supabaseAdmin.storage
+                    .from('generated-images')
+                    .getPublicUrl(filePath);
+                modifiedImageUrl = urlData.publicUrl;
+            } catch {
+                const fs = require('fs');
+                const path = require('path');
+                const localDir = path.join(process.cwd(), 'public/uploads/styled-images');
+                if (!fs.existsSync(localDir)) {
+                    fs.mkdirSync(localDir, { recursive: true });
+                }
+                fs.writeFileSync(path.join(localDir, fileName), imageBuffer);
+                const baseUrl = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 8000}`;
+                modifiedImageUrl = `${baseUrl}/uploads/styled-images/${fileName}`;
+            }
+
+            console.log(`✅ Style guide applied successfully!`);
+
+            // Update the job and vault with the new image URL if jobId is provided
+            if (jobId && jobUserId) {
+                try {
+                    console.log(`💾 Updating job ${jobId} with new styled image...`);
+                    
+                    // 1. Update the generation job's result with new imageUrl
+                    const job = await SupabaseDB.getGenerationJobById(jobId, jobUserId);
+                    if (job) {
+                        const updatedResult = {
+                            ...job.result,
+                            imageUrl: modifiedImageUrl,
+                            editorState: {
+                                ...job.result?.editorState,
+                                imageUrl: modifiedImageUrl
+                            }
+                        };
+                        await SupabaseDB.updateGenerationJob(jobId, jobUserId, {
+                            result: updatedResult
+                        });
+                        console.log(`✅ Job ${jobId} updated with new image URL`);
+                    }
+
+                    // 2. Find and update the vault item by job ID
+                    const vaultItems = await SupabaseDB.getUserVaultItems(jobUserId);
+                    const vaultItem = vaultItems.find(
+                        (item: any) => item.meta?.generationJobId === jobId
+                    );
+                    
+                    if (vaultItem) {
+                        await SupabaseDB.updateVaultItem(vaultItem.id, jobUserId, {
+                            thumbnail_url: modifiedImageUrl
+                        });
+                        console.log(`✅ Vault item ${vaultItem.id} updated with new thumbnail`);
+                    } else {
+                        console.warn(`⚠️ No vault item found for job ${jobId}`);
+                    }
+                } catch (updateError) {
+                    console.error('❌ Failed to update job/vault:', updateError);
+                    // Don't fail the whole request if DB update fails
+                }
+            }
+
+            return res.json({
+                status: 'success',
+                data: {
+                    imageUrl: modifiedImageUrl,
+                    brandName: styleGuide.brandName || styleGuide.name
+                }
+            });
+
+        } catch (error: any) {
+            console.error('❌ Style guide application failed:', error);
+            
+            const errorMsg = error?.response?.data?.error?.message || error?.message || 'Unknown error';
+            const isRateLimitError = errorMsg.includes('high demand') || 
+                                    errorMsg.includes('quota') || 
+                                    error?.response?.status === 429;
+            
+            return res.status(isRateLimitError ? 429 : 500).json({ 
+                error: isRateLimitError ? 'AI service busy' : 'Style guide failed',
+                details: errorMsg,
+                suggestion: isRateLimitError 
+                    ? 'Please wait 30 seconds and try again.'
+                    : 'Failed to apply style guide.',
+                retryAfter: isRateLimitError ? 30 : undefined
             });
         }
     }
