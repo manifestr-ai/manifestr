@@ -586,7 +586,7 @@ export default function CollaborativeTiptapEditor({
     <div className="simple-editor-wrapper">
       {/* Active Users Bar */}
       {activeUsers.length > 0 && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-blue-900">
               {activeUsers.length} editing now:
