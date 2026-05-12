@@ -91,24 +91,46 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Refresh token (HttpOnly cookie based)
-        const response = await api.post("/auth/refresh-token");
-        const accessToken = response?.data?.details?.accessToken;
+        // 🔥 FIX: Get refresh token from localStorage
+        const refreshToken = localStorage.getItem("refreshToken");
 
-        if (!accessToken) {
+        if (!refreshToken) {
+          console.error(" No refresh token available");
+          throw new Error("No refresh token available");
+        }
+
+        console.log(" Refreshing access token...");
+
+        // 🔥 FIX: Send refreshToken in request body
+        const response = await api.post("/auth/refresh-token", {
+          refreshToken: refreshToken
+        });
+
+        const newAccessToken = response?.data?.details?.accessToken;
+        const newRefreshToken = response?.data?.details?.refreshToken;
+
+        if (!newAccessToken) {
+          console.error(" Refresh token failed - no new access token");
           throw new Error("Refresh token failed");
         }
 
-        // Store new token
-        localStorage.setItem("accessToken", accessToken);
-        api.defaults.headers.common.Authorization =
-          "Bearer " + accessToken;
+        console.log(" Access token refreshed successfully");
 
-        // Retry queued requests
-        processQueue(null, accessToken);
+        // Store new tokens
+        localStorage.setItem("accessToken", newAccessToken);
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+          console.log(" Refresh token also updated");
+        }
+
+        api.defaults.headers.common.Authorization = "Bearer " + newAccessToken;
+
+        // Retry queued requests with new token
+        processQueue(null, newAccessToken);
 
         return api(originalRequest);
       } catch (err) {
+        console.error(" Token refresh failed:", err);
         processQueue(err, null);
 
         // Silent logout (NO UI crash)

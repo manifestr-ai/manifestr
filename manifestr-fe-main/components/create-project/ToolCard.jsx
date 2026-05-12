@@ -62,9 +62,8 @@ export default function ToolCard({
       whileHover={{ y: -8, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       data-tool-card="true"
-      className={`relative bg-white rounded-xl overflow-hidden h-[369px] cursor-pointer group shadow-sm hover:shadow-xl transition-shadow duration-300 ${
-      isSelected ? 'border-2 border-[#000000]' : 'border-2 border-transparent'
-      }`}
+      className={`relative bg-white rounded-xl overflow-hidden h-[369px] cursor-pointer group shadow-sm hover:shadow-xl transition-shadow duration-300 ${isSelected ? 'border-2 border-[#000000]' : 'border-2 border-transparent'
+        }`}
     >
       <div
         onMouseEnter={() => setIsHovered(true)}
@@ -133,52 +132,52 @@ export default function ToolCard({
           {/* Content on overlay */}
           <div className="absolute inset-0 p-4 flex flex-col justify-between overflow-hidden">
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            {/* Title on overlay */}
+              {/* Title on overlay */}
               <div className="mb-2 shrink-0">
                 <div className="flex flex-col items-center justify-center text-center mb-1.5">
                   <h3>{renderTitle(title, 'text-black')}</h3>
+                </div>
+                <div className="flex items-center justify-center gap-1">
+                  {subtitle.split(' • ').map((item, index, array) => (
+                    <div key={index} className="flex items-center">
+                      <p className="text-[14px] leading-[20px] text-black font-normal">
+                        {item}
+                      </p>
+                      {index < array.length - 1 && (
+                        <div className="mx-1 w-1 h-1">
+                          <div className="w-full h-full bg-black rounded-full" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center justify-center gap-1">
-                {subtitle.split(' • ').map((item, index, array) => (
-                  <div key={index} className="flex items-center">
-                    <p className="text-[14px] leading-[20px] text-black font-normal">
-                      {item}
-                    </p>
-                    {index < array.length - 1 && (
-                      <div className="mx-1 w-1 h-1">
-                        <div className="w-full h-full bg-black rounded-full" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Description Content */}
-            {description && (
+              {/* Description Content */}
+              {description && (
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                   {description.title && (
                     <p className="font-bold text-[14px] leading-[20px] mb-1.5 text-black shrink-0">
-                  {description.title}
-                </p>
+                      {description.title}
+                    </p>
                   )}
                   {description.content && (
                     <div className="text-[14px] leading-[20px] text-black mb-1.5 line-clamp-4">
-                  {description.content}
-                </div>
+                      {description.content}
+                    </div>
                   )}
-                {description.quickTip && (
+                  {description.quickTip && (
                     <p className="text-[14px] leading-[20px] text-black shrink-0 line-clamp-2">
-                    <span className="font-bold">Quick Tip:</span>{' '}
-                    {description.quickTip}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+                      <span className="font-bold">Quick Tip:</span>{' '}
+                      {description.quickTip}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Start Now Button */}
-            <button
+            {/* <button
               onClick={(e) => {
                 e.stopPropagation()
                 if (onClick) onClick()
@@ -186,8 +185,8 @@ export default function ToolCard({
               className="w-full bg-[#18181b] hover:bg-[#27272a] active:bg-[#18181b] text-white font-bold text-[14px] leading-[20px] py-3 px-4 rounded-lg transition-colors duration-200 cursor-pointer shrink-0 mt-2"
             >
               Start Now
-            </button>
-        </div>
+            </button> */}
+          </div>
         </motion.div>
       </div>
     </motion.div>
