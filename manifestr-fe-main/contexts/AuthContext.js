@@ -45,6 +45,39 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // 🔥 PROACTIVE TOKEN REFRESH - Prevents token expiration
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        console.warn(" No refresh token available for proactive refresh");
+        return false;
+      }
+
+      console.log("🔄 Proactively refreshing access token...");
+
+      const response = await api.post("/auth/refresh-token", {
+        refreshToken: refreshToken
+      });
+
+      const newAccessToken = response?.data?.details?.accessToken;
+      const newRefreshToken = response?.data?.details?.refreshToken;
+
+      if (newAccessToken) {
+        localStorage.setItem("accessToken", newAccessToken);
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
+        console.log(" Token refreshed proactively - user stays logged in!");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(" Proactive token refresh failed:", error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Initialize auth state from local storage on mount
     const initAuth = async () => {
@@ -55,6 +88,7 @@ export function AuthProvider({ children }) {
 
         if (!rememberMe) {
           localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           setUser(null);
         }
@@ -66,12 +100,14 @@ export function AuthProvider({ children }) {
           if (!result) {
             localStorage.removeItem("user");
             localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
             setUser(null);
           }
         }
       } catch (error) {
         localStorage.removeItem("user");
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
       } finally {
         setLoading(false);
       }
@@ -79,27 +115,45 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
-    // Periodic check every 5 minutes
-    const intervalId = setInterval(
+    // 🔥 INTERVAL 1: PROACTIVE TOKEN REFRESH - Every 30 minutes (BEFORE 1-hour expiry)
+    // This prevents tokens from EVER expiring - tokens get refreshed automatically!
+    const tokenRefreshInterval = setInterval(
+      async () => {
+        if (localStorage.getItem("accessToken") && localStorage.getItem("refreshToken") && !isRedirectingRef.current) {
+          console.log("⏰ Time for proactive token refresh (30 min interval)");
+          const success = await refreshAccessToken();
+          if (!success) {
+            console.warn("⚠️ Proactive refresh failed - will retry on next interval or API call");
+          }
+        }
+      },
+      30 * 60 * 1000 // 🔥 30 MINUTES - Refresh BEFORE tokens expire (tokens expire after 1 hour)
+    );
+
+    // 🔥 INTERVAL 2: Profile check every 5 minutes (verify user still active)
+    const profileCheckInterval = setInterval(
       async () => {
         if (localStorage.getItem("accessToken") && !isRedirectingRef.current) {
           const result = await refreshProfile();
-          if (result) {
-          } else {
-            // Session expired - logout silently without error popup
-
+          if (!result) {
+            // Session expired or user suspended - logout silently
             if (!isRedirectingRef.current) {
+              console.warn("⚠️ Profile check failed - user might be suspended or session invalid");
               localStorage.removeItem("accessToken");
+              localStorage.removeItem("refreshToken");
               localStorage.removeItem("user");
               setUser(null);
             }
           }
         }
       },
-      5 * 60 * 1000,
+      5 * 60 * 1000 // 5 minutes
     );
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(tokenRefreshInterval);
+      clearInterval(profileCheckInterval);
+    };
   }, []);
 
   const signup = async (userData) => {
@@ -138,15 +192,20 @@ export function AuthProvider({ children }) {
         throw new Error("Incorrect email or password. Please try again.");
       }
 
-      const { user, accessToken } = details;
-      // const { user, accessToken } = response.data.details
+      const { user, accessToken, refreshToken } = details;
 
+      // 🔥 CRITICAL: Store both access token AND refresh token
       localStorage.setItem("accessToken", accessToken);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+        console.log("✅ Refresh token stored successfully");
+      } else {
+        console.warn("⚠️ No refresh token received from backend");
+      }
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("rememberMe", rememberMe ? "1" : "0");
       setUser(user);
 
-      // Redirect to home or previous page
       // Redirect to home or previous page
       if (user?.is_admin) {
         router.push("/admin/overview");
@@ -156,9 +215,7 @@ export function AuthProvider({ children }) {
           query: { welcome: "1" },
         });
       }
-      // First show loader, then navigate
 
-    
       return response.data;
     } catch (error) {
       throw error;
@@ -168,10 +225,14 @@ export function AuthProvider({ children }) {
   const verifyEmail = async (token, type = "signup") => {
     try {
       const response = await api.post("/auth/verify-email", { token, type });
-      const { user, accessToken } = response.data.details;
+      const { user, accessToken, refreshToken } = response.data.details;
 
       if (accessToken) {
         localStorage.setItem("accessToken", accessToken);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+          console.log("✅ Refresh token stored after email verification");
+        }
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.removeItem("pendingUser");
         setUser(user);

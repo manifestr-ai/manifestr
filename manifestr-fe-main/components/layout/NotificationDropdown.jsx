@@ -2,51 +2,136 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Settings, ArrowRight, LucideBell, BellDot, BellDotIcon, BellElectric } from 'lucide-react'
+import api from '../../lib/api'
 
 export default function NotificationDropdown() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loading, setLoading] = useState(false)
   const dropdownRef = useRef(null)
 
-  // Sample notifications data
-  const notifications = [
-    {
-      id: 1,
-      status: 'critical',
-      unread: true,
-      timestamp: '2 hours ago',
-      title: 'Approval required: Q4 Marketing Campaign Deck',
-    },
-    {
-      id: 2,
-      status: 'critical',
-      unread: true,
-      timestamp: '30 minutes ago',
-      title: 'Due Today: Shiseido Brand Guidelines Review',
-    },
-    {
-      id: 3,
-      status: 'critical',
-      unread: true,
-      timestamp: '4 hours ago',
-      title: 'Multi-stage approval: Annual Report Design',
-    },
-    {
-      id: 4,
-      status: 'critical',
-      unread: true,
-      timestamp: '5 hours ago',
-      title: 'Due Tomorrow: Client Presentation Prep',
-    },
-  ]
+  // Fetch notifications when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications()
+    }
+    // Also fetch unread count on mount
+    fetchUnreadCount()
+  }, [isOpen])
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true)
+      const response = await api.get('/api/notifications', {
+        params: { limit: 50 }
+      })
+      
+      if (response.data.status === 'success') {
+        // Map backend format to frontend format
+        const mappedNotifications = response.data.data.notifications.map(n => ({
+          id: n.id,
+          status: n.priority, // 'critical', 'important', 'normal'
+          unread: !n.is_read,
+          timestamp: formatTimestamp(n.created_at),
+          title: n.title,
+          message: n.message,
+          actionUrl: n.action_url,
+          actionText: n.action_text,
+        }))
+        setNotifications(mappedNotifications)
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error)
+      // Keep empty array on error
+      setNotifications([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await api.get('/api/notifications/unread-count')
+      if (response.data.status === 'success') {
+        setUnreadCount(response.data.data.count)
+      }
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error)
+    }
+  }
+
+  const markAsRead = async (notificationId) => {
+    try {
+      await api.post('/api/notifications/mark-read', {
+        notificationIds: [notificationId]
+      })
+      // Update local state
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, unread: false } : n
+      ))
+      fetchUnreadCount() // Refresh badge count
+    } catch (error) {
+      console.error('Failed to mark as read:', error)
+    }
+  }
+
+  const markAllAsRead = async () => {
+    try {
+      await api.post('/api/notifications/mark-all-read')
+      // Update local state
+      setNotifications(prev => prev.map(n => ({ ...n, unread: false })))
+      setUnreadCount(0)
+    } catch (error) {
+      console.error('Failed to mark all as read:', error)
+    }
+  }
+
+  const dismissNotification = async (notificationId) => {
+    try {
+      // Change priority to normal (for dismiss action)
+      await api.post('/api/notifications/change-priority', {
+        notificationIds: [notificationId],
+        priority: 'normal'
+      })
+      // Update local state - change priority to normal
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, status: 'normal' } : n
+      ))
+    } catch (error) {
+      console.error('Failed to dismiss notification:', error)
+    }
+  }
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) return `${diffMins} minutes ago`
+    if (diffHours < 24) return `${diffHours} hours ago`
+    if (diffDays < 7) return `${diffDays} days ago`
+    return date.toLocaleDateString()
+  }
+
+  // Calculate tab counts from real data
+  const allCount = notifications.length
+  const unreadCountTab = notifications.filter(n => n.unread).length
+  const criticalCount = notifications.filter(n => n.status === 'critical').length
+  const importantCount = notifications.filter(n => n.status === 'important').length
+  const normalCount = notifications.filter(n => n.status === 'normal').length
 
   const tabs = [
-    { id: 'all', label: 'All', count: 8 },
-    { id: 'unread', label: 'Unread', count: 5 },
-    { id: 'critical', label: 'Critical', count: 6 },
-    { id: 'important', label: 'Important', count: 5 },
-    { id: 'normal', label: 'Normal', count: 5 },
+    { id: 'all', label: 'All', count: allCount },
+    { id: 'unread', label: 'Unread', count: unreadCountTab },
+    { id: 'critical', label: 'Critical', count: criticalCount },
+    { id: 'important', label: 'Important', count: importantCount },
+    { id: 'normal', label: 'Normal', count: normalCount },
   ]
 
   const filteredNotifications = activeTab === 'all' 
@@ -81,9 +166,9 @@ export default function NotificationDropdown() {
         className="bg-white rounded-md p-3 transition-colors cursor-pointer relative"
       >
         <Bell className="w-5 h-5 text-[#71717A]" />
-        {/* {notifications.filter(n => n.unread).length > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#18181b] rounded-full" />
-        )} */}
+        )}
       </motion.button>
 
       {/* Notification Dropdown */}
@@ -113,7 +198,10 @@ export default function NotificationDropdown() {
                     All Notifications
                   </h2>
                   <div className="flex items-center gap-2">
-                    <button className="text-[14px] leading-[20px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer">
+                    <button 
+                      onClick={markAllAsRead}
+                      className="text-[14px] leading-[20px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer"
+                    >
                       Mark as read
                     </button>
                     <button className="hover:bg-[#f4f4f5] rounded-md p-1.5 transition-colors cursor-pointer">
@@ -144,29 +232,45 @@ export default function NotificationDropdown() {
 
               {/* Notifications List */}
               <div className="flex-1 overflow-y-auto">
-                <div className="space-y-3">
-                  <AnimatePresence mode="popLayout">
-                    {filteredNotifications.map((notification, index) => (
-                      <motion.div
-                        key={notification.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                        transition={{ delay: index * 0.05, duration: 0.3 }}
-                      >
-                        <NotificationCard
-                          notification={notification}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
+                {loading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="text-[#71717a]">Loading notifications...</div>
+                  </div>
+                ) : filteredNotifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <Bell className="w-12 h-12 text-[#e4e4e7] mb-3" />
+                    <p className="text-[#71717a] text-[14px]">No notifications yet</p>
+                    <p className="text-[#a1a1aa] text-[12px] mt-1">
+                      You'll see updates about collaboration, wins, and threads here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <AnimatePresence mode="popLayout">
+                      {filteredNotifications.map((notification, index) => (
+                        <motion.div
+                          key={notification.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                          transition={{ delay: index * 0.05, duration: 0.3 }}
+                        >
+                          <NotificationCard
+                            notification={notification}
+                            onMarkAsRead={markAsRead}
+                            onDismiss={dismissNotification}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
 
               {/* Footer */}
               <div className="px-6 py-4 bg-white border-t border-[#e4e4e7] flex items-center justify-between">
                 <span className="text-[14px] leading-[20px] text-[#71717a]">
-                 <span className='text-[#18181b]'>5</span>  new alerts
+                 <span className='text-[#18181b]'>{unreadCount}</span> new alerts
                 </span>
                 <button
                   onClick={() => {
@@ -190,7 +294,30 @@ export default function NotificationDropdown() {
 }
 
 // Notification Card Component
-function NotificationCard({ notification }) {
+function NotificationCard({ notification, onMarkAsRead, onDismiss }) {
+  const router = useRouter()
+
+  const handleOpen = () => {
+    // Mark as read when opened
+    if (notification.unread) {
+      onMarkAsRead(notification.id)
+    }
+    // Navigate to action URL if available
+    if (notification.actionUrl) {
+      router.push(notification.actionUrl)
+    }
+  }
+
+  const handleMarkRead = (e) => {
+    e.stopPropagation() // Prevent card click
+    onMarkAsRead(notification.id)
+  }
+
+  const handleDismiss = (e) => {
+    e.stopPropagation() // Prevent card click
+    onDismiss(notification.id)
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'critical':
@@ -275,19 +402,35 @@ let svg_normal =`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
           <h3 className="text-[14px] leading-[20px] text-[#18181b] font-medium mb-3">
             {notification.title}
           </h3>
+          {notification.message && (
+            <p className="text-[12px] leading-[16px] text-[#71717a] mb-3">
+              {notification.message}
+            </p>
+          )}
           <div className="flex items-center justify-between">
-            <button className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer">
-              Mark read
-            </button>
-            <div className="flex items-center gap-4">
-              <button className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer">
+            {notification.unread && (
+              <button 
+                onClick={handleMarkRead}
+                className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer"
+              >
+                Mark read
+              </button>
+            )}
+            <div className="flex items-center gap-4 ml-auto">
+              <button 
+                onClick={handleDismiss}
+                className="text-[12px] leading-[16px] text-[#52525b] hover:text-[#18181b] transition-colors cursor-pointer"
+              >
                 Dismiss
               </button>
-              <button
-                className="flex items-center justify-center h-[28px] px-[10px] gap-[6px] rounded-[8px] bg-[#101828] text-white text-[12px] leading-[16px] font-medium hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                Open
-              </button>
+              {notification.actionUrl && (
+                <button
+                  onClick={handleOpen}
+                  className="flex items-center justify-center h-[28px] px-[10px] gap-[6px] rounded-[8px] bg-[#101828] text-white text-[12px] leading-[16px] font-medium hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  {notification.actionText || 'Open'}
+                </button>
+              )}
             </div>
           </div>
         </div>

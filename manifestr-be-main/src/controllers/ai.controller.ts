@@ -1432,7 +1432,7 @@ export class AIController extends BaseController {
         max_tokens: 100,
         temperature: 0.9,
         system:
-          "You generate premium, execution-focused motivational lines for high-performing professionals (agency, marketing, corporate, events). Each quote must be a single flowing sentence, not split into two parts. Ground it in real work (deadlines, decks, revisions, pressure, output). Avoid clichés, generic motivation, or abstract language. Tone is sharp, controlled, and editorial with subtle authority. Output one concise sentence (43–50 characters), ending with a strong verb. No quotation marks.",
+          "You generate premium, execution-focused motivational, inspirational lines for high-performing professionals (agency, marketing, corporate, events). Each quote must be a single flowing sentence, not split into two parts. Ground it in real work (deadlines, decks, documents, spreadsheets, data, revisions, pressure, output). Avoid clichés, generic motivation, and abstract language. Avoid overused verbs such as clarity, fragmentation, reveals, reflects, shows. Tone is sharp, controlled, and editorial with subtle authority. Do not use em dashes or hyphenated breaks. Output one concise sentence (43–50 characters), ending with a strong verb. No quotation marks.",
         messages: [
           {
             role: "user",
