@@ -69,7 +69,14 @@ function BlogCard({ img, title, slug, tag, tagStyle = 'white', delay = 0, classN
         transition={{ delay, duration: 0.4 }}
         className="relative rounded-[12px] overflow-hidden group cursor-pointer h-full"
       >
-        <CldImage src={img} alt="" className="w-full h-full object-cover" priority />
+        <CldImage
+          src={img}
+          alt=""
+          className="w-full h-full object-cover"
+          priority
+          sizes="100vw"
+          fallbackWidth={2048}
+        />
         <div className="absolute inset-0 bg-linear-to-t from-black/66 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-[16px] md:p-[24px] flex flex-col gap-[10px]">
           <span

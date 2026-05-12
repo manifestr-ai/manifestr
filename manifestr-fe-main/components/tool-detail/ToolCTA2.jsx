@@ -29,6 +29,8 @@ export default function ToolCTA2() {
             alt=""
             className="h-full w-full object-cover object-center"
             priority
+            sizes="100vw"
+            fallbackWidth={2048}
           />
         </div>
 
@@ -96,6 +98,8 @@ export default function ToolCTA2() {
             alt=""
             className="h-full min-h-[600px] w-full object-cover"
             priority
+            sizes="100vw"
+            fallbackWidth={2048}
           />
         </div>
 

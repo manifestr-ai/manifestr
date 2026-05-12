@@ -82,6 +82,7 @@ export default function ToolCard({
                 src={imageSrc}
                 alt={title}
                 fill
+                quality={100}
                 className="object-cover rounded-xl"
               />
             )}
@@ -91,6 +92,7 @@ export default function ToolCard({
                   src={hoverImageSrc}
                   alt={title}
                   fill
+                  quality={100}
                   className="object-cover rounded-xl"
                 />
               </div>

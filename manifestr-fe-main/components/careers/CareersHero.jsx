@@ -14,6 +14,8 @@ export default function CareersHero() {
           alt=""
           className="w-full h-full object-cover"
           priority
+          sizes="100vw"
+          fallbackWidth={2048}
           style={{ objectPosition: 'bottom center' }}
         />
       </div>
@@ -25,6 +27,8 @@ export default function CareersHero() {
           alt=""
           className="w-full h-full object-cover"
           priority
+          sizes="100vw"
+          fallbackWidth={2048}
           style={{ objectPosition: 'center center' }}
         />
       </div>

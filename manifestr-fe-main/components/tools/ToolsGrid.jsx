@@ -107,6 +107,8 @@ export default function ToolsGrid() {
           alt=""
           className="h-[102%] w-auto max-w-none object-cover mt-[-108px] object-top"
           priority
+          sizes="(max-width: 1023px) 0px, 100vw"
+          fallbackWidth={2048}
         />
       </div>
 

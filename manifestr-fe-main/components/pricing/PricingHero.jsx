@@ -7,7 +7,14 @@ export default function PricingHero() {
   return (
     <section className="relative w-full h-[251px] md:h-[518px] flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover object-top" priority />
+        <CldImage
+          src={HERO_BG}
+          alt=""
+          className="w-full h-full object-cover object-top"
+          priority
+          sizes="100vw"
+          fallbackWidth={2048}
+        />
         <div className="absolute inset-0 bg-black/50 md:bg-[rgba(35,35,35,0.28)]" />
       </div>
       <motion.div

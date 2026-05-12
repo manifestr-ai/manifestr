@@ -78,7 +78,7 @@ export default function IncidentReporting() {
                 className="text-[36px] leading-[1.1] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
                 style={headingFont}
               >
-                Transparency in action.
+                Transparency <br />in action.
               </motion.h1>
 
               <motion.div

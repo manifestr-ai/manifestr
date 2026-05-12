@@ -53,7 +53,7 @@ const ARTICLES = [
     title: 'Getting Started with MANIFESTR',
     desc: 'Everything you need to know to set up your first project and start collaborating.',
     readTime: '5min read',
-    href: '/playbook/getting-started',
+    href: '/playbook/knowledge-base/getting-started',
   },
   {
     category: 'Collaboration',

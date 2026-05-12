@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const HERO_BG = 'https://res.cloudinary.com/dqyzkphsd/image/upload/v1774936250/Hero_3_y6vjqw.png'
+const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458799/Homepage_Banner_1441x804_x2_dnhupo.webp'
 
 export default function HeroSection() {
   return (
@@ -13,6 +13,8 @@ export default function HeroSection() {
           alt=""
           className="absolute w-full h-full object-cover object-top"
           priority
+          sizes="100vw"
+          fallbackWidth={2048}
         />
       </div>
 
@@ -50,8 +52,8 @@ export default function HeroSection() {
       {/* ── Desktop text — positioned around the image ── */}
       <div className="hidden md:block absolute inset-0 mx-auto max-w-[1440px] left-0 right-0">
         <div
-          className="absolute flex items-center md:max-lg:gap-50 lg:gap-80"
-          style={{ left: '8.47%', top: '28%' }}
+          className="absolute flex items-center md:max-lg:gap-50 lg:gap-92"
+          style={{ left: '8.47%', top: '18%' }}
         >
           <motion.h1
             initial={{ opacity: 0, x: -40 }}
@@ -95,8 +97,8 @@ export default function HeroSection() {
             fontSize: 'clamp(50px, 7.17vw, 103px)',
             lineHeight: '1.25',
             letterSpacing: '-0.02em',
-            right: '13.5%',
-            top: '41%',
+            right: '12%',
+            top: '32%',
           }}
         >
           GAME

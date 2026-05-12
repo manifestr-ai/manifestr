@@ -150,32 +150,34 @@ export default function PricingFAQ() {
                 }}
                 className="cursor-pointer rounded-[16px] border border-[#e2e8f0] bg-[#f4f4f4] px-5 py-5 md:px-8 md:py-6 outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2"
               >
-                <div className="flex w-full flex-col items-center gap-4 text-center">
-                  <p
-                    className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#1e293b]"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
-                  >
-                    {item.q}
-                  </p>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                        className="w-full overflow-hidden"
-                      >
-                        <p
-                          className="text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-[#475569]"
-                          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                <div className="flex w-full flex-row items-start justify-between gap-4 text-left">
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#1e293b]"
+                      style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+                    >
+                      {item.q}
+                    </p>
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                          className="w-full overflow-hidden"
                         >
-                          {item.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div className="flex shrink-0 justify-center" aria-hidden>
+                          <p
+                            className="pt-4 text-[14px] md:text-[16px] leading-[22px] md:leading-[24px] text-[#475569]"
+                            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                          >
+                            {item.a}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex shrink-0 pt-0.5" aria-hidden>
                     {isOpen ? (
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white p-1 shadow-sm ring-1 ring-[#e2e8f0]">
                         <ArrowUpRight className="text-[#18181b]" />
@@ -204,7 +206,7 @@ export default function PricingFAQ() {
             className="h-[44px] min-h-[44px] sm:h-[54px] sm:min-h-[54px] w-full max-w-[360px] sm:w-auto sm:max-w-none px-8 md:px-10 rounded-[6px] bg-[#18181b] text-white text-[14px] md:text-[18px] md:leading-[20px] font-medium inline-flex items-center justify-center gap-2 hover:bg-[#27272a] transition-colors box-border"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Explore the Manifestr Playbook
+            Explore the MANIFESTR Playbook
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
             </svg>

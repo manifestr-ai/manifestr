@@ -81,12 +81,13 @@ const tools = [
 ]
 
 /* ── Desktop accordion card (hover-based) ── */
-function ToolCard({ tool, isExpanded, onHover, onClick }) {
+function ToolCard({ tool, isExpanded, onHover }) {
   return (
-    <div
+    <Link
+      href={`/tools/${tool.id}`}
       onMouseEnter={onHover}
-      onClick={onClick}
-      className="relative shrink-0 h-[409px] overflow-hidden cursor-pointer"
+      aria-label={`View ${tool.title} ${tool.accent}`}
+      className="relative shrink-0 h-[409px] overflow-hidden cursor-pointer block"
       style={{
         width: isExpanded ? 277 : 71,
         borderRadius: isExpanded ? 24 : 150,
@@ -168,7 +169,7 @@ function ToolCard({ tool, isExpanded, onHover, onClick }) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -229,10 +230,10 @@ export default function ToolkitSection() {
               </p>
               <Link
                 href="/tools"
-                className="inline-flex items-center justify-center h-[54px] w-[160px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors"
+                className="inline-flex items-center justify-center h-[54px] min-w-[190px] px-[20px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
-                Explore Toolkit
+                Explore The Toolkit
               </Link>
             </div>
           </div>

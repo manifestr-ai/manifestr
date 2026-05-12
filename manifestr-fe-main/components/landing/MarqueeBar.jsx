@@ -32,7 +32,7 @@ export default function MarqueeBar() {
       <div
         className="flex gap-[14px] whitespace-nowrap will-change-transform"
         style={{
-          animation: 'marquee-left 20s linear infinite',
+          animation: 'marquee-left 40s linear infinite',
           width: 'max-content',
         }}
       >

@@ -179,6 +179,7 @@ const LogoUploadZone = forwardRef(function LogoUploadZone(
               alt="Logo"
               width={48}
               height={48}
+              quality={100}
               className="w-12 h-12"
             />
           </div>

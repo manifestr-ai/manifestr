@@ -66,6 +66,7 @@ export default function ProfileDropdown() {
             alt="Profile"
             width={32}
             height={32}
+            quality={100}
             className="w-full h-full object-cover rounded-full"
           />
         )}
@@ -108,6 +109,7 @@ export default function ProfileDropdown() {
                           alt="Profile"
                           width={48}
                           height={48}
+                          quality={100}
                           className="w-full h-full object-cover"
                         />
                       )}

@@ -7,7 +7,14 @@ export default function ToolsHero() {
   return (
     <section className="relative w-full h-[400px] md:h-[532px] flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
-        <CldImage src={HERO_BG} alt="" className="w-full h-full object-cover" priority />
+        <CldImage
+          src={HERO_BG}
+          alt=""
+          className="w-full h-full object-cover"
+          priority
+          sizes="100vw"
+          fallbackWidth={2048}
+        />
         <div className="absolute inset-0 bg-[rgba(0,0,0,0.17)]" />
       </div>
       <motion.div

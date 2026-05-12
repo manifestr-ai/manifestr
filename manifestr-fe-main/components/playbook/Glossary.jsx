@@ -170,7 +170,7 @@ export default function Glossary() {
           {/* Heading + subtitle */}
           <div className="flex flex-col items-center gap-[20px] text-center">
             <h1
-              className="text-[42px] md:text-[72px] leading-[1.1] md:leading-[90px] tracking-[-1.44px] text-white whitespace-nowrap"
+              className="text-center whitespace-nowrap px-2 text-[clamp(1.5rem,5vw,2.625rem)] md:text-[72px] leading-[1.1] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white"
             >
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Glossary of </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Terms</span>

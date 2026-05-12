@@ -316,7 +316,7 @@ export default function ContactContent() {
             </p>
           </motion.div>
 
-          <div className="flex flex-col md:flex-row gap-[16px] md:gap-[24px] w-full max-w-[912px] md:items-stretch">
+          <div className="grid w-full max-w-[912px] grid-cols-1 gap-[16px] md:grid-cols-2 md:gap-[24px]">
             {ENQUIRY_CARDS.map((card) => (
               <motion.div
                 key={card.title}
@@ -324,12 +324,12 @@ export default function ContactContent() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4 }}
-                className="flex h-full min-h-0 w-full flex-col items-center gap-[24px] rounded-[12px] bg-[#e4e4e7] p-[14px] text-center shadow-[0px_1px_2px_0px_rgba(10,13,18,0.06)] md:max-w-[444px] md:flex-1 md:min-w-0 md:p-[24px]"
+                className="flex h-full min-h-0 w-full flex-col items-center gap-[24px] rounded-[12px] bg-[#e4e4e7] p-[14px] text-center shadow-[0px_1px_2px_0px_rgba(10,13,18,0.06)] md:p-[24px]"
               >
                 <div className="size-[60px] shrink-0 overflow-hidden rounded-full">
                   <CldImage src={M_LOGO} alt="MANIFESTR" className="h-full w-full object-cover" />
                 </div>
-                <div className="flex min-h-0 flex-1 flex-col gap-[8px] text-[#3c3c3c]">
+                <div className="flex min-h-0 w-full flex-1 flex-col gap-[8px] text-[#3c3c3c]">
                   <h3
                     className="text-[24px] leading-[32px]"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
@@ -340,7 +340,7 @@ export default function ContactContent() {
                     {card.description}
                   </p>
                 </div>
-                <div className="flex h-[34px] w-fit shrink-0 items-center justify-center gap-[8px] rounded-[8px] border border-[#1b1b1b] px-[16px] py-[8px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] md:border-0 md:bg-white">
+                <div className="mt-auto flex h-[34px] w-fit shrink-0 items-center justify-center gap-[8px] rounded-[8px] border border-[#1b1b1b] px-[16px] py-[8px] shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] md:border-0 md:bg-white">
                   <MessageIcon />
                   <span className="text-[12px] leading-[18px] text-[#020617]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {card.email}
