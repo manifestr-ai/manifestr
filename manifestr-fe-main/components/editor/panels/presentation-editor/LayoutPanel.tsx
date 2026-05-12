@@ -575,12 +575,12 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
   };
 
   return (
-    <div className="h-[102px] bg-white border-b flex items-center px-6 gap-10 overflow-x-auto">
+    <div className="no-scrollbar h-[102px] bg-white border-b border-[#E5E7EB] flex items-center px-6 overflow-x-auto">
       {/* Slide Size */}
-      <div className="flex flex-col items-center">
+      <div className="flex shrink-0 flex-col items-center">
         <span className="text-xs text-gray-500 mb-1">Slide Layouts</span>
 
-        <div className="flex gap-4">
+        <div className="flex items-end gap-4">
           {/* Slide layouts as option buttons, styled like FormatPanel.tsx (see example at lines 213-258) */}
           {[
             {
@@ -1115,7 +1115,7 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
             <button
               key={layout.key}
               onClick={() => applyLayout(layout.key)}
-              className={`flex flex-col items-center justify-center rounded-md transition ${
+              className={`flex w-[86px] shrink-0 flex-col items-center justify-center rounded-md transition ${
                 store.activePage?.layout === layout.key
                   ? "bg-[#E9EBF0]"
                   : "bg-transparent"
@@ -1127,7 +1127,7 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
               <span className="w-8 h-8 flex items-center justify-center mb-1">
                 {layout.icon}
               </span>
-              <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1 text-center block w-full truncate">
+              <span className="text-[#4A5565] font-inter text-[9px] not-italic font-normal leading-[11.25px] tracking-[0.167px] mt-1 text-center block w-full whitespace-nowrap">
                 {layout.label}
               </span>
             </button>
@@ -1136,10 +1136,8 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
       </div>
 
       {/* Divider */}
-      <div className=" w-px h-[50px] bg-[#E3E4EA]" />
-
       {/* Page Setup */}
-      <div className="flex flex-col items-center">
+      <div className="ml-5 flex w-[154px] shrink-0 flex-col items-center justify-center">
         <span
           className="text-center"
           style={{
@@ -1153,8 +1151,8 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
         >
           Page Setup
         </span>
-   
-        <div className="flex gap-2">
+
+        <div className="mt-1 flex gap-3">
           {/* Orientation */}
           <Popover
             position={Position.BOTTOM_LEFT}
@@ -1199,11 +1197,11 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
             }
           >
             <button
-              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              className="flex w-[64px] flex-col items-center justify-center rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-1.5"
               aria-label="Orientation"
               type="button"
             >
-              <span className="text-[22px] text-[#364153] leading-none">
+              <span className="flex h-[32px] items-center justify-center text-[22px] text-[#364153] leading-none">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="31"
@@ -1275,11 +1273,11 @@ export default observer(function LayoutPanel({ store }: LayoutPanelProps) {
             }
           >
             <button
-              className="flex flex-col items-center justify-center w-[68px] rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-2"
+              className="flex w-[64px] flex-col items-center justify-center rounded-md transition bg-transparent hover:bg-[#E9EBF0] py-1.5"
               aria-label="Slide Size"
               type="button"
             >
-              <span className="text-[22px] text-[#364153] leading-none">
+              <span className="flex h-[32px] items-center justify-center text-[22px] text-[#364153] leading-none">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="26"
