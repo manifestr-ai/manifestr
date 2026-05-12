@@ -115,6 +115,7 @@ export default function FileUploadZone({
                   alt="Upload"
                   width={80}
                   height={120}
+                  quality={100}
                   className="w-full h-full"
                 />
               </div>
@@ -183,6 +184,7 @@ export default function FileUploadZone({
                         src={fileObj.preview}
                         alt={fileObj.name}
                         fill
+                        quality={100}
                         className="object-cover"
                       />
                     </>

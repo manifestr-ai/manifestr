@@ -70,7 +70,7 @@ function AdminAvatar({ user, size = 'lg' }) {
         aria-expanded={showDropdown ? "true" : "false"}
       >
         {profileImageUrl ? (
-          <Image src={profileImageUrl} alt="User avatar" fill className="object-cover" />
+          <Image src={profileImageUrl} alt="User avatar" fill quality={100} className="object-cover" />
         ) : (
           <span className="font-semibold text-[#18181b] leading-none">{initials}</span>
         )}

@@ -24,6 +24,7 @@ export default function Logo({ size = 'md', className = '', onClick }) {
         src="/assets/logos/text-logo.svg"
         alt="Manifestr Logo"
         fill
+        quality={100}
         className="object-contain"
         draggable={false}
       />

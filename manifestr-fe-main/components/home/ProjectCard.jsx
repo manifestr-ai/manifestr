@@ -27,6 +27,7 @@ export default function ProjectCard({
           alt={title}
           width={140}
           height={112}
+          quality={100}
           className="w-full h-full object-cover"
         />
       </div>

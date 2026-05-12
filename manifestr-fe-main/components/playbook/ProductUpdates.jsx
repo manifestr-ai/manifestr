@@ -251,7 +251,7 @@ export default function ProductUpdates() {
           className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 md:gap-8"
         >
           <div className="flex flex-col items-center gap-5 text-center md:gap-6">
-            <h1 className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
+            <h1 className="whitespace-nowrap px-2 text-center text-[clamp(1.125rem,4vw+0.5rem,2.25rem)] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Product </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Updates</span>
             </h1>

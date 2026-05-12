@@ -109,7 +109,7 @@ export default function SubmitTicket() {
           className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 text-center md:max-w-[640px] md:gap-8"
         >
           <div className="flex min-w-0 w-full max-w-[min(100%,920px)] flex-col items-center gap-5 px-2 md:gap-6">
-            <h1 className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
+            <h1 className="whitespace-nowrap px-2 text-center text-[clamp(1rem,3.6vw+0.35rem,2.25rem)] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Submit a Support </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Ticket</span>
             </h1>

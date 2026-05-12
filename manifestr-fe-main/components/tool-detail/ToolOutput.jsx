@@ -116,20 +116,20 @@ function OutputMiddleLine({ line }) {
 function MarqueeRow({ images, direction = 'left', duration = 35 }) {
   const doubled = [...images, ...images]
   return (
-    <div className="">
+    <div className="w-full overflow-hidden">
       <div
-        className="flex gap-[16px] w-max"
+        className="flex gap-4 w-max"
         style={{
           animation: `marquee-${direction} ${duration}s linear infinite`,
           willChange: 'transform',
         }}
       >
         {doubled.map((src, i) => (
-          <div key={i} className="shrink-0 w-[240px] h-[180px] rounded-[12px] overflow-hidden">
+          <div key={i} className="shrink-0 w-[240px] h-[180px] rounded-none overflow-hidden">
             <CldImage
               src={src}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-none"
               style={{ filter: 'grayscale(100%)' }}
               loading="lazy"
             />
@@ -144,15 +144,19 @@ function MobileSlider() {
   const scrollRef = useRef(null)
   const [idx, setIdx] = useState(0)
 
-  const scroll = useCallback((dir) => {
-    const el = scrollRef.current
-    if (!el) return
-    const cardW = el.firstElementChild?.offsetWidth || 280
-    const gap = 12
-    const next = dir === 'left' ? Math.max(0, idx - 1) : Math.min(SLIDER_IMAGES.length - 1, idx + 1)
-    el.scrollTo({ left: next * (cardW + gap), behavior: 'smooth' })
-    setIdx(next)
-  }, [idx])
+  const scroll = useCallback(
+    (dir) => {
+      const el = scrollRef.current
+      if (!el) return
+      const cardW = el.firstElementChild?.offsetWidth || 280
+      const gap = 12
+      const next =
+        dir === 'left' ? Math.max(0, idx - 1) : Math.min(SLIDER_IMAGES.length - 1, idx + 1)
+      el.scrollTo({ left: next * (cardW + gap), behavior: 'smooth' })
+      setIdx(next)
+    },
+    [idx],
+  )
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current
@@ -171,11 +175,14 @@ function MobileSlider() {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {SLIDER_IMAGES.map((src, i) => (
-          <div key={i} className="shrink-0 w-[80%] aspect-4/3 rounded-[12px] overflow-hidden snap-center">
+          <div
+            key={i}
+            className="shrink-0 w-[80%] aspect-4/3 rounded-none overflow-hidden snap-center"
+          >
             <CldImage
               src={src}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-none"
               style={{ filter: 'grayscale(100%)' }}
               loading="lazy"
             />
@@ -184,19 +191,40 @@ function MobileSlider() {
       </div>
 
       <button
+        type="button"
         onClick={() => scroll('left')}
-        className="absolute left-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/80 flex items-center justify-center shadow-sm"
+        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-none bg-white/90 border border-[#e4e4e7] flex items-center justify-center"
         aria-label="Previous"
       >
         <ChevronLeft className="w-4 h-4 text-[#18181b]" />
       </button>
       <button
+        type="button"
         onClick={() => scroll('right')}
-        className="absolute right-2 top-1/2 -translate-y-1/2 w-[32px] h-[32px] rounded-full bg-white/80 flex items-center justify-center shadow-sm"
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-none bg-white/90 border border-[#e4e4e7] flex items-center justify-center"
         aria-label="Next"
       >
         <ChevronRight className="w-4 h-4 text-[#18181b]" />
       </button>
+    </div>
+  )
+}
+
+/** Visual strip: rotated stack — scaled so it fits without clipping the right edge; left overlap blocked by copy column bg/z-index. */
+function OutputVisualStrip() {
+  return (
+    <div className="relative w-full h-full min-h-[280px] md:min-h-[min(85vh,720px)] overflow-visible flex items-center justify-center py-8 md:py-0">
+      <div
+        className="flex flex-col justify-center gap-4 max-w-none shrink-0 w-[150%]"
+        style={{
+          transform: 'rotate(-30deg) scale(0.9)  translateY(-16%)',
+          transformOrigin: 'center center',
+        }}
+      >
+        <MarqueeRow images={ROW_1} direction="left" duration={30} />
+        <MarqueeRow images={ROW_2} direction="right" duration={35} />
+        <MarqueeRow images={ROW_3} direction="left" duration={32} />
+      </div>
     </div>
   )
 }
@@ -206,30 +234,17 @@ export default function ToolOutput({ tool }) {
   const { middleLine, body } = getOutputSection(slug)
 
   return (
-    <section className="w-full bg-[#f4f4f5] relative overflow-hidden" style={{ minHeight: '400px' }}>
-      <div
-        className="absolute pointer-events-none hidden md:flex flex-col gap-[16px]"
-        style={{
-          right: '-620px',
-          top: '-200px',
-          width: '1300px',
-          transform: 'rotate(-38deg)',
-          transformOrigin: 'center center',
-        }}
-      >
-        <MarqueeRow images={ROW_1} direction="left" duration={30} />
-        <MarqueeRow images={ROW_2} direction="right" duration={35} />
-        <MarqueeRow images={ROW_3} direction="left" duration={32} />
-      </div>
-
-      <div className="relative z-10 w-full max-w-[min(100%,1440px)] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 min-[1600px]:px-16 py-[48px] md:py-[106px]">
-        <div className="w-full max-w-full md:max-w-[min(100%,960px)] text-center md:text-left">
+    <section className="w-full bg-[#f4f4f5] relative overflow-hidden">
+      {/* Figma-style split: copy + imagery each ~50% width on md+, stacked on small screens */}
+      <div className="flex flex-col md:flex-row md:items-stretch w-full max-w-[min(100%,1440px)] mx-auto min-h-[400px] md:min-h-[min(720px,85vh)] min-w-0">
+        {/* Left half — typography & CTA (opaque bg + z-index so nothing from the right column paints here) */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-6 md:px-8 lg:px-10 xl:pl-12 xl:pr-10 py-12 md:py-[80px] lg:py-[106px] text-center md:text-left shrink-0 min-w-0 relative z-10 bg-[#f4f4f5]">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-[32px] md:text-[60px] leading-tight tracking-[-0.64px] md:tracking-[-1.2px] text-[#18181b] mb-[24px]"
+            className="text-[32px] md:text-[52px] lg:text-[60px] leading-tight tracking-[-0.64px] md:tracking-[-1.2px] text-[#18181b] mb-6"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
           >
             <span className="block">
@@ -253,14 +268,13 @@ export default function ToolOutput({ tool }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className={`text-[18px] leading-[28px] text-[#52525b] font-normal tracking-[0] mb-[24px] w-full max-w-[min(100%,500px)] mx-auto md:mx-0 ${body.includes('\n') ? 'md:whitespace-pre-line' : ''}`}
+            className={`text-[18px] leading-[28px] text-[#52525b] font-normal tracking-[0] mb-6 w-full max-w-[500px] mx-auto md:mx-0 ${body.includes('\n') ? 'md:whitespace-pre-line' : ''}`}
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             {body}
           </motion.p>
 
-          {/* Mobile slider */}
-          <div className="md:hidden mb-[24px]">
+          <div className="md:hidden mb-6">
             <MobileSlider />
           </div>
 
@@ -269,16 +283,21 @@ export default function ToolOutput({ tool }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col gap-[12px] sm:flex-row sm:flex-wrap"
+            className="flex flex-col gap-3 sm:flex-row sm:flex-wrap"
           >
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center h-[54px] md:h-[44px] px-[24px] bg-white border border-[#e4e4e7] text-[#18181b] text-[18px] md:text-[14px] leading-[20px] font-medium rounded-[6px] hover:bg-white/80 transition-colors whitespace-nowrap"
+              className="inline-flex items-center justify-center h-[54px] md:h-[44px] px-6 bg-white border border-[#e4e4e7] text-[#18181b] text-[18px] md:text-[14px] leading-5 font-medium rounded-none hover:bg-white/80 transition-colors whitespace-nowrap"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Enter MANIFESTR
             </Link>
           </motion.div>
+        </div>
+
+        {/* Right half — section overflow-hidden clips edges; transform in OutputVisualStrip stays as tuned */}
+        <div className="hidden md:flex md:w-1/2 min-w-0 flex-col justify-center overflow-visible bg-[#f4f4f5] min-h-0 relative z-0">
+          <OutputVisualStrip />
         </div>
       </div>
     </section>

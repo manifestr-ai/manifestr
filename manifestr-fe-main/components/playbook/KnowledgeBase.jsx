@@ -4,72 +4,32 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import PlaybookTabs from './PlaybookTabs'
 import CldImage from '../ui/CldImage'
+import { KB_CATEGORY_MAP, KB_CATEGORY_SLUGS } from '../../data/knowledgeBaseCategoryContent'
 
 const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458839/Knowledge_Articles_Banner_1441x802_x2_q2q9o5.webp'
 const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
-
-const CATEGORIES = [
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042546/Vector_som3d2.svg',
-    title: 'Getting Started',
-    desc: 'Learn the basics of MANIFESTR',
-    articles: 12,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Icon_lekrzl.svg',
-    title: 'Collaboration',
-    desc: 'Team workflows and features',
-    articles: 15,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042548/Icon-1_bt0ram.svg',
-    title: 'Design',
-    desc: 'Design system and styling',
-    articles: 18,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Vector-1_qcgk8c.svg',
-    title: 'Integration',
-    desc: 'Connect with other Toolkit',
-    articles: 10,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042548/Icon-2_ur5jgr.svg',
-    title: 'Security',
-    desc: 'Privacy and security features',
-    articles: 8,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042546/Icon-3_qa5lhg.svg',
-    title: 'Billing & Plans',
-    desc: 'Subscription management',
-    articles: 7,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Vector-2_xyy9z0.svg',
-    title: 'Troubleshooting',
-    desc: 'Common issues and fixes',
-    articles: 14,
-  },
-  {
-    icon: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Icon-4_jq7cvg.svg',
-    title: 'Mobile App',
-    desc: 'Using MANIFESTR on mobile',
-    articles: 9,
-  },
-]
-
-const CATEGORY_ROUTES = {
-  'Getting Started': '/playbook/getting-started',
-  'Collaboration': '/playbook/knowledge-base',
-  'Design': '/playbook/knowledge-base',
-  'Integration': '/playbook/knowledge-base',
-  'Security': '/playbook/knowledge-base',
-  'Billing & Plans': '/playbook/knowledge-base',
-  'Troubleshooting': '/playbook/knowledge-base',
-  'Mobile App': '/playbook/knowledge-base',
+const CATEGORY_ICONS = {
+  'getting-started': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042546/Vector_som3d2.svg',
+  collaboration: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Icon_lekrzl.svg',
+  design: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042548/Icon-1_bt0ram.svg',
+  integration: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Vector-1_qcgk8c.svg',
+  security: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042548/Icon-2_ur5jgr.svg',
+  'billing-plans': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042546/Icon-3_qa5lhg.svg',
+  troubleshooting: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Vector-2_xyy9z0.svg',
+  'mobile-app': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775042547/Icon-4_jq7cvg.svg',
 }
+
+const CATEGORIES = KB_CATEGORY_SLUGS.map((slug) => {
+  const c = KB_CATEGORY_MAP[slug]
+  return {
+    slug,
+    title: c.title,
+    desc: c.description,
+    articles: c.articles.length,
+    icon: CATEGORY_ICONS[slug],
+  }
+})
 
 function ArrowUpRight({ className = 'w-[20px] h-[20px]' }) {
   return (
@@ -143,7 +103,7 @@ export default function KnowledgeBase() {
           className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 px-0 md:max-w-[738px] md:gap-8"
         >
           <div className="flex flex-col items-center gap-5 md:gap-6">
-            <h1 className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
+            <h1 className="whitespace-nowrap px-2 text-center text-[clamp(1.125rem,4vw+0.5rem,2.25rem)] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Knowledge Base </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Articles</span>
             </h1>
@@ -220,9 +180,9 @@ export default function KnowledgeBase() {
               </p>
             )}
             {filteredCategories.map((cat, i) => {
-              const href = CATEGORY_ROUTES[cat.title] || '#'
+              const href = `/playbook/knowledge-base/${cat.slug}`
               return (
-                <Link key={cat.title} href={href}>
+                <Link key={cat.slug} href={href}>
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}

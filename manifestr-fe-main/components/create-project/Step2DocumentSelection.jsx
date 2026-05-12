@@ -412,6 +412,7 @@ function DocumentCard({ document, isSelected, onClick }) {
             src={document.imageSrc}
             alt={document.title}
             fill
+            quality={100}
             className="object-cover rounded-t-xl"
           />
         ) : (
@@ -521,6 +522,7 @@ export default function Step2DocumentSelection({ selectedTool, selectedDocument,
               src={bannerSrc}
               alt={bannerTitle}
               fill
+              quality={100}
               className="object-cover object-[center_28%]"
               priority
             />

@@ -118,6 +118,7 @@ export default function StatsCard() {
               alt="Manifestr Icon"
               width={32}
               height={32}
+              quality={100}
               className="w-8 h-8"
             />
           </div>
@@ -135,6 +136,7 @@ export default function StatsCard() {
               alt="Chess Knight"
               width={32}
               height={32}
+              quality={100}
               className="w-8 h-8"
             />
           </div>

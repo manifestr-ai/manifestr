@@ -13,6 +13,8 @@ export default function AffiliateHero() {
           className="w-full h-full object-cover"
           style={{ objectPosition: 'center top', transform: '' }}
           priority
+          sizes="100vw"
+          fallbackWidth={2048}
         />
         <div className="absolute inset-0 " />
       </div>

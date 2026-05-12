@@ -31,6 +31,8 @@ export default function ToolCTA() {
             alt=""
             className="h-full w-full object-cover object-center"
             priority
+            sizes="100vw"
+            fallbackWidth={2048}
           />
         </div>
 

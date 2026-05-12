@@ -100,7 +100,7 @@ export default function UserResponsibility() {
       {/* ─── Hero ─── */}
       <section className="w-full bg-white overflow-hidden">
         <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px] py-9 md:py-[64px]">
-          <nav className="flex flex-wrap items-center justify-center gap-[4px] mb-6">
+          <nav className="flex flex-wrap items-center justify-start gap-[4px] mb-6">
             <Link href="/" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Home</Link>
             <ChevronRight />
             <Link href="/security" className="text-[14px] leading-[20px] font-semibold text-[#71717a] px-[8px] py-[4px] hover:text-[#18181b]" style={font}>Security</Link>
@@ -109,11 +109,11 @@ export default function UserResponsibility() {
           </nav>
 
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-            <div className="flex flex-col gap-6 md:gap-8 w-full lg:w-[592px] shrink-0 items-center text-center">
-              <div className="flex flex-col gap-[20px] w-full items-center">
+            <div className="flex flex-col gap-6 md:gap-8 w-full lg:w-[592px] shrink-0 items-start text-left">
+              <div className="flex flex-col gap-[20px] w-full items-start">
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                  className="text-center text-[36px] leading-[1.1] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
+                  className="text-left text-[36px] leading-[1.1] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
                   style={headingFont}
                 >
                   Security is a shared responsibility.
@@ -121,7 +121,7 @@ export default function UserResponsibility() {
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-                  className={`flex flex-col gap-[20px] w-full items-center text-center ${bodyText}`}
+                  className={`flex flex-col gap-[20px] w-full items-start text-left ${bodyText}`}
                   style={font}
                 >
                   <p className={`max-w-[640px] ${bodyText}`}>
@@ -129,12 +129,12 @@ export default function UserResponsibility() {
                     secure at the platform level, and what customers must secure at the account and endpoint level.
                   </p>
 
-                  <div className="flex flex-col gap-[8px] w-full max-w-[560px] mx-auto items-center">
+                  <div className="flex flex-col gap-[8px] w-full max-w-[560px] items-start">
                     <p className="text-[#18181b] font-semibold text-[18px] leading-[28px]">MANIFESTR&apos;s role:</p>
                     <p className={bodyText}>Protecting the platform infrastructure, ensuring compliance, and implementing enterprise-grade controls.</p>
                   </div>
 
-                  <div className="flex flex-col gap-[8px] w-full max-w-[560px] mx-auto items-center">
+                  <div className="flex flex-col gap-[8px] w-full max-w-[560px] items-start">
                     <p className="text-[#18181b] font-semibold text-[18px] leading-[28px]">Your role:</p>
                     <p className={bodyText}>Protecting credentials, endpoints, and internal access management.</p>
                   </div>
@@ -147,7 +147,7 @@ export default function UserResponsibility() {
                 </motion.div>
               </div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="self-start">
                 <Link
                   href="/security/compliance-certifications"
                   className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] h-[44px] md:py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
@@ -173,7 +173,7 @@ export default function UserResponsibility() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="lg:hidden mt-8 w-full flex justify-center"
+            className="lg:hidden mt-8 w-full flex justify-start"
           >
             <div className="w-full max-w-[342px] h-[292px] rounded-[12px] overflow-hidden">
               <CldImage src={HERO_IMAGE} alt="User responsibility" className="w-full h-full object-cover" />
@@ -186,9 +186,9 @@ export default function UserResponsibility() {
       <section className="w-full bg-white px-6 md:px-[80px] py-9 md:py-[64px]">
         <div className="max-w-[1280px] mx-auto flex flex-col lg:flex-row gap-8 lg:gap-12 items-start lg:items-start">
           {/* MANIFESTR's Role */}
-          <motion.div {...fadeUp} className="flex-1 min-w-0 flex flex-col gap-8 md:gap-10 items-center text-center">
-            <div className="flex flex-col gap-[20px] items-center">
-              <h2 className="text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]" style={headingFont}>
+          <motion.div {...fadeUp} className="flex-1 min-w-0 flex flex-col gap-8 md:gap-10 items-start text-left">
+            <div className="flex flex-col gap-[20px] items-start">
+              <h2 className="text-left text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]" style={headingFont}>
                 MANIFESTR&apos;s Role
               </h2>
               <p className={`max-w-[640px] ${bodyText}`} style={font}>
@@ -197,11 +197,11 @@ export default function UserResponsibility() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-[20px] w-full max-w-[640px] mx-auto items-center">
+            <div className="flex flex-col gap-[20px] w-full max-w-[640px] items-start">
               {MANIFESTR_ROLE.map((section) => (
-                <div key={section.title} className="flex flex-col gap-[12px] items-center w-full">
-                  <h4 className="text-[#18181b] text-[18px] leading-[28px] font-semibold" style={font}>{section.title}</h4>
-                  <ul className="flex flex-col gap-[8px] list-none p-0 m-0">
+                <div key={section.title} className="flex flex-col gap-[12px] items-start w-full">
+                  <h4 className="text-left text-[#18181b] text-[18px] leading-[28px] font-semibold" style={font}>{section.title}</h4>
+                  <ul className="flex flex-col gap-[8px] list-none p-0 m-0 text-left">
                     {section.items.map((item, i) => (
                       <li key={i} className={`${bodyText}`} style={font}>{item}</li>
                     ))}
@@ -215,8 +215,8 @@ export default function UserResponsibility() {
               Policy, and Data Processing Agreements.
             </p>
 
-            <div className="flex flex-col gap-8 md:gap-10 items-center w-full max-w-[640px] mx-auto">
-              <p className={bodyText} style={font}>
+            <div className="flex flex-col gap-8 md:gap-10 items-start w-full max-w-[640px]">
+              <p className={`${bodyText} text-left`} style={font}>
                 Security is strongest when shared. By combining MANIFESTR&apos;s enterprise-grade controls with your
                 organization&apos;s account- and device-level security, together we ensure a comprehensive defense against
                 evolving threats. This partnership enables compliance with global regulations, protects sensitive data,
@@ -225,7 +225,7 @@ export default function UserResponsibility() {
               </p>
               <Link
                 href="#"
-                className="inline-flex items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] h-[44px] md:py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
+                className="inline-flex self-start items-center justify-center bg-[#18181b] text-white rounded-[6px] px-[32px] h-[44px] md:py-[12px] text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
                 style={font}
               >
                 Enable MFA Now
@@ -234,9 +234,9 @@ export default function UserResponsibility() {
           </motion.div>
 
           {/* User's Role */}
-          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.15 }} className="flex-1 min-w-0 flex flex-col gap-8 md:gap-10 items-center text-center">
-            <div className="flex flex-col gap-[20px] items-center">
-              <h2 className="text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]" style={headingFont}>
+          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.15 }} className="flex-1 min-w-0 flex flex-col gap-8 md:gap-10 items-start text-left">
+            <div className="flex flex-col gap-[20px] items-start">
+              <h2 className="text-left text-black tracking-[-0.6px] md:tracking-[-1.2px] text-[30px] leading-[38px] md:text-[60px] md:leading-[72px]" style={headingFont}>
                 User&apos;s Role
               </h2>
               <p className={`max-w-[640px] ${bodyText}`} style={font}>
@@ -245,11 +245,11 @@ export default function UserResponsibility() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-[20px] w-full max-w-[640px] mx-auto items-center">
+            <div className="flex flex-col gap-[20px] w-full max-w-[640px] items-start">
               {USER_ROLE.map((section) => (
-                <div key={section.title} className="flex flex-col gap-[12px] items-center w-full">
-                  <h4 className="text-[#18181b] text-[18px] leading-[28px] font-semibold" style={font}>{section.title}</h4>
-                  <ul className="flex flex-col gap-[8px] list-none p-0 m-0">
+                <div key={section.title} className="flex flex-col gap-[12px] items-start w-full">
+                  <h4 className="text-left text-[#18181b] text-[18px] leading-[28px] font-semibold" style={font}>{section.title}</h4>
+                  <ul className="flex flex-col gap-[8px] list-none p-0 m-0 text-left">
                     {section.items.map((item, i) => (
                       <li key={i} className={bodyText} style={font}>{item}</li>
                     ))}

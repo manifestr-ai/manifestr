@@ -12,6 +12,8 @@ export default function AboutHero() {
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
           priority
+          sizes="100vw"
+          fallbackWidth={2048}
         />
         <div className="absolute inset-0 bg-black/[0.28] md:bg-black/17" />
       </div>

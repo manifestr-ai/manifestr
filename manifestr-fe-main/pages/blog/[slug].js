@@ -236,7 +236,14 @@ export default function BlogPost() {
                   transition={{ delay: 0.2, duration: 0.6 }}
                   className="w-full md:w-[624px] h-[319px] md:h-[416px] rounded-[6px] md:rounded-[12px] overflow-hidden shrink-0"
                 >
-                  <CldImage src={post.heroImg} alt="" className="w-full h-full object-cover" priority />
+                  <CldImage
+                    src={post.heroImg}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    priority
+                    sizes="(max-width: 767px) 100vw, 624px"
+                    fallbackWidth={2048}
+                  />
                 </motion.div>
               </div>
             </div>

@@ -9,6 +9,7 @@ export default function LogoFooter({ backgroundColor = '#ffffff' }) {
           alt="Manifestr Logo"
           width={1200}
           height={200}
+          quality={100}
           className="w-full h-auto"
           priority
         />

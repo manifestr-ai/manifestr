@@ -211,7 +211,14 @@ export default function ToolHero({ tool }) {
                 opacity: visible ? undefined : 0,
               }}
             >
-              <CldImage src={heroImage} alt="" className="w-full h-full object-cover md:object-center" priority />
+              <CldImage
+                src={heroImage}
+                alt=""
+                className="w-full h-full object-cover md:object-center"
+                priority
+                sizes="100vw"
+                fallbackWidth={2048}
+              />
             </div>
 
             {/* Title overlay — desktop only */}

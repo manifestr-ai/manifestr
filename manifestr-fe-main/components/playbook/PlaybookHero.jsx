@@ -14,8 +14,22 @@ export default function PlaybookHero() {
                  lg:h-[518px] lg:p-12"
     >
       <div className="absolute inset-0">
-        <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block w-full h-full object-cover" priority />
-        <img src={HERO_BG_MOBILE} alt="" className="md:hidden w-full h-full object-cover" loading="eager" fetchPriority="high" />
+        <CldImage
+          src={HERO_BG_DESKTOP}
+          alt=""
+          className="hidden md:block w-full h-full object-cover"
+          priority
+          sizes="100vw"
+          fallbackWidth={2048}
+        />
+        <CldImage
+          src={HERO_BG_MOBILE}
+          alt=""
+          className="md:hidden w-full h-full object-cover"
+          priority
+          sizes="100vw"
+          fallbackWidth={2048}
+        />
         <div className="absolute inset-0 bg-black/17" />
       </div>
 
@@ -49,11 +63,11 @@ export default function PlaybookHero() {
         <div className="mt-10 flex w-full flex-col items-center gap-6 md:max-lg:mt-8 md:max-lg:gap-5 lg:mt-12 lg:gap-6">
           <div className="flex w-full flex-col items-center gap-6 md:max-lg:gap-4 lg:gap-5">
             <h1
-              className="text-center text-[36px] leading-[100%] tracking-[-0.72px] text-white
+              className="text-center whitespace-nowrap px-2 text-[clamp(1.125rem,4vw+0.5rem,2.25rem)] leading-[100%] tracking-[-0.72px] text-white
                          md:max-lg:text-[48px] md:max-lg:leading-[1.08] md:max-lg:tracking-[-0.96px]
                          lg:text-[72px] lg:leading-[90px] lg:tracking-[-1.44px]"
             >
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Welcome to<br className="md:hidden" />{' '}The </span>
+              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Welcome to The </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Playbook</span>
             </h1>
             <p

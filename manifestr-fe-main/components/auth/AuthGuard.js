@@ -20,6 +20,7 @@ const UNPROTECTED_ROUTES = [
     '/affiliates',
     '/playbook',
     '/playbook/knowledge-base',
+    '/playbook/knowledge-base/[slug]',
     '/playbook/demo-videos',
     '/playbook/demo-videos/[slug]',
     '/playbook/demo-videos/category/[category]',
