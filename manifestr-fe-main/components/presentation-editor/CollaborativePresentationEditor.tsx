@@ -239,6 +239,7 @@ interface CollaborativePresentationEditorProps {
   generationId: string;
   onStoreReady?: (store: any) => void;
   onActiveToolChange?: (tool: string | null) => void;
+  onActiveUsersChange?: (users: any[]) => void;
 }
 // ================= MAIN COMPONENT =================
 
@@ -247,6 +248,7 @@ export default function CollaborativePresentationEditor({
   generationId,
   onStoreReady,
   onActiveToolChange,
+  onActiveUsersChange,
 }: CollaborativePresentationEditorProps) {
   const router = useRouter();
 
@@ -379,6 +381,10 @@ export default function CollaborativePresentationEditor({
 
     return () => clearInterval(interval);
   }, [generationId]);
+
+  useEffect(() => {
+    onActiveUsersChange?.(activeUsers);
+  }, [activeUsers, onActiveUsersChange]);
 
   useEffect(() => {
     if (!provider) return;
@@ -642,40 +648,6 @@ export default function CollaborativePresentationEditor({
 
   return (
     <div className="w-full h-full bg-[#f3f4f6] flex flex-col relative">
-      {/* Active Users Bar */}
-      {activeUsers.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-blue-900">
-              {activeUsers.length} editing now:
-            </span>
-            <div className="flex -space-x-2">
-              {activeUsers.map((user) => (
-                <div
-                  key={user.user_id}
-                  className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
-                  style={{ backgroundColor: user.user_color || "#3b82f6" }}
-                  title={
-                    user.users
-                      ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                        user.users.email
-                      : "User"
-                  }
-                >
-                  {(user.users
-                    ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                      user.users.email
-                    : user.users?.email || "U")[0].toUpperCase()}
-                </div>
-              ))}
-            </div>
-          </div>
-          <span className="text-xs text-blue-700">
-            Changes sync automatically
-          </span>
-        </div>
-      )}
-
       {/* HEADER */}
       <div
         className="
@@ -691,7 +663,7 @@ export default function CollaborativePresentationEditor({
           bg-white
           "
         style={{
-          paddingTop: activeUsers.length > 0 ? "56.5px" : "12.5px",
+          paddingTop: "12.5px",
           paddingBottom: "13.5px",
         }}
       >
@@ -731,12 +703,74 @@ export default function CollaborativePresentationEditor({
         </div>
       </div>
 
-      {/* ACTION BAR */}
-      <div className="h-[60px] flex items-center gap-3 px-6 border-b border-gray-200 bg-white">
+      {/* ACTION BAR — Browse Vault | Insert Theme (same pattern as spreadsheet / docs) */}
+      <div className="flex h-[60px] min-h-[60px] shrink-0 items-center gap-3 overflow-x-auto border-b border-gray-200 bg-white px-6">
+        <button
+          type="button"
+          onClick={() => router.push("/vault/recents")}
+          className="flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#f3f4f6] px-3 text-[14px] font-medium leading-5 text-[#0a0a0a] transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300 sm:px-4"
+          style={{
+            fontFamily: "Inter",
+            fontStyle: "normal",
+            fontWeight: 500,
+            letterSpacing: "-0.15px",
+          }}
+        >
+          <span className="inline-flex size-4 shrink-0 items-center justify-center text-[#0a0a0a]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden
+              className="shrink-0"
+            >
+              <path
+                d="M10.0013 1.33594H4.0013C3.64768 1.33594 3.30854 1.47641 3.05849 1.72646C2.80844 1.97651 2.66797 2.31565 2.66797 2.66927V13.3359C2.66797 13.6896 2.80844 14.0287 3.05849 14.2787C3.30854 14.5288 3.64768 14.6693 4.0013 14.6693H12.0013C12.3549 14.6693 12.6941 14.5288 12.9441 14.2787C13.1942 14.0287 13.3346 13.6896 13.3346 13.3359V4.66927L10.0013 1.33594Z"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9.33203 1.33594V4.0026C9.33203 4.35623 9.47251 4.69536 9.72256 4.94541C9.9726 5.19546 10.3117 5.33594 10.6654 5.33594H13.332"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6.66536 6H5.33203"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10.6654 8.66406H5.33203"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10.6654 11.3359H5.33203"
+                stroke="currentColor"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span>Browse Vault</span>
+        </button>
+
+        <div className="h-6 w-px shrink-0 bg-[#d1d5dc]" aria-hidden />
+
         <button
           onClick={() => setShowStyleGuideModal(true)}
-          className="px-3 py-2 flex items-center gap-2 rounded-[10px] bg-[#F3F4F6] text-[#0A0A0A] font-medium transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300
-            text-[13px] xs:text-[14px] sm:px-4 sm:py-2"
+          className="flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#F3F4F6] px-3 text-[13px] font-medium text-[#0A0A0A] transition hover:bg-gray-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-gray-300 xs:text-[14px] sm:px-4"
           style={{
             fontFamily: "Inter",
             fontStyle: "normal",

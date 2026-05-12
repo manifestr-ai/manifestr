@@ -5,10 +5,7 @@ import TopHeader from "../components/spreadsheet/TopHeader";
 import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
 import dynamic from "next/dynamic";
-import {
-  FloatingSheetTab,
-  FloatingFAB,
-} from "../components/spreadsheet/FloatingElements";
+import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 import api from "../lib/api";
 
 const PhotoEditor = dynamic(
@@ -177,6 +174,7 @@ export default function ImageEditor() {
           documentId={actualImageId}
           documentTitle="Image"
           enableCollaboration={!!actualImageId}
+          activeUsers={activeUsers}
         />
       </div>
 
@@ -184,40 +182,6 @@ export default function ImageEditor() {
       <div className="flex-grow flex relative overflow-hidden bg-gray-100">
         {/* Grid Container (Full Size) */}
         <div className="flex-grow overflow-hidden relative z-10">
-          {/* Active Users Bar */}
-          {activeUsers.length > 0 && (
-            <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-blue-900">
-                  {activeUsers.length} editing now:
-                </span>
-                <div className="flex -space-x-2">
-                  {activeUsers.map((user) => (
-                    <div
-                      key={user.user_id}
-                      className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
-                      style={{ backgroundColor: user.user_color || "#3b82f6" }}
-                      title={
-                        user.users
-                          ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                            user.users.email
-                          : "User"
-                      }
-                    >
-                      {(user.users
-                        ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                          user.users.email
-                        : user.users?.email || "U")[0].toUpperCase()}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <span className="text-xs text-blue-700">
-                Changes sync automatically
-              </span>
-            </div>
-          )}
-
           {loading ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <div className="text-center">
@@ -229,7 +193,7 @@ export default function ImageEditor() {
               </div>
             </div>
           ) : imageUrl && imageUrl !== "/assets/dummy/dummy-trainer.jpg" ? (
-            <div className={activeUsers.length > 0 ? "pt-12" : ""} style={{ height: '100%' }}>
+            <div className="h-full" style={{ height: "100%" }}>
               <PhotoEditor 
                 key={imageUrl} 
                 imageSrc={imageUrl} 
@@ -239,7 +203,7 @@ export default function ImageEditor() {
               />
             </div>
           ) : imageUrl ? (
-            <div className={activeUsers.length > 0 ? "pt-12" : ""} style={{ height: '100%' }}>
+            <div className="h-full" style={{ height: "100%" }}>
               <PhotoEditor 
                 key="default" 
                 imageSrc={imageUrl}
@@ -276,8 +240,7 @@ export default function ImageEditor() {
           </div>
         )}
 
-        {/* Floating Elements */}
-        <FloatingSheetTab />
+        {/* Floating Elements — sheet tabs are spreadsheet-only (Univer); not used on image editor */}
         <FloatingFAB />
       </div>
     </div>

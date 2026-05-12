@@ -29,6 +29,38 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   const findInputRef = useRef<HTMLInputElement | null>(null);
   const tiptapMatchesRef = useRef<Array<{ from: number; to: number }>>([]);
 
+  /** Scroll so `pos` is visible without focusing the editor (keeps find field typing). */
+  const scrollDocToPos = useMemo(() => {
+    return (pos: number) => {
+      if (!editor?.view) return;
+      try {
+        const view = editor.view;
+        const safePos = Math.max(
+          0,
+          Math.min(pos, view.state.doc.content.size),
+        );
+        const coords = view.coordsAtPos(safePos);
+        const pm = view.dom as HTMLElement;
+        const scroller =
+          (pm.closest(".simple-editor-wrapper") as HTMLElement | null) ||
+          (pm.closest(".simple-editor-content") as HTMLElement | null) ||
+          (pm.parentElement as HTMLElement | null);
+        if (!scroller || typeof scroller.scrollTop !== "number") return;
+        const scRect = scroller.getBoundingClientRect();
+        const delta = coords.top - scRect.top + scroller.scrollTop;
+        const target = Math.max(0, delta - scroller.clientHeight / 3);
+        scroller.scrollTo({ top: target, behavior: "smooth" });
+      } catch {
+        try {
+          (editor.view.dom as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        } catch {}
+      }
+    };
+  }, [editor]);
+
   // Toast notification helper
   const showToast = (message: string) => {
     setToast(message);
@@ -40,7 +72,6 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     setFindBarOpen(true);
     setTimeout(() => {
       findInputRef.current?.focus();
-      findInputRef.current?.select();
     }, 0);
   };
 
@@ -186,31 +217,47 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     };
   }, [editor]);
 
+  /** Jump to match for prev/next/Enter: updates doc selection then returns focus to find field. */
   const gotoMatch = (index: number) => {
     if (!editor) return;
-    if (findMatchCount <= 0) return;
-    const nextIndex = ((index % findMatchCount) + findMatchCount) % findMatchCount;
+    const total =
+      tiptapMatchesRef.current.length > 0
+        ? tiptapMatchesRef.current.length
+        : findMatchCount;
+    if (total <= 0) return;
+    const nextIndex = ((index % total) + total) % total;
     setFindActiveIndex(nextIndex);
+
+    const findEl = findInputRef.current;
+    const selStart = findEl?.selectionStart ?? null;
+    const selEnd = findEl?.selectionEnd ?? null;
 
     if (typeof editor?.commands?.setSearchTerm === "function" && tiptapMatchesRef.current.length) {
       const match = tiptapMatchesRef.current[nextIndex];
       if (!match) return;
+      if (typeof editor.commands?.setSearchActiveIndex === "function") {
+        editor.commands.setSearchActiveIndex(nextIndex);
+      }
       try {
-        editor.chain().focus().setTextSelection({ from: match.from, to: match.to }).run();
+        editor.chain().setTextSelection({ from: match.from, to: match.to }).run();
       } catch {
         try {
           editor.commands.setTextSelection({ from: match.from, to: match.to });
         } catch {}
       }
-      try {
-        const root = document.querySelector(".ProseMirror") as HTMLElement | null;
-        const coords = editor.view.coordsAtPos(match.from);
-        if (root) {
-          const rect = root.getBoundingClientRect();
-          const delta = coords.top - rect.top;
-          root.scrollTop += delta - root.clientHeight / 3;
+      scrollDocToPos(match.from);
+      queueMicrotask(() => {
+        findEl?.focus();
+        if (
+          selStart != null &&
+          selEnd != null &&
+          typeof findEl?.setSelectionRange === "function"
+        ) {
+          try {
+            findEl.setSelectionRange(selStart, selEnd);
+          } catch {}
         }
-      } catch {}
+      });
       return;
     }
 
@@ -224,6 +271,38 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
       m.classList.remove("search-highlight--active");
     });
     const el = marks[nextIndex] || null;
+    if (!el) return;
+    el.setAttribute("data-search-active", "true");
+    el.classList.add("search-highlight--active");
+    try {
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+    } catch {}
+  };
+
+  /** Scroll to match `index` and show “active” state without touching doc selection (while typing in find). */
+  const revealMatchAtIndex = (index: number) => {
+    if (!editor) return;
+    const matches = tiptapMatchesRef.current;
+    if (matches.length > 0) {
+      const i = Math.max(0, Math.min(index, matches.length - 1));
+      if (typeof editor.commands?.setSearchActiveIndex === "function") {
+        editor.commands.setSearchActiveIndex(i);
+      }
+      const match = matches[i];
+      if (match) scrollDocToPos(match.from);
+      return;
+    }
+    const root = document.querySelector(".ProseMirror") as HTMLElement | null;
+    if (!root) return;
+    const marks = Array.from(
+      root.querySelectorAll('mark[data-type="search-highlight"]'),
+    ) as HTMLElement[];
+    marks.forEach((m) => {
+      m.removeAttribute("data-search-active");
+      m.classList.remove("search-highlight--active");
+    });
+    const i = Math.max(0, Math.min(index, marks.length - 1));
+    const el = marks[i];
     if (!el) return;
     el.setAttribute("data-search-active", "true");
     el.classList.add("search-highlight--active");
@@ -258,14 +337,23 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
   useEffect(() => {
     if (!findBarOpen) return;
     const { count } = rebuildMatches(findText);
-    if (count > 0) gotoMatch(findActiveIndex);
+    if (count > 0) {
+      setFindActiveIndex(0);
+      requestAnimationFrame(() => revealMatchAtIndex(0));
+    }
   }, [findBarOpen]);
 
+  // Live highlight + scroll to current match without focusing the editor
   useEffect(() => {
     if (!findBarOpen) return;
     const id = setTimeout(() => {
       const { count } = rebuildMatches(findText);
-      if (count > 0) gotoMatch(0);
+      if (count > 0) {
+        setFindActiveIndex(0);
+        requestAnimationFrame(() => revealMatchAtIndex(0));
+      } else {
+        setFindActiveIndex(0);
+      }
     }, 120);
     return () => clearTimeout(id);
   }, [findText, findBarOpen]);
@@ -276,7 +364,9 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
     if (!root) return;
     const handler = () => {
       const { count } = rebuildMatches(findText);
-      if (count > 0) gotoMatch(Math.min(findActiveIndex, count - 1));
+      if (count > 0) {
+        setFindActiveIndex((i) => Math.min(i, count - 1));
+      }
     };
     root.addEventListener("input", handler, true);
     return () => root.removeEventListener("input", handler, true);
@@ -445,6 +535,7 @@ export default function ReviewPanel({ store, editor }: ReviewPanelProps) {
               value={findText}
               onChange={(e) => setFindText(e.target.value)}
               onKeyDown={(e) => {
+                e.stopPropagation();
                 if (e.key === "Enter") {
                   gotoMatch(findActiveIndex + (e.shiftKey ? -1 : 1));
                 }

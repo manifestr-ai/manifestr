@@ -642,48 +642,14 @@
   border-top: 1px solid #e5e7eb !important;
 }
 
-/* Input bar */
-.univer-formula-bar {
-  background: #ffffff !important;
-  border-bottom: 1px solid #e5e7eb !important;
-}
-
 [data-u-comp="headerbar"] {
   display: none !important;
 }
 
-/* ===== Formula Bar Container ===== */
-
+/* Native Univer formula bar: replaced by app FormulaBar (Figma) above the grid */
+.univer-formula-bar,
 [data-u-comp="formula-bar"] {
-  height: 51px !important;
-  padding: 9px 16px !important;
-}
-
-[data-u-comp="defined-name"] {
-  display: flex !important;
-  width: 60px !important;
-  padding: 7.5px 0 6.5px 0 !important;
-  justify-content: center !important;
-  align-items: center !important;
-  border-radius: 4px !important;
-  border: 1px solid #e5e7eb !important;
-  background: #f3f4f6 !important;
-}
-
-[data-u-comp="defined-name"] input {
-  color: #0a0a0a !important;
-  text-align: center !important;
-  font-family: Inter, sans-serif !important;
-  font-size: 14px !important;
-  font-style: normal !important;
-  font-weight: 400 !important;
-  line-height: 20px !important; /* 142.857% */
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  margin-right: 5px !important;
+  display: none !important;
 }
 
 [data-u-comp="slide-tab-item"] {
@@ -716,24 +682,8 @@
   display: none !important;
 }
 
-[data-u-comp="formula-bar"] .univer-ring-1 {
-  height: 32px !important;
-  padding: 4px 40px 4px 12px !important;
-  border-radius: 6px !important;
-  border: 1px solid rgba(0, 0, 0, 0) !important;
-  background: #f3f3f5 !important;
-}
-
 footer > .univer-box-border {
   background: #f9fafb !important;
-}
-
-/* Hide dropdown (range selector arrow) */
-.univerjs-icon-dropdown-icon {
-  display: none !important;
-}
-.univerjs-icon-close-icon {
-  display: none !important;
 }
 
 /* Tiptap Table Styles */

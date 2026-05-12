@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -22,7 +22,6 @@ import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 import StyleGuideModal from "../components/editor/StyleGuideModal";
 import { useToast } from "../hooks/useToast";
 import api from "../lib/api";
-import { useEffect } from "react";
 
 const EDITOR_BACKGROUND_IMAGE =
   "https://res.cloudinary.com/dlifgfg6m/image/upload/v1778220832/background_presentation_editor_tnlrr7.png";
@@ -256,6 +255,15 @@ export default function DocsEditor() {
 
   const useCollaboration = !!actualDocumentId; // Enable collaboration if we have a document ID
 
+  const [headerActiveUsers, setHeaderActiveUsers] = useState<any[]>([]);
+  const onCollabActiveUsersChange = useCallback((users: any[]) => {
+    setHeaderActiveUsers(users);
+  }, []);
+
+  useEffect(() => {
+    setHeaderActiveUsers([]);
+  }, [actualDocumentId]);
+
   // Extract saved HTML content if available
   // For documents, content IS the HTML string directly (editorState from backend)
   // For spreadsheets/presentations, content is an object
@@ -376,6 +384,7 @@ export default function DocsEditor() {
             documentId={actualDocumentId}
             documentTitle={content?.title || "Untitled document"}
             enableCollaboration={useCollaboration}
+            activeUsers={headerActiveUsers}
           />
         </div>
 
@@ -562,6 +571,7 @@ export default function DocsEditor() {
               <CollaborativeTiptapEditor
                 documentId={actualDocumentId}
                 initialContent={content || editorContent}
+                onActiveUsersChange={onCollabActiveUsersChange}
                 onEditorReady={(editor) => {
                   setEditorInstance(editor);
                   // Extract headings from TipTap editor (IDs are now built-in)

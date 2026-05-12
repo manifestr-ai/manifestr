@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, FileText, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 type Heading = { id: string; level: number; text: string };
 
@@ -82,8 +82,6 @@ export default function DocumentOutline({ headings }: { headings: Heading[] }) {
     sections[0]?.id ?? null,
   );
 
-  const [activePage, setActivePage] = useState<number>(1);
-
   const toggleSection = (sectionId: string) => {
     setExpanded((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
@@ -149,56 +147,6 @@ export default function DocumentOutline({ headings }: { headings: Heading[] }) {
               </div>
             );
           })}
-        </div>
-
-        {/* Pages header (Figma node 10478:169101) */}
-        <div className="mt-2 bg-gradient-to-b border-b border-solid border-[#f3f4f6] from-white to-[rgba(249,250,251,0.3)] h-[37px] w-full flex items-center justify-between px-3 pb-px shrink-0">
-          <div className="flex items-center gap-2">
-            <FileText size={14} className="text-[#364153]" />
-            <span className="text-[#364153] text-[12px] leading-4 font-normal">
-              Pages
-            </span>
-          </div>
-          <button
-            type="button"
-            className="size-5 rounded-[8px] flex items-center justify-center hover:bg-gray-50"
-            aria-label="Add page"
-          >
-            <Plus size={14} className="text-[#4a5565]" />
-          </button>
-        </div>
-
-        {/* Pages list (Figma node 10478:169115...) */}
-        <div className="px-2 pt-2 pb-4">
-          <div className="w-[199px] px-2 flex flex-col gap-[4px]">
-            {Array.from({ length: 10 }).map((_, idx) => {
-              const num = idx + 1;
-              const isActive = num === activePage;
-              return (
-                <button
-                  key={num}
-                  type="button"
-                  onClick={() => setActivePage(num)}
-                  className={[
-                    "h-[30px] rounded-[8px] flex items-center gap-[8px] pl-[10px] w-[183px]",
-                    isActive
-                      ? "bg-[#3a3a3a] text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)]"
-                      : "bg-[rgba(255,255,255,0.5)] border border-solid border-[rgba(229,231,235,0.5)] text-[#4a5565]",
-                  ].join(" ")}
-                >
-                  <span
-                    className={[
-                      "rounded-full",
-                      isActive ? "bg-white size-[4px]" : "bg-[#99a1af] size-[4px]",
-                    ].join(" ")}
-                  />
-                  <span className="text-[12px] leading-4 font-normal">
-                    {num}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
     </div>

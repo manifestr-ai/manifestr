@@ -28,8 +28,6 @@ import * as Y from "yjs";
 import { SupabaseProvider } from "../../lib/supabase-yjs-provider";
 import { supabase } from "../../lib/supabase";
 import api from "../../lib/api";
-import EditorBottomToolbar from "../editor/EditorBottomToolbar";
-import ToolPanel from "../editor/panels/presentation-editor/ToolPanel";
 
 import "@univerjs/preset-sheets-core/lib/index.css";
 
@@ -38,6 +36,8 @@ interface CollaborativeUniverSheetProps {
   data?: any;
   generationId: string;
   isAIPrompterActive?: boolean;
+  /** Lift active collaborator list to app header (Figma 10478:187727). */
+  onActiveUsersChange?: (users: any[]) => void;
 }
 
 // Generate consistent color for user
@@ -57,7 +57,16 @@ const getUserColor = (userId: string): string => {
 };
 
 const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
-  ({ onAPIReady, data, generationId, isAIPrompterActive = false }, ref) => {
+  (
+    {
+      onAPIReady,
+      data,
+      generationId,
+      isAIPrompterActive = false,
+      onActiveUsersChange,
+    },
+    ref,
+  ) => {
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement>(null);
     const univerAPIRef = useRef<any>(null);
@@ -304,6 +313,10 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
 
       return () => clearInterval(interval);
     }, [generationId]);
+
+    useEffect(() => {
+      onActiveUsersChange?.(activeUsers);
+    }, [activeUsers, onActiveUsersChange]);
 
     // Y.js <-> Univer Sync - FIXED to prevent workbook recreation on own changes
     useEffect(() => {
@@ -616,70 +629,12 @@ const CollaborativeUniverSheet = forwardRef<any, CollaborativeUniverSheetProps>(
 
   
     return (
-      <>
-        {/* Active Users Bar */}
-        {activeUsers.length > 0 && (
-          <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-[9999]">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-blue-900">
-                {activeUsers.length} editing now:
-              </span>
-              <div className="flex -space-x-2">
-                {activeUsers.map((user) => (
-                  <div
-                    key={user.user_id}
-                    className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
-                    style={{ backgroundColor: user.user_color || "#3b82f6" }}
-                    title={
-                      user.users
-                        ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                          user.users.email
-                        : "User"
-                    }
-                  >
-                    {(user.users
-                      ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                        user.users.email
-                      : user.users?.email || "U")[0].toUpperCase()}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <span className="text-xs text-blue-700">
-              Changes sync automatically
-            </span>
-          </div>
-        )}
-
-        {/* Save Status Indicator */}
-        {/* <div className="absolute top-4 right-[200px] z-[9999] flex gap-2">
-                    <div className="pointer-events-none flex items-center">
-                        {saveStatus === "saving" && (
-                            <span className="text-gray-500 text-sm bg-white/90 px-3 py-1.5 rounded-md shadow-sm border border-gray-200 font-medium">
-                                Saving...
-                            </span>
-                        )}
-                        {saveStatus === "saved" && (
-                            <span className="text-green-600 text-sm bg-white/90 px-3 py-1.5 rounded-md shadow-sm border border-gray-200 font-medium flex items-center gap-1">
-                                ✓ Saved
-                            </span>
-                        )}
-                        {saveStatus === "error" && (
-                            <span className="text-red-500 text-sm bg-white/90 px-3 py-1.5 rounded-md shadow-sm border border-gray-200 font-medium">
-                                Save Failed
-                            </span>
-                        )}
-                    </div>
-                </div> */}
-
-     
-
-        <div ref={containerRef} className="w-full h-full" />
-
-        
-
-      
-      </>
+      <div className="flex h-full min-h-0 w-full flex-col">
+        <div
+          ref={containerRef}
+          className="min-h-0 w-full flex-1 overflow-hidden"
+        />
+      </div>
     );
   },
 );

@@ -49,6 +49,7 @@ interface CollaborativeTiptapEditorProps {
   initialContent?: any;
   onUpdate?: (html: string) => void;
   onEditorReady?: (editor: any) => void;
+  onActiveUsersChange?: (users: any[]) => void;
 }
 
 // Generate consistent color for user
@@ -285,6 +286,7 @@ export default function CollaborativeTiptapEditor({
   initialContent,
   onUpdate,
   onEditorReady,
+  onActiveUsersChange,
 }: CollaborativeTiptapEditorProps) {
   const router = useRouter();
   const [ydoc] = useState(() => new Y.Doc());
@@ -368,8 +370,21 @@ export default function CollaborativeTiptapEditor({
     return () => clearInterval(interval);
   }, [documentId]);
 
+  useEffect(() => {
+    onActiveUsersChange?.(activeUsers);
+  }, [activeUsers, onActiveUsersChange]);
+
   const editor = useEditor({
     immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        autocomplete: "off",
+        autocorrect: "off",
+        autocapitalize: "off",
+        "aria-label": "Main content area, start typing to enter text.",
+        class: "simple-editor",
+      },
+    },
     extensions: [
       StarterKit.configure({
         heading: false, // Disable default heading, we'll use our custom one with IDs
@@ -583,40 +598,6 @@ export default function CollaborativeTiptapEditor({
 
   return (
     <div className="simple-editor-wrapper">
-      {/* Active Users Bar */}
-      {activeUsers.length > 0 && (
-        <div className="sticky top-0 z-50 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-blue-900">
-              {activeUsers.length} editing now:
-            </span>
-            <div className="flex -space-x-2">
-              {activeUsers.map((user) => (
-                <div
-                  key={user.user_id}
-                  className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
-                  style={{ backgroundColor: user.user_color || "#3b82f6" }}
-                  title={
-                    user.users
-                      ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                        user.users.email
-                      : "User"
-                  }
-                >
-                  {(user.users
-                    ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                      user.users.email
-                    : user.users?.email || "U")[0].toUpperCase()}
-                </div>
-              ))}
-            </div>
-          </div>
-          <span className="text-xs text-blue-700">
-            Changes sync automatically
-          </span>
-        </div>
-      )}
-
       <EditorContent editor={editor} className="simple-editor-content" />
     </div>
   );
