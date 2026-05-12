@@ -10,6 +10,7 @@
 
 import { supabaseAdmin } from '../lib/supabase';
 import { getTierConfig } from '../lib/stripe';
+import NotificationService from './notification.service';
 
 export class WinsService {
     /**
@@ -49,6 +50,26 @@ export class WinsService {
 
             // Check if user has enough wins
             if (currentBalance < amount) {
+                // 📢 SEND CRITICAL NOTIFICATION - INSUFFICIENT WINS
+                try {
+                    await NotificationService.create({
+                        userId: userId,
+                        type: 'wins_depleted',
+                        priority: 'critical',
+                        title: 'Insufficient Wins',
+                        message: `You need ${amount} wins but only have ${currentBalance}. Purchase more to continue.`,
+                        actionUrl: '/pricing',
+                        actionText: 'Buy Wins',
+                        metadata: {
+                            required: amount,
+                            available: currentBalance,
+                        },
+                    });
+                    console.log(`📢 Insufficient wins alert sent to user ${userId}`);
+                } catch (notifError) {
+                    console.error('⚠️ Failed to send notification:', notifError);
+                }
+
                 return {
                     success: false,
                     newBalance: currentBalance,
@@ -87,6 +108,46 @@ export class WinsService {
                 });
 
             console.log(`✅ Deducted ${amount} wins from user ${userId}. New balance: ${newBalance}`);
+
+            // 📢 CHECK FOR LOW WINS WARNING (< 100)
+            try {
+                if (newBalance < 100 && newBalance >= 0) {
+                    await NotificationService.create({
+                        userId: userId,
+                        type: 'wins_low',
+                        priority: 'critical',
+                        title: 'Low Wins Balance',
+                        message: `You have ${newBalance} wins remaining. Consider purchasing more to continue using premium features.`,
+                        actionUrl: '/pricing',
+                        actionText: 'Buy Wins',
+                        metadata: {
+                            balance: newBalance,
+                            threshold: 100,
+                        },
+                    });
+                    console.log(`📢 Low wins warning sent to user ${userId}`);
+                }
+
+                // 📢 DEPLETED WINS WARNING (= 0)
+                if (newBalance === 0) {
+                    await NotificationService.create({
+                        userId: userId,
+                        type: 'wins_depleted',
+                        priority: 'critical',
+                        title: 'Wins Balance Depleted',
+                        message: 'Your wins balance is 0. Purchase more to continue using AI features.',
+                        actionUrl: '/pricing',
+                        actionText: 'Buy Wins',
+                        metadata: {
+                            balance: 0,
+                        },
+                    });
+                    console.log(`📢 Wins depleted alert sent to user ${userId}`);
+                }
+            } catch (notifError) {
+                console.error('⚠️ Failed to send wins notification:', notifError);
+                // Continue anyway - notification is not critical
+            }
 
             return {
                 success: true,

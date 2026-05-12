@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { BaseController } from './base.controller';
 import { supabaseAdmin } from '../lib/supabase';
 import { AuthRequest, authenticateToken } from '../middleware/auth.middleware';
+import NotificationService from '../services/notification.service';
 
 interface CreateThreadRequest {
     documentId: string;
@@ -219,7 +220,18 @@ export class ThreadsController extends BaseController {
         try {
             const { threadId, content } = req.body as AddMessageRequest;
             const userId = req.user!.userId;
-            const userName = req.user!.email || 'Anonymous';
+            
+            // Get user's actual name from database
+            const { data: userData } = await supabaseAdmin
+                .from('users')
+                .select('first_name, last_name, email')
+                .eq('id', userId)
+                .single();
+
+            // Use first name only, or email prefix if no name
+            const userName = userData?.first_name 
+                ? userData.first_name 
+                : userData?.email?.split('@')[0] || 'Anonymous';
             const userAvatar = null; // TODO: Add avatar support later
 
             console.log(`💬 Adding message to thread: ${threadId}`);
@@ -249,6 +261,80 @@ export class ThreadsController extends BaseController {
                 .eq('id', threadId);
 
             console.log(`✅ Message added: ${message.id}`);
+
+            // 📢 CREATE NOTIFICATIONS for thread participants
+            try {
+                // Get thread details including document type
+                const { data: thread } = await supabaseAdmin
+                    .from('threads')
+                    .select('title, document_id, document_type, created_by, assigned_to')
+                    .eq('id', threadId)
+                    .single();
+
+                if (thread) {
+                    // Get ALL users who have participated in this thread (all message authors)
+                    const { data: allMessages } = await supabaseAdmin
+                        .from('thread_messages')
+                        .select('user_id')
+                        .eq('thread_id', threadId);
+
+                    // Collect users to notify: thread creator + assigned users + all participants
+                    const usersToNotify = new Set<string>();
+                    
+                    // Add thread creator
+                    if (thread.created_by && thread.created_by !== userId) {
+                        usersToNotify.add(thread.created_by);
+                    }
+                    
+                    // Add assigned users
+                    if (thread.assigned_to && Array.isArray(thread.assigned_to)) {
+                        thread.assigned_to.forEach((id: string) => {
+                            if (id !== userId) usersToNotify.add(id);
+                        });
+                    }
+
+                    // Add all participants (people who have commented)
+                    if (allMessages && allMessages.length > 0) {
+                        allMessages.forEach((msg: any) => {
+                            if (msg.user_id && msg.user_id !== userId) {
+                                usersToNotify.add(msg.user_id);
+                            }
+                        });
+                    }
+
+                    if (usersToNotify.size > 0) {
+                        // Map document type to correct editor URL
+                        const editorMap: Record<string, string> = {
+                            'presentation': 'presentation-editor',
+                            'document': 'docs-editor',
+                            'spreadsheet': 'spreadsheet-editor',
+                            'image': 'image-editor',
+                            'chart': 'chart-editor',
+                        };
+                        
+                        const editorUrl = editorMap[thread.document_type] || 'docs-editor';
+                        
+                        await NotificationService.createBatch(Array.from(usersToNotify), {
+                            type: 'thread_reply',
+                            priority: 'important',
+                            title: 'New Thread Reply',
+                            message: `${userName} replied: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
+                            actionUrl: `/${editorUrl}?id=${thread.document_id}#thread-${threadId}`,
+                            actionText: 'View Thread',
+                            resourceId: threadId,
+                            resourceType: 'thread',
+                            actorId: userId,
+                            actorName: userName,
+                        });
+                        console.log(`📢 Notified ${usersToNotify.size} users about thread reply (${editorUrl})`);
+                    } else {
+                        console.log(`ℹ️ No users to notify (all participants are current user)`);
+                    }
+                }
+            } catch (notifError) {
+                console.error('⚠️ Failed to send notifications:', notifError);
+                // Continue anyway - notification is not critical
+            }
 
             return res.json({
                 status: 'success',
@@ -326,7 +412,18 @@ export class ThreadsController extends BaseController {
         try {
             const { messageId, reactionType } = req.body as AddReactionRequest;
             const userId = req.user!.userId;
-            const userName = req.user!.email || 'Anonymous';
+            
+            // Get user's actual name from database
+            const { data: userData } = await supabaseAdmin
+                .from('users')
+                .select('first_name, last_name, email')
+                .eq('id', userId)
+                .single();
+
+            // Use first name only, or email prefix if no name
+            const userName = userData?.first_name 
+                ? userData.first_name 
+                : userData?.email?.split('@')[0] || 'Anonymous';
 
             console.log(`💬 Toggling ${reactionType} reaction on message: ${messageId}`);
 
@@ -382,6 +479,57 @@ export class ThreadsController extends BaseController {
                 }
 
                 console.log(`✅ Reaction added: ${reaction.id}`);
+
+                // 📢 CREATE NOTIFICATION for message author
+                try {
+                    // Get message and thread details
+                    const { data: threadMessage } = await supabaseAdmin
+                        .from('thread_messages')
+                        .select('user_id, thread_id, content')
+                        .eq('id', messageId)
+                        .single();
+
+                    if (threadMessage && threadMessage.user_id !== userId) {
+                        // Get thread details for correct editor URL
+                        const { data: thread } = await supabaseAdmin
+                            .from('threads')
+                            .select('document_id, document_type')
+                            .eq('id', threadMessage.thread_id)
+                            .single();
+
+                        if (thread) {
+                            // Map document type to correct editor URL
+                            const editorMap: Record<string, string> = {
+                                'presentation': 'presentation-editor',
+                                'document': 'docs-editor',
+                                'spreadsheet': 'spreadsheet-editor',
+                                'image': 'image-editor',
+                                'chart': 'chart-editor',
+                            };
+                            
+                            const editorUrl = editorMap[thread.document_type] || 'docs-editor';
+
+                            // Notify message author
+                            await NotificationService.create({
+                                userId: threadMessage.user_id,
+                                type: 'thread_reaction',
+                                priority: 'normal',
+                                title: 'Reaction to Your Message',
+                                message: `${userName} reacted ${reactionType} to your message`,
+                                actionUrl: `/${editorUrl}?id=${thread.document_id}#thread-${threadMessage.thread_id}`,
+                                actionText: 'View Thread',
+                                resourceId: threadMessage.thread_id,
+                                resourceType: 'thread',
+                                actorId: userId,
+                                actorName: userName,
+                            });
+                            console.log(`📢 Notified message author about reaction (${editorUrl})`);
+                        }
+                    }
+                } catch (notifError) {
+                    console.error('⚠️ Failed to send notification:', notifError);
+                    // Continue anyway - notification is not critical
+                }
 
                 return res.json({
                     status: 'success',

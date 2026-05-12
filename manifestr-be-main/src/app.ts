@@ -25,6 +25,7 @@ import { ThreadsController } from './controllers/threads.controller';
 import { UserStatsController } from './controllers/user.stats.controller';
 import { AnalyticsApiController } from './controllers/analytics.controller';
 import { SubscriptionController } from './controllers/subscription.controller';
+import { NotificationController } from './controllers/notification.controller';
 
 const serverStartedAt = new Date();
 
@@ -163,6 +164,7 @@ class App {
             new UserStatsController(), // User statistics and achievements
             new AnalyticsApiController(), // Client analytics (/analytics/track)
             new SubscriptionController(), // Stripe subscription management
+            new NotificationController(), // In-app notification system
         ];
 
         controllers.forEach((controller) => {

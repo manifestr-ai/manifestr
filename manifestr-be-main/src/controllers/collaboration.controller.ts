@@ -15,6 +15,7 @@ import { supabaseAdmin } from '../lib/supabase';
 import { authenticateToken } from '../middleware/auth.middleware';
 import crypto from 'crypto';
 import postmarkService from '../services/PostmarkService';
+import NotificationService from '../services/notification.service';
 
 export class CollaborationController extends BaseController {
     public basePath = '/collaborations';
@@ -429,6 +430,27 @@ export class CollaborationController extends BaseController {
             }
 
             console.log(`✅ ${inviterName} added ${email} to collaborate as ${role}`);
+            
+            // 📢 CREATE NOTIFICATION for invitee
+            try {
+                await NotificationService.create({
+                    userId: inviteeUserId!,
+                    type: 'collab_invite',
+                    priority: 'critical',
+                    title: 'New Collaboration Invite',
+                    message: `${inviterName} invited you to collaborate on "${documentTitle}" as ${role}`,
+                    actionUrl: `/docs-editor?id=${documentId}`,
+                    actionText: 'View Document',
+                    resourceId: documentId,
+                    resourceType: 'document',
+                    actorId: inviterId,
+                    actorName: inviterName,
+                });
+                console.log(`📢 Notification sent to ${email}`);
+            } catch (notifError) {
+                console.error('⚠️ Failed to send notification:', notifError);
+                // Continue anyway - notification is not critical
+            }
             
             // If we created the user, include password info
             const responseMessage = !existingUser
