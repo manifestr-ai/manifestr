@@ -10,6 +10,7 @@ const tools = [
     id: 'deck',
     title: 'THE',
     accent: 'deck',
+    textBottom: 50,
     description:
       'On-brand, editable presentation decks with visuals, charts and structured slides.',
     image:
@@ -19,6 +20,7 @@ const tools = [
     id: 'strategist',
     title: 'THE',
     accent: 'strategist',
+    textBottom: 76,
     description:
       'Strategic plans, positioning and decision frameworks backed by data and built to execute.',
     image:
@@ -28,6 +30,7 @@ const tools = [
     id: 'cost-ctrl',
     title: 'COST',
     accent: 'CTRL',
+    textBottom: 64,
     description:
       'Smart budgets, cost breakdowns and financial summaries built fast.',
     image:
@@ -37,6 +40,7 @@ const tools = [
     id: 'analyzer',
     title: 'THE',
     accent: 'analyzer',
+    textBottom: 74,
     description:
       'Data and insights shaped into charts and visuals for confident decision-making.',
     image:
@@ -46,6 +50,7 @@ const tools = [
     id: 'design-studio',
     title: 'THE',
     accent: 'design studio',
+    textBottom: 98,
     description:
       'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
     image:
@@ -55,6 +60,7 @@ const tools = [
     id: 'briefcase',
     title: 'THE',
     accent: 'briefcase',
+    textBottom: 76,
     description:
       'Structured, professional documentation including briefs, reports, timelines and run sheets.',
     image:
@@ -64,6 +70,7 @@ const tools = [
     id: 'huddle',
     title: 'THE',
     accent: 'huddle',
+    textBottom: 66,
     description:
       'Meeting notes, agendas and action plans to keep teams aligned.',
     image:
@@ -73,6 +80,7 @@ const tools = [
     id: 'wordsmith',
     title: 'THE',
     accent: 'wordsmith',
+    textBottom: 88,
     description:
       'Professional copywriter delivering brand-aligned writing across formats and audiences.',
     image:
@@ -81,7 +89,7 @@ const tools = [
 ]
 
 /* ── Desktop accordion card (hover-based) ── */
-function ToolCard({ tool, isExpanded, onHover }) {
+function ToolCard({ tool, isExpanded, onHover, textBottom }) {
   return (
     <Link
       href={`/tools/${tool.id}`}
@@ -142,9 +150,9 @@ function ToolCard({ tool, isExpanded, onHover }) {
       </div>
 
       <div
-        className="absolute inset-x-0 bottom-0 flex items-end justify-center pb-10"
+        className="absolute inset-0 hidden md:flex items-end justify-center"
         style={{
-          bottom: 48,
+          paddingBottom: textBottom,
           opacity: isExpanded ? 0 : 1,
           transition: 'opacity 0.25s ease',
           transitionDelay: isExpanded ? '0s' : '0.18s',
@@ -320,6 +328,7 @@ export default function ToolkitSection() {
                   tool={tool}
                   isExpanded={hoveredIndex === index}
                   onHover={() => setHoveredIndex(index)}
+                  textBottom={tool.textBottom}
                 />
               ))}
             </div>
