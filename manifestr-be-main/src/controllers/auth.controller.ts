@@ -324,8 +324,31 @@ export class AuthController extends BaseController {
 
       console.log(`✅ Subscription verified - proceeding with account creation`);
 
+      // 🔍 FIRST: Check if user already exists in auth.users
+      console.log(`🔍 Checking if user already exists in auth.users...`);
+      try {
+        const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+        if (listError) {
+          console.error(`❌ Error listing users:`, JSON.stringify(listError, null, 2));
+        } else {
+          const existingUser = existingUsers?.users?.find((u: any) => u.email === email);
+          if (existingUser) {
+            console.log(`⚠️  User already exists in auth.users:`, JSON.stringify(existingUser, null, 2));
+            return this.sendResponse(res, 409, "error", "User already exists in auth.users. Please contact support.");
+          }
+          console.log(`✅ No existing user found in auth.users`);
+        }
+      } catch (checkError) {
+        console.error(`❌ Exception checking existing users:`, checkError);
+      }
+
       // Use admin.createUser with email_confirm: true to skip verification!
-      console.log(`📝 Creating Supabase auth user...`);
+      console.log(`📝 Creating Supabase auth user with payload:`, {
+        email,
+        email_confirm: true,
+        user_metadata: { first_name, last_name, dob, country, gender, promotional_emails }
+      });
+      
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
@@ -342,7 +365,12 @@ export class AuthController extends BaseController {
         });
 
       if (authError) {
-        console.error(`❌ Supabase auth error:`, authError);
+        console.error(`❌ Supabase auth error - FULL DETAILS:`);
+        console.error(`   - Message: ${authError.message}`);
+        console.error(`   - Status: ${authError.status}`);
+        console.error(`   - Code: ${(authError as any).code}`);
+        console.error(`   - Full error object:`, JSON.stringify(authError, null, 2));
+        console.error(`   - Error stack:`, authError.stack);
       } else {
         console.log(`✅ Supabase auth user created: ${authData?.user?.id}`);
       }
