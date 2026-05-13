@@ -43,17 +43,27 @@ export default function CldImage({
   cloudinaryQuality = 100,
   /** Explicit width for `src` fallback so the browser gets enough pixels before / besides srcset (retina). */
   fallbackWidth,
+  /**
+   * When true, Cloudinary URLs are left unchanged: no `f_auto`, no `q_*`, no responsive `w_*`
+   * transforms and no `srcSet`. Use on toolkit / tool-detail marketing imagery for full-fidelity delivery.
+   */
+  preserveCloudinaryUrl = false,
   ...rest
 }) {
   const quality = cloudinaryQuality
-  const srcAttr =
-    fallbackWidth != null ? addTransforms(src, fallbackWidth, quality) : addTransforms(src, undefined, quality)
+  const skipTransforms = preserveCloudinaryUrl && isCloudinaryUrl(src) && !isSvgUrl(src)
+  const srcAttr = skipTransforms
+    ? src
+    : fallbackWidth != null
+      ? addTransforms(src, fallbackWidth, quality)
+      : addTransforms(src, undefined, quality)
+  const srcSet = skipTransforms ? undefined : buildSrcSet(src, quality)
 
   return (
     <img
       src={srcAttr}
-      srcSet={buildSrcSet(src, quality)}
-      sizes={isCloudinaryUrl(src) && !isSvgUrl(src) ? sizes : undefined}
+      srcSet={srcSet}
+      sizes={isCloudinaryUrl(src) && !isSvgUrl(src) && srcSet ? sizes : undefined}
       alt={alt}
       loading={priority ? 'eager' : 'lazy'}
       decoding="async"

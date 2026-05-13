@@ -50,6 +50,8 @@ export default function ToolCard({
   description,
   onClick,
   isSelected = false,
+  /** When true, Next.js does not recompress remote images (toolkit page). */
+  imageUnoptimized = false,
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
@@ -82,6 +84,7 @@ export default function ToolCard({
                 alt={title}
                 fill
                 quality={100}
+                unoptimized={imageUnoptimized}
                 className="object-cover rounded-xl"
               />
             )}
@@ -92,6 +95,7 @@ export default function ToolCard({
                   alt={title}
                   fill
                   quality={100}
+                  unoptimized={imageUnoptimized}
                   className="object-cover rounded-xl"
                 />
               </div>

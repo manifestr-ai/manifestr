@@ -177,6 +177,8 @@ export default function Toolkit() {
               alt=""
               fill
               priority
+              quality={100}
+              unoptimized
               sizes="100vw"
               className="object-cover object-[50%_52%]"
             />
@@ -265,6 +267,7 @@ export default function Toolkit() {
                       subtitle={tool.subtitle}
                       imageSrc={tool.imageSrc}
                       description={tool.description}
+                      imageUnoptimized
                       onClick={() => handleToolSelect(tool.id)}
                     />
                   </motion.div>

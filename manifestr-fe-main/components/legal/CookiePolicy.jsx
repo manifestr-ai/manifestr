@@ -18,6 +18,8 @@ const SECTIONS = [
   { id: 'transparency', label: 'Transparency in Action' },
 ]
 
+const COOKIE_FRAMEWORK_DOWNLOAD = '/api/legal/cookie-compliance-framework'
+
 const COOKIE_TYPES = [
   {
     title: 'Essential Cookies (Strictly Necessary)',
@@ -99,7 +101,7 @@ export default function CookiePolicy() {
   return (
     <>
       {/* ─── Hero — matches Terms / Privacy ─── */}
-      <section className="relative flex h-[218px] w-full flex-col items-center justify-between overflow-hidden p-[48px] md:h-[256px]">
+      <section className="relative flex h-[218px] w-full flex-col items-center justify-center overflow-hidden p-[48px] md:h-[256px]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <CldImage src={HERO_BG_DESKTOP} alt="" className="absolute hidden h-full w-full object-cover md:block" />
           <CldImage src={HERO_BG_MOBILE} alt="" className="absolute h-full w-full object-cover md:hidden" />
@@ -113,18 +115,12 @@ export default function CookiePolicy() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative z-10 flex max-w-[342px] flex-col items-center gap-[18px] text-center text-white md:max-w-[551px] md:gap-[11px]"
+          className="relative z-10 flex max-w-[342px] flex-col items-center text-center text-white md:max-w-[551px]"
         >
           <h1 className="text-[36px] leading-[44px] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Cookie </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
           </h1>
-          <p className="text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={font}>
-            How MANIFESTR uses cookies and similar technologies on our platform.
-          </p>
-          <p className="text-[16px] leading-[24px] text-white/95" style={font}>
-            Last updated: 19 March 2026
-          </p>
         </motion.div>
       </section>
 
@@ -155,9 +151,13 @@ export default function CookiePolicy() {
 
             {/* Quick link card */}
             <div className="border border-[#e4e4e7] rounded-[16px] p-[24px] flex flex-col">
-              <a href="#" className="flex items-center justify-between w-full group">
+              <a
+                href={COOKIE_FRAMEWORK_DOWNLOAD}
+                download="MANIFESTR-Cookie-Compliance-Framework.txt"
+                className="flex items-center justify-between w-full group"
+              >
                 <span className="text-[14px] leading-[22px] font-medium text-black group-hover:underline" style={font}>
-                  Download Cookie Compliance Framework PDF
+                  Download Cookie Compliance Framework
                 </span>
                 <ArrowTopRightIcon />
               </a>
@@ -295,9 +295,13 @@ export default function CookiePolicy() {
 
             {/* Mobile download card */}
             <div className="lg:hidden border border-[#e4e4e7] rounded-[16px] p-[24px] flex flex-col">
-              <a href="#" className="flex items-center justify-between w-full group">
+              <a
+                href={COOKIE_FRAMEWORK_DOWNLOAD}
+                download="MANIFESTR-Cookie-Compliance-Framework.txt"
+                className="flex items-center justify-between w-full group"
+              >
                 <span className="text-[14px] leading-[22px] font-medium text-black group-hover:underline" style={font}>
-                  Download Cookie Compliance Framework PDF
+                  Download Cookie Compliance Framework
                 </span>
                 <ArrowTopRightIcon />
               </a>

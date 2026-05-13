@@ -16,7 +16,7 @@ export default function CommissionTiers() {
       <div className="absolute inset-0">
         <CldImage src={MARBLE_BG} alt="" className="w-full h-full object-cover opacity-[0.39]" />
       </div>
-
+      
       <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px]">
         {/* Heading */}
         <motion.div
@@ -39,7 +39,7 @@ export default function CommissionTiers() {
         </motion.div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-[20px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 md:items-stretch gap-[16px] md:gap-[20px]">
           {TIERS.map((tier, i) => (
             <motion.div
               key={tier.badge}
@@ -47,14 +47,14 @@ export default function CommissionTiers() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.5 }}
-              className="bg-white border border-[#e4e4e7] rounded-[14px] md:rounded-[12px] p-[25px] md:p-[43px] flex flex-col gap-[17px] md:gap-[30px] shadow-sm"
+              className="flex h-full min-h-0 flex-col bg-white border border-[#e4e4e7] rounded-[14px] md:rounded-[12px] p-[25px] md:p-[43px] shadow-sm"
             >
               {/* Badge */}
               <div
-                className="bg-black text-white rounded-full h-[40px] md:h-[44px] px-[16px] md:px-[32px] flex items-center justify-center self-start"
+                className="flex h-[40px] shrink-0 items-center justify-center self-start rounded-full bg-black px-[16px] text-white md:h-[44px] md:px-[32px]"
               >
                 <span
-                  className="text-[16px] md:text-[24px] leading-[24px] md:leading-[44px]"
+                  className="text-[16px] leading-none md:text-[24px]"
                   style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
                 >
                   <span className="md:hidden">{tier.label}</span>
@@ -62,23 +62,28 @@ export default function CommissionTiers() {
                 </span>
               </div>
 
-              {/* Percentage */}
-              <div className="flex flex-col gap-0">
-                <div className="flex items-end">
-                  <span
-                    className="text-[48px] md:text-[72px] leading-[56px] md:leading-[72px] tracking-[-0.96px] md:tracking-[-1.44px] text-black"
-                    style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
-                  >
-                    {tier.pct}
+              {/* Spacer so commission row + range sit at same vertical band across cards (md+) */}
+              <div className="min-h-[17px] flex-1 md:min-h-[30px]" aria-hidden />
+
+              {/* One line: 40 % Commissions — never wrap (narrow cards were stacking “Commissions”) */}
+              <div className="flex min-w-0 flex-col gap-0">
+                <div className="flex flex-nowrap items-baseline whitespace-nowrap">
+                  <span className="inline-flex shrink-0 items-baseline">
+                    <span
+                      className="text-[48px] leading-none tracking-[-0.96px] text-black md:text-[72px] md:tracking-[-1.44px]"
+                      style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+                    >
+                      {tier.pct}
+                    </span>
+                    <span
+                      className="text-[24px] leading-none tracking-[-0.48px] text-black md:text-[32px] md:tracking-[-0.64px]"
+                      style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+                    >
+                      %
+                    </span>
                   </span>
                   <span
-                    className="text-[24px] md:text-[32px] leading-[28px] md:leading-[24px] tracking-[-0.48px] md:tracking-[-0.64px] text-black"
-                    style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
-                  >
-                    %
-                  </span>
-                  <span
-                    className="text-[18px] md:text-[24px] leading-[24px] text-black ml-[12px] md:ml-[8px]"
+                    className="ml-[10px] shrink-0 text-[18px] leading-none text-black md:ml-[10px] md:text-[24px]"
                     style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
                   >
                     Commissions
@@ -86,7 +91,7 @@ export default function CommissionTiers() {
                 </div>
 
                 <p
-                  className="mt-4 text-[16px] md:mt-5 md:text-[18px] leading-[20px] md:leading-[18px] text-[#18181b]"
+                  className="mt-4 text-[16px] leading-[20px] text-[#18181b] md:mt-5 md:text-[18px] md:leading-[18px]"
                   style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
                 >
                   {tier.range}

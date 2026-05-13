@@ -3,10 +3,10 @@ import { motion } from 'framer-motion'
 export default function FromTheSilence() {
   return (
     <section className="relative w-full bg-white overflow-hidden">
-      <div className="relative w-full max-w-[1440px] mx-auto min-h-0 md:min-h-[1111px]">
+      <div className="relative w-full max-w-[1440px] mx-auto min-h-0">
 
         <div
-          className="relative z-10 grid grid-cols-1 gap-y-[24px] px-6 pb-[24px] pt-[48px] md:grid-cols-2 md:gap-x-[41px] md:gap-y-[80px] md:px-[190px] md:pb-[80px] md:pt-[128px]"
+          className="relative z-10 grid grid-cols-1 gap-y-[20px] px-6 pb-[16px] pt-[48px] md:grid-cols-2 md:gap-x-[41px] md:gap-y-[40px] md:px-[190px] md:pb-[40px] md:pt-[96px]"
         >
           {/* Left column */}
           <motion.div

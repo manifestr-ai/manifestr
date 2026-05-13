@@ -1,9 +1,12 @@
 const WORDS = [
-  'PRESENTATION',
+  'PRESENTATIONS',
+  'DOCUMENTS',
+  'REPORTS',
+  'SPREADSHEETS',
   'GRAPHS',
   'BUDGETS',
-  'SPREADSHEETS',
-  'STRATEGY',
+  'VISUALS',
+  'COPY',
 ]
 
 function MarqueeContent() {

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 import { MobileToolAccordion, TOOLS, MOBILE_TOOL_ORDER } from '../tools/toolkitMobileShared'
 
 const TOOLKIT_BG = '/assets/landing/toolkit-bg.jpg'
@@ -32,7 +32,7 @@ const tools = [
     accent: 'CTRL',
     textBottom: 64,
     description:
-      'Smart budgets, cost breakdowns and financial summaries built fast.',
+      'Budgets, forecasts, financials and reconciliations delivered in a clear, structured format.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
   },
@@ -48,9 +48,9 @@ const tools = [
   },
   {
     id: 'design-studio',
-    title: 'THE',
-    accent: 'design studio',
-    textBottom: 98,
+    title: 'Design',
+    accent: 'studio',
+    textBottom: 76,
     description:
       'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
     image:
@@ -72,7 +72,7 @@ const tools = [
     accent: 'huddle',
     textBottom: 66,
     description:
-      'Meeting notes, agendas and action plans to keep teams aligned.',
+      'Agendas, minutes, summaries and follow-ups, structured to support a continuous flow.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
   },
@@ -127,7 +127,11 @@ function ToolCard({ tool, isExpanded, onHover, textBottom }) {
           pointerEvents: isExpanded ? 'auto' : 'none',
         }}
       >
-        <p className="uppercase tracking-[0.96px] whitespace-nowrap">
+        <p
+          className={`tracking-[0.96px] whitespace-nowrap ${
+            tool.id === 'design-studio' ? 'normal-case' : 'uppercase'
+          }`}
+        >
           <span
             className="text-[24px] leading-[44px] font-extrabold text-white"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
@@ -135,7 +139,9 @@ function ToolCard({ tool, isExpanded, onHover, textBottom }) {
             {tool.title}{' '}
           </span>
           <span
-            className={`text-[28px] leading-[44px] italic text-white ${tool.id === 'cost-ctrl' ? 'uppercase' : 'lowercase'}`}
+            className={`text-[28px] leading-[44px] italic text-white ${
+              tool.id === 'cost-ctrl' ? 'uppercase' : 'lowercase'
+            }`}
             style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
           >
             {tool.accent}
@@ -164,7 +170,9 @@ function ToolCard({ tool, isExpanded, onHover, textBottom }) {
           style={{ transform: 'rotate(-90deg)', transformOrigin: 'center center' }}
         >
           <span
-            className="text-[22px] leading-[44px] font-extrabold text-[#282828] uppercase tracking-[0.96px]"
+            className={`text-[22px] leading-[44px] font-extrabold text-[#282828] tracking-[0.96px] ${
+              tool.id === 'design-studio' ? '' : 'uppercase'
+            }`}
             style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
           >
             {tool.title}{' '}
@@ -210,12 +218,12 @@ export default function ToolkitSection() {
               className="text-[36px] leading-[44px] tracking-[-0.72px] text-white"
               style={{ textShadow: '0px 4px 20.9px rgba(0,0,0,0.25)' }}
             >
-              <span className="font-bold" style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}>
+              <span className="font-bold" style={{ fontFamily: "'Hanken Grotesk', sans-serif",fontSize: 30,fontWeight: 700 }}>
                 THE{' '}
               </span>
               <span
                 className="italic text-[#858585]"
-                style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+                style={{ fontFamily: "'IvyPresto Headline', serif",fontSize: 40, fontWeight: 300, fontStyle: 'italic' }}
               >
                 toolkit
               </span>
@@ -238,7 +246,7 @@ export default function ToolkitSection() {
               </p>
               <Link
                 href="/tools"
-                className="inline-flex items-center justify-center h-[54px] min-w-[190px] px-[20px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
+                className="inline-flex w-fit self-start items-center justify-center h-[54px] px-[20px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
                 style={{ fontFamily: "'Inter', sans-serif" }}
               >
                 Explore The Toolkit
@@ -311,12 +319,12 @@ export default function ToolkitSection() {
                 </span>
               </p>
               <Link
-  href="/tools"
-  className="inline-flex items-center justify-center h-[54px] w-[190px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors whitespace-nowrap px-[20px]"
-  style={{ fontFamily: "'Inter', sans-serif" }}
->
-  Explore The Toolkit
-</Link>
+                href="/tools"
+                className="inline-flex w-fit self-start items-center justify-center h-[54px] px-[20px] border border-white rounded-[6px] text-[18px] leading-[20px] text-white font-medium hover:bg-white/10 transition-colors whitespace-nowrap"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Explore The Toolkit
+              </Link>
             </div>
             </div>
 

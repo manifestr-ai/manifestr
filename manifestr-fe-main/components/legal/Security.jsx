@@ -111,8 +111,8 @@ export default function Security() {
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[24px] md:gap-[48px] items-center">
           <motion.h2
             {...fadeUp}
-            className="w-full max-w-[1100px] text-center text-[36px] capitalize leading-[49px] tracking-[-0.72px] text-black font-medium"
-            style={{ fontFamily: '"HK Grotesk", "Hanken Grotesk", sans-serif', fontStyle: 'normal' }}
+            className="w-full max-w-[1100px] text-center capitalize text-[36px] font-medium leading-[49px] tracking-[-0.72px] text-black"
+            style={{ fontFamily: '"HK Grotesk", "Hanken Grotesk", sans-serif', fontWeight: 500, fontStyle: 'normal', color: '#000' }}
           >
             Security isn&apos;t an afterthought. It&apos;s our foundation.
           </motion.h2>
@@ -120,8 +120,8 @@ export default function Security() {
           <motion.p
             {...fadeUp}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[#0d0d0d] text-[16px] leading-[24px] text-center max-w-[874px]"
-            style={font}
+            className="max-w-[874px] text-center text-[18px] font-normal leading-[28px] text-[#0D0D0D]"
+            style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'normal', fontWeight: 400 }}
           >
             At MANIFESTR, your data is guarded with the same precision we use to build our platform: encrypted,
             compliant, and continuously monitored. Security is not a feature. It&apos;s the core of everything we do.
@@ -177,7 +177,7 @@ export default function Security() {
         <div className="max-w-[1280px] mx-auto flex flex-col gap-[24px] md:gap-[64px] items-center">
           {/* Heading */}
           <motion.div {...fadeUp} className="flex flex-col gap-[12px] md:gap-[24px] items-center text-center w-full">
-            <h2 className="text-black text-[36px] md:text-[60px] leading-tight md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px]">
+            <h2 className="text-black text-[36px] md:text-[60px] leading-[1.05] md:leading-[1.06] tracking-[-0.72px] md:tracking-[-1.2px]">
               <span style={headingFont}>Explore Our </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
                 Security

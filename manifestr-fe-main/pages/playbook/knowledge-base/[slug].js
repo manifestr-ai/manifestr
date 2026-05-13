@@ -3,20 +3,17 @@ import { useRouter } from 'next/router'
 import Header from '../../../components/layout/Header'
 import Footer from '../../../components/layout/Footer'
 import KnowledgeBaseCategory from '../../../components/playbook/KnowledgeBaseCategory'
-import { getCategory, resolveArticle } from '../../../data/knowledgeBaseCategoryContent'
+import { getCategory } from '../../../data/knowledgeBaseCategoryContent'
 
 export default function KnowledgeBaseCategoryPage() {
   const router = useRouter()
   const raw = router.query.slug
   const categorySlug = Array.isArray(raw) ? raw[0] : raw
-  const articleParam = router.query.article
-  const articleSlug = Array.isArray(articleParam) ? articleParam[0] : articleParam
 
   const category = categorySlug ? getCategory(categorySlug) : null
-  const article = categorySlug ? resolveArticle(categorySlug, articleSlug) : null
 
-  const title = category && article
-    ? `${article.title} — ${category.title} | MANIFESTR Playbook`
+  const title = category
+    ? `${category.title} — Knowledge Base | MANIFESTR Playbook`
     : 'Knowledge Base | MANIFESTR Playbook'
 
   return (

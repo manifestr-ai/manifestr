@@ -1,18 +1,16 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 import FirstProjectGuideBody, { GenericKbArticleBody } from './kbArticleBodies/FirstProjectGuideBody'
-import { getCategory, resolveArticle } from '../../data/knowledgeBaseCategoryContent'
+import { getCategory, getArticle } from '../../data/knowledgeBaseCategoryContent'
 
 const CTA_BG =
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774957277/Rectangle_34624791_eotkfo.jpg'
 
-function articleHref(categorySlug, articleSlug) {
-  const q = new URLSearchParams()
-  q.set('article', articleSlug)
-  return `/playbook/knowledge-base/${categorySlug}?${q.toString()}`
+function articleSectionId(slug) {
+  return `kb-article-${slug}`
 }
 
 export default function KnowledgeBaseCategory({ categorySlug }) {
@@ -21,19 +19,73 @@ export default function KnowledgeBaseCategory({ categorySlug }) {
   const articleSlugFromQuery = Array.isArray(articleParam) ? articleParam[0] : articleParam
 
   const category = useMemo(() => getCategory(categorySlug), [categorySlug])
+  const [activeNavSlug, setActiveNavSlug] = useState(null)
 
-  const activeArticle = useMemo(
-    () => (category ? resolveArticle(categorySlug, articleSlugFromQuery) : null),
-    [category, categorySlug, articleSlugFromQuery]
-  )
+  useEffect(() => {
+    if (!router.isReady || !category?.articles?.length) return
 
-  if (!router.isReady) {
-    return (
-      <div className="min-h-[40vh] w-full bg-white" aria-hidden />
+    const fromQuery =
+      articleSlugFromQuery && getArticle(categorySlug, articleSlugFromQuery)
+        ? articleSlugFromQuery
+        : null
+    let fromHash = null
+    if (typeof window !== 'undefined' && window.location.hash?.startsWith('#kb-article-')) {
+      const s = window.location.hash.slice('#kb-article-'.length)
+      if (getArticle(categorySlug, s)) fromHash = s
+    }
+    const target = fromQuery || fromHash
+
+    if (target) {
+      requestAnimationFrame(() => {
+        document.getElementById(articleSectionId(target))?.scrollIntoView({ behavior: 'auto', block: 'start' })
+        setActiveNavSlug(target)
+      })
+    } else {
+      setActiveNavSlug(category.articles[0].slug)
+    }
+  }, [router.isReady, categorySlug, articleSlugFromQuery, category])
+
+  useEffect(() => {
+    if (!category?.articles?.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue
+          const id = entry.target.id
+          if (id.startsWith('kb-article-')) {
+            setActiveNavSlug(id.slice('kb-article-'.length))
+            break
+          }
+        }
+      },
+      { rootMargin: '-110px 0px -55% 0px', threshold: 0 }
     )
+
+    category.articles.forEach((a) => {
+      const el = document.getElementById(articleSectionId(a.slug))
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [category])
+
+  function scrollToArticle(slug) {
+    const el = document.getElementById(articleSectionId(slug))
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', `#${articleSectionId(slug)}`)
+      }
+      setActiveNavSlug(slug)
+    }
   }
 
-  if (!category || !activeArticle) {
+  if (!router.isReady) {
+    return <div className="min-h-[40vh] w-full bg-white" aria-hidden />
+  }
+
+  if (!category) {
     return (
       <div className="w-full bg-white px-6 py-[80px] text-center">
         <p className="text-[16px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -45,9 +97,6 @@ export default function KnowledgeBaseCategory({ categorySlug }) {
       </div>
     )
   }
-
-  const isRichFirstProject =
-    categorySlug === 'getting-started' && activeArticle.slug === 'first-project' && activeArticle.rich
 
   return (
     <>
@@ -68,13 +117,7 @@ export default function KnowledgeBaseCategory({ categorySlug }) {
           <svg className="h-4 w-4 shrink-0 text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <Link href={`/playbook/knowledge-base/${categorySlug}`} className="text-[#52525b] hover:underline">
-            {category.title}
-          </Link>
-          <svg className="h-4 w-4 shrink-0 text-[#52525b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="max-w-full font-medium text-[#18181b]">{activeArticle.title}</span>
+          <span className="max-w-full font-medium text-[#18181b]">{category.title}</span>
         </div>
       </div>
 
@@ -85,12 +128,12 @@ export default function KnowledgeBaseCategory({ categorySlug }) {
             htmlFor="kb-article-select"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Articles in this category
+            Jump to article
           </label>
           <select
             id="kb-article-select"
-            value={activeArticle.slug}
-            onChange={(e) => router.push(articleHref(categorySlug, e.target.value))}
+            value={activeNavSlug ?? category.articles[0]?.slug ?? ''}
+            onChange={(e) => scrollToArticle(e.target.value)}
             className="w-full rounded-[6px] border border-[#e4e4e7] bg-white px-3 py-2.5 text-[16px] text-[#18181b] outline-none"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
@@ -103,22 +146,25 @@ export default function KnowledgeBaseCategory({ categorySlug }) {
         </div>
 
         <div className="flex gap-[64px] max-w-[1217px] mx-auto">
-          <aside className="hidden md:flex flex-col w-[321px] shrink-0">
+          <aside className="no-scrollbar hidden md:flex flex-col w-[321px] shrink-0 sticky top-[100px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
             <p
               className="mb-[16px] text-[16px] font-semibold leading-[24px] text-[#1b1b1f]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               {category.title}
             </p>
-            <nav className="flex flex-col">
+            <nav className="flex flex-col" aria-label="Articles in this category">
               {category.articles.map((item) => {
-                const active = item.slug === activeArticle.slug
+                const active = item.slug === activeNavSlug
                 return (
-                  <Link
+                  <a
                     key={item.slug}
-                    href={articleHref(categorySlug, item.slug)}
-                    scroll={false}
-                    className={`flex min-h-[48px] items-center border-l-2 px-[16px] py-[12px] text-left text-[16px] leading-[24px] transition-colors ${
+                    href={`#${articleSectionId(item.slug)}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      scrollToArticle(item.slug)
+                    }}
+                    className={`flex min-h-[48px] items-center border-l-2 px-[16px] py-[12px] text-left text-[16px] leading-[24px] transition-colors cursor-pointer ${
                       active
                         ? 'border-[#020617] font-semibold text-[#1b1b1f]'
                         : 'border-[#e4e4e7] font-medium text-[#71717a] hover:text-[#1b1b1f]'
@@ -126,60 +172,71 @@ export default function KnowledgeBaseCategory({ categorySlug }) {
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     {item.title}
-                  </Link>
+                  </a>
                 )
               })}
             </nav>
           </aside>
 
-          <motion.article
-            key={`${categorySlug}-${activeArticle.slug}`}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex-1 min-w-0"
-          >
-            <div className="flex flex-col gap-[28px] md:gap-[32px]">
-              <h1
-                className="text-[24px] leading-[32px] tracking-[-0.72px] text-[#1b1b1f] md:text-[36px] md:leading-[44px]"
-                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
-              >
-                {activeArticle.title}
-              </h1>
+          <div className="flex-1 min-w-0 flex flex-col gap-[56px] md:gap-[72px]">
+            {category.articles.map((article, index) => {
+              const isRichFirstProject =
+                categorySlug === 'getting-started' && article.slug === 'first-project' && article.rich
 
-              <div className="flex flex-wrap items-center gap-x-[10px] gap-y-2 border-t border-b border-dashed border-[#e2e8f0] py-[16px]">
-                <div className="flex items-center gap-[6px]">
-                  <svg className="h-4 w-4 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    Updated: {activeArticle.updated}
-                  </span>
-                </div>
-                <span className="h-1 w-1 shrink-0 rounded-full bg-[#71717a]" aria-hidden />
-                <div className="flex items-center gap-[6px]">
-                  <svg className="h-4 w-4 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6l4 2" />
-                  </svg>
-                  <span className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    {activeArticle.readMinutes} min read
-                  </span>
-                </div>
-              </div>
+              return (
+                <motion.article
+                  key={article.slug}
+                  id={articleSectionId(article.slug)}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.4 }}
+                  className={`scroll-mt-[100px] min-w-0 ${index > 0 ? 'pt-[48px] md:pt-[56px] border-t border-[#e4e4e7]' : ''}`}
+                >
+                  <div className="flex flex-col gap-[28px] md:gap-[32px]">
+                    <h2
+                      className="text-[24px] leading-[32px] tracking-[-0.72px] text-[#1b1b1f] md:text-[36px] md:leading-[44px]"
+                      style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
+                    >
+                      {article.title}
+                    </h2>
 
-              {isRichFirstProject ? (
-                <FirstProjectGuideBody />
-              ) : (
-                <GenericKbArticleBody categoryTitle={category.title} articleTitle={activeArticle.title} />
-              )}
-            </div>
-          </motion.article>
+                    <div className="flex flex-wrap items-center gap-x-[10px] gap-y-2 border-t border-b border-dashed border-[#e2e8f0] py-[16px]">
+                      <div className="flex items-center gap-[6px]">
+                        <svg className="h-4 w-4 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          Updated: {article.updated}
+                        </span>
+                      </div>
+                      <span className="h-1 w-1 shrink-0 rounded-full bg-[#71717a]" aria-hidden />
+                      <div className="flex items-center gap-[6px]">
+                        <svg className="h-4 w-4 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6l4 2" />
+                        </svg>
+                        <span className="text-[16px] leading-[24px] text-[#71717a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {article.readMinutes} min read
+                        </span>
+                      </div>
+                    </div>
+
+                    {isRichFirstProject ? (
+                      <FirstProjectGuideBody />
+                    ) : (
+                      <GenericKbArticleBody categoryTitle={category.title} articleTitle={article.title} />
+                    )}
+                  </div>
+                </motion.article>
+              )
+            })}
+          </div>
         </div>
       </section>
 
