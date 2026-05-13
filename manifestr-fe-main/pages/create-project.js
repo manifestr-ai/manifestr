@@ -155,6 +155,21 @@ Outputs: Detailed financial spreadsheets`,
   },
 ]
 
+function getOutputTypeForSelection(selectedTool, selectedDocument) {
+  const fallback = selectedTool?.outputType || 'presentation'
+  const editor = typeof selectedDocument === 'object'
+    ? selectedDocument.editor?.toLowerCase()
+    : ''
+
+  if (!editor) return fallback
+  if (editor.includes('spreadsheet')) return 'spreadsheet'
+  if (editor.includes('image')) return 'image'
+  if (editor.includes('chart') || editor.includes('data')) return 'chart'
+  if (editor.includes('slide') || editor.includes('presentation')) return 'presentation'
+  if (editor.includes('word') || editor.includes('copy')) return 'document'
+  return fallback
+}
+
 export default function CreateProject() {
   const router = useRouter()
   const { error: showError } = useToast()
@@ -253,8 +268,18 @@ export default function CreateProject() {
     setSelectedDocument(null)
   }
 
-  const handleDocumentSelect = (documentId) => {
-    setSelectedDocument(documentId)
+  const handleDocumentSelect = (documentSelection) => {
+    setSelectedDocument(documentSelection)
+
+    if (documentSelection && typeof documentSelection === 'object') {
+      updateProjectData({
+        selectedDocumentType: documentSelection.title,
+        selectedDocumentCategory: documentSelection.categoryTitle,
+        selectedDocumentEditor: documentSelection.editor,
+        voiceDocumentType: documentSelection.title,
+      })
+      setCurrentStep(3)
+    }
   }
 
   const handleStyleSelect = (styleId) => {
@@ -377,8 +402,9 @@ export default function CreateProject() {
 
       // Sanitize output type to match backend enum
       const validOutputTypes = ['presentation', 'document', 'spreadsheet', 'image', 'chart']
-      const outputType = validOutputTypes.includes(selectedTool.outputType)
-        ? selectedTool.outputType
+      const selectedOutputType = getOutputTypeForSelection(selectedTool, selectedDocument)
+      const outputType = validOutputTypes.includes(selectedOutputType)
+        ? selectedOutputType
         : 'presentation'
 
       try {
@@ -392,6 +418,16 @@ export default function CreateProject() {
               tone: projectData.tone,
               audience: projectData.primaryAudience,
               brand: projectData.projectBrandName,
+              toolId: selectedTool.id,
+              documentCategory: typeof selectedDocument === 'object'
+                ? selectedDocument.categoryId
+                : selectedDocument,
+              documentType: typeof selectedDocument === 'object'
+                ? selectedDocument.title
+                : null,
+              documentEditor: typeof selectedDocument === 'object'
+                ? selectedDocument.editor
+                : null,
               contextFromSidebar: projectData.enrichedContext || null,
               uploadedFilesCount: uploadedFiles?.length || 0
             }
@@ -421,7 +457,15 @@ export default function CreateProject() {
             budget: projectData.budget,
             timeline: projectData.timeline,
             toolId: selectedTool.id,
-            documentCategory: selectedDocument,
+            documentCategory: typeof selectedDocument === 'object'
+              ? selectedDocument.categoryId
+              : selectedDocument,
+            documentType: typeof selectedDocument === 'object'
+              ? selectedDocument.title
+              : null,
+            documentEditor: typeof selectedDocument === 'object'
+              ? selectedDocument.editor
+              : null,
             // Include context and files metadata
             contextFromSidebar: projectData.enrichedContext || null,
             uploadedFilesCount: uploadedFiles?.length || 0,
@@ -618,7 +662,7 @@ export default function CreateProject() {
             <div className="relative w-full pt-4 pb-8 px-4">
               <Step6Edit
                 generationId={generationId}
-                outputType={selectedTool?.outputType || 'presentation'}
+                outputType={getOutputTypeForSelection(selectedTool, selectedDocument)}
               />
             </div>
           ) : (

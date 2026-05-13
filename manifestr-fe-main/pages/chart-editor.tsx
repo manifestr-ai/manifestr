@@ -1,12 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import TopHeader from "../components/spreadsheet/TopHeader";
 import { RightSidebar } from "../components/spreadsheet/RightSidebar";
-import {
-  FloatingSheetTab,
-  FloatingFAB,
-} from "../components/spreadsheet/FloatingElements";
+import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 import dynamic from "next/dynamic";
 
 const ChartEditor = dynamic(
@@ -39,6 +36,15 @@ export default function ChartEditorPage() {
   const [zoom, setZoom] = useState(1);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const chartDownloadRef = useRef<(() => void) | null>(null);
+
+  const [headerActiveUsers, setHeaderActiveUsers] = useState<any[]>([]);
+  const onCollabActiveUsersChange = useCallback((users: any[]) => {
+    setHeaderActiveUsers(users);
+  }, []);
+
+  useEffect(() => {
+    setHeaderActiveUsers([]);
+  }, [actualGenerationId]);
 
   const clampZoom = (value: number) => Math.min(2, Math.max(0.5, value));
 
@@ -76,6 +82,7 @@ export default function ChartEditorPage() {
           documentId={actualGenerationId}
           documentTitle="Chart"
           enableCollaboration={!!actualGenerationId}
+          activeUsers={headerActiveUsers}
           onDownload={handleDownloadChart}
         />
       </div>
@@ -89,6 +96,7 @@ export default function ChartEditorPage() {
             onStoreReady={setStore}
             onActiveToolChange={setActiveTool}
             onDownloadReady={setChartDownloadFn}
+            onActiveUsersChange={onCollabActiveUsersChange}
           />
         </div>
 
@@ -109,7 +117,6 @@ export default function ChartEditorPage() {
         )}
 
         {/* Floating Elements */}
-        <FloatingSheetTab />
         <FloatingFAB />
       </div>
     </div>

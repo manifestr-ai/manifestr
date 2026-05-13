@@ -550,7 +550,8 @@ export default function Editor() {
         />
 
         {/* Main Editor Area */}
-        <div className="flex-1 flex overflow-hidden">
+        {/* Allow floating toolbars to render without being clipped */}
+        <div className="flex-1 flex overflow-y-hidden overflow-x-visible">
           {/* Left Sidebar */}
           <EditorSidebar
             slides={slides}
@@ -562,7 +563,7 @@ export default function Editor() {
           />
 
           {/* Center Canvas Area */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative overflow-visible">
             <EditorCanvas
               slides={slides}
               currentSlideIndex={currentSlideIndex}

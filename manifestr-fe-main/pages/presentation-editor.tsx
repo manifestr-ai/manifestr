@@ -1,12 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import Head from "next/head";
 import TopHeader from "../components/spreadsheet/TopHeader";
 import { RightSidebar } from "../components/spreadsheet/RightSidebar";
 import BottomToolbar from "../components/spreadsheet/BottomToolbar";
-import {
-  FloatingSheetTab,
-  FloatingFAB,
-} from "../components/spreadsheet/FloatingElements";
+import { FloatingFAB } from "../components/spreadsheet/FloatingElements";
 import dynamic from "next/dynamic";
 import useGenerationLoader from "../hooks/useGenerationLoader";
 import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
@@ -38,6 +35,15 @@ export default function PresentationEditorPage() {
     typeof id === "string" ? id : Array.isArray(id) ? id[0] : undefined;
 
   const useCollaboration = !!actualGenerationId; // Enable collaboration if we have a generation ID
+
+  const [headerActiveUsers, setHeaderActiveUsers] = useState<any[]>([]);
+  const onCollabActiveUsersChange = useCallback((users: any[]) => {
+    setHeaderActiveUsers(users);
+  }, []);
+
+  useEffect(() => {
+    setHeaderActiveUsers([]);
+  }, [actualGenerationId]);
 
   const [store, setStore] = useState<any>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -76,6 +82,7 @@ export default function PresentationEditorPage() {
             documentId={actualGenerationId}
             documentTitle={content?.title || "Untitled presentation"}
             enableCollaboration={useCollaboration}
+            activeUsers={headerActiveUsers}
           />
         </div>
 
@@ -90,6 +97,7 @@ export default function PresentationEditorPage() {
                 generationId={actualGenerationId}
                 onStoreReady={setStore}
                 onActiveToolChange={setActiveTool}
+                onActiveUsersChange={onCollabActiveUsersChange}
               />
             ) : (
               <PresentationEditor
@@ -119,7 +127,6 @@ export default function PresentationEditorPage() {
           )}
 
           {/* Floating Elements */}
-          <FloatingSheetTab />
           <FloatingFAB />
         </div>
       </div>

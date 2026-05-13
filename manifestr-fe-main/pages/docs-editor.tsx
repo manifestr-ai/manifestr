@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -22,7 +22,9 @@ import GenerationLoaderUI from "../components/shared/GenerationLoaderUI";
 import StyleGuideModal from "../components/editor/StyleGuideModal";
 import { useToast } from "../hooks/useToast";
 import api from "../lib/api";
-import { useEffect } from "react";
+
+const EDITOR_BACKGROUND_IMAGE =
+  "https://res.cloudinary.com/dlifgfg6m/image/upload/v1778220832/background_presentation_editor_tnlrr7.png";
 
 export default function DocsEditor() {
   const router = useRouter();
@@ -38,6 +40,45 @@ export default function DocsEditor() {
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
     "saved",
   );
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+
+  // Debounced "save" simulation for the UI pill.
+  // We don't currently get a reliable callback from backend saves here,
+  // so we approximate: editing => unsaved, after a short pause => saving => saved.
+  const saveUiTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const savedHideTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const markEdited = React.useCallback(() => {
+    setSaveStatus("unsaved");
+    if (saveUiTimeoutRef.current) clearTimeout(saveUiTimeoutRef.current);
+    saveUiTimeoutRef.current = setTimeout(() => {
+      setSaveStatus("saving");
+      setTimeout(() => setSaveStatus("saved"), 600);
+    }, 900);
+  }, []);
+
+  useEffect(() => {
+    if (saveStatus !== "saved") return;
+    setShowSavedIndicator(true);
+    if (savedHideTimeoutRef.current) clearTimeout(savedHideTimeoutRef.current);
+    savedHideTimeoutRef.current = setTimeout(() => {
+      setShowSavedIndicator(false);
+    }, 2500);
+    return () => {
+      if (savedHideTimeoutRef.current) clearTimeout(savedHideTimeoutRef.current);
+    };
+  }, [saveStatus]);
+
+  useEffect(() => {
+    return () => {
+      if (saveUiTimeoutRef.current) clearTimeout(saveUiTimeoutRef.current);
+      if (savedHideTimeoutRef.current) clearTimeout(savedHideTimeoutRef.current);
+    };
+  }, []);
 
   const extractHeadings = (html) => {
     // Store HTML for download
@@ -214,6 +255,15 @@ export default function DocsEditor() {
 
   const useCollaboration = !!actualDocumentId; // Enable collaboration if we have a document ID
 
+  const [headerActiveUsers, setHeaderActiveUsers] = useState<any[]>([]);
+  const onCollabActiveUsersChange = useCallback((users: any[]) => {
+    setHeaderActiveUsers(users);
+  }, []);
+
+  useEffect(() => {
+    setHeaderActiveUsers([]);
+  }, [actualDocumentId]);
+
   // Extract saved HTML content if available
   // For documents, content IS the HTML string directly (editorState from backend)
   // For spreadsheets/presentations, content is an object
@@ -334,23 +384,194 @@ export default function DocsEditor() {
             documentId={actualDocumentId}
             documentTitle={content?.title || "Untitled document"}
             enableCollaboration={useCollaboration}
+            activeUsers={headerActiveUsers}
           />
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-grow flex relative overflow-hidden">
-          {/* Left Sidebar - Document Outline */}
-          <div className="hidden md:block h-full">
-            <DocumentOutline headings={headings} />
+        <div
+          className="flex-grow flex flex-col relative overflow-hidden bg-[#f5f5f5]"
+          style={{
+            backgroundImage: `url(${EDITOR_BACKGROUND_IMAGE})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
+        >
+          {/* Top white strip (Figma: node 10493:23871) */}
+          <div className="flex-none bg-white border-b border-solid border-[#e5e7eb] h-11">
+            <div className="h-full flex items-center pr-4">
+              {/* Sidebar header row (Figma node 10478:169010) */}
+              <div className="hidden md:flex items-center w-[215px] h-full shrink-0">
+                <div className="bg-gradient-to-b border-b border-solid border-[#f3f4f6] from-white to-[rgba(249,250,251,0.3)] h-[33px] w-full flex items-center justify-between px-3 pb-px">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-[#364153]"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <span className="text-[#364153] text-[12px] leading-4 font-normal">
+                      Outline
+                    </span>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-[#4a5565]"
+                  >
+                    <polyline points="18 15 12 9 6 15" />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pl-6 pb-px">
+                <button
+                  type="button"
+                  className="h-9 rounded-[10px] bg-[#f3f4f6] px-3 flex items-center gap-2 text-[14px] leading-5 font-medium text-[#0a0a0a]"
+                >
+                  <span className="shrink-0 size-4 inline-flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.0013 1.33594H4.0013C3.64768 1.33594 3.30854 1.47641 3.05849 1.72646C2.80844 1.97651 2.66797 2.31565 2.66797 2.66927V13.3359C2.66797 13.6896 2.80844 14.0287 3.05849 14.2787C3.30854 14.5288 3.64768 14.6693 4.0013 14.6693H12.0013C12.3549 14.6693 12.6941 14.5288 12.9441 14.2787C13.1942 14.0287 13.3346 13.6896 13.3346 13.3359V4.66927L10.0013 1.33594Z"
+                        stroke="black"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M9.33203 1.33594V4.0026C9.33203 4.35623 9.47251 4.69536 9.72256 4.94541C9.9726 5.19546 10.3117 5.33594 10.6654 5.33594H13.332"
+                        stroke="black"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M6.66536 6H5.33203"
+                        stroke="black"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M10.6654 8.66406H5.33203"
+                        stroke="black"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M10.6654 11.3359H5.33203"
+                        stroke="black"
+                        strokeWidth="1.33333"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  Insert From the Vault
+                </button>
+
+                <div className="w-px h-6 bg-[#d1d5dc]" />
+
+                <button
+                  type="button"
+                  className="h-9 rounded-[10px] bg-[#f3f4f6] px-3 flex items-center gap-2 text-[14px] leading-5 font-medium text-[#0a0a0a]"
+                >
+                  <span className="shrink-0 size-4 inline-flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                    >
+                      <g clipPath="url(#clip0_10493_23883)">
+                        <path
+                          d="M7.34106 1.87239C7.36962 1.71946 7.45077 1.58133 7.57045 1.48193C7.69014 1.38254 7.84081 1.32812 7.99639 1.32812C8.15196 1.32812 8.30264 1.38254 8.42232 1.48193C8.54201 1.58133 8.62316 1.71946 8.65172 1.87239L9.35239 5.57772C9.40215 5.84115 9.53017 6.08347 9.71974 6.27304C9.90931 6.4626 10.1516 6.59062 10.4151 6.64039L14.1204 7.34106C14.2733 7.36962 14.4114 7.45077 14.5108 7.57045C14.6102 7.69014 14.6647 7.84081 14.6647 7.99639C14.6647 8.15196 14.6102 8.30264 14.5108 8.42232C14.4114 8.54201 14.2733 8.62316 14.1204 8.65172L10.4151 9.35239C10.1516 9.40215 9.90931 9.53017 9.71974 9.71974C9.53017 9.90931 9.40215 10.1516 9.35239 10.4151L8.65172 14.1204C8.62316 14.2733 8.54201 14.4114 8.42232 14.5108C8.30264 14.6102 8.15196 14.6647 7.99639 14.6647C7.84081 14.6647 7.69014 14.6102 7.57045 14.5108C7.45077 14.4114 7.36962 14.2733 7.34106 14.1204L6.64039 10.4151C6.59062 10.1516 6.4626 9.90931 6.27304 9.71974C6.08347 9.53017 5.84115 9.40215 5.57772 9.35239L1.87239 8.65172C1.71946 8.62316 1.58133 8.54201 1.48193 8.42232C1.38254 8.30264 1.32812 8.15196 1.32812 7.99639C1.32812 7.84081 1.38254 7.69014 1.48193 7.57045C1.58133 7.45077 1.71946 7.36962 1.87239 7.34106L5.57772 6.64039C5.84115 6.59062 6.08347 6.4626 6.27304 6.27304C6.4626 6.08347 6.59062 5.84115 6.64039 5.57772L7.34106 1.87239Z"
+                          stroke="#0A0A0A"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M13.3359 1.33594V4.0026"
+                          stroke="#0A0A0A"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M14.6667 2.66406H12"
+                          stroke="#0A0A0A"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M2.66927 14.6667C3.40565 14.6667 4.0026 14.0697 4.0026 13.3333C4.0026 12.597 3.40565 12 2.66927 12C1.93289 12 1.33594 12.597 1.33594 13.3333C1.33594 14.0697 1.93289 14.6667 2.66927 14.6667Z"
+                          stroke="#0A0A0A"
+                          strokeWidth="1.33333"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_10493_23883">
+                          <rect width="16" height="16" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </span>
+                  Insert Theme
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Editor Container */}
-          <div className="flex-grow relative" style={{ zoom } as any}>
+          <div className="flex-grow flex relative overflow-hidden">
+            {/* Left Sidebar - Document Outline */}
+            <div className="hidden md:block h-full">
+              <DocumentOutline headings={headings} />
+            </div>
+
+            {/* Editor Container */}
+            <div
+              className="flex-grow relative px-4 py-5 sm:px-8 lg:px-14"
+              style={{ zoom } as any}
+            >
+
             {/* Render with TipTap Editor */}
             {useCollaboration && actualDocumentId ? (
               <CollaborativeTiptapEditor
                 documentId={actualDocumentId}
                 initialContent={content || editorContent}
+                onActiveUsersChange={onCollabActiveUsersChange}
                 onEditorReady={(editor) => {
                   setEditorInstance(editor);
                   // Extract headings from TipTap editor (IDs are now built-in)
@@ -417,6 +638,7 @@ export default function DocsEditor() {
                 onUpdate={(html) => {
                   setEditorHTML(html);
                   extractHeadings(html);
+                  markEdited();
                 }}
                 onEditorReady={(editor) => {
                   setEditorInstance(editor);
@@ -475,13 +697,14 @@ export default function DocsEditor() {
                     // Extract on mount and on updates
                     setTimeout(extractTipTapHeadings, 500);
                     editor.on("update", extractTipTapHeadings);
+                    editor.on("update", markEdited);
                   }
                 }}
               />
             )}
 
             {/* Save Status Indicator */}
-            {actualDocumentId && (
+            {actualDocumentId && (saveStatus !== "saved" || showSavedIndicator) && (
               <div className="fixed top-20 right-6 z-50 flex items-center gap-2 bg-white shadow-md rounded-lg px-4 py-2 border border-gray-200">
                 {saveStatus === "saved" && (
                   <>
@@ -549,7 +772,7 @@ export default function DocsEditor() {
 
           {/* Right Sidebar (Floating over editor on the right) - Hide when AI Prompter is active */}
           {activeTool !== "ai-prompt" && (
-            <div className="hidden md:flex absolute right-[-12px] top-0 bottom-0 items-center z-20 pointer-events-none">
+            <div className="hidden md:block fixed right-8 top-1/2 -translate-y-1/2 z-40 pointer-events-none">
               <div className="pointer-events-auto">
                 <RightSidebar
                   onZoomIn={handleZoomIn}
@@ -565,6 +788,7 @@ export default function DocsEditor() {
 
           {/* Floating FAB */}
           <FloatingFAB />
+          </div>
         </div>
 
         {/* Bottom Section */}

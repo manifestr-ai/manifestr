@@ -1046,6 +1046,19 @@ const PhotoEditor = observer(function PhotoEditor({
   const { showToast } = useToast();
   const router = useRouter();
 
+  useEffect(() => {
+    const openTheme = () => setShowStyleGuideModal(true);
+    window.addEventListener(
+      "image-editor:open-style-guide",
+      openTheme as EventListener,
+    );
+    return () =>
+      window.removeEventListener(
+        "image-editor:open-style-guide",
+        openTheme as EventListener,
+      );
+  }, []);
+
   const handleSelectStyleGuide = async (styleGuide: any) => {
     setShowStyleGuideModal(false);
     
