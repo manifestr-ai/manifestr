@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gem, AlertCircle, Settings, ChevronDown, GemIcon } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function WinsDropdown() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [autoTopUp, setAutoTopUp] = useState(false);
   const [industry, setIndustry] = useState("");
@@ -17,7 +19,7 @@ export default function WinsDropdown() {
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const dropdownRef = useRef(null);
   const currencyRef = useRef(null);
-  const currentBalance = 272; // This could come from props or context
+  const currentBalance = user?.wins_balance || 0; // Get real wins balance from user context
 
   const currencies = [
     { code: "USD", symbol: "$", name: "US Dollar" },
