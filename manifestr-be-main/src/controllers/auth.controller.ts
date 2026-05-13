@@ -271,6 +271,48 @@ export class AuthController extends BaseController {
         return this.sendResponse(res, 400, "error", "Missing required fields");
       }
 
+      // 🔒 STEP 1: Check if subscription exists for this email
+      console.log(`🔍 Checking for subscription with email: ${email}`);
+      
+      const { data: subscription, error: subError } = await supabaseAdmin
+        .from('subscriptions')
+        .select('id, stripe_customer_id, tier, status, stripe_subscription_id')
+        .is('user_id', null) // Only guest subscriptions (not yet linked)
+        .eq('status', 'active') // Only active subscriptions
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      // Check if subscription exists by fetching the Stripe customer email
+      let foundSubscription = null;
+      if (subscription && subscription.length > 0) {
+        // We need to verify the Stripe customer email matches
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        for (const sub of subscription) {
+          try {
+            const customer = await stripe.customers.retrieve(sub.stripe_customer_id);
+            if ('email' in customer && customer.email === email) {
+              foundSubscription = sub;
+              console.log(`✅ Found subscription ${sub.id} for email ${email}`);
+              break;
+            }
+          } catch (err) {
+            console.error('Error retrieving Stripe customer:', err);
+          }
+        }
+      }
+
+      if (!foundSubscription) {
+        console.log(`❌ No active subscription found for ${email}`);
+        return this.sendResponse(
+          res, 
+          403, 
+          "error", 
+          "You must subscribe to a plan before creating an account. Please visit our pricing page."
+        );
+      }
+
+      console.log(`✅ Subscription verified - proceeding with account creation`);
+
       // Use admin.createUser with email_confirm: true to skip verification!
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
@@ -329,6 +371,56 @@ export class AuthController extends BaseController {
         promotional_emails,
       });
 
+      // Update user with tier and Stripe customer ID from subscription
+      await SupabaseDB.updateUser(authData.user.id, {
+        tier: foundSubscription.tier,
+        stripe_customer_id: foundSubscription.stripe_customer_id,
+      });
+
+      // Update user object for response
+      user.tier = foundSubscription.tier;
+      user.stripe_customer_id = foundSubscription.stripe_customer_id;
+
+      // 🔗 STEP 2: Link the subscription to the new user
+      console.log(` Linking subscription ${foundSubscription.id} to user ${authData.user.id}`);
+      
+      await supabaseAdmin
+        .from('subscriptions')
+        .update({ 
+          user_id: authData.user.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', foundSubscription.id);
+
+      // 🏆 STEP 3: Grant wins based on tier
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      const { getTierConfig } = require('../lib/stripe');
+      const tierConfig = getTierConfig(foundSubscription.tier);
+      
+      if (tierConfig) {
+        console.log(` Granting ${tierConfig.winsPerMonth} wins for ${foundSubscription.tier} tier`);
+        
+        await supabaseAdmin
+          .from('users')
+          .update({
+            wins_balance: tierConfig.winsPerMonth,
+          })
+          .eq('id', authData.user.id);
+
+        // Log wins transaction
+        await supabaseAdmin
+          .from('wins_transactions')
+          .insert({
+            user_id: authData.user.id,
+            amount: tierConfig.winsPerMonth,
+            balance_after: tierConfig.winsPerMonth,
+            transaction_type: 'subscription_linked',
+            description: `Subscription linked: ${foundSubscription.tier} tier (${tierConfig.winsPerMonth} wins)`,
+          });
+      }
+
+      console.log(` User created and subscription linked successfully`);
+
       // Track user signup in Mixpanel
       trackEvent(MixpanelEvents.USER_SIGNED_UP, authData.user.id, {
         email,
@@ -336,6 +428,8 @@ export class AuthController extends BaseController {
         last_name,
         country,
         promotional_emails,
+        tier: foundSubscription.tier,
+        subscription_linked: true,
       });
 
       // Set user profile in Mixpanel
@@ -345,6 +439,7 @@ export class AuthController extends BaseController {
         $created: new Date().toISOString(),
         country,
         promotional_emails,
+        tier: foundSubscription.tier,
       });
 
       // Now sign them in to get tokens
@@ -381,6 +476,7 @@ export class AuthController extends BaseController {
         },
       );
     } catch (error) {
+      console.error('Signup error:', error);
       return this.sendResponse(
         res,
         500,

@@ -92,6 +92,17 @@ class App {
         // Explicit OPTIONS handler for preflight requests
         this.app.options('*', cors());
 
+        // ⚠️ CRITICAL: Stripe webhook needs RAW body for signature verification
+        // Must be before express.json() middleware
+        this.app.post(
+            '/api/subscriptions/webhook',
+            express.raw({ type: 'application/json' }),
+            (req, res, next) => {
+                console.log('🎯 Webhook request received with raw body');
+                next();
+            }
+        );
+
         // Increase body size limits for large base64 images
         this.app.use(express.json({ limit: '100mb' }));
         this.app.use(express.urlencoded({ limit: '100mb', extended: true }));

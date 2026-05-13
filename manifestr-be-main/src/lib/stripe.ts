@@ -111,6 +111,16 @@ export function getStripePriceId(
     interval: 'monthly' | 'annual',
     isLaunchPricing: boolean
 ): string {
+    // 🔥 CHECK FOR FREE PRICING FIRST (for launch period)
+    const freeEnvKey = `STRIPE_PRICE_${tier.toUpperCase()}_${interval.toUpperCase()}_FREE`;
+    const freePriceId = process.env[freeEnvKey];
+    
+    if (freePriceId) {
+        console.log(`🎁 Using FREE pricing for ${tier} (${interval}): ${freePriceId}`);
+        return freePriceId;
+    }
+
+    // Regular pricing logic
     const pricingType = isLaunchPricing ? 'LAUNCH' : 'STANDARD';
     const intervalType = interval === 'monthly' ? 'MONTHLY' : 'ANNUAL';
     const envKey = `STRIPE_PRICE_${tier.toUpperCase()}_${intervalType}_${pricingType}`;

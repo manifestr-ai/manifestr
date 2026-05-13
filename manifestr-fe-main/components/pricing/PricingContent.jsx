@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
+import api from '../../lib/api'
+import { useToast } from '../ui/Toast'
 
 const AFFILIATE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027959/Rectangle_34624854_ga3xmx.png'
 
 const PLANS = [
   {
+    id: 'starter',
     name: 'Starter',
     desc: 'Advanced features and reporting.',
     monthlyPrice: 29,
@@ -23,6 +26,7 @@ const PLANS = [
     cta: 'Choose Starter',
   },
   {
+    id: 'pro',
     name: 'Pro',
     desc: 'Advanced features and reporting.',
     monthlyPrice: 69,
@@ -40,6 +44,7 @@ const PLANS = [
     cta: 'Choose Pro',
   },
   {
+    id: 'elite',
     name: 'Elite',
     desc: 'For Growing Teams',
     monthlyPrice: 99,
@@ -61,58 +66,58 @@ const FEATURE_GROUPS = [
   {
     title: 'Core Tool Access',
     features: [
-      { name: 'The Deck (Slides)',              starter: true,  pro: true, elite: true },
-      { name: 'The Briefcase (Docs)',            starter: true,  pro: true, elite: true },
-      { name: 'Design Studio (Images/Assets)',   starter: false, pro: true, elite: true },
-      { name: 'Analyzer (Data Viz)',             starter: false, pro: true, elite: true },
-      { name: 'Cost CTRL (Budgets)',             starter: false, pro: true, elite: true },
-      { name: 'The Strategist (Insights)',       starter: false, pro: true, elite: true },
-      { name: 'Wordsmith (Copywriting)',         starter: false, pro: true, elite: true },
-      { name: 'The Huddle (Meetings)',           starter: false, pro: true, elite: true },
+      { name: 'The Deck (Slides)', starter: true, pro: true, elite: true },
+      { name: 'The Briefcase (Docs)', starter: true, pro: true, elite: true },
+      { name: 'Design Studio (Images/Assets)', starter: false, pro: true, elite: true },
+      { name: 'Analyzer (Data Viz)', starter: false, pro: true, elite: true },
+      { name: 'Cost CTRL (Budgets)', starter: false, pro: true, elite: true },
+      { name: 'The Strategist (Insights)', starter: false, pro: true, elite: true },
+      { name: 'Wordsmith (Copywriting)', starter: false, pro: true, elite: true },
+      { name: 'The Huddle (Meetings)', starter: false, pro: true, elite: true },
     ],
   },
   {
     title: 'Usage & Limits',
     features: [
-      { name: 'Wins / Month',            starter: '30',            pro: '100',       elite: 'Unlimited' },
-      { name: 'Number of Users',         starter: false,           pro: true,        elite: 'Priority' },
-      { name: 'Export Access',            starter: true,            pro: true,        elite: true },
-      { name: 'Scheduled Exports/Reports', starter: true,          pro: true,        elite: true },
+      { name: 'Wins / Month', starter: '30', pro: '100', elite: 'Unlimited' },
+      { name: 'Number of Users', starter: false, pro: true, elite: 'Priority' },
+      { name: 'Export Access', starter: true, pro: true, elite: true },
+      { name: 'Scheduled Exports/Reports', starter: true, pro: true, elite: true },
     ],
   },
   {
     title: 'AI & Automation',
     features: [
-      { name: 'AI Assistant',              starter: true,  pro: true, elite: true },
-      { name: 'Workflow Automations',       starter: false, pro: true, elite: true },
-      { name: 'AI Summaries & Highlights',  starter: false, pro: true, elite: true },
+      { name: 'AI Assistant', starter: true, pro: true, elite: true },
+      { name: 'Workflow Automations', starter: false, pro: true, elite: true },
+      { name: 'AI Summaries & Highlights', starter: false, pro: true, elite: true },
     ],
   },
   {
     title: 'Branding & Customization',
     features: [
-      { name: 'Brand Style Guide',           starter: false, pro: true,  elite: true },
-      { name: 'Custom Branding Templates',    starter: false, pro: true,  elite: true },
-      { name: 'Public/Private Link Controls', starter: false, pro: true,  elite: true },
+      { name: 'Brand Style Guide', starter: false, pro: true, elite: true },
+      { name: 'Custom Branding Templates', starter: false, pro: true, elite: true },
+      { name: 'Public/Private Link Controls', starter: false, pro: true, elite: true },
     ],
   },
   {
     title: 'Collaboration & Management',
     features: [
-      { name: 'Shared Vault',                starter: false, pro: false, elite: true },
-      { name: 'Team Insights & Analytics',    starter: false, pro: true,  elite: true },
-      { name: 'Commenting & Collaboration',   starter: false, pro: true,  elite: true },
-      { name: 'Version History & Rollback',   starter: false, pro: false, elite: true },
+      { name: 'Shared Vault', starter: false, pro: false, elite: true },
+      { name: 'Team Insights & Analytics', starter: false, pro: true, elite: true },
+      { name: 'Commenting & Collaboration', starter: false, pro: true, elite: true },
+      { name: 'Version History & Rollback', starter: false, pro: false, elite: true },
       { name: 'Public/Private Link Controls', starter: false, pro: false, elite: true },
     ],
   },
   {
     title: 'Support & Services',
     features: [
-      { name: 'Knowledge Base & Tutorials', starter: true,           pro: true,           elite: true },
-      { name: 'Priority Processing',        starter: false,          pro: true,           elite: true },
-      { name: 'Support',                    starter: 'Email',        pro: 'Email\n+ Chat', elite: 'Dedicated' },
-      { name: 'Onboarding Concierge',       starter: false,          pro: false,          elite: true },
+      { name: 'Knowledge Base & Tutorials', starter: true, pro: true, elite: true },
+      { name: 'Priority Processing', starter: false, pro: true, elite: true },
+      { name: 'Support', starter: 'Email', pro: 'Email\n+ Chat', elite: 'Dedicated' },
+      { name: 'Onboarding Concierge', starter: false, pro: false, elite: true },
     ],
   },
 ]
@@ -232,11 +237,10 @@ function BillingToggle({ isAnnual, setIsAnnual }) {
           <button
             type="button"
             onClick={() => setIsAnnual(false)}
-            className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${
-              !isAnnual
+            className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${!isAnnual
                 ? 'bg-white text-[#18181b] shadow-[0px_1px_3px_0px_rgba(10,13,18,0.1),0px_1px_2px_-1px_rgba(10,13,18,0.1)]'
                 : 'text-[#71717a]'
-            }`}
+              }`}
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Monthly
@@ -244,11 +248,10 @@ function BillingToggle({ isAnnual, setIsAnnual }) {
           <button
             type="button"
             onClick={() => setIsAnnual(true)}
-            className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${
-              isAnnual
+            className={`flex-1 py-[6px] px-[12px] rounded-[2px] text-[14px] leading-[20px] font-medium transition-colors ${isAnnual
                 ? 'bg-white text-[#18181b] shadow-[0px_1px_3px_0px_rgba(10,13,18,0.1),0px_1px_2px_-1px_rgba(10,13,18,0.1)]'
                 : 'text-[#71717a]'
-            }`}
+              }`}
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Yearly
@@ -290,12 +293,11 @@ function FeatureCheckIcon({ index, isPopular }) {
   )
 }
 
-function PlanCard({ plan, isAnnual }) {
+function PlanCard({ plan, isAnnual, onChoosePlan, isLoading }) {
   return (
     <div
-      className={`rounded-[14px] border flex flex-col p-[24px] md:p-[16px] gap-[24px] md:gap-[16px] ${
-        plan.popular ? 'border-[#18181b] border-2' : 'border-[#e4e4e7]'
-      }`}
+      className={`rounded-[14px] border flex flex-col p-[24px] md:p-[16px] gap-[24px] md:gap-[16px] ${plan.popular ? 'border-[#18181b] border-2' : 'border-[#e4e4e7]'
+        }`}
     >
       {plan.popular && (
         <div className="bg-[#18181b] rounded-[8px] self-start py-[6px] px-[16px] md:py-[3px] md:px-[10px]">
@@ -372,10 +374,12 @@ function PlanCard({ plan, isAnnual }) {
       </div>
 
       <button
-        className="w-full rounded-[6px] bg-[#18181b] text-white leading-[20px] font-medium hover:bg-[#27272a] transition-colors mt-auto h-[44px] md:h-[40px] text-[14px] md:text-[13px]"
+        onClick={() => onChoosePlan(plan.id, isAnnual ? 'annual' : 'monthly')}
+        disabled={isLoading}
+        className="w-full rounded-[6px] bg-[#18181b] text-white leading-[20px] font-medium hover:bg-[#27272a] transition-colors mt-auto h-[44px] md:h-[40px] text-[14px] md:text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ fontFamily: 'Inter, sans-serif' }}
       >
-        {plan.cta}
+        {isLoading ? 'Loading...' : plan.cta}
       </button>
     </div>
   )
@@ -383,6 +387,34 @@ function PlanCard({ plan, isAnnual }) {
 
 export default function PricingContent() {
   const [isAnnual, setIsAnnual] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { error: showError, success: showSuccess } = useToast()
+
+  const handleChoosePlan = async (tier, interval) => {
+    setIsLoading(true)
+    try {
+      console.log(`Creating checkout for ${tier} (${interval})...`)
+      
+      const response = await api.post('/api/subscriptions/create-checkout-session', {
+        tier: tier,
+        interval: interval
+      })
+
+      if (response.data.status === 'success' && response.data.data.url) {
+        console.log('Checkout session created:', response.data.data.sessionId)
+        // Open Stripe Checkout in new tab
+        window.open(response.data.data.url, '_blank')
+        showSuccess('Opening checkout...')
+      } else {
+        showError('Failed to create checkout session')
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      showError(error.response?.data?.message || 'Failed to start checkout. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <>
@@ -436,7 +468,13 @@ export default function PricingContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] max-w-[960px] mx-auto">
           {PLANS.map((plan) => (
-            <PlanCard key={plan.name} plan={plan} isAnnual={isAnnual} />
+            <PlanCard
+              key={plan.name}
+              plan={plan}
+              isAnnual={isAnnual}
+              onChoosePlan={handleChoosePlan}
+              isLoading={isLoading}
+            />
           ))}
         </div>
 
@@ -568,10 +606,12 @@ export default function PricingContent() {
                       </div>
 
                       <button
-                        className="h-[44px] w-full rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
+                        onClick={() => handleChoosePlan(plan.id, isAnnual ? 'annual' : 'monthly')}
+                        disabled={isLoading}
+                        className="h-[44px] w-full rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ fontFamily: 'Inter, sans-serif' }}
                       >
-                        {plan.cta}
+                        {isLoading ? 'Loading...' : plan.cta}
                       </button>
                     </div>
                   </div>
@@ -624,10 +664,12 @@ export default function PricingContent() {
                     className="flex-1 px-[24px] py-[16px] border-r last:border-r-0 border-[#eaecf0]"
                   >
                     <button
-                      className="h-[44px] w-full rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"
+                      onClick={() => handleChoosePlan(plan.id, isAnnual ? 'annual' : 'monthly')}
+                      disabled={isLoading}
+                      className="h-[44px] w-full rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
-                      {plan.cta}
+                      {isLoading ? 'Loading...' : plan.cta}
                     </button>
                   </div>
                 ))}

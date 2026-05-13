@@ -17,12 +17,12 @@ export class SubscriptionController extends BaseController {
                 handler: this.getPricingInfo,
                 middlewares: [],
             },
-            // Protected endpoints
+            // Public checkout (no auth required)
             {
                 verb: 'POST',
                 path: '/create-checkout-session',
                 handler: this.createCheckoutSession,
-                middlewares: [authenticateToken],
+                middlewares: [],
             },
             {
                 verb: 'GET',
@@ -82,8 +82,6 @@ export class SubscriptionController extends BaseController {
 
     private createCheckoutSession = async (req: AuthRequest, res: Response) => {
         try {
-            const userId = req.user!.userId;
-            const email = req.user!.email;
             const { tier, interval } = req.body;
 
             // Validate inputs
@@ -101,51 +99,33 @@ export class SubscriptionController extends BaseController {
                 });
             }
 
-            // Get user from database
-            const { data: user, error: userError } = await supabaseAdmin
-                .from('users')
-                .select('stripe_customer_id, email, is_launch_pricing_eligible')
-                .eq('id', userId)
-                .single();
+            let userId: string | undefined;
+            let customerId: string | undefined;
 
-            if (userError || !user) {
-                return res.status(404).json({
-                    status: 'error',
-                    message: 'User not found'
-                });
-            }
-
-            // Check if user is eligible for launch pricing
-            const isLaunchPricing = user.is_launch_pricing_eligible !== false;
-
-            // Get or create Stripe customer
-            let customerId = user.stripe_customer_id;
-
-            if (!customerId) {
-                const customer = await stripe.customers.create({
-                    email: user.email,
-                    metadata: {
-                        user_id: userId,
-                    },
-                });
-                customerId = customer.id;
-
-                // Save customer ID
-                await supabaseAdmin
+            // Check if user is logged in (optional)
+            if (req.user?.userId) {
+                userId = req.user.userId;
+                
+                // Get user from database
+                const { data: user } = await supabaseAdmin
                     .from('users')
-                    .update({ stripe_customer_id: customerId })
-                    .eq('id', userId);
+                    .select('stripe_customer_id, email')
+                    .eq('id', userId)
+                    .single();
+
+                if (user?.stripe_customer_id) {
+                    customerId = user.stripe_customer_id;
+                }
             }
 
-            // Get the price ID
-            const priceId = getStripePriceId(tier, interval, isLaunchPricing);
+            // Get the price ID (uses FREE pricing)
+            const priceId = getStripePriceId(tier, interval, true);
 
             // Get tier config
             const tierConfig = getTierConfig(tier);
 
             // Create checkout session
-            const session = await stripe.checkout.sessions.create({
-                customer: customerId,
+            const sessionConfig: any = {
                 mode: 'subscription',
                 payment_method_types: ['card'],
                 line_items: [
@@ -155,26 +135,36 @@ export class SubscriptionController extends BaseController {
                     },
                 ],
                 metadata: {
-                    user_id: userId,
                     tier: tier,
                     interval: interval,
-                    is_launch_pricing: isLaunchPricing.toString(),
                     wins_per_month: tierConfig?.winsPerMonth.toString() || '0',
                 },
                 subscription_data: {
                     metadata: {
-                        user_id: userId,
                         tier: tier,
                         interval: interval,
-                        is_launch_pricing: isLaunchPricing.toString(),
                     },
                 },
-                success_url: `${process.env.FRONTEND_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+                success_url: `${process.env.FRONTEND_URL}/signup?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${process.env.FRONTEND_URL}/pricing?canceled=true`,
                 allow_promotion_codes: true,
-            });
+            };
 
-            console.log(`✅ Checkout session created for user ${userId}: ${tier} (${interval})`);
+            // Add user_id if logged in
+            if (userId) {
+                sessionConfig.metadata.user_id = userId;
+                sessionConfig.subscription_data.metadata.user_id = userId;
+            }
+
+            // Use existing customer if available, otherwise Stripe collects email automatically
+            if (customerId) {
+                sessionConfig.customer = customerId;
+            }
+            // If no customer, Stripe will automatically show email field in checkout
+
+            const session = await stripe.checkout.sessions.create(sessionConfig);
+
+            console.log(`✅ Checkout session created: ${tier} (${interval}) ${userId ? `[User: ${userId}]` : '[Guest]'}`);
 
             return res.json({
                 status: 'success',
@@ -183,7 +173,6 @@ export class SubscriptionController extends BaseController {
                     url: session.url,
                     tier,
                     interval,
-                    isLaunchPricing,
                 }
             });
 
@@ -526,22 +515,39 @@ export class SubscriptionController extends BaseController {
             return;
         }
 
-        if (!userId) {
-            console.error('❌ No user_id in session metadata!');
-            throw new Error('Cannot create subscription without user_id');
+        // Get customer email from Stripe
+        let customerEmail: string | null = null;
+        try {
+            const customer = await stripe.customers.retrieve(stripeCustomerId);
+            if ('email' in customer && customer.email) {
+                customerEmail = customer.email;
+            }
+        } catch (err) {
+            console.error('Failed to retrieve customer:', err);
         }
 
-        console.log(`👤 Processing checkout for user: ${userId}`);
-        console.log(`🔗 Stripe Customer: ${stripeCustomerId}`);
-        console.log(`📋 Stripe Subscription: ${stripeSubscriptionId}`);
+        if (userId) {
+            // LOGGED-IN USER CHECKOUT
+            console.log(`👤 Processing checkout for user: ${userId}`);
+            console.log(`🔗 Stripe Customer: ${stripeCustomerId}`);
+            console.log(`📋 Stripe Subscription: ${stripeSubscriptionId}`);
 
-        // Update user's Stripe customer ID if not set
-        await supabaseAdmin
-            .from('users')
-            .update({ stripe_customer_id: stripeCustomerId })
-            .eq('id', userId);
+            // Update user's Stripe customer ID if not set
+            await supabaseAdmin
+                .from('users')
+                .update({ stripe_customer_id: stripeCustomerId })
+                .eq('id', userId);
 
-        console.log(`✅ User ${userId} checkout completed successfully`);
+            console.log(`✅ User ${userId} checkout completed successfully`);
+        } else {
+            // GUEST CHECKOUT (Subscribe FIRST, then signup flow)
+            console.log(`📧 Guest checkout completed`);
+            console.log(`   Email: ${customerEmail}`);
+            console.log(`🔗 Stripe Customer: ${stripeCustomerId}`);
+            console.log(`📋 Stripe Subscription: ${stripeSubscriptionId}`);
+            console.log(`ℹ️  Subscription will be saved by subscription.created/updated webhook`);
+            console.log(`ℹ️  User can now signup and subscription will be linked automatically`);
+        }
     }
 
     private async handleSubscriptionUpdate(subscription: any) {
@@ -550,8 +556,21 @@ export class SubscriptionController extends BaseController {
         console.log('   Cancel at period end:', subscription.cancel_at_period_end);
 
         const userId = subscription.metadata?.user_id;
-        if (!userId) {
-            console.error('❌ No user_id in subscription metadata');
+        const stripeCustomerId = subscription.customer as string;
+        
+        // Get customer email from Stripe
+        let customerEmail: string | null = null;
+        try {
+            const customer = await stripe.customers.retrieve(stripeCustomerId);
+            if ('email' in customer && customer.email) {
+                customerEmail = customer.email;
+            }
+        } catch (err) {
+            console.error('Failed to retrieve customer:', err);
+        }
+
+        if (!userId && !customerEmail) {
+            console.error('❌ No user_id or customer email - cannot save subscription');
             return;
         }
 
@@ -563,21 +582,14 @@ export class SubscriptionController extends BaseController {
         const priceItem = subscription.items.data[0];
         const amountCents = priceItem.price.unit_amount || 0;
 
-        console.log(`👤 User: ${userId}`);
+        console.log(`${userId ? `👤 User: ${userId}` : `📧 Guest Email: ${customerEmail}`}`);
         console.log(`🎯 Tier: ${tier} (${interval})`);
         console.log(`💰 Amount: $${amountCents / 100}`);
         console.log(`🚀 Launch pricing: ${isLaunchPricing}`);
 
-        // Check if subscription exists
-        const { data: existing } = await supabaseAdmin
-            .from('subscriptions')
-            .select('id, tier, status')
-            .eq('user_id', userId)
-            .single();
-
         const subscriptionData = {
             stripe_subscription_id: subscription.id,
-            stripe_customer_id: subscription.customer as string,
+            stripe_customer_id: stripeCustomerId,
             stripe_price_id: priceItem.price.id,
             tier: tier,
             billing_interval: interval,
@@ -594,28 +606,54 @@ export class SubscriptionController extends BaseController {
             updated_at: new Date().toISOString(),
         };
 
+        // Check if subscription exists
+        let existing: any = null;
+        
+        if (userId) {
+            // Try to find by user_id first
+            const { data } = await supabaseAdmin
+                .from('subscriptions')
+                .select('id, tier, status, user_id')
+                .eq('user_id', userId)
+                .single();
+            existing = data;
+        }
+        
+        if (!existing) {
+            // Try to find by stripe_customer_id
+            const { data } = await supabaseAdmin
+                .from('subscriptions')
+                .select('id, tier, status, user_id')
+                .eq('stripe_customer_id', stripeCustomerId)
+                .single();
+            existing = data;
+        }
+
         if (existing) {
             // Update existing subscription
             await supabaseAdmin
                 .from('subscriptions')
-                .update(subscriptionData)
-                .eq('user_id', userId);
+                .update({
+                    ...subscriptionData,
+                    user_id: userId || existing.user_id, // Keep existing user_id if no new one
+                })
+                .eq('id', existing.id);
             
-            console.log(`✅ Subscription updated in database`);
+            console.log(` Subscription updated in database`);
         } else {
-            // Create new subscription
+            // Create new subscription (guest subscription without user_id)
             await supabaseAdmin
                 .from('subscriptions')
                 .insert({
                     ...subscriptionData,
-                    user_id: userId,
+                    user_id: userId || null, // Allow NULL for guest subscriptions
                 });
             
-            console.log(`✅ Subscription created in database`);
+            console.log(` Subscription created in database ${userId ? 'for user' : 'for guest (pending signup)'}`);
         }
 
-        // Update user tier and wins (only if status is active or trialing)
-        if (['active', 'trialing'].includes(subscription.status)) {
+        // Update user tier and wins ONLY if we have a user_id and subscription is active
+        if (userId && ['active', 'trialing'].includes(subscription.status)) {
             const tierConfig = getTierConfig(tier);
             
             if (tierConfig) {
@@ -626,6 +664,7 @@ export class SubscriptionController extends BaseController {
                     .update({
                         tier: tier,
                         wins_balance: tierConfig.winsPerMonth,
+                        stripe_customer_id: stripeCustomerId,
                     })
                     .eq('id', userId);
 
@@ -640,29 +679,33 @@ export class SubscriptionController extends BaseController {
                         description: `Subscription ${existing ? 'updated' : 'activated'}: ${tier} tier (${tierConfig.winsPerMonth} wins)`,
                     });
 
-                console.log(`✅ User tier and wins updated`);
+                console.log(` User tier and wins updated`);
             }
+        } else if (!userId) {
+            console.log(`ℹ Guest subscription saved - will link when user signs up with ${customerEmail}`);
         } else {
-            console.log(`ℹ️ Subscription status is ${subscription.status} - not updating wins`);
+            console.log(`ℹ Subscription status is ${subscription.status} - not updating wins`);
         }
 
-        // Log subscription history
-        await supabaseAdmin
-            .from('subscription_history')
-            .insert({
-                user_id: userId,
-                event_type: existing ? 'updated' : 'created',
-                previous_tier: existing?.tier || 'backstage',
-                new_tier: tier,
-                description: `Subscription ${existing ? 'updated' : 'created'}: ${tier} (${subscription.status})`,
-                metadata: {
-                    subscription_id: subscription.id,
-                    status: subscription.status,
-                    cancel_at_period_end: subscription.cancel_at_period_end,
-                }
-            });
+        // Log subscription history (only if we have user_id)
+        if (userId) {
+            await supabaseAdmin
+                .from('subscription_history')
+                .insert({
+                    user_id: userId,
+                    event_type: existing ? 'updated' : 'created',
+                    previous_tier: existing?.tier || 'backstage',
+                    new_tier: tier,
+                    description: `Subscription ${existing ? 'updated' : 'created'}: ${tier} (${subscription.status})`,
+                    metadata: {
+                        subscription_id: subscription.id,
+                        status: subscription.status,
+                        cancel_at_period_end: subscription.cancel_at_period_end,
+                    }
+                });
+        }
 
-        console.log(`✅ Subscription synced for user ${userId}: ${tier}`);
+        console.log(` Subscription synced: ${tier} ${userId ? `(User: ${userId})` : `(Guest: ${customerEmail})`}`);
     }
 
     private async handleSubscriptionDeleted(subscription: any) {
