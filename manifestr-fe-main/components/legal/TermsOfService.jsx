@@ -55,7 +55,7 @@ export default function TermsOfService() {
   return (
     <>
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[218px] md:h-[256px] flex flex-col items-center justify-between p-[48px] overflow-hidden">
+      <section className="relative w-full h-[218px] md:h-[256px] flex flex-col items-center justify-center p-[48px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <CldImage src={HERO_BG_DESKTOP} alt="" className="hidden md:block absolute w-full h-full object-cover" />
           <CldImage src={HERO_BG_MOBILE} alt="" className="md:hidden absolute w-full h-full object-cover" />

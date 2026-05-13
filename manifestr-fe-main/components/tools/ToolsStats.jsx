@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const STAT_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954224/Rectangle_16_fe3wut.jpg'
 const CLOCK_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954202/Vector_ggimsq.svg'

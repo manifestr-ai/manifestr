@@ -1,16 +1,32 @@
 import { motion } from 'framer-motion'
 import { Wand2, PenLine, Upload, Mic, Play } from 'lucide-react'
 import { useRef, useState } from 'react'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const VIDEO_PLACEHOLDER = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774958663/Placeholder_Image_zu8iye.jpg'
 
-/** Figma 14273:24567 — card order matches horizontal scroll (Freestyle first) */
+/** Card order: BriefMe → Freestyle → DropZone → TalkToMe (matches product flows 1–4) */
 const STYLES = [
-  { icon: PenLine, title: 'Freestyle',  description: 'An open canvas for ideas, refined into professional work.' },
-  { icon: Upload,  title: 'DropZone',   description: 'Upload existing content and transform it into polished results.' },
-  { icon: Wand2,   title: 'BriefMe',    description: 'Guided questions that turn intent into structured output.' },
-  { icon: Mic,     title: 'TalkToMe',   description: 'Speak your thoughts and generate structured, professional documents.' },
+  {
+    icon: Wand2,
+    title: 'Brief Me',
+    description: 'Answer a few smart questions. Get a complete, ready-to-use document.',
+  },
+  {
+    icon: PenLine,
+    title: 'Freestyle Me',
+    description: 'Start with a blank page. Shape ideas into clear, structured content.',
+  },
+  {
+    icon: Upload,
+    title: 'Drop Zone',
+    description: 'Upload what you already have. Transform it into high-quality work.',
+  },
+  {
+    icon: Mic,
+    title: 'Talk To Me',
+    description: 'Speak your thoughts. Turn them into structured, finished output.',
+  },
 ]
 
 /** Figma 14244:24539 — white circle w/ soft drop (offset + blur) */
@@ -61,7 +77,7 @@ export default function ToolWorkingStyles() {
             >
               create
             </em>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> based on your working style</span>
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> <br/>based on your working style</span>
           </motion.h2>
         </div>
 

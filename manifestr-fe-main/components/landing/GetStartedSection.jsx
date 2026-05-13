@@ -27,14 +27,15 @@ export default function GetStartedSection() {
             className="text-[36px] md:text-[60px] leading-[1.15] md:leading-[72px] font-bold text-black tracking-[-1.2px] max-w-[900px]"
             style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
           >
-            Ready to{' '}
+            Ready to{' '} 
             <span
               style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
             >
               Elevate
             </span>
-            <br />
+            {' '} 
             Your Work?
+        
           </h2>
 
           <p

@@ -241,7 +241,7 @@ export default function Footer() {
             className="text-[14px] md:text-[16px] lg:text-[18px] leading-[20px] text-[#a1a1aa] lg:text-white"
             style={{ fontFamily: "'Inter', sans-serif" }}
           >
-            &copy; 2025 MANIFESTR. All rights reserved.
+            &copy; 2026 MANIFESTR. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-6 lg:gap-8 w-full lg:w-auto lg:justify-end">
             <Link
@@ -263,7 +263,7 @@ export default function Footer() {
               className="shrink-0 whitespace-nowrap text-[12px] sm:text-[14px] md:text-[15px] lg:text-[18px] leading-[16px] lg:leading-[20px] text-[#a1a1aa] lg:text-white font-medium hover:text-white/80 transition-colors py-1 px-0"
               style={{ fontFamily: "'Inter', sans-serif" }}
             >
-              Cookies Settings
+              Cookies Policy
             </Link>
           </div>
         </div>

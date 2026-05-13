@@ -79,8 +79,8 @@ function RecommendedCard({ card, delay = 0 }) {
           </span>
           <div className="flex items-center justify-between">
             <p
-              className="text-white text-[12px] md:text-[16px] leading-[24px] font-medium flex-1 w-[197px] md:w-auto"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="flex-1 text-[16px] font-medium leading-6 tracking-normal text-white w-[197px] md:w-auto"
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
             >
               {card.title}
             </p>

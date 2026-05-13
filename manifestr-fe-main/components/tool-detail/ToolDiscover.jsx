@@ -1,11 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 import TOOL_DETAILS from '../../data/toolDetails'
 
 const PER_PAGE_DESKTOP = 3
+
+/** Tags shown per discover card (Figma). */
+const TAGS_PER_CARD = 3
+
+/**
+ * Card shell — Figma 12468:22357 (default + hover), aligned with toolkit `ToolsGrid` motion.
+ * Image area — fixed 266px frame; `object-top` + `object-cover` crops from the bottom.
+ * `imageBaseScale` zooms the asset at rest (no hover scale); clip stays the same height.
+ */
+const CARD = {
+  radius: '12px',
+  border: '#e4e3e1',
+  padding: '12px',
+  imageGap: '10px',
+  chipRadius: '6px',
+  /** Hero image frame height (px). */
+  imageHeightPx: 266,
+  /** Default in-frame zoom (scale); hover does not change scale. */
+  imageBaseScale: 1.4,
+}
 
 /** Display order for “Discover the full toolkit”. */
 const DISCOVER_SLUG_ORDER = [
@@ -115,8 +135,8 @@ const DISCOVER_ITEMS = DISCOVER_SLUG_ORDER.map((slug) => {
 function Badge({ children }) {
   return (
     <span
-      className="inline-flex items-center px-[12px] py-[6px] rounded-[16px] border border-[#e4e4e7] text-[12px] leading-[18px] font-medium text-[#71717a]"
-      style={{ background: 'rgba(255,255,255,0.8)', fontFamily: 'Inter, sans-serif' }}
+      className="inline-flex items-center border border-[#e4e4e7] bg-[#fafafa] px-2.5 py-1 text-[12px] font-medium leading-[18px] text-[#71717a] transition-[color,background-color,border-color] duration-200 ease-out group-hover:border-white/25 group-hover:bg-transparent group-hover:text-white group-focus-within:border-white/25 group-focus-within:bg-transparent group-focus-within:text-white"
+      style={{ fontFamily: 'Inter, sans-serif', borderRadius: CARD.chipRadius }}
     >
       {children}
     </span>
@@ -143,35 +163,53 @@ function DiscoverToolCard({ rt, index }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
+      className="h-full"
     >
-      <Link href={`/tools/${rt.slug}`} className="block">
-        <motion.div
-          whileHover={{ y: -6 }}
-          className="rounded-[12px] overflow-hidden min-h-[420px] md:min-h-[550px] flex flex-col cursor-pointer hover:shadow-lg transition-shadow bg-white border border-[#e4e3e1] h-full"
+      <Link
+        href={`/tools/${rt.slug}`}
+        className="group block h-full rounded-[12px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18181b] focus-visible:ring-offset-2"
+      >
+        <div
+          className="flex h-full min-h-[420px] cursor-pointer flex-col overflow-hidden rounded-[12px] border border-[#e4e3e1] bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out will-change-transform motion-reduce:transition-colors motion-reduce:md:group-hover:translate-y-0 motion-reduce:md:group-hover:scale-100 motion-reduce:md:group-focus-within:translate-y-0 motion-reduce:md:group-focus-within:scale-100 md:group-hover:-translate-y-[5px] md:group-hover:scale-[1.012] group-hover:border-[#18181b] group-hover:bg-[#18181b] group-hover:shadow-[0_12px_32px_-8px_rgba(24,24,27,0.28)] group-focus-within:border-[#18181b] group-focus-within:bg-[#18181b] group-focus-within:shadow-[0_12px_32px_-8px_rgba(24,24,27,0.28)] md:group-focus-within:-translate-y-[5px] md:group-focus-within:scale-[1.012] md:min-h-[550px]"
+          style={{ padding: CARD.padding, borderRadius: CARD.radius }}
         >
-          <div className="h-[200px] md:h-[266px] relative overflow-hidden m-[14px] md:m-[18px] mb-0 rounded-[12px]">
-            <CldImage src={rt.heroImage} alt={`${rt.prefix} ${rt.name}`} className="w-full h-full object-cover object-top rounded-[12px]" />
+          <div
+            className="relative w-full shrink-0 overflow-hidden rounded-[12px] ring-0 transition-[box-shadow] duration-200 ease-out group-hover:ring-1 group-hover:ring-white/10 group-focus-within:ring-1 group-focus-within:ring-white/10"
+            style={{ height: CARD.imageHeightPx }}
+          >
+            <CldImage
+              src={rt.heroImage}
+              alt={`${rt.prefix} ${rt.name}`}
+              className="size-full min-h-full origin-top rounded-[12px] object-cover object-top transition-[filter] duration-200 ease-out motion-reduce:scale-100 scale-[var(--discover-img-base-scale)] group-hover:brightness-[0.92] group-focus-within:brightness-[0.92]"
+              style={{ '--discover-img-base-scale': CARD.imageBaseScale }}
+            />
           </div>
-          <div className="flex-1 p-[14px] md:p-[18px] pt-[16px] md:pt-[24px] flex flex-col gap-[12px] md:gap-[16px]">
-            <div>
-              <h3 className="text-[28px] md:text-[36px] leading-[34px] md:leading-[44px] tracking-[-0.56px] md:tracking-[-0.72px] mb-[6px] md:mb-[8px]">
-                <TitleSpans prefix={rt.prefix} name={rt.name} />
-              </h3>
-              <div
-                className="flex flex-col gap-[6px] md:gap-[8px] text-[14px] md:text-[16px] leading-[21px] md:leading-[24px] text-[#52525b]"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                <p>{rt.discover.line1}</p>
-                <p>{rt.discover.line2}</p>
+          <div
+            className="flex min-h-0 flex-1 flex-col"
+            style={{ paddingTop: CARD.imageGap }}
+          >
+            <div className="flex shrink-0 flex-col gap-3 md:gap-4">
+              <div>
+                <h3 className="mb-1.5 text-left text-[28px] leading-[34px] tracking-[-0.56px] text-[#18181b] transition-colors duration-200 group-hover:text-white md:mb-2 md:text-[36px] md:leading-[44px] md:tracking-[-0.72px] group-focus-within:text-white">
+                  <TitleSpans prefix={rt.prefix} name={rt.name} />
+                </h3>
+                <div
+                  className="flex flex-col gap-1.5 text-left text-[14px] leading-[21px] text-[#52525b] transition-colors duration-200 group-hover:text-zinc-200 md:gap-2 md:text-[16px] md:leading-6 group-focus-within:text-zinc-200"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  <p>{rt.discover.line1}</p>
+                  <p>{rt.discover.line2}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 md:gap-2.5">
+                {rt.discover.tags.slice(0, TAGS_PER_CARD).map((b) => (
+                  <Badge key={b}>{b}</Badge>
+                ))}
               </div>
             </div>
-            <div className="flex flex-wrap gap-[8px] md:gap-[10px] mt-auto">
-              {rt.discover.tags.map((b) => (
-                <Badge key={b}>{b}</Badge>
-              ))}
-            </div>
+            <div className="min-h-0 flex-1" aria-hidden />
           </div>
-        </motion.div>
+        </div>
       </Link>
     </motion.div>
   )

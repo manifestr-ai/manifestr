@@ -64,7 +64,7 @@ export default function VideoCategoryPage({ category, videos }) {
       </section>
 
       {/* ─── Videos Grid ─── */}
-      <section className="w-full bg-[#f4f4f5] px-6 py-[28px] md:px-[80px] md:py-[40px]">
+      <section className="w-full bg-white px-6 pt-[28px] pb-[48px] md:px-[80px] md:pt-[40px] md:pb-[64px]">
         {videos.length === 0 ? (
           <p className="py-12 text-center text-[16px] leading-[24px] text-[#52525b]" style={{ fontFamily: 'Inter, sans-serif' }}>
             No videos in this category yet.
@@ -115,21 +115,17 @@ export default function VideoCategoryPage({ category, videos }) {
             ))}
           </div>
         )}
-      </section>
 
-      {/* ─── Back / all videos ─── */}
-      <div className="w-full bg-white px-6 pb-[48px] md:px-[80px] md:pb-[64px]">
-        <Link
-          href="/playbook/demo-videos"
-          className="inline-flex items-center gap-2 text-[14px] font-medium leading-5 text-[#18181b] underline-offset-2 hover:underline"
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          View all videos
-        </Link>
-      </div>
+        <div className="flex justify-center pt-12 md:pt-14">
+          <Link
+            href="/playbook/demo-videos"
+            className="inline-flex h-[44px] min-h-[44px] items-center justify-center rounded-[6px] bg-[#18181b] px-6 text-[14px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a] md:h-[54px] md:min-h-[54px] md:px-8 md:text-[16px]"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            View all videos
+          </Link>
+        </div>
+      </section>
 
       {/* ─── Need More Help? ─── */}
       <section className="relative h-[380px] w-full overflow-hidden md:h-[414px]">

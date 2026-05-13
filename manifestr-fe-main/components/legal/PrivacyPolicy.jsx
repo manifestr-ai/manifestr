@@ -19,9 +19,9 @@ const SECTIONS = [
 ]
 
 const QUICK_LINKS = [
-  { label: 'Download Privacy Pack', href: '#' },
-  { label: 'See Trust Center', href: '#' },
-  { label: 'Manage Cookies', href: '#' },
+  { label: 'Download Privacy Pack', href: '/api/legal/privacy-pack', download: 'MANIFESTR-Privacy-Pack.txt' },
+  { label: 'See Trust Center', href: '/security/investor-trust-center' },
+  { label: 'Manage Cookies', href: '/cookies#control' },
 ]
 
 const ACCORDION_ITEMS = [
@@ -165,7 +165,7 @@ export default function PrivacyPolicy() {
   return (
     <>
       {/* ─── Hero — matches Terms / Cookie ─── */}
-      <section className="relative flex h-[218px] w-full flex-col items-center justify-between overflow-hidden p-[48px] md:h-[256px]">
+      <section className="relative flex h-[218px] w-full flex-col items-center justify-center overflow-hidden p-[48px] md:h-[256px]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <CldImage src={HERO_BG_DESKTOP} alt="" className="absolute hidden h-full w-full object-cover md:block" />
           <CldImage src={HERO_BG_MOBILE} alt="" className="absolute h-full w-full object-cover md:hidden" />
@@ -179,18 +179,12 @@ export default function PrivacyPolicy() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="relative z-10 flex max-w-[342px] flex-col items-center gap-[18px] text-center text-white md:max-w-[551px] md:gap-[11px]"
+          className="relative z-10 flex max-w-[342px] flex-col items-center text-center text-white md:max-w-[551px]"
         >
           <h1 className="text-[36px] leading-[44px] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
             <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Privacy </span>
             <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Policy</span>
           </h1>
-          <p className="text-[16px] leading-[24px] md:text-[18px] md:leading-[28px]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            How MANIFESTR collects, uses, stores, and protects your personal information.
-          </p>
-          <p className="text-[16px] leading-[24px] text-white/95" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Last updated: 19 March 2026
-          </p>
         </motion.div>
       </section>
 
@@ -231,6 +225,7 @@ export default function PrivacyPolicy() {
                 <a
                   key={link.label}
                   href={link.href}
+                  {...(link.download ? { download: link.download } : {})}
                   className="flex items-center justify-between w-full group"
                 >
                   <span

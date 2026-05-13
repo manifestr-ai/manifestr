@@ -26,12 +26,13 @@ const COMPANY_LINKS = [
 
 const SUPPORT_LINKS = [
   { label: 'The Playbook', href: '/playbook' },
+  { label: 'FAQs', href: '/playbook/faqs' },
   { label: 'Contact Us', href: '/contact' },
 ]
 
 // Routes that count as "active" for each top-level nav item
 const COMPANY_ROUTES = ['/about', '/careers', '/affiliates']
-const SUPPORT_ROUTES = ['/playbook', '/contact']
+const SUPPORT_ROUTES = ['/playbook', '/playbook/faqs', '/contact']
 
 /** Desktop nav: full Figma spacing from xl (1280px); lg–xl (1024–1279) uses tighter gaps so the bar fits. */
 
@@ -164,7 +165,7 @@ export default function Header() {
             {/* Compact screens (under 1024px): logo + hamburger */}
             <div className="lg:hidden">
               <Link href="/" className="inline-block" aria-label="Manifestr home">
-                <Logo size="sm" />
+                <Logo size="mobileNav" />
               </Link>
             </div>
 
@@ -172,7 +173,7 @@ export default function Header() {
             <div className="hidden lg:flex items-center flex-1 min-w-0 gap-[22px] xl:gap-[44px]">
               <Link href="/" className={navLink('/')}>Home</Link>
               <NavDropdown
-                label="Toolkit"
+                label="The Toolkit"
                 href="/tools"
                 links={TOOLKIT_LINKS}
                 isActive={isToolkitActive}
@@ -265,7 +266,7 @@ export default function Header() {
             >
               <div className="flex justify-between items-center mb-8">
                 <Link href="/" onClick={closeMobile} className="inline-block" aria-label="Manifestr home">
-                  <Logo size="sm" />
+                  <Logo size="mobileNav" />
                 </Link>
                 <button onClick={closeMobile} className="p-2 -mr-2 text-gray-500">
                   <X className="w-6 h-6" />
@@ -281,7 +282,7 @@ export default function Header() {
                   Home
                 </Link>
                 <MobileAccordion
-                  label="Toolkit"
+                  label="The Toolkit"
                   href="/tools"
                   links={TOOLKIT_LINKS}
                   onNavigate={closeMobile}

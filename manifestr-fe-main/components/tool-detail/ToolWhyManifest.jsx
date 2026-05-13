@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const IMG_SAND   = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774957277/Rectangle_34624791_eotkfo.jpg'
 const IMG_SILK   = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774957276/Rectangle_34624800_juas9i.jpg'

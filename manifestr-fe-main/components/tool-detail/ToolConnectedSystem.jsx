@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const SECTION_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351553/Tools_DESKTOP_Light_Version_ia9ylz.webp'
 const SECTION_IMAGE_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351549/Tools_MOBILE_Light_Version_ihx1fw.webp'

@@ -53,7 +53,11 @@ export default function TrendingArticles() {
                   New
                 </span>
                 <div className="flex items-center justify-between">
-                  <p className="text-white text-[12px] md:text-[16px] leading-[24px] font-medium flex-1 w-[197px] md:w-auto" style={{ fontFamily: "Inter, sans-serif" }}>
+                  {/* Body small / Medium — Figma tokens: 16px / 24px / 500 / #FFF */}
+                  <p
+                    className="flex-1 text-[16px] font-medium leading-6 tracking-normal text-white w-[197px] md:w-auto"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
+                  >
                     {article.title}
                   </p>
                   <svg className="w-[24px] h-[24px] text-white shrink-0 ml-[8px] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

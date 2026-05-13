@@ -2,12 +2,30 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const FAQS = [
-  { q: 'What Toolkit  are included in MANIFESTR?' },
-  { q: 'Can I use my own branding in MANIFESTR?' },
-  { q: 'How do Wins (tokens) work?' },
-  { q: 'How do I invite my team or clients?' },
-  { q: 'What file types can I export?' },
-  { q: 'How do I contact support?' },
+  {
+    q: 'Will this replace the tools I’m already using?',
+    a: 'Yes. MANIFESTR replaces up to 8 tools in one place, so you’re not switching platforms or losing momentum. Everything runs through a single, structured workflow built for execution, saving you time and money.',
+  },
+  {
+    q: 'Can I change or cancel my plan at any time?',
+    a: 'Yes. Upgrade or change your plan at any time. If you cancel, you’ll retain access until the end of your current billing cycle.',
+  },
+  {
+    q: 'Can I collaborate with my team or clients?',
+    a: 'Yes. Invite your team, start collabs, and share with clients in view-only mode. Work is reviewed and refined in real time, while you stay in control of the output.',
+  },
+  {
+    q: 'How do Wins (AI tokens) work?',
+    a: 'Wins power your outputs. Every time you generate or refine work, Wins are used. You can track usage and top up anytime so your workflow never stops.',
+  },
+  {
+    q: 'Can I customise outputs to match my brand or client?',
+    a: 'Yes. Everything can be aligned to your brand or client, including colours, fonts, and logos, so your work is ready to present, share, and review with confidence.',
+  },
+  {
+    q: 'Can I try MANIFESTR before committing?',
+    a: 'Yes. You’re backed by a 7-day guarantee, so you can explore the platform completely pressure free.',
+  },
 ]
 
 function FAQCard({ faq, index }) {
@@ -52,7 +70,7 @@ function FAQCard({ faq, index }) {
               className="text-[16px] leading-[24px] text-[#52525b] pt-[16px]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              More details coming soon.
+              {faq.a}
             </p>
           </motion.div>
         )}

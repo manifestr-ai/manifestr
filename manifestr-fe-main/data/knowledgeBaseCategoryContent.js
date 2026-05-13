@@ -1,6 +1,7 @@
 /**
  * Knowledge Base category hub: /playbook/knowledge-base/[slug]
- * Each category has article slugs for ?article= deep links.
+ * Each category lists articles; category pages render all articles in one flow
+ * with anchors `kb-article-{slug}`. Optional `?article=` still scrolls to a section on load.
  */
 
 const d = (slug, title, updated, readMinutes, extra = {}) => ({

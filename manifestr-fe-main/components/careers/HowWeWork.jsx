@@ -72,7 +72,7 @@ export default function HowWeWork() {
           className="text-center text-[14px] md:text-[16px] leading-[24px] text-[#52525b] max-w-[518px] mx-auto mb-[35px] md:mb-[80px]"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
         >
-          Empowering ambitious minds with AI Toolkit to thrive without sacrificing their spark or well-being.
+          We care about the work and the people behind it.<br />That’s what drives great outcomes.
         </p>
 
         {/* Mobile — horizontally scrolling cards */}

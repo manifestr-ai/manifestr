@@ -158,7 +158,7 @@ export default function Glossary() {
       <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-black/30" />
         </div>
 
         <motion.div
@@ -210,22 +210,13 @@ export default function Glossary() {
             </button>
           </form>
 
-          <div className="flex flex-col items-center gap-[16px] w-full">
-            <a
-              href="#glossary-alphabet"
-              className="text-[14px] leading-[20px] text-white/90 underline underline-offset-4 hover:text-white transition-colors"
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
-            >
-              Browse by letter
-            </a>
-            <Link
-              href="/signup"
-              className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Enter MANIFESTR
-            </Link>
-          </div>
+          <Link
+            href="/signup"
+            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Enter MANIFESTR
+          </Link>
         </motion.div>
       </section>
 

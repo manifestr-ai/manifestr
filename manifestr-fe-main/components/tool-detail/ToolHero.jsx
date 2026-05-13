@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 /** Design Studio hero overlay: identical type size on DESIGN + STUDIO lines (max 140px). */
 const DESIGN_STUDIO_OVERLAY_LINE = {
@@ -20,6 +20,9 @@ const MOBILE_HERO_IVY = {
   textShadow: '0 2px 20px rgba(0,0,0,0.5), 2px 4px 24px rgba(0,0,0,0.35)',
 }
 
+/** Huddle: shift hero image up so this many pixels are clipped from the top (overflow-hidden). */
+const HUDDLE_HERO_TOP_CROP_PX = 80
+
 /** Big tool name on the image (THE STRATEGIST, DESIGN / STUDIO, etc.) — mobile only. */
 function MobileHeroToolTitle({ slug, prefix, name, visible }) {
   const animReveal = (delay) => ({
@@ -34,7 +37,7 @@ function MobileHeroToolTitle({ slug, prefix, name, visible }) {
   if (slug === 'design-studio') {
     const fs = 'clamp(32px, 9.5vw, 52px)'
     return (
-      <div className="flex max-w-[min(100%,360px)] flex-col items-center gap-1 text-center">
+      <div className="flex max-w-[min(100%,360px)] flex-col items-center gap-0 text-center">
         <p
           className="text-white uppercase"
           style={{
@@ -48,7 +51,7 @@ function MobileHeroToolTitle({ slug, prefix, name, visible }) {
           {prefix}
         </p>
         <p
-          className="text-white uppercase pl-2"
+          className="text-white uppercase pl-3"
           style={{
             ...MOBILE_HERO_IVY,
             fontSize: fs,
@@ -93,7 +96,7 @@ function MobileHeroToolTitle({ slug, prefix, name, visible }) {
     )
   }
   return (
-    <div className="flex max-w-[min(100%,360px)] flex-col items-center gap-0.5 text-center">
+    <div className={`flex max-w-[min(100%,360px)] flex-col items-center ${slug === 'huddle' ? 'gap-0' : 'gap-0.5'} text-center`}>
       <p
         className="text-white uppercase"
         style={{
@@ -113,7 +116,7 @@ function MobileHeroToolTitle({ slug, prefix, name, visible }) {
           fontSize: 'clamp(36px, 11vw, 56px)',
           lineHeight: 1,
           letterSpacing: '0.1em',
-          marginTop: '4px',
+          marginTop: slug === 'huddle' ? '0px' : '4px',
           ...animStrategist(0.45),
         }}
       >
@@ -170,9 +173,35 @@ export default function ToolHero({ tool }) {
     slug === 'cost-ctrl'
   /** Extra space above hero headline (Design Studio “Define…” block). */
   const designStudioHeadlineTopSpace = slug === 'design-studio'
-  /** Per-tool desktop title overlay vertical position (default 24%). */
+  /** Design Studio: tighter line gap in white headline (newline in copy). */
+  const designStudioHeroTightLines = slug === 'design-studio'
+  /** Per-tool desktop title overlay vertical position (default 24%). Analyzer nudged lower on art. */
   const heroTitleOverlayTop =
-    slug === 'huddle' ? '40%' : slug === 'cost-ctrl' ? '50%' : '24%'
+    slug === 'huddle'
+      ? '32%'
+      : slug === 'cost-ctrl'
+        ? '50%'
+        : slug === 'analyzer'
+          ? '34%'
+          : slug === 'design-studio'
+            ? '29%'
+            : '24%'
+
+  const analyzerHeroNudgeDown = slug === 'analyzer'
+
+  /** Cost CTRL: match two-column body width to headline (834px) so the block does not sit wider / shifted left. */
+  const costCtrlHeroColsMaxW = slug === 'cost-ctrl'
+
+  /** Huddle: extra space above white headline (“Lead the room…”). */
+  const huddleHeroHeadlineNudge = slug === 'huddle'
+
+  const huddleHeroImageCropStyle =
+    slug === 'huddle'
+      ? {
+          height: `calc(100% + ${HUDDLE_HERO_TOP_CROP_PX}px)`,
+          transform: `translateY(-${HUDDLE_HERO_TOP_CROP_PX}px)`,
+        }
+      : undefined
 
   /** Mobile: lower tool title on image + stronger pull-up for body copy under gradient */
   const mobileHeroTighterSpacing =
@@ -312,12 +341,12 @@ export default function ToolHero({ tool }) {
 
             {(heroCol1 || heroCol2) && (
               <div className="flex flex-col md:grid md:grid-cols-2 gap-[24px] md:gap-[80px] mb-10 max-w-[337px] md:max-w-[860px] mx-auto">
-                {heroCol1 && <p className="text-[#52525b] text-[15px] md:text-[18px] leading-[26px] text-center md:text-left" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol1}</p>}
-                {heroCol2 && <p className="text-[#52525b] text-[15px] md:text-[18px] leading-[26px] text-center md:text-left" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol2}</p>}
+                {heroCol1 && <p className="text-[#52525b] text-[15px] md:text-[18px] leading-[26px] text-center md:text-left whitespace-pre-line" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol1}</p>}
+                {heroCol2 && <p className="text-[#52525b] text-[15px] md:text-[18px] leading-[26px] text-center md:text-left whitespace-pre-line" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol2}</p>}
               </div>
             )}
 
-            <div className="flex flex-col items-center justify-center gap-[15px] md:gap-[12px] md:max-w-none mx-auto md:flex-row">
+            <div className="flex flex-col items-center justify-center gap-[15px] mb-10 md:gap-[12px] md:max-w-none mx-auto md:flex-row">
               <Link
                 href={heroCtaPrimary?.href || '/signup'}
                 className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[24px] text-[18px] font-medium leading-[20px] text-white whitespace-nowrap hover:bg-[#27272a] transition-colors"
@@ -350,7 +379,8 @@ export default function ToolHero({ tool }) {
                 <CldImage
                   src={mobileHeroImageSrc}
                   alt=""
-                  className="h-full w-full object-cover object-center"
+                  className={slug === 'huddle' ? 'w-full object-cover object-center' : 'h-full w-full object-cover object-center'}
+                  style={huddleHeroImageCropStyle}
                   priority
                 />
               </div>
@@ -362,7 +392,9 @@ export default function ToolHero({ tool }) {
               />
               {/* Tool name — top of image with dark-to-transparent gradient behind */}
               <div
-                className={`absolute inset-x-0 top-0 z-20 flex flex-col items-center pointer-events-none select-none px-4 pb-16 ${mobileHeroTighterSpacing ? 'pt-26' : 'pt-10'}`}
+                className={`absolute inset-x-0 top-0 z-20 flex flex-col items-center pointer-events-none select-none px-4 pb-16 ${
+                  slug === 'analyzer' ? 'pt-28' : mobileHeroTighterSpacing ? 'pt-26' : 'pt-10'
+                }`}
                 style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
               >
                 <MobileHeroToolTitle slug={slug} prefix={prefix} name={name} visible={visible} />
@@ -370,16 +402,18 @@ export default function ToolHero({ tool }) {
             </div>
 
             <div
-              className={`relative z-10 flex w-full max-w-[362px] mx-auto flex-col items-center gap-[26px] pl-[13px] pr-[15px] pb-[67px] pt-0 ${mobileHeroTighterSpacing ? '-mt-44' : '-mt-36'}`}
+              className={`relative z-10 flex w-full max-w-[362px] mx-auto flex-col items-center gap-[26px] pl-[13px] pr-[15px] pb-[67px] pt-0 ${
+                analyzerHeroNudgeDown ? '-mt-36' : slug === 'huddle' ? '-mt-56' : mobileHeroTighterSpacing ? '-mt-44' : '-mt-36'
+              }`}
               style={{
                 animation: visible ? 'fadeInUp 1s cubic-bezier(0.16,1,0.3,1) 1.0s both' : 'none',
                 opacity: visible ? undefined : 0,
               }}
             >
               <h2
-                className={`w-[362px] max-w-full text-center tracking-[-0.64px] text-black ${heroHeadlinePreservesBreaks ? 'whitespace-pre-line' : ''}`}
+                className={`w-[362px] max-w-full text-center tracking-[-0.64px] text-black ${heroHeadlinePreservesBreaks ? 'whitespace-pre-line' : ''} ${designStudioHeadlineTopSpace ? 'mt-8' : ''} ${huddleHeroHeadlineNudge ? 'mt-4' : ''}`}
               >
-                <span className="block text-[32px] leading-[44px]">
+                <span className={`block text-[32px] ${designStudioHeroTightLines ? 'leading-[34px]' : 'leading-[44px]'}`}>
                   {(heroHeadline || []).map((part, i) => {
                     const t = heroHeadlinePreservesBreaks ? part.text : part.text.replace(/\n/g, ' ')
                     return part.style === 'italic'
@@ -407,7 +441,7 @@ export default function ToolHero({ tool }) {
               )}
 
               {/* Primary CTA — Figma 13636:24618 (289×54, shadcn Button lg) */}
-              <div className="flex w-full flex-col items-center gap-[8px]">
+              <div className="flex w-full flex-col items-center gap-[8px] mb-8">
                 <Link
                   href={heroCtaPrimary?.href || '/signup'}
                   className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[24px] text-[18px] font-medium leading-[20px] text-white whitespace-nowrap hover:bg-[#27272a] transition-colors"
@@ -435,7 +469,13 @@ export default function ToolHero({ tool }) {
                 opacity: visible ? undefined : 0,
               }}
             >
-              <CldImage src={heroImage} alt="" className="w-full h-full object-cover object-top" priority />
+              <CldImage
+                src={heroImage}
+                alt=""
+                className={slug === 'huddle' ? 'w-full object-cover object-top' : 'w-full h-full object-cover object-top'}
+                style={huddleHeroImageCropStyle}
+                priority
+              />
             </div>
 
             <div className="relative w-full aspect-1440/760">
@@ -454,7 +494,8 @@ export default function ToolHero({ tool }) {
                         letterSpacing: '0.13em', textShadow: '0px 0px 0px #040404',
                         animation: visible ? 'theReveal 1s cubic-bezier(0.16,1,0.3,1) 0.2s both' : 'none',
                         opacity: visible ? undefined : 0,
-                        ...(slug === 'wordsmith' ? { marginLeft: '146px',marginTop:'130px' } : {}),
+                        ...(slug === 'wordsmith' ? { marginLeft: '146px', marginTop: '130px' } : {}),
+                        ...(slug === 'briefcase' ? { marginLeft: '80px' } : {}),
                       }}
                     >
                       {prefix}
@@ -490,8 +531,9 @@ export default function ToolHero({ tool }) {
                       className="text-white uppercase text-left whitespace-nowrap"
                       style={{
                         ...DESIGN_STUDIO_OVERLAY_LINE,
-                        marginTop: '8px',
-                        marginLeft: '36px',
+                        lineHeight: 1,
+                        marginTop: '0',
+                        marginLeft: '102px',
                         animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
                         opacity: visible ? undefined : 0,
                       }}
@@ -550,7 +592,7 @@ export default function ToolHero({ tool }) {
                         fontStyle: 'italic', fontWeight: 700,
                         fontSize: 'clamp(48px, 9.72vw, 140px)', lineHeight: 1,
                         letterSpacing: '0.1em', textShadow: '12px 11px 35px #000',
-                        marginTop: '8px',
+                        marginTop: slug === 'huddle' ? '2px' : '8px',
                         animation: visible ? 'strategistReveal 1.2s cubic-bezier(0.16,1,0.3,1) 0.45s both' : 'none',
                         opacity: visible ? undefined : 0,
                       }}
@@ -563,14 +605,14 @@ export default function ToolHero({ tool }) {
             </div>
 
             <div
-              className="relative z-10 max-w-[1440px] mx-auto px-[80px] pb-[60px]"
+              className={`relative z-10 max-w-[1440px] mx-auto px-[80px] pb-[60px] ${analyzerHeroNudgeDown ? 'pt-8 md:pt-12' : ''} ${huddleHeroHeadlineNudge ? '-mt-12 md:-mt-16' : ''}`}
               style={{
                 animation: visible ? 'fadeInUp 1s cubic-bezier(0.16,1,0.3,1) 1.0s both' : 'none',
                 opacity: visible ? undefined : 0,
               }}
             >
               <h2
-                className={`text-center text-black mb-10 max-w-[834px] mx-auto leading-[1.2] tracking-[-0.02em] ${heroHeadlinePreservesBreaks ? 'whitespace-pre-line' : ''} ${designStudioHeadlineTopSpace ? 'md:mt-14 lg:mt-16' : ''}`}
+                className={`text-center text-black mb-10 max-w-[834px] mx-auto tracking-[-0.02em] ${designStudioHeroTightLines ? 'leading-[1.04]' : 'leading-[1.2]'} ${heroHeadlinePreservesBreaks ? 'whitespace-pre-line' : ''} ${designStudioHeadlineTopSpace ? 'md:mt-20 lg:mt-24' : ''} ${huddleHeroHeadlineNudge ? 'md:mt-6 lg:mt-8' : ''}`}
                 style={{ fontSize: 'clamp(32px, 3.75vw, 54px)' }}
               >
                 {(heroHeadline || []).map((part, i) =>
@@ -581,13 +623,13 @@ export default function ToolHero({ tool }) {
               </h2>
 
               {(heroCol1 || heroCol2) && (
-                <div className="grid grid-cols-2 gap-[80px] mb-10 max-w-[860px] mx-auto">
-                  {heroCol1 && <p className="text-[#52525b] text-[18px] leading-[26px] text-left" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol1}</p>}
-                  {heroCol2 && <p className="text-[#52525b] text-[18px] leading-[26px] text-left" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol2}</p>}
+                <div className={`grid grid-cols-2 gap-[80px] mb-10 mx-auto ${costCtrlHeroColsMaxW ? 'max-w-[834px]' : 'max-w-[860px]'} ${analyzerHeroNudgeDown ? 'mt-2' : ''}`}>
+                  {heroCol1 && <p className="text-[#52525b] text-[18px] leading-[26px] text-left whitespace-pre-line" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol1}</p>}
+                  {heroCol2 && <p className="text-[#52525b] text-[18px] leading-[26px] text-left whitespace-pre-line" style={{ fontFamily: 'Inter, sans-serif' }}>{heroCol2}</p>}
                 </div>
               )}
 
-              <div className="flex items-center justify-center gap-[12px]">
+              <div className="mb-10 flex items-center justify-center gap-[12px]">
                 <Link
                   href={heroCtaPrimary?.href || '/signup'}
                   className="inline-flex h-[54px] w-[289px] max-w-full shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[24px] text-[18px] font-medium leading-[20px] text-white whitespace-nowrap hover:bg-[#27272a] transition-colors"
