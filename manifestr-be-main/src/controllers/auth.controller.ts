@@ -631,10 +631,16 @@ export class AuthController extends BaseController {
         login_method: 'email_password',
       });
 
+      // Log admin login
+      if (user.is_admin) {
+        console.log(`👑 ADMIN LOGIN: ${user.email} (ID: ${user.id})`);
+      }
+
       return this.sendResponse(res, 200, "success", "Login successful", {
         user: this.sanitizeUser(user),
         accessToken: data.session.access_token,
         refreshToken: data.session.refresh_token,
+        isAdmin: user.is_admin || false, // Explicitly include admin flag
       });
     } catch (error) {
       return this.sendResponse(
