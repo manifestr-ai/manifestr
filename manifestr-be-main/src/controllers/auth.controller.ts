@@ -282,6 +282,17 @@ export class AuthController extends BaseController {
         .order('created_at', { ascending: false })
         .limit(1);
 
+      if (subError) {
+        console.error('❌ Error querying subscriptions:', subError);
+        return this.sendResponse(
+          res,
+          500,
+          "error",
+          "Database error checking email",
+          subError.message
+        );
+      }
+
       // Check if subscription exists by fetching the Stripe customer email
       let foundSubscription = null;
       if (subscription && subscription.length > 0) {
@@ -314,6 +325,7 @@ export class AuthController extends BaseController {
       console.log(`✅ Subscription verified - proceeding with account creation`);
 
       // Use admin.createUser with email_confirm: true to skip verification!
+      console.log(`📝 Creating Supabase auth user...`);
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
@@ -328,6 +340,12 @@ export class AuthController extends BaseController {
             promotional_emails,
           },
         });
+
+      if (authError) {
+        console.error(`❌ Supabase auth error:`, authError);
+      } else {
+        console.log(`✅ Supabase auth user created: ${authData?.user?.id}`);
+      }
 
       // const { data: authData, error: authError } = await supabase.auth.signUp({
       //     email,
@@ -356,67 +374,108 @@ export class AuthController extends BaseController {
       }
 
       if (!authData.user) {
+        console.error(`❌ No user returned from Supabase auth`);
         return this.sendResponse(res, 400, "error", "Failed to create user");
       }
 
       // Create user record in our database using Supabase
-      const user = await SupabaseDB.createUser({
-        id: authData.user.id,
-        email,
-        first_name,
-        last_name,
-        dob,
-        country,
-        gender,
-        promotional_emails,
-      });
+      console.log(`📝 Creating user record in public.users table...`);
+      let user: any;
+      try {
+        user = await SupabaseDB.createUser({
+          id: authData.user.id,
+          email,
+          first_name,
+          last_name,
+          dob,
+          country,
+          gender,
+          promotional_emails,
+        });
+        console.log(`✅ User record created in database`);
 
-      // Update user with tier and Stripe customer ID from subscription
-      await SupabaseDB.updateUser(authData.user.id, {
-        tier: foundSubscription.tier,
-        stripe_customer_id: foundSubscription.stripe_customer_id,
-      });
+        // Update user with tier and Stripe customer ID from subscription
+        console.log(`📝 Updating user with tier and Stripe customer ID...`);
+        await SupabaseDB.updateUser(authData.user.id, {
+          tier: foundSubscription.tier,
+          stripe_customer_id: foundSubscription.stripe_customer_id,
+        });
+        console.log(`✅ User tier updated: ${foundSubscription.tier}`);
 
-      // Update user object for response
-      user.tier = foundSubscription.tier;
-      user.stripe_customer_id = foundSubscription.stripe_customer_id;
+        // Update user object for response
+        user.tier = foundSubscription.tier;
+        user.stripe_customer_id = foundSubscription.stripe_customer_id;
 
-      // 🔗 STEP 2: Link the subscription to the new user
-      console.log(` Linking subscription ${foundSubscription.id} to user ${authData.user.id}`);
-      
-      await supabaseAdmin
-        .from('subscriptions')
-        .update({ 
-          user_id: authData.user.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', foundSubscription.id);
-
-      // 🏆 STEP 3: Grant wins based on tier
-      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-      const { getTierConfig } = require('../lib/stripe');
-      const tierConfig = getTierConfig(foundSubscription.tier);
-      
-      if (tierConfig) {
-        console.log(` Granting ${tierConfig.winsPerMonth} wins for ${foundSubscription.tier} tier`);
+        // 🔗 STEP 2: Link the subscription to the new user
+        console.log(`🔗 Linking subscription ${foundSubscription.id} to user ${authData.user.id}`);
         
-        await supabaseAdmin
-          .from('users')
-          .update({
-            wins_balance: tierConfig.winsPerMonth,
-          })
-          .eq('id', authData.user.id);
-
-        // Log wins transaction
-        await supabaseAdmin
-          .from('wins_transactions')
-          .insert({
+        const { error: linkError } = await supabaseAdmin
+          .from('subscriptions')
+          .update({ 
             user_id: authData.user.id,
-            amount: tierConfig.winsPerMonth,
-            balance_after: tierConfig.winsPerMonth,
-            transaction_type: 'subscription_linked',
-            description: `Subscription linked: ${foundSubscription.tier} tier (${tierConfig.winsPerMonth} wins)`,
-          });
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', foundSubscription.id);
+
+        if (linkError) {
+          console.error(`❌ Failed to link subscription:`, linkError);
+          throw new Error(`Failed to link subscription: ${linkError.message}`);
+        }
+        console.log(`✅ Subscription linked successfully`);
+
+        // 🏆 STEP 3: Grant wins based on tier
+        console.log(`🏆 Granting wins for tier: ${foundSubscription.tier}`);
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const { getTierConfig } = require('../lib/stripe');
+        const tierConfig = getTierConfig(foundSubscription.tier);
+        
+        if (tierConfig) {
+          console.log(`💰 Granting ${tierConfig.winsPerMonth} wins for ${foundSubscription.tier} tier`);
+          
+          const { error: winsUpdateError } = await supabaseAdmin
+            .from('users')
+            .update({
+              wins_balance: tierConfig.winsPerMonth,
+            })
+            .eq('id', authData.user.id);
+
+          if (winsUpdateError) {
+            console.error(`❌ Failed to update wins balance:`, winsUpdateError);
+            throw new Error(`Failed to update wins: ${winsUpdateError.message}`);
+          }
+
+          // Log wins transaction
+          const { error: winsTransactionError } = await supabaseAdmin
+            .from('wins_transactions')
+            .insert({
+              user_id: authData.user.id,
+              amount: tierConfig.winsPerMonth,
+              balance_after: tierConfig.winsPerMonth,
+              transaction_type: 'subscription_linked',
+              description: `Subscription linked: ${foundSubscription.tier} tier (${tierConfig.winsPerMonth} wins)`,
+            });
+
+          if (winsTransactionError) {
+            console.error(`❌ Failed to log wins transaction:`, winsTransactionError);
+            // Don't throw - this is non-critical
+          } else {
+            console.log(`✅ Wins granted and logged successfully`);
+          }
+        } else {
+          console.log(`⚠️ No tier config found for ${foundSubscription.tier}`);
+        }
+      } catch (dbError: any) {
+        console.error('❌ Database error during user creation/subscription linking:', dbError);
+        console.error('   Error message:', dbError.message);
+        console.error('   Error code:', dbError.code);
+        if (dbError.details) console.error('   Error details:', dbError.details);
+        return this.sendResponse(
+          res,
+          500,
+          "error",
+          "Database error during account creation",
+          dbError.message
+        );
       }
 
       console.log(` User created and subscription linked successfully`);

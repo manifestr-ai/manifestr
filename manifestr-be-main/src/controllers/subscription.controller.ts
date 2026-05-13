@@ -631,7 +631,7 @@ export class SubscriptionController extends BaseController {
 
         if (existing) {
             // Update existing subscription
-            await supabaseAdmin
+            const { error: updateError } = await supabaseAdmin
                 .from('subscriptions')
                 .update({
                     ...subscriptionData,
@@ -639,17 +639,33 @@ export class SubscriptionController extends BaseController {
                 })
                 .eq('id', existing.id);
             
+            if (updateError) {
+                console.error(`❌ Failed to update subscription in database:`, updateError);
+                throw new Error(`Database update failed: ${updateError.message}`);
+            }
+            
             console.log(` Subscription updated in database`);
         } else {
             // Create new subscription (guest subscription without user_id)
-            await supabaseAdmin
+            const { data: insertData, error: insertError } = await supabaseAdmin
                 .from('subscriptions')
                 .insert({
                     ...subscriptionData,
                     user_id: userId || null, // Allow NULL for guest subscriptions
                 });
             
+            if (insertError) {
+                console.error(`❌ Failed to insert subscription into database:`, insertError);
+                console.error(`   Subscription ID: ${subscription.id}`);
+                console.error(`   Customer ID: ${stripeCustomerId}`);
+                console.error(`   Error code: ${insertError.code}`);
+                console.error(`   Error message: ${insertError.message}`);
+                console.error(`   Error details:`, insertError.details);
+                throw new Error(`Database insert failed: ${insertError.message}`);
+            }
+            
             console.log(` Subscription created in database ${userId ? 'for user' : 'for guest (pending signup)'}`);
+            console.log(`   Inserted data:`, insertData);
         }
 
         // Update user tier and wins ONLY if we have a user_id and subscription is active
