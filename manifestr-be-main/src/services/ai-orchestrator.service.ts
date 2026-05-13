@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { fetchUnsplashImage } from "../utils/image.util";
 import EventTrackingService from "./EventTracking.service";
 import { s3Util } from "../utils/s3.util";
+import { WinsService, WINS_COSTS } from "./wins.service";
 
 // Import Agents
 import { IntentAgent } from "../agents/intent/IntentAgent";
@@ -58,6 +59,27 @@ export class AIOrchestrator {
      * Starts the generation process
      */
     async startGeneration(userId: string, promptData: Partial<UserPrompt>, sessionId?: string): Promise<any> {
+        // 💎 CHECK WINS BEFORE STARTING GENERATION
+        const format = promptData.output || 'presentation';
+        const winsMap: Record<string, number> = {
+            'presentation': WINS_COSTS.presentation_generation,
+            'document': WINS_COSTS.document_generation,
+            'spreadsheet': WINS_COSTS.spreadsheet_generation,
+            'chart': WINS_COSTS.chart_generation,
+            'image': WINS_COSTS.image_generation,
+        };
+
+        const requiredWins = winsMap[format] || 0;
+
+        if (requiredWins > 0) {
+            const hasSufficient = await WinsService.hasSufficientWins(userId, requiredWins);
+            
+            if (!hasSufficient) {
+                const currentBalance = await WinsService.getBalance(userId);
+                throw new Error(`Insufficient wins. Required: ${requiredWins}, Available: ${currentBalance}`);
+            }
+        }
+
         // 1. Generate metadata first
         let title = "New Generation";
         let coverImage = null;
@@ -226,6 +248,35 @@ export class AIOrchestrator {
                     ai_model: 'claude-sonnet-4-20250514'
                 }
             });
+
+            // 💎 DEDUCT WINS FOR SUCCESSFUL GENERATION
+            const winsMap: Record<string, number> = {
+                'presentation': WINS_COSTS.presentation_generation,
+                'document': WINS_COSTS.document_generation,
+                'spreadsheet': WINS_COSTS.spreadsheet_generation,
+                'chart': WINS_COSTS.chart_generation,
+                'image': WINS_COSTS.image_generation,
+            };
+
+            const winsCost = winsMap[format] || 0;
+
+            if (winsCost > 0) {
+                const deductionResult = await WinsService.deduct(
+                    userId,
+                    winsCost,
+                    `${format}_generation`,
+                    `Generated ${format}: ${job.input_data?.title || 'Untitled'}`,
+                    jobId
+                );
+
+                if (!deductionResult.success) {
+                    console.error(`⚠️ Failed to deduct ${winsCost} wins for ${format} generation:`, deductionResult.error);
+                    // Note: Generation already completed, so we don't fail the job
+                    // But this should never happen since we should check wins BEFORE starting generation
+                } else {
+                    console.log(`💎 Deducted ${winsCost} wins for ${format} generation. New balance: ${deductionResult.newBalance}`);
+                }
+            }
 
             console.log(`✅ Job Flow Complete: ${jobId}\n`);
 
