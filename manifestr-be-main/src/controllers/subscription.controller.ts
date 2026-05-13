@@ -3,6 +3,7 @@ import { BaseController } from './base.controller';
 import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 import { stripe, getStripePriceId, getTierConfig, PRICING_TIERS } from '../lib/stripe';
 import { supabaseAdmin } from '../lib/supabase';
+import { getFrontendUrl } from '../utils/url.utils';
 import Stripe from 'stripe';
 
 export class SubscriptionController extends BaseController {
@@ -145,10 +146,12 @@ export class SubscriptionController extends BaseController {
                         interval: interval,
                     },
                 },
-                success_url: `${process.env.FRONTEND_URL}/signup?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${process.env.FRONTEND_URL}/pricing?canceled=true`,
+                success_url: `${getFrontendUrl()}/signup?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${getFrontendUrl()}/pricing?canceled=true`,
                 allow_promotion_codes: true,
             };
+            
+            console.log(`🌐 Frontend URL: ${getFrontendUrl()}`);
 
             // Add user_id if logged in
             if (userId) {
@@ -329,7 +332,7 @@ export class SubscriptionController extends BaseController {
             // Create portal session
             const session = await stripe.billingPortal.sessions.create({
                 customer: user.stripe_customer_id,
-                return_url: `${process.env.FRONTEND_URL}/settings/subscription`,
+                return_url: `${getFrontendUrl()}/settings/subscription`,
             });
 
             return res.json({
