@@ -217,8 +217,22 @@ export default function ProfileDropdown() {
                 {/* BILLINGS */}
                 <div className="p-2">
                   <CategoryHeading label="BILLINGS" />
-                  <MenuItem icon={Crown} label="Upgrade Plan" />
-                  <MenuItem icon={CreditCard} label="Billing & Payments" />
+                  <MenuItem 
+                    icon={Crown} 
+                    label="Upgrade Plan" 
+                    onClick={() => {
+                      setIsOpen(false)
+                      router.push('/settings?tab=Plans')
+                    }}
+                  />
+                  <MenuItem 
+                    icon={CreditCard} 
+                    label="Billing & Payments" 
+                    onClick={() => {
+                      setIsOpen(false)
+                      router.push('/settings?tab=Billings')
+                    }}
+                  />
                 </div>
 
                 {/* KNOWLEDGE HUB */}
