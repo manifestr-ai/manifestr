@@ -27,7 +27,8 @@ export default function WhoWeAre() {
         >
           <span className="block">Shaped by Experience and Pressure.</span>
           <span className="block">
-            Designed To Raise The Standard Of{' '}
+            Designed To Raise
+            <br className="md:hidden" /> The Standard Of{' '}
             <em
               className="not-italic"
               style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}

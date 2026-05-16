@@ -10,7 +10,7 @@ const VALUES = [
   { title: 'Ideas to Impact', desc: "Ideas don't change the world, execution does.", smallTitle: true },
   { title: 'Win Together', desc: 'Collaboration turns good work into great work.' },
   {
-    title: 'Raise the Standard, with Impact',
+    titleLines: ['Raise the Standard,', 'with Impact'],
     desc: "Great work doesn't just deliver, it shapes the future.",
     tallMobile: true,
   },

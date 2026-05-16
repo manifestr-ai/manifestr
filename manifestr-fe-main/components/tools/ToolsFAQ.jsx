@@ -81,7 +81,7 @@ function FAQCard({ faq, index }) {
 
 export default function ToolsFAQ() {
   return (
-    <section className="w-full px-6 md:px-[80px] pt-[48px] pb-[64px] md:pt-[72px] md:pb-[96px]">
+    <section className="w-full px-6 md:px-[80px] pt-6 pb-[64px] md:pt-[72px] md:pb-[96px]">
       <div className="max-w-[1216px] mx-auto">
         <motion.h2
           initial={{ opacity: 0, y: 16 }}

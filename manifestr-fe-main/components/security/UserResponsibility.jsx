@@ -268,18 +268,18 @@ export default function UserResponsibility() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-5 md:py-8">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-2 md:gap-3 items-center text-center">
+      <section className="w-full bg-[#e4e3e1] px-6 md:px-[80px] py-3 md:py-5">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-1.5 md:gap-2 items-center text-center">
           <motion.h2
             {...fadeUp}
-            className="text-black tracking-[-0.48px] md:tracking-[-0.72px] text-[22px] leading-[28px] md:text-[34px] md:leading-[42px]"
+            className="text-black tracking-[-0.48px] md:tracking-[-0.72px] text-[20px] leading-[26px] md:text-[32px] md:leading-[38px]"
             style={headingFont}
           >
             Legal Disclaimer
           </motion.h2>
           <motion.p
             {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}
-            className="max-w-[1120px] text-[#52525b] text-[14px] leading-[20px] md:text-[15px] md:leading-[22px]" style={font}
+            className="max-w-[1120px] text-[#52525b] text-[13px] leading-[19px] md:text-[14px] md:leading-[21px]" style={font}
           >
             This page is provided for informational purposes only and does not constitute legal advice.
             MANIFESTR&apos;s Shared Responsibility Model reflects common SaaS industry practices (SOC 2, NIST, CSA).

@@ -265,7 +265,7 @@ export default function ProductUpdates() {
 
           <Link
             href="/signup"
-            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            className="hidden md:inline-flex h-[44px] items-center justify-center rounded-[6px] bg-white px-[24px] text-[14px] font-medium leading-[20px] text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5]"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Enter MANIFESTR
@@ -280,10 +280,12 @@ export default function ProductUpdates() {
       <section className="w-full bg-white px-6 md:px-[80px] py-[32px] md:py-[96px]">
         <div className="flex flex-col gap-[32px]">
 
-          {/* Filter pills — scrollable on mobile, wrapping on desktop */}
-          <div className="overflow-x-auto md:overflow-x-visible -mx-6 px-6 md:mx-0 md:px-0 scrollbar-hide">
-            <div className="flex items-center gap-[8px] md:flex-wrap w-max md:w-auto">
-              {FILTER_TABS.map((tab) => {
+          {/* Filter pills — swipe on mobile (hidden scrollbar), wrap on desktop */}
+          <div
+            className="no-scrollbar flex flex-nowrap items-center gap-[8px] overflow-x-auto overflow-y-hidden overscroll-x-contain -mx-6 px-6 pb-[4px] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {FILTER_TABS.map((tab) => {
                 const isActive = activeFilter === tab.id
                 const Icon = FILTER_TAB_ICONS[tab.id]
                 return (
@@ -301,9 +303,8 @@ export default function ProductUpdates() {
                     {Icon ? <Icon className="shrink-0 size-4" /> : null}
                     {tab.label}
                   </button>
-                )
-              })}
-            </div>
+              )
+            })}
           </div>
 
           {/* Update cards */}
@@ -381,25 +382,26 @@ export default function ProductUpdates() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="relative z-10 flex flex-col items-center gap-[24px] px-6 text-center"
+            className="relative z-10 flex w-full max-w-[342px] flex-col items-center gap-[24px] px-6 text-center"
           >
-            <div className="flex flex-col items-center gap-[12px]">
+            <div className="flex w-full flex-col items-center gap-[12px] text-black">
               <h2
-                className="text-[32px] leading-[48px] tracking-[-0.8px] text-black"
-                style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                className="w-full text-[32px] font-bold leading-[48px] tracking-[-0.8px]"
+                style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
               >
                 Need More Help?
               </h2>
               <p
-                className="text-[16px] leading-[24px] text-black max-w-[316px]"
+                className="w-[316px] max-w-full text-[16px] font-normal leading-[24px]"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {"Can't find what you're looking for? Our support team is here to help you succeed with MANIFESTR."}
               </p>
             </div>
             <button
+              type="button"
               onClick={() => setTicketModalOpen(true)}
-              className="h-[36px] px-[16px] rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#27272a] transition-colors"
+              className="inline-flex h-[36px] shrink-0 items-center justify-center rounded-[6px] bg-[#18181b] px-[16px] py-[8px] text-[14px] font-medium leading-[20px] text-white transition-colors hover:bg-[#27272a]"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Submit a Support Ticket

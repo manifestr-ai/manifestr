@@ -38,7 +38,7 @@ export default function ToolFeatures({ tool }) {
         </div>
 
         {/* Feature rows — Figma 14272:24539 mobile / 12468:22075‑22082 desktop */}
-        <div className="flex flex-col gap-[28px] lg:gap-[36px]">
+        <div className="flex flex-col gap-[48px] lg:gap-[36px]">
           {howItWorks.map((item, i) => {
             const imageLeft = i % 2 === 0
             const imageUrl = featureImages?.[i]

@@ -169,11 +169,11 @@ export default function BlogPost() {
         <Header />
         <main className="flex-1 bg-white pt-[76px]">
 
-          <section className="w-full py-[48px] md:py-[96px]">
+          <section className="w-full pt-[48px] pb-[24px] md:py-[96px]">
             <div className="max-w-[1280px] mx-auto px-6 md:px-[32px]">
-              <div className="flex flex-col gap-[16px] md:gap-[64px] md:flex-row items-center">
-                <div className="flex flex-col gap-[24px] md:gap-[32px] flex-1 items-center md:items-start">
-                  <nav className="flex flex-wrap items-center gap-[4px]" style={{ fontFamily: "Inter, sans-serif" }} aria-label="Breadcrumb">
+              <div className="flex flex-col items-start gap-[16px] md:flex-row md:items-center md:gap-[64px]">
+                <div className="flex w-full flex-1 flex-col items-start gap-[24px] md:gap-[32px]">
+                  <nav className="flex w-full flex-wrap items-center gap-[4px]" style={{ fontFamily: 'Inter, sans-serif' }} aria-label="Breadcrumb">
                     <Link href="/blog" className="text-[16px] md:text-[14px] leading-[24px] md:leading-[20px] md:font-semibold text-[#18181b] md:px-[8px] md:py-[4px] hover:underline">
                       Blog
                     </Link>
@@ -191,12 +191,12 @@ export default function BlogPost() {
                     </span>
                   </nav>
 
-                  <div className="flex flex-col gap-[25px] md:gap-[16px] max-w-[592px] w-full items-center md:items-start">
+                  <div className="flex w-full max-w-[592px] flex-col items-start gap-[25px] md:gap-[16px]">
                     <motion.h1
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6 }}
-                      className="text-[36px] md:text-[48px] leading-[normal] md:leading-[1.2] tracking-[-0.72px] md:tracking-normal text-black text-center md:text-left"
+                      className="w-full text-left text-[36px] leading-[normal] tracking-[-0.72px] text-black md:text-[48px] md:leading-[1.2] md:tracking-normal"
                     >
                       {post.titleDisplay.map((part, ti) =>
                         part.italic ? (
@@ -214,11 +214,14 @@ export default function BlogPost() {
                       )}
                     </motion.h1>
 
-                    <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-[#71717a] md:pb-[16px]" style={{ fontFamily: "Inter, sans-serif" }}>
+                    <p
+                      className="w-full text-left text-[16px] leading-[24px] text-[#71717a] md:text-[18px] md:leading-[28px] md:pb-[16px]"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
                       {post.subtitle}
                     </p>
 
-                    <div className="flex items-center gap-[16px]">
+                    <div className="flex items-center gap-[16px] self-start">
                       <CldImage src={AUTHOR_IMG} alt="" className="w-[56px] h-[56px] rounded-full object-cover" />
                       <div className="flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
                         <span className="text-[16px] leading-[24px] font-medium text-[#18181b]">{post.author}</span>
@@ -234,7 +237,7 @@ export default function BlogPost() {
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2, duration: 0.6 }}
-                  className="w-full md:w-[624px] h-[319px] md:h-[416px] rounded-[6px] md:rounded-[12px] overflow-hidden shrink-0"
+                  className="h-[319px] w-full shrink-0 overflow-hidden rounded-[6px] md:h-[416px] md:w-[624px] md:rounded-[12px]"
                 >
                   <CldImage
                     src={post.heroImg}
@@ -249,9 +252,9 @@ export default function BlogPost() {
             </div>
           </section>
 
-          <section className="w-full py-[48px] md:py-0 md:pb-[96px]">
+          <section className="w-full pt-[24px] pb-[48px] md:py-0 md:pb-[96px]">
             <div className="max-w-[1280px] mx-auto px-6 md:px-[32px]">
-              <div className="flex flex-col md:flex-row gap-[32px] md:gap-[64px] items-start">
+              <div className="flex flex-col items-start gap-[32px] md:flex-row md:gap-[64px]">
                 <aside className="hidden md:flex w-[280px] shrink-0 md:sticky md:top-[96px]">
                   <div className="flex flex-col gap-[32px] w-full">
                     <div className="flex flex-col gap-[19px]">
@@ -340,22 +343,25 @@ export default function BlogPost() {
                   </div>
                 </aside>
 
-                <article className="flex-1 min-w-0 flex flex-col gap-[32px] md:gap-[36px]">
+                <article className="flex min-w-0 flex-1 flex-col gap-[32px] md:gap-[36px]">
                   {post.sections.map((section, idx) => (
                     <div key={section.id}>
                       {idx === 2 && (
-                        <div className="w-full h-[341px] md:h-[480px] rounded-[12px] overflow-hidden mb-[32px] md:mb-[36px]">
-                          <CldImage src={post.contentImg} alt="" className="w-full h-full object-cover" />
+                        <div className="mb-[32px] h-[341px] w-full overflow-hidden rounded-[12px] md:mb-[36px] md:h-[480px]">
+                          <CldImage src={post.contentImg} alt="" className="h-full w-full object-cover" />
                         </div>
                       )}
                       <div id={section.id} className="scroll-mt-[100px] flex flex-col gap-[16px] md:gap-[24px]">
                         <h2
-                          className="text-[24px] md:text-[30px] leading-[32px] md:leading-[38px] text-[#1b1b1f]"
+                          className="text-left text-[24px] leading-[32px] text-[#1b1b1f] md:text-[30px] md:leading-[38px]"
                           style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}
                         >
                           {section.heading}
                         </h2>
-                        <div className="text-[16px] leading-[24px] text-[#71717a] flex flex-col gap-[16px]" style={{ fontFamily: "Inter, sans-serif" }}>
+                        <div
+                          className="flex flex-col gap-[16px] text-left text-[16px] leading-[24px] text-[#71717a]"
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
                           {section.paragraphs.map((p, pi) => (
                             <p key={`${section.id}-p${pi}`}>{p}</p>
                           ))}
