@@ -15,6 +15,8 @@ const tools = [
       'On-brand, editable presentation decks with visuals, charts and structured slides.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1778995671/the_deck_1_z8arnf.webp',
   },
   {
     id: 'strategist',
@@ -25,6 +27,8 @@ const tools = [
       'Strategic plans, positioning and decision frameworks backed by data and built to execute.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1778995409/Stra-6_vqwrhw.webp',
   },
   {
     id: 'cost-ctrl',
@@ -35,6 +39,8 @@ const tools = [
       'Budgets, forecasts, financials and reconciliations delivered in a clear, structured format.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351524/Cost_CTRL_Cropped_Skinny_hen7sx.webp',
   },
   {
     id: 'analyzer',
@@ -45,6 +51,8 @@ const tools = [
       'Data and insights shaped into charts and visuals for confident decision-making.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458932/Analyzer_Skinny_ekiy9w.webp',
   },
   {
     id: 'design-studio',
@@ -55,6 +63,8 @@ const tools = [
       'Polished, editable images and visuals that elevate everything you create in MANIFESTR.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_Skinny_rgkqp5.webp',
   },
   {
     id: 'briefcase',
@@ -65,6 +75,8 @@ const tools = [
       'Structured, professional documentation including briefs, reports, timelines and run sheets.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465764/The_Briefcase_Skinny_ahgmyt.webp',
   },
   {
     id: 'huddle',
@@ -75,6 +87,8 @@ const tools = [
       'Agendas, minutes, summaries and follow-ups, structured to support a continuous flow.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1778995323/Stra-3_ljjyge.webp',
   },
   {
     id: 'wordsmith',
@@ -85,6 +99,8 @@ const tools = [
       'Professional copywriter delivering brand-aligned writing across formats and audiences.',
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
+    skinnyImage:
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466183/The_Wordsmith_Skinny_Cropped_amalk1.webp',
   },
 ]
 
@@ -103,7 +119,7 @@ function ToolCard({ tool, isExpanded, onHover, textBottom }) {
       }}
     >
       <CldImage
-        src={tool.image}
+        src={isExpanded ? tool.image : (tool.skinnyImage ?? tool.image)}
         alt={`${tool.title} ${tool.accent}`}
         className="absolute inset-0 w-full h-full object-cover object-top"
       />
