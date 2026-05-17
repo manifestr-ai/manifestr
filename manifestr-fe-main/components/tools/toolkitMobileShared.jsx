@@ -13,15 +13,24 @@ const TOOL_IMAGES = {
   costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
 }
 
+/** Mobile accordion collapsed state — wide art; subject on the right. */
 const TOOL_THUMBS = {
-  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648466/Stra_knxfh3.png',
-  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648465/Stra-8_zhxvh2.png',
-  'cost-ctrl': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648467/Stra-1_qiykoo.png',
-  analyzer: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648468/Stra-2_vrwn3v.png',
-  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-6_bdrpoz.png',
-  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-5_oakd3c.png',
-  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-4_p60d5g.png',
-  'design-studio': 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775648462/Stra-3_qbmovn.png',
+  analyzer:
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018500/The_Analyzer_Wide_lttgvb.webp',
+  'design-studio':
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018499/Design_Studio_Wide_th0e10.webp',
+  'cost-ctrl':
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018498/Cost_CTRL_Wide_dak0ry.webp',
+  wordsmith:
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018497/The_Wordsmith_Wide_ubc4mr.webp',
+  strategist:
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018496/The_Strategist_elhvwu.webp',
+  huddle:
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018494/The_Huddle_Wide_bweyfj.webp',
+  deck:
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018494/The_Deck_Wide_oaeass.webp',
+  briefcase:
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018493/The_Briefcase_Wide_pnqbwu.webp',
 }
 
 /* Shared with ToolsGrid desktop grid + landing ToolkitSection mobile accordion */

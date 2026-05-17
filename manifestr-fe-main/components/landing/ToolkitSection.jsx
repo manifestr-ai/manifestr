@@ -16,7 +16,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1778995671/the_deck_1_z8arnf.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018479/The_Deck_Skinny_ddulpv.webp',
   },
   {
     id: 'strategist',
@@ -28,7 +28,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1778995409/Stra-6_vqwrhw.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018477/Strategist_Skinny_podmrv.webp',
   },
   {
     id: 'cost-ctrl',
@@ -40,7 +40,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351524/Cost_CTRL_Cropped_Skinny_hen7sx.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018476/Cost_CTRL_Skinny_dfnmym.webp',
   },
   {
     id: 'analyzer',
@@ -52,7 +52,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458932/Analyzer_Skinny_ekiy9w.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018475/Analyzer_Skinny_cut1yr.webp',
   },
   {
     id: 'design-studio',
@@ -64,7 +64,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458605/Design_Studio_Skinny_rgkqp5.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018476/Design_Studio_Skinny_xpkyau.webp',
   },
   {
     id: 'briefcase',
@@ -76,7 +76,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465764/The_Briefcase_Skinny_ahgmyt.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018475/Briefcase_Skinny_dhjp6v.webp',
   },
   {
     id: 'huddle',
@@ -88,7 +88,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1778995323/Stra-3_ljjyge.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018476/Huddle_Skinny_tgwubz.webp',
   },
   {
     id: 'wordsmith',
@@ -100,7 +100,7 @@ const tools = [
     image:
       'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
     skinnyImage:
-      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466183/The_Wordsmith_Skinny_Cropped_amalk1.webp',
+      'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779018479/Wordsmith_Skinny_nhuu6e.webp',
   },
 ]
 
