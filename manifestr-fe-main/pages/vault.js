@@ -301,6 +301,12 @@ export default function Vault() {
   });
 
   useEffect(() => {
+    if (typeof router.query.search === "string" && router.query.search) {
+      setSearchQuery(router.query.search);
+    }
+  }, [router.query.search]);
+
+  useEffect(() => {
     const fetchFolders = async () => {
       try {
         const res = await listFolders();
