@@ -130,8 +130,13 @@ export default function OpenRoles() {
           If you move fast, think clearly and deliver work that matters, you&rsquo;ll fit right in.
         </p>
 
-        {/* Mobile — horizontally scrolling role cards */}
-        <div className="md:hidden flex gap-6 overflow-x-auto -mx-6 px-6 pb-1 scrollbar-hide">
+        {/* Mobile — original card alignment; horizontal swipe only */}
+        <div
+          role="region"
+          aria-label="Browse open roles"
+          className="md:hidden flex gap-6 overflow-x-auto overflow-y-hidden overscroll-x-contain overscroll-y-none touch-pan-x -mx-6 px-6 pb-1 scrollbar-hide"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {ROLES.map((r, i) => {
             const isActive = i === selected
             return (

@@ -155,40 +155,37 @@ export default function Glossary() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/30" />
+      <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <CldImage src={HERO_BG} alt="" className="absolute h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="relative z-10 flex flex-col items-center gap-[32px] w-full max-w-[545px]"
+          className="relative z-10 flex w-full max-w-[560px] flex-col items-center gap-6 md:gap-8"
         >
-          {/* Heading + subtitle */}
-          <div className="flex flex-col items-center gap-[20px] text-center">
-            <h1
-              className="text-center whitespace-nowrap px-2 text-[clamp(1.5rem,5vw,2.625rem)] md:text-[72px] leading-[1.1] md:leading-[90px] tracking-[-0.72px] md:tracking-[-1.44px] text-white"
-            >
+          <div className="flex max-w-[544px] flex-col items-center gap-5 text-center md:gap-6">
+            <h1 className="whitespace-nowrap px-2 text-center text-[clamp(1.125rem,4vw+0.5rem,2.25rem)] leading-[1.1] tracking-[-0.72px] text-white md:text-[72px] md:leading-[90px] md:tracking-[-1.44px]">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Glossary of </span>
               <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Terms</span>
             </h1>
             <p
-              className="text-[18px] leading-[28px] text-white"
+              className="text-center text-[16px] leading-[24px] text-white md:text-[18px] md:leading-[28px]"
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
             >
               MANIFESTR key terms and concepts, clearly defined.
             </p>
           </div>
 
-          {/* Search */}
-          <form
-            onSubmit={applySearch}
-            className="flex w-full max-w-[449px] items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5"
-          >
-            <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <div className="flex w-full max-w-[449px] flex-col items-center gap-5 md:gap-6">
+            <form
+              onSubmit={applySearch}
+              className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5 md:py-2.5"
+            >
+              <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -210,13 +207,14 @@ export default function Glossary() {
             </button>
           </form>
 
-          <Link
-            href="/signup"
-            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            Enter MANIFESTR
-          </Link>
+            <Link
+              href="/signup"
+              className="hidden md:inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] md:w-auto"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Enter MANIFESTR
+            </Link>
+          </div>
         </motion.div>
       </section>
 

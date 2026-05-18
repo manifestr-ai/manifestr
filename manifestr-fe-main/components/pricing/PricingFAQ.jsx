@@ -79,7 +79,7 @@ export default function PricingFAQ() {
   const faqs = FAQ_DATA[activeTab] || []
 
   return (
-    <section className="w-full bg-white py-[48px] md:py-[100px]">
+    <section className="w-full bg-white pt-[24px] pb-[48px] md:py-[100px]">
       <div className="max-w-[835px] mx-auto px-6 flex flex-col gap-[32px] md:gap-[40px]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

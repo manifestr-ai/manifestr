@@ -330,7 +330,7 @@ export default function PlaybookFAQs() {
 
             <Link
               href="/signup"
-              className="inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] sm:w-auto"
+              className="hidden md:inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] md:w-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Enter MANIFESTR

@@ -90,8 +90,8 @@ export default function DashboardToolkit() {
       </div>
 
       {/* Mobile layout */}
-      <div className="md:hidden bg-[#deddd9] relative" style={{ height: 870 }}>
-        <div className="pl-6 py-[48px] flex flex-col gap-[24px]">
+      <div className="flex flex-col bg-[#deddd9] pb-10 md:hidden">
+        <div className="flex flex-col gap-6 px-6 py-12">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -143,19 +143,18 @@ export default function DashboardToolkit() {
           </div>
         </div>
 
-        {/* Dashboard image + CTA — absolutely positioned */}
-        <div className="absolute left-0 w-full overflow-hidden" style={{ top: 400, height: 439 }}>
+        <div className="relative mt-6 h-[420px] w-full overflow-hidden">
           <CldImage
             src={DASHBOARD_IMG}
             alt="Affiliate dashboard"
-            className="absolute max-w-none pointer-events-none"
-            style={{ width: '100%', height: '180.68%', left: '0%', bottom: -12 }}
+            className="pointer-events-none absolute max-w-none"
+            style={{ width: '100%', height: '168%', left: 0, bottom: 72 }}
           />
-          <div className="absolute left-6 right-6 bottom-8">
+          <div className="absolute inset-x-6 bottom-6 z-10">
             <button
               type="button"
-              className="bg-[#18181b] text-white text-[18px] leading-[20px] font-medium h-[54px] min-h-[54px] w-full rounded-[6px] hover:bg-[#27272a] transition-colors duration-200 cursor-pointer inline-flex items-center justify-center"
-              style={{ fontFamily: "Inter, sans-serif" }}
+              className="inline-flex h-[54px] min-h-[54px] w-full cursor-pointer items-center justify-center rounded-[6px] bg-[#18181b] text-[18px] font-medium leading-5 text-white transition-colors duration-200 hover:bg-[#27272a]"
+              style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Get Your Unique Affiliate Link
             </button>

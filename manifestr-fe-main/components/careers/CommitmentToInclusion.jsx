@@ -96,14 +96,17 @@ export default function CommitmentToInclusion() {
         </div>
       </div>
 
-      {/* ── Mobile — Figma 12091:54444, 390×681 content stack, centered ── */}
-      <div className="relative min-h-[560px] w-full overflow-hidden py-20 md:hidden">
-        <div className="absolute inset-0" aria-hidden>
+      {/* ── Mobile — Figma 12091:54444 (390×681) ── */}
+      <div className="relative h-[681px] w-full overflow-hidden md:hidden">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
           <CldImage
             src={CTA_BG_MOBILE}
             alt=""
-            className="h-full min-h-[600px] w-full object-cover"
+            className="absolute left-1/2 top-[38%] h-full w-full min-h-[108%] min-w-[108%] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover"
             priority
+            sizes="100vw"
+            fallbackWidth={1200}
+            preserveCloudinaryUrl
           />
         </div>
 
@@ -112,14 +115,13 @@ export default function CommitmentToInclusion() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55 }}
-          className="relative z-10 mx-auto flex w-full max-w-[340px] flex-col items-center gap-[31px] px-4"
+          className="relative z-10 mx-auto flex w-full max-w-[332px] flex-col items-center gap-[31px] px-[29px] pt-[102px]"
         >
-          <h2 className="w-full max-w-full text-center text-black">
-            <span className="inline-block max-w-full whitespace-nowrap text-[clamp(14px,_4vw_+_10px,_30px)] leading-tight tracking-[-0.6px]">
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Our </span>
-              <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Commitment</span>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> to Inclusion</span>
-            </span>
+          <h2 className="w-full text-center text-[30px] leading-[35px] tracking-[-0.6px] text-black">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Our </span>
+            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Commitment</span>
+            <br />
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> to Inclusion</span>
           </h2>
 
           <p
@@ -129,9 +131,9 @@ export default function CommitmentToInclusion() {
             {MOBILE_BODY}
           </p>
 
-          <div className="flex h-[134px] w-full max-w-[284px] items-center justify-center rounded-[13px] bg-black px-3">
+          <div className="flex h-[134px] w-[284px] shrink-0 items-center justify-center rounded-[13px] bg-[#18181b] px-3">
             <p
-              className="text-center text-[27px] leading-[normal] tracking-[-0.54px] text-white"
+              className="text-center text-[27px] leading-[normal] tracking-[-0.5375px] text-white"
               style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
             >
               Different minds.
@@ -144,7 +146,7 @@ export default function CommitmentToInclusion() {
 
           <Link
             href={DEI_HREF}
-            className="inline-flex h-11 w-[234px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-[#18181b] px-6 py-2 text-[14px] font-medium leading-5 text-white transition-colors duration-200 hover:bg-[#27272a]"
+            className="inline-flex h-11 w-[234px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[6px] bg-[#18181b] px-6 py-2 text-[14px] font-medium leading-5 text-white transition-colors duration-200 hover:bg-[#27272a]"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Read Our DEI Statement

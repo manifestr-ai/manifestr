@@ -200,7 +200,10 @@ export default function CookiePolicy() {
               <p className="text-[16px] leading-[24px] text-[#52525b]">You can choose which categories of cookies you want to allow.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
                 {COOKIE_TYPES.map((type) => (
-                  <div key={type.title} className="border border-[#c6c8d0] md:border-[#e4e4e7] rounded-[12px] p-[14px] md:p-[24px] flex flex-col gap-[12px] md:gap-[16px]">
+                  <div
+                    key={type.title}
+                    className="flex flex-col gap-[12px] rounded-[12px] border border-[#e4e4e7] bg-[#f4f4f5] p-[14px] md:gap-[16px] md:p-[24px]"
+                  >
                     <h3 className="text-[16px] leading-[24px] font-medium text-[#1b1b1f]" style={font}>
                       {type.title}
                     </h3>

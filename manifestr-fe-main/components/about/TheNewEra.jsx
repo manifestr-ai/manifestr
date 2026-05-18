@@ -12,8 +12,8 @@ export default function TheNewEra() {
 
       {/* Split background — white top on desktop, all stone on mobile */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="hidden md:block h-[126px] bg-white" />
-        <div className="bg-[#deddda] h-full md:h-[calc(100%-126px)]" />
+        <div className="hidden md:block h-[88px] bg-white" />
+        <div className="bg-[#deddda] h-full md:h-[calc(100%-88px)]" />
       </div>
 
       {/* "THE nEW ERA" watermark — desktop only */}
@@ -23,8 +23,8 @@ export default function TheNewEra() {
       >
         <p
           className="absolute text-right
-                     md:max-lg:top-[126px] md:max-lg:right-6 md:max-lg:text-[min(22vw,160px)] md:max-lg:leading-[0.82] md:max-lg:tracking-[-3px]
-                     lg:top-[126px] lg:max-xl:right-32 lg:text-[320px] lg:leading-[260px] lg:tracking-[-7.64px]
+                     md:max-lg:top-[88px] md:max-lg:right-6 md:max-lg:text-[min(22vw,160px)] md:max-lg:leading-[0.82] md:max-lg:tracking-[-3px]
+                     lg:top-[88px] lg:max-xl:right-32 lg:text-[320px] lg:leading-[260px] lg:tracking-[-7.64px]
                      xl:right-[400px]"
           style={{
             fontFamily: "'IvyPresto Headline', serif",
@@ -56,10 +56,10 @@ export default function TheNewEra() {
           transition={{ duration: 0.7 }}
           className="w-full md:w-[50%] flex flex-col justify-start
                      px-6 pt-[48px] pb-[48px] gap-[24px]
-                     md:max-lg:px-8 md:max-lg:pt-28 md:max-lg:pb-12 md:max-lg:gap-5
+                     md:max-lg:px-8 md:max-lg:pt-20 md:max-lg:pb-12 md:max-lg:gap-5
                      lg:px-0 lg:pr-[40px] lg:gap-0
-                     lg:max-xl:pl-24 lg:max-xl:pt-40 lg:max-xl:pb-14
-                     xl:pl-[123px] xl:pt-[247px] xl:pb-[80px]"
+                     lg:max-xl:pl-24 lg:max-xl:pt-32 lg:max-xl:pb-14
+                     xl:pl-[123px] xl:pt-[209px] xl:pb-[80px]"
         >
           {/* Label */}
           <p
