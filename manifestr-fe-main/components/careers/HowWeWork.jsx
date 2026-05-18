@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const CUTOUT_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775026433/21_Cutout_1_1_owaxmo.png'
+const CUTOUT_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351488/Woman_Work_Phone_amusrf.webp'
 
 const ICONS = {
   shield: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775025697/Vector_jaay6l.svg',
@@ -103,7 +103,7 @@ export default function HowWeWork() {
             <p>WORK</p>
           </div>
           {/* Cutout — centered */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-[-38px] w-[400px] h-[520px] overflow-hidden">
+          <div className="absolute left-1/2 -translate-x-1/2 top-[24px] w-[400px] h-[520px] overflow-hidden">
             <CldImage
               src={CUTOUT_IMG}
               alt="Professional woman with phone"
@@ -133,7 +133,7 @@ export default function HowWeWork() {
             </div>
           </div>
 
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[0px] w-[748px] z-2">
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-410px] w-[748px] z-2">
             <CldImage
               src={CUTOUT_IMG}
               alt="Professional woman with phone"

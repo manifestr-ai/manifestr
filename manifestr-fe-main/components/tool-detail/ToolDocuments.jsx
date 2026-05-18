@@ -3,12 +3,14 @@ import Link from 'next/link'
 import CldImage from '../ui/ToolkitCldImage'
 
 const DOC_BG_IMAGE =
-  'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351581/Laptop_Rock_Desktop_1441x915_x2__Light_vw1azu.webp'
+  'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777465722/Laptop_Rock_Desktop_1441x915_x2__Light_x3pdzw.webp'
 const CHECK_ICON =
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774955815/Vector_f5rveb.svg'
 
 /** Desktop hero — scale > 1 zooms in (origin keeps laptop in frame). */
-const DESKTOP_HERO_IMAGE_SCALE = 1.14
+const DESKTOP_HERO_IMAGE_SCALE = 1.08
+/** Shift background up (px) — applied via `top` + taller height (valid units; bare numbers break `translateY`). */
+const DESKTOP_IMAGE_OFFSET_Y_PX = 56
 
 const hk700 = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
 const ivy = { fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }
@@ -60,7 +62,7 @@ export default function ToolDocuments({ tool }) {
         {/* Figma frame: content ~657px tall → 720px min-height; clip bleed like other tool sections */}
         <div
           className="relative w-full min-w-0"
-          style={{ minHeight: '720px' }}
+          style={{ minHeight: '700px' }}
         >
           {/* Full-width bg image — contained to viewport (no min-width:1583px scroll) */}
           <div
@@ -70,10 +72,12 @@ export default function ToolDocuments({ tool }) {
             <CldImage
               src={DOC_BG_IMAGE}
               alt=""
-              className="absolute inset-0 h-full w-full max-w-none object-cover object-right"
+              className="absolute left-0 right-0 w-full max-w-none object-cover object-[right_32%]"
               style={{
+                top: `-${DESKTOP_IMAGE_OFFSET_Y_PX}px`,
+                height: `calc(100% + ${DESKTOP_IMAGE_OFFSET_Y_PX}px)`,
                 transform: `scale(${DESKTOP_HERO_IMAGE_SCALE})`,
-                transformOrigin: '82% 48%',
+                transformOrigin: '82% 45%',
               }}
             />
           </div>
@@ -149,7 +153,7 @@ export default function ToolDocuments({ tool }) {
         <CldImage
           src={DOC_BG_IMAGE}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover object-right pointer-events-none"
+          className="absolute inset-0 h-full w-full object-cover object-[right_35%] pointer-events-none"
         />
         <div className="absolute inset-0 bg-black/60 pointer-events-none" />
 
