@@ -147,6 +147,8 @@ export default function CreateStyleGuide() {
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingExisting, setIsLoadingExisting] = useState(false)
+  const [limitReached, setLimitReached] = useState(false)
+  const [subscriptionData, setSubscriptionData] = useState(null)
 
   // Centralized state for the style guide
   const [styleGuideData, setStyleGuideData] = useState({
@@ -216,6 +218,34 @@ export default function CreateStyleGuide() {
 
     loadExistingGuide()
   }, [editingId])
+
+  // 🆕 Check style guide limit when creating new (NOT in edit mode)
+  useEffect(() => {
+    // Skip check if editing existing guide
+    if (isEditMode) return
+
+    const checkStyleGuideLimit = async () => {
+      try {
+        const { getSubscriptionStatus } = await import('../services/subscriptions')
+        const result = await getSubscriptionStatus()
+        
+        if (result.status === 'success') {
+          const data = result.data
+          setSubscriptionData(data)
+          
+          // Check if limit reached
+          if (data.styleGuideCount >= data.styleGuideLimit) {
+            setLimitReached(true)
+            showError(`Plan limit reached! You've created ${data.styleGuideCount}/${data.styleGuideLimit} brand guides. Upgrade your plan to create more.`)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check style guide limit:', error)
+      }
+    }
+
+    checkStyleGuideLimit()
+  }, [isEditMode])
 
   const handleSaveAndExit = async () => {
     try {
@@ -440,11 +470,27 @@ export default function CreateStyleGuide() {
   }, [])
 
   const handleCreateManually = () => {
+    // Check if limit reached
+    if (limitReached) {
+      showError(`Plan limit reached! You've created ${subscriptionData?.styleGuideCount}/${subscriptionData?.styleGuideLimit} brand guides. Upgrade to Pro to create up to 4 brand guides.`)
+      setTimeout(() => {
+        router.push('/settings?tab=Plans')
+      }, 2000)
+      return
+    }
     // Move to step 1 (Logo step)
     setCurrentStep(1)
   }
 
   const handleUploadBrandKit = () => {
+    // Check if limit reached
+    if (limitReached) {
+      showError(`Plan limit reached! You've created ${subscriptionData?.styleGuideCount}/${subscriptionData?.styleGuideLimit} brand guides. Upgrade to Pro to create up to 4 brand guides.`)
+      setTimeout(() => {
+        router.push('/settings?tab=Plans')
+      }, 2000)
+      return
+    }
     setShowUploadBrandKitModal(true)
   }
 

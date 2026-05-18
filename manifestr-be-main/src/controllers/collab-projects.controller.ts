@@ -518,6 +518,109 @@ export class CollabProjectsController extends BaseController {
                 });
             }
 
+            // 🆕 CHECK SEAT LIMIT BEFORE INVITING
+            // Get the owner of the project
+            const { data: projectData } = await supabaseAdmin
+                .from('collab_projects')
+                .select('created_by')
+                .eq('id', projectId)
+                .single();
+
+            if (!projectData) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'Project not found'
+                });
+            }
+
+            const ownerId = projectData.created_by;
+
+            // Get owner's subscription to find seat limit AND extra_seats
+            const { data: subscription } = await supabaseAdmin
+                .from('subscriptions')
+                .select('tier, extra_seats')
+                .eq('user_id', ownerId)
+                .single();
+
+            // Determine BASE seat limit based on tier
+            let baseSeatLimit = 5; // Default for Pro plan
+            if (subscription?.tier === 'enterprise') {
+                baseSeatLimit = 25;
+            } else if (subscription?.tier === 'starter') {
+                baseSeatLimit = 3;
+            } else if (!subscription || subscription?.tier === 'free') {
+                baseSeatLimit = 1; // Free tier: just the owner
+            }
+
+            // 🆕 ADD EXTRA SEATS from addon purchases
+            const extraSeats = subscription?.extra_seats || 0;
+            const seatLimit = baseSeatLimit + extraSeats;
+
+            // Count unique users across ALL collab projects owned by this user
+            const { data: ownedProjects } = await supabaseAdmin
+                .from('collab_projects')
+                .select('id')
+                .eq('created_by', ownerId);
+
+            if (ownedProjects && ownedProjects.length > 0) {
+                const projectIds = ownedProjects.map(p => p.id);
+
+                // Get all unique user_ids from collab_project_members
+                const { data: members } = await supabaseAdmin
+                    .from('collab_project_members')
+                    .select('user_id')
+                    .in('collab_project_id', projectIds);
+
+                // Count unique users (including owner)
+                const uniqueUserIds = new Set<string>();
+                uniqueUserIds.add(ownerId); // Always include the owner
+
+                if (members) {
+                    members.forEach(m => uniqueUserIds.add(m.user_id));
+                }
+
+                const currentSeatsUsed = uniqueUserIds.size;
+
+                // Check if user to be invited already exists
+                const { data: existingUser } = await supabaseAdmin
+                    .from('users')
+                    .select('id')
+                    .eq('email', email.toLowerCase().trim())
+                    .single();
+
+                // If it's a NEW user (not already counted), check if we'd exceed limit
+                if (existingUser && !uniqueUserIds.has(existingUser.id)) {
+                    if (currentSeatsUsed >= seatLimit) {
+                        console.log(`❌ Seat limit reached: ${currentSeatsUsed}/${seatLimit}`);
+                        return res.status(403).json({
+                            status: 'error',
+                            message: `Seat limit reached! You're using ${currentSeatsUsed}/${seatLimit} seats. Upgrade your plan to add more members.`,
+                            data: {
+                                seatsUsed: currentSeatsUsed,
+                                seatsTotal: seatLimit,
+                                currentTier: subscription?.tier || 'free'
+                            }
+                        });
+                    }
+                }
+
+                // For new users being created, also check limit
+                if (!existingUser && currentSeatsUsed >= seatLimit) {
+                    console.log(`❌ Seat limit reached: ${currentSeatsUsed}/${seatLimit}`);
+                    return res.status(403).json({
+                        status: 'error',
+                        message: `Seat limit reached! You're using ${currentSeatsUsed}/${seatLimit} seats. Upgrade your plan to add more members.`,
+                        data: {
+                            seatsUsed: currentSeatsUsed,
+                            seatsTotal: seatLimit,
+                            currentTier: subscription?.tier || 'free'
+                        }
+                    });
+                }
+
+                console.log(`✅ Seat check passed: ${currentSeatsUsed}/${seatLimit} seats used`);
+            }
+
             // Find user by email
             let { data: invitedUser } = await supabaseAdmin
                 .from('users')

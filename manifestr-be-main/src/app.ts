@@ -27,6 +27,7 @@ import { AnalyticsApiController } from './controllers/analytics.controller';
 import { SubscriptionController } from './controllers/subscription.controller';
 import { NotificationController } from './controllers/notification.controller';
 import { SearchController } from './controllers/search.controller';
+import { AddonController } from './controllers/addon.controller';
 
 const serverStartedAt = new Date();
 
@@ -178,6 +179,7 @@ class App {
             new SubscriptionController(), // Stripe subscription management
             new NotificationController(), // In-app notification system
             new SearchController(), // Global search (vault, projects, collabs)
+            new AddonController(), // Addon purchases (wins & team members)
         ];
 
         controllers.forEach((controller) => {

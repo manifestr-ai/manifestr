@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import CldImage from '../ui/CldImage'
 
-const PORTRAIT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041144/Rectangle_23179_jogmce.png'
+const PORTRAIT = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779014985/Leah_Skyscrapers_krqyun.webp'
 
 export default function EverythingBegins() {
   return (

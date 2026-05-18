@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const SAND_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
+const SAND_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351370/Sand_Banner_c5rnyq.webp'
 
 const SUBCOPY =
   'Pick the plan that fits your needs and start boosting your productivity today. No risk, just results.'
