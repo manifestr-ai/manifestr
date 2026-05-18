@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { BaseController } from './base.controller';
 import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
 import SupabaseDB from '../lib/supabase-db';
+import { supabaseAdmin } from '../lib/supabase';
 
 export class StyleGuideController extends BaseController {
     public basePath = '/api/style-guides';
@@ -91,6 +92,46 @@ export class StyleGuideController extends BaseController {
             if (!name) {
                 return res.status(400).json({ status: "error", message: "Name is required" });
             }
+
+            // 🆕 CHECK STYLE GUIDE LIMIT
+            // Get user's subscription to determine limit
+            const { data: subscription } = await supabaseAdmin
+                .from('subscriptions')
+                .select('tier')
+                .eq('user_id', userId)
+                .single();
+
+            // Determine style guide limit based on tier
+            let styleGuideLimit = 4; // Pro default
+            if (!subscription || subscription.tier === 'backstage' || subscription.tier === 'free') {
+                styleGuideLimit = 1;
+            } else if (subscription.tier === 'starter') {
+                styleGuideLimit = 2;
+            } else if (subscription.tier === 'enterprise') {
+                styleGuideLimit = 10;
+            }
+
+            // Count existing style guides
+            const { count: currentCount } = await supabaseAdmin
+                .from('style_guides')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId);
+
+            // Block if limit reached
+            if (currentCount && currentCount >= styleGuideLimit) {
+                console.log(`❌ Style guide limit reached: ${currentCount}/${styleGuideLimit}`);
+                return res.status(403).json({
+                    status: "error",
+                    message: `Plan limit reached! You've created ${currentCount}/${styleGuideLimit} brand guides. Upgrade your plan to create more.`,
+                    data: {
+                        currentCount,
+                        limit: styleGuideLimit,
+                        currentTier: subscription?.tier || 'free'
+                    }
+                });
+            }
+
+            console.log(`✅ Style guide check passed: ${currentCount}/${styleGuideLimit}`);
 
             // Create guide using Supabase with initial data
             const newGuide = await SupabaseDB.createStyleGuide(userId, name);

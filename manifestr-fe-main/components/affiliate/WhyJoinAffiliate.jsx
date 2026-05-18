@@ -2,8 +2,11 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const AFFILIATE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023100/Affiliate2_1_ckvktn.jpg'
+const AFFILIATE_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351462/Affiliate_Seated_Trio_White_wkcpmb.webp'
 const CHECK_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775023115/Vector_uz3ve2.svg'
+
+/** Desktop hero — scale > 1 zooms in; center-bottom origin avoids clipping the left side of the trio. */
+const DESKTOP_AFFILIATE_IMAGE_SCALE = 1.09
 
 const BENEFITS = [
   'Up to 50% commission: Industry-leading payouts',
@@ -16,12 +19,16 @@ const BENEFITS = [
 export default function WhyJoinAffiliate() {
   return (
     <section className="relative w-full bg-white overflow-hidden">
-      {/* Right image — desktop only, positioned relative to section for full viewport bleed */}
-      <div className="hidden md:block absolute right-0 top-0 bottom-[67px] w-[60%]">
+      {/* Right image — desktop only; scaled to fit like prior jpg placement */}
+      <div className="pointer-events-none hidden md:flex absolute top-0 -right-10 bottom-[67px] left-[40%] overflow-visible items-end justify-end">
         <CldImage
           src={AFFILIATE_IMG}
           alt="Affiliate team"
-          className="w-full h-full object-cover"
+          className="h-auto max-h-full w-full object-contain object-bottom object-right"
+          style={{
+            transform: `translateX(10%) scale(${DESKTOP_AFFILIATE_IMAGE_SCALE})`,
+            transformOrigin: 'center bottom',
+          }}
         />
       </div>
 
@@ -90,12 +97,11 @@ export default function WhyJoinAffiliate() {
       </div>
 
       {/* Affiliate image — mobile only */}
-      <div className="md:hidden w-full h-[315px] overflow-hidden">
+      <div className="md:hidden w-full h-[315px] overflow-hidden flex items-end">
         <CldImage
           src={AFFILIATE_IMG}
           alt="Affiliate team"
-          className="h-auto block"
-          style={{ scale: '120%', marginLeft: '-10%' }}
+          className="h-auto max-h-full w-full object-contain object-bottom origin-bottom scale-110"
         />
       </div>
 

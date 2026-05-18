@@ -80,6 +80,20 @@ export class SubscriptionController extends BaseController {
                 handler: this.applyPromoCode,
                 middlewares: [authenticateToken],
             },
+            // 🆕 GET SEAT USAGE
+            {
+                verb: 'GET',
+                path: '/seat-usage',
+                handler: this.getSeatUsage,
+                middlewares: [authenticateToken],
+            },
+            // 🚀 UPGRADE CHECKOUT SESSION
+            {
+                verb: 'POST',
+                path: '/create-upgrade-checkout-session',
+                handler: this.createUpgradeCheckoutSession,
+                middlewares: [authenticateToken],
+            },
             // Webhook endpoint (NO auth - Stripe verifies signature)
             {
                 verb: 'POST',
@@ -227,6 +241,102 @@ export class SubscriptionController extends BaseController {
     };
 
     // ============================================
+    //  CREATE UPGRADE CHECKOUT SESSION (SEPARATE FROM NEW SUBSCRIPTIONS)
+    // ============================================
+
+    private createUpgradeCheckoutSession = async (req: AuthRequest, res: Response) => {
+        try {
+            const { tier, interval } = req.body;
+            const userId = req.user!.userId;
+
+            // Validate inputs
+            if (!['starter', 'pro', 'elite'].includes(tier)) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Invalid tier. Must be starter, pro, or elite.'
+                });
+            }
+
+            if (!['monthly', 'annual'].includes(interval)) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Invalid interval. Must be monthly or annual.'
+                });
+            }
+
+            // Get user from database
+            const { data: user } = await supabaseAdmin
+                .from('users')
+                .select('stripe_customer_id, email')
+                .eq('id', userId)
+                .single();
+
+            // Get the price ID (uses FREE pricing for now)
+            const priceId = getStripePriceId(tier, interval, true);
+
+            // Get tier config
+            const tierConfig = getTierConfig(tier);
+
+            // Create checkout session for UPGRADE
+            const sessionConfig: any = {
+                mode: 'subscription',
+                payment_method_types: ['card'],
+                line_items: [
+                    {
+                        price: priceId,
+                        quantity: 1,
+                    },
+                ],
+                metadata: {
+                    tier: tier,
+                    interval: interval,
+                    wins_per_month: tierConfig?.winsPerMonth.toString() || '0',
+                    user_id: userId,
+                    is_upgrade: 'true', // Flag to identify upgrades
+                },
+                subscription_data: {
+                    metadata: {
+                        tier: tier,
+                        interval: interval,
+                        user_id: userId,
+                    },
+                },
+                // 🏠 REDIRECT TO HOME PAGE AFTER UPGRADE
+                success_url: `${getFrontendUrl()}/?upgraded=true`,
+                cancel_url: `${getFrontendUrl()}/settings?tab=Plans&canceled=true`,
+                allow_promotion_codes: true,
+            };
+
+            // Use existing customer if available
+            if (user?.stripe_customer_id) {
+                sessionConfig.customer = user.stripe_customer_id;
+            }
+
+            const session = await stripe.checkout.sessions.create(sessionConfig);
+
+            console.log(` Upgrade checkout session created: ${tier} (${interval}) [User: ${userId}]`);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    sessionId: session.id,
+                    url: session.url,
+                    tier,
+                    interval,
+                }
+            });
+
+        } catch (error) {
+            console.error(' Error creating upgrade checkout session:', error);
+            return res.status(500).json({
+                status: 'error',
+                message: 'Failed to create upgrade checkout session',
+                details: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
+    };
+
+    // ============================================
     // GET SUBSCRIPTION STATUS
     // ============================================
 
@@ -241,6 +351,21 @@ export class SubscriptionController extends BaseController {
                 .eq('user_id', userId)
                 .single();
 
+            // Get user's actual wins balance (CORRECT FIELD NAME!)
+            const { data: userData } = await supabaseAdmin
+                .from('users')
+                .select('wins_balance')
+                .eq('id', userId)
+                .single();
+
+            const currentWinsBalance = userData?.wins_balance || 0;
+
+            // Get style guide count
+            const { count: styleGuideCount } = await supabaseAdmin
+                .from('style_guides')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId);
+
             if (error || !subscription) {
                 // No active subscription - user is on free tier
                 return res.json({
@@ -250,7 +375,10 @@ export class SubscriptionController extends BaseController {
                         tier: 'backstage',
                         subscriptionStatus: 'none',
                         features: PRICING_TIERS.backstage.features,
-                        winsPerMonth: 0,
+                        winsPerMonth: 2000, // Default limit for free tier
+                        currentWinsBalance: currentWinsBalance,
+                        styleGuideCount: styleGuideCount || 0,
+                        styleGuideLimit: 1, // Free tier gets 1
                         exportLimit: 0,
                     }
                 });
@@ -258,6 +386,16 @@ export class SubscriptionController extends BaseController {
 
             // Get tier configuration
             const tierConfig = getTierConfig(subscription.tier);
+
+            // Determine style guide limit based on tier
+            let styleGuideLimit = 4; // Pro default
+            if (subscription.tier === 'backstage' || subscription.tier === 'free') {
+                styleGuideLimit = 1;
+            } else if (subscription.tier === 'starter') {
+                styleGuideLimit = 2;
+            } else if (subscription.tier === 'enterprise') {
+                styleGuideLimit = 10;
+            }
 
             return res.json({
                 status: 'success',
@@ -270,7 +408,10 @@ export class SubscriptionController extends BaseController {
                     currentPeriodEnd: subscription.current_period_end,
                     cancelAtPeriodEnd: subscription.cancel_at_period_end,
                     features: tierConfig?.features || [],
-                    winsPerMonth: tierConfig?.winsPerMonth || 0,
+                    winsPerMonth: tierConfig?.winsPerMonth || 2000,
+                    currentWinsBalance: currentWinsBalance,
+                    styleGuideCount: styleGuideCount || 0,
+                    styleGuideLimit: styleGuideLimit,
                     exportLimit: tierConfig?.exportLimit || 0,
                     storageGB: tierConfig?.storageGB || 0,
                     users: tierConfig?.users || 1,
@@ -544,14 +685,23 @@ export class SubscriptionController extends BaseController {
     }
 
     private async handleCheckoutCompleted(session: any) {
-        console.log(' Checkout completed:', session.id);
+        console.log('🎉 Checkout completed:', session.id);
         
         const userId = session.metadata?.user_id;
         const stripeCustomerId = session.customer;
         const stripeSubscriptionId = session.subscription;
+        const addonId = session.metadata?.addon_id; // 🆕 Check if it's an addon purchase
 
+        // 🆕 HANDLE ADDON PURCHASES (wins or team_member)
+        if (addonId) {
+            console.log(`🎁 Addon purchase detected: ${addonId}`);
+            await this.handleAddonPurchase(session);
+            return; // Exit after handling addon
+        }
+
+        // EXISTING SUBSCRIPTION CHECKOUT LOGIC
         if (!stripeSubscriptionId) {
-            console.log(' No subscription in session (one-time payment?)');
+            console.log('ℹ️  No subscription in session (one-time payment?)');
             return;
         }
 
@@ -568,7 +718,7 @@ export class SubscriptionController extends BaseController {
 
         if (userId) {
             // LOGGED-IN USER CHECKOUT
-            console.log(` Processing checkout for user: ${userId}`);
+            console.log(`✅ Processing checkout for user: ${userId}`);
             console.log(`🔗 Stripe Customer: ${stripeCustomerId}`);
             console.log(`📋 Stripe Subscription: ${stripeSubscriptionId}`);
 
@@ -581,13 +731,161 @@ export class SubscriptionController extends BaseController {
             console.log(`✅ User ${userId} checkout completed successfully`);
         } else {
             // GUEST CHECKOUT (Subscribe FIRST, then signup flow)
-            console.log(` Guest checkout completed`);
+            console.log(`✅ Guest checkout completed`);
             console.log(`   Email: ${customerEmail}`);
             console.log(`🔗 Stripe Customer: ${stripeCustomerId}`);
             console.log(`📋 Stripe Subscription: ${stripeSubscriptionId}`);
-                console.log(`ℹ  Subscription will be saved by subscription.created/updated webhook`);
-            console.log(`ℹ  User can now signup and subscription will be linked automatically`);
+                console.log(`ℹ️  Subscription will be saved by subscription.created/updated webhook`);
+            console.log(`ℹ️  User can now signup and subscription will be linked automatically`);
         }
+    }
+
+    /**
+     * ============================================
+     * 🎁 HANDLE ADDON PURCHASE
+     * ============================================
+     * Processes addon purchases from checkout.session.completed webhook
+     * - Wins top-up: Add wins to user's balance
+     * - Team member: Add extra seat to subscription
+     */
+    private async handleAddonPurchase(session: any) {
+        console.log('🎁 Processing addon purchase...');
+        
+        const userId = session.metadata?.user_id;
+        const addonId = session.metadata?.addon_id;
+        const addonType = session.metadata?.addon_type;
+        const winsAmount = parseInt(session.metadata?.wins_amount || '0');
+        const seatsAmount = parseInt(session.metadata?.seats_amount || '0');
+        const stripeCustomerId = session.customer;
+        const stripePaymentIntentId = session.payment_intent;
+        const amountTotal = session.amount_total; // Amount in cents
+
+        if (!userId) {
+            console.error('❌ No user_id in addon purchase session');
+            return;
+        }
+
+        if (!addonId || !addonType) {
+            console.error('❌ Missing addon_id or addon_type in session metadata');
+            return;
+        }
+
+        console.log(`   User: ${userId}`);
+        console.log(`   Addon: ${addonId} (${addonType})`);
+        console.log(`   Amount: $${(amountTotal / 100).toFixed(2)}`);
+
+        try {
+            // Record the purchase in addon_purchases table
+            const { data: purchaseRecord, error: purchaseError } = await supabaseAdmin
+                .from('addon_purchases')
+                .insert({
+                    user_id: userId,
+                    addon_type: addonId,
+                    addon_name: this.getAddonName(addonId),
+                    stripe_payment_id: stripePaymentIntentId,
+                    stripe_customer_id: stripeCustomerId,
+                    amount_paid: amountTotal / 100, // Convert to dollars
+                    currency: 'usd',
+                    wins_added: winsAmount,
+                    seats_added: seatsAmount,
+                    status: 'completed',
+                    completed_at: new Date().toISOString(),
+                })
+                .select()
+                .single();
+
+            if (purchaseError) {
+                console.error('❌ Failed to record addon purchase:', purchaseError);
+                throw purchaseError;
+            }
+
+            console.log(`✅ Addon purchase recorded: ${purchaseRecord.id}`);
+
+            // Process based on addon type
+            if (addonType === 'wins' && winsAmount > 0) {
+                // ADD WINS TO USER BALANCE
+                const { data: userData, error: fetchError } = await supabaseAdmin
+                    .from('users')
+                    .select('wins_balance')
+                    .eq('id', userId)
+                    .single();
+
+                if (fetchError) {
+                    console.error('❌ Failed to fetch user wins balance:', fetchError);
+                    throw fetchError;
+                }
+
+                const currentWins = userData?.wins_balance || 0;
+                const newWins = currentWins + winsAmount;
+
+                const { error: updateError } = await supabaseAdmin
+                    .from('users')
+                    .update({ wins_balance: newWins })
+                    .eq('id', userId);
+
+                if (updateError) {
+                    console.error('❌ Failed to update wins balance:', updateError);
+                    throw updateError;
+                }
+
+                console.log(`✅ Added ${winsAmount} wins to user balance (${currentWins} → ${newWins})`);
+
+            } else if (addonType === 'team_member' && seatsAmount > 0) {
+                // ADD EXTRA SEATS TO SUBSCRIPTION
+                const { data: subscription, error: fetchError } = await supabaseAdmin
+                    .from('subscriptions')
+                    .select('extra_seats')
+                    .eq('user_id', userId)
+                    .single();
+
+                if (fetchError) {
+                    console.error('❌ Failed to fetch subscription:', fetchError);
+                    throw fetchError;
+                }
+
+                const currentExtraSeats = subscription?.extra_seats || 0;
+                const newExtraSeats = currentExtraSeats + seatsAmount;
+
+                const { error: updateError } = await supabaseAdmin
+                    .from('subscriptions')
+                    .update({ extra_seats: newExtraSeats })
+                    .eq('user_id', userId);
+
+                if (updateError) {
+                    console.error('❌ Failed to update extra seats:', updateError);
+                    throw updateError;
+                }
+
+                console.log(`✅ Added ${seatsAmount} extra seat(s) (${currentExtraSeats} → ${newExtraSeats})`);
+            }
+
+            console.log(`🎉 Addon purchase processed successfully!`);
+
+        } catch (error) {
+            console.error('❌ Error processing addon purchase:', error);
+            
+            // Mark purchase as failed
+            await supabaseAdmin
+                .from('addon_purchases')
+                .update({ status: 'failed' })
+                .eq('user_id', userId)
+                .eq('stripe_payment_id', stripePaymentIntentId);
+            
+            throw error;
+        }
+    }
+
+    /**
+     * Helper to get human-readable addon name
+     */
+    private getAddonName(addonId: string): string {
+        const names: Record<string, string> = {
+            wins_quick: 'Quick Win Pack',
+            wins_big: 'Big Win Pack',
+            wins_major: 'Major Win Pack',
+            team_member: 'Additional Team Member'
+        };
+        return names[addonId] || addonId;
     }
 
     private async handleSubscriptionUpdate(subscription: any) {
@@ -1432,6 +1730,101 @@ export class SubscriptionController extends BaseController {
             return res.status(500).json({
                 status: 'error',
                 message: 'Failed to apply promo code'
+            });
+        }
+    };
+
+    // ============================================
+    // GET SEAT USAGE (Unique users across all collabs)
+    // ============================================
+
+    private getSeatUsage = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+
+            // Get user's subscription to find the seat limit AND extra_seats
+            const { data: subscription } = await supabaseAdmin
+                .from('subscriptions')
+                .select('tier, stripe_subscription_id, extra_seats')
+                .eq('user_id', userId)
+                .single();
+
+            // Determine BASE seat limit based on tier
+            let baseSeatLimit = 5; // Default for Pro plan
+            if (subscription?.tier === 'enterprise') {
+                baseSeatLimit = 25; // Enterprise gets more seats
+            } else if (subscription?.tier === 'starter') {
+                baseSeatLimit = 3; // Starter gets fewer
+            } else if (!subscription || subscription?.tier === 'free') {
+                baseSeatLimit = 1; // Free tier: just the owner
+            }
+
+            // 🆕 ADD EXTRA SEATS from addon purchases
+            const extraSeats = subscription?.extra_seats || 0;
+            const seatLimit = baseSeatLimit + extraSeats;
+
+            // Count unique users across ALL collab projects owned by this user
+            const { data: ownedProjects } = await supabaseAdmin
+                .from('collab_projects')
+                .select('id')
+                .eq('created_by', userId);
+
+            if (!ownedProjects || ownedProjects.length === 0) {
+                // No collabs = only owner counts as 1 seat
+                return res.json({
+                    status: 'success',
+                    data: {
+                        seatsUsed: 1, // Owner counts as 1
+                        seatsTotal: seatLimit,
+                        baseSeats: baseSeatLimit, // 🆕 Base seats from tier
+                        extraSeats: extraSeats, // 🆕 Purchased extra seats
+                        percentage: (1 / seatLimit) * 100,
+                        availableSeats: seatLimit - 1,
+                        uniqueMembers: [userId] // Just the owner
+                    }
+                });
+            }
+
+            const projectIds = ownedProjects.map(p => p.id);
+
+            // Get all unique user_ids from collab_project_members for these projects
+            const { data: members } = await supabaseAdmin
+                .from('collab_project_members')
+                .select('user_id')
+                .in('collab_project_id', projectIds);
+
+            // Get unique user IDs (including owner)
+            const uniqueUserIds = new Set<string>();
+            uniqueUserIds.add(userId); // Always include the owner
+
+            if (members) {
+                members.forEach(m => uniqueUserIds.add(m.user_id));
+            }
+
+            const seatsUsed = uniqueUserIds.size;
+            const availableSeats = Math.max(0, seatLimit - seatsUsed);
+
+            console.log(`📊 Seat usage for user ${userId}: ${seatsUsed}/${seatLimit} (base: ${baseSeatLimit} + extra: ${extraSeats})`);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    seatsUsed,
+                    seatsTotal: seatLimit,
+                    baseSeats: baseSeatLimit, // 🆕 Base seats from tier
+                    extraSeats: extraSeats, // 🆕 Purchased extra seats
+                    percentage: (seatsUsed / seatLimit) * 100,
+                    availableSeats,
+                    uniqueMembers: Array.from(uniqueUserIds),
+                    tier: subscription?.tier || 'free'
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Error getting seat usage:', error);
+            return res.status(500).json({
+                status: 'error',
+                message: 'Failed to get seat usage'
             });
         }
     };

@@ -1848,8 +1848,105 @@ function TeamTabContent() {
 
 // Plans Tab Component
 function PlansTabContent() {
+  const router = useRouter()
+  const { success, error: showError, info } = useToast()
   const [isAnnual, setIsAnnual] = useState(true)
   const [addedAddOns, setAddedAddOns] = useState(['strategist'])
+  const [loading, setLoading] = useState(true)
+
+  // Real data from API
+  const [seatData, setSeatData] = useState({
+    seatsUsed: 0,
+    seatsTotal: 5,
+    percentage: 0,
+    extraSeats: 0 // 🆕 Track purchased extra seats
+  })
+  const [subscriptionData, setSubscriptionData] = useState(null)
+
+  useEffect(() => {
+    const handleAddonSuccess = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const addonSuccess = urlParams.get('addon_success')
+      const addonType = urlParams.get('type')
+      const sessionId = urlParams.get('session_id')
+      
+      console.log('🔍 Checking for addon purchase:', { addonSuccess, addonType, sessionId })
+      
+      if (addonSuccess === 'true' && addonType && sessionId) {
+        console.log('🎁 Processing addon purchase...', { addonType, sessionId })
+        
+        try {
+          // 🎁 Process the successful purchase
+          info('Processing your purchase...')
+          
+          console.log('📡 Calling process-success API...')
+          const response = await api.get(`/api/addons/process-success?session_id=${sessionId}`)
+          
+          console.log('✅ API Response:', response.data)
+          
+          if (response.data.status === 'success') {
+            // Show success message
+            if (addonType.includes('wins')) {
+              const winsMap = {
+                wins_quick: '25 wins',
+                wins_big: '50 wins',
+                wins_major: '100 wins'
+              }
+              success(`🎉 ${winsMap[addonType] || 'Wins'} added to your balance!`)
+            } else if (addonType === 'team_member') {
+              success('🎉 Extra team member seat added!')
+            }
+            
+            // Refresh data
+            console.log('🔄 Refreshing plans data...')
+            fetchPlansData()
+          } else {
+            console.error('❌ API returned error:', response.data)
+            showError('Failed to process purchase. Please contact support.')
+          }
+        } catch (error) {
+          console.error('❌ Error processing purchase:', error)
+          console.error('Error details:', error.response?.data || error.message)
+          showError('Failed to process purchase. Please contact support.')
+        }
+        
+        // Clean up URL
+        console.log('🧹 Cleaning up URL...')
+        window.history.replaceState({}, '', '/settings?tab=Plans')
+      } else {
+        console.log('ℹ️  No addon purchase to process')
+      }
+    }
+    
+    fetchPlansData()
+    handleAddonSuccess()
+  }, [])
+
+  const fetchPlansData = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch seat usage and subscription status in parallel
+      const [seatResponse, subscriptionResponse] = await Promise.all([
+        api.get('/api/subscriptions/seat-usage'),
+        api.get('/api/subscriptions/status')
+      ])
+
+      if (seatResponse.data.status === 'success') {
+        setSeatData(seatResponse.data.data)
+      }
+
+      if (subscriptionResponse.data.status === 'success') {
+        setSubscriptionData(subscriptionResponse.data.data)
+      }
+
+    } catch (error) {
+      console.error('Failed to fetch plans data:', error)
+      showError('Failed to load subscription data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const toggleAddOn = (addOnId) => {
     setAddedAddOns(prev =>
@@ -1857,6 +1954,77 @@ function PlansTabContent() {
         ? prev.filter(id => id !== addOnId)
         : [...prev, addOnId]
     )
+  }
+
+  // 🚀 UPGRADE BUTTON HANDLER
+  const handleUpgrade = async () => {
+    try {
+      // Get current tier
+      const currentTier = subscriptionData?.tier?.toLowerCase()
+      
+      // Determine next tier
+      const tierMap = {
+        'backstage': 'starter',
+        'free': 'starter',
+        'starter': 'pro',
+        'pro': 'elite',
+        'elite': null
+      }
+      
+      const nextTier = tierMap[currentTier]
+      
+      // If already on highest plan
+      if (!nextTier) {
+        success("You're already on the highest plan! 🎉")
+        return
+      }
+      
+      // Show loading
+      const upgrading = info(`Preparing upgrade to ${nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}...`)
+      
+      // Get current billing interval (default to monthly)
+      const interval = subscriptionData?.billingInterval || 'monthly'
+      
+      // Create UPGRADE checkout session
+      const response = await api.post('/api/subscriptions/create-upgrade-checkout-session', {
+        tier: nextTier,
+        interval: interval
+      })
+      
+      if (response.data.status === 'success' && response.data.data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.data.url
+      } else {
+        showError('Failed to create checkout session. Please try again.')
+      }
+      
+    } catch (error) {
+      console.error('Upgrade error:', error)
+      showError('Failed to initiate upgrade. Please try again.')
+    }
+  }
+
+  // 🎁 ADDON PURCHASE HANDLER
+  const handleAddonPurchase = async (addonId) => {
+    try {
+      info(`Preparing ${addonId.includes('wins') ? 'wins purchase' : 'team member addon'}...`)
+      
+      // Create addon checkout session
+      const response = await api.post('/api/addons/create-checkout-session', {
+        addon_id: addonId
+      })
+      
+      if (response.data.status === 'success' && response.data.data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.data.url
+      } else {
+        showError('Failed to create checkout session. Please try again.')
+      }
+      
+    } catch (error) {
+      console.error('Addon purchase error:', error)
+      showError('Failed to initiate purchase. Please try again.')
+    }
   }
 
   return (
@@ -1880,7 +2048,7 @@ function PlansTabContent() {
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
-                  You're on Pro
+                  You're on {subscriptionData?.tier ? subscriptionData.tier.charAt(0).toUpperCase() + subscriptionData.tier.slice(1) : 'Pro'}
                 </h3>
                 <div className="bg-white border border-[#71717A] rounded-2xl px-2 py-0.5 flex items-center gap-1">
                   <Crown className="w-3 h-3 text-[#71717A]" />
@@ -1890,10 +2058,14 @@ function PlansTabContent() {
                 </div>
               </div>
               <p className="text-[14px] leading-[20px] text-[#71717a]">
-                Next billing: August 1, 2026
+                {subscriptionData?.currentPeriodEnd ? (
+                  <>Next billing: {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</>
+                ) : (
+                  <>Next billing: --</>
+                )}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <p className="text-[14px] font-medium leading-[20px] text-[#18181b]">
                 Monthly
               </p>
@@ -1909,7 +2081,7 @@ function PlansTabContent() {
                   Save 20%
                 </p>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -1927,19 +2099,33 @@ function PlansTabContent() {
               <p className="text-[16px] font-semibold leading-[24px] text-[#52525b] mb-2">
                 Seats Used
               </p>
-              <div className="flex flex-col gap-2 items-end">
-                <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 1, delay: 0.4 }}
-                    className="h-full bg-[#18181b] rounded-full"
-                  />
+              {loading ? (
+                <div className="flex items-center justify-center h-10">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#18181b]"></div>
                 </div>
-                <p className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  5/5
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${seatData.percentage}%` }}
+                      transition={{ duration: 1, delay: 0.4 }}
+                      className={`h-full rounded-full ${seatData.percentage >= 100
+                        ? 'bg-red-600'
+                        : seatData.percentage >= 80
+                          ? 'bg-yellow-600'
+                          : 'bg-[#18181b]'
+                        }`}
+                    />
+                  </div>
+                  <p className={`text-[14px] font-medium leading-[20px] ${seatData.seatsUsed >= seatData.seatsTotal
+                    ? 'text-red-600'
+                    : 'text-[#52525b]'
+                    }`}>
+                    {seatData.seatsUsed}/{seatData.seatsTotal}
+                  </p>
+                </div>
+              )}
             </motion.div>
 
             {/* AI Wins Card */}
@@ -1952,19 +2138,37 @@ function PlansTabContent() {
               <p className="text-[16px] font-semibold leading-[24px] text-[#52525b] mb-2">
                 AI Wins
               </p>
-              <div className="flex flex-col gap-2 items-end">
-                <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    className="h-full bg-[#18181b] rounded-full"
-                  />
+              {loading ? (
+                <div className="flex items-center justify-center h-10">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#18181b]"></div>
                 </div>
-                <p className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  2000/2000
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: subscriptionData?.currentWinsBalance && subscriptionData?.winsPerMonth
+                          ? `${(subscriptionData.currentWinsBalance / subscriptionData.winsPerMonth) * 100}%`
+                          : '0%'
+                      }}
+                      transition={{ duration: 1, delay: 0.5 }}
+                      className={`h-full rounded-full ${subscriptionData?.currentWinsBalance <= 100
+                        ? 'bg-red-600'
+                        : subscriptionData?.currentWinsBalance <= (subscriptionData?.winsPerMonth * 0.2)
+                          ? 'bg-yellow-600'
+                          : 'bg-[#18181b]'
+                        }`}
+                    />
+                  </div>
+                  <p className={`text-[14px] font-medium leading-[20px] ${subscriptionData?.currentWinsBalance <= 100
+                    ? 'text-red-600'
+                    : 'text-[#52525b]'
+                    }`}>
+                    {subscriptionData?.currentWinsBalance || 0}/{subscriptionData?.winsPerMonth || 0}
+                  </p>
+                </div>
+              )}
             </motion.div>
           </div>
 
@@ -2012,19 +2216,37 @@ function PlansTabContent() {
               <p className="text-[16px] font-semibold leading-[24px] text-[#52525b] mb-2">
                 Brand Guides
               </p>
-              <div className="flex flex-col gap-2 items-end">
-                <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '50%' }}
-                    transition={{ duration: 1, delay: 0.6 }}
-                    className="h-full bg-[#18181b] rounded-l-full"
-                  />
+              {loading ? (
+                <div className="flex items-center justify-center h-10">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#18181b]"></div>
                 </div>
-                <p className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  2/4
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: subscriptionData?.styleGuideCount && subscriptionData?.styleGuideLimit
+                          ? `${(subscriptionData.styleGuideCount / subscriptionData.styleGuideLimit) * 100}%`
+                          : '0%'
+                      }}
+                      transition={{ duration: 1, delay: 0.6 }}
+                      className={`h-full rounded-l-full ${subscriptionData?.styleGuideCount >= subscriptionData?.styleGuideLimit
+                        ? 'bg-red-600'
+                        : subscriptionData?.styleGuideCount >= (subscriptionData?.styleGuideLimit * 0.8)
+                          ? 'bg-yellow-600'
+                          : 'bg-[#18181b]'
+                        }`}
+                    />
+                  </div>
+                  <p className={`text-[14px] font-medium leading-[20px] ${subscriptionData?.styleGuideCount >= subscriptionData?.styleGuideLimit
+                    ? 'text-red-600'
+                    : 'text-[#52525b]'
+                    }`}>
+                    {subscriptionData?.styleGuideCount || 0}/{subscriptionData?.styleGuideLimit || 4}
+                  </p>
+                </div>
+              )}
             </motion.div>
           </div>
         </div>
@@ -2032,6 +2254,7 @@ function PlansTabContent() {
         {/* Footer */}
         <div className="border-t border-[#e4e4e7] p-4 flex items-center justify-end">
           <motion.button
+            onClick={handleUpgrade}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
@@ -2041,14 +2264,117 @@ function PlansTabContent() {
         </div>
       </motion.div>
 
-      {/* Add-Ons Marketplace Section */}
+      {/* 🎁 WINS TOP-UP SECTION */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
         className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-xl overflow-hidden"
       >
-        {/* Section Header */}
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Zap className="w-5 h-5 text-[#18181b]" />
+            <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
+              Top Up Your Wins
+            </h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Quick Win Pack */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white border border-[#e4e4e7] rounded-xl p-6 cursor-pointer hover:border-[#18181b] transition-all"
+              onClick={() => handleAddonPurchase('wins_quick')}
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-yellow-100 border border-[#fee685] rounded-md flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <span className="text-[24px] font-bold text-[#18181b]">$4.99</span>
+                </div>
+                <h4 className="text-[16px] font-semibold text-[#18181b] mb-2">Quick Win Pack</h4>
+                <p className="text-[14px] text-[#71717a] mb-4">25 AI Wins to power your content</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto bg-[#18181b] text-white rounded-md px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Purchase
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Big Win Pack */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white border-2 border-[#18181b] rounded-xl p-6 cursor-pointer relative hover:shadow-lg transition-all"
+              onClick={() => handleAddonPurchase('wins_big')}
+            >
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-[#18181b] text-white text-[12px] font-semibold px-3 py-1 rounded-full">
+                  Popular
+                </span>
+              </div>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-yellow-100 border border-[#fee685] rounded-md flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <span className="text-[24px] font-bold text-[#18181b]">$5.99</span>
+                </div>
+                <h4 className="text-[16px] font-semibold text-[#18181b] mb-2">Big Win Pack</h4>
+                <p className="text-[14px] text-[#71717a] mb-4">50 AI Wins for more creations</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto bg-[#18181b] text-white rounded-md px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Purchase
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Major Win Pack */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-br from-[#fef3c7] to-[#fde68a] border border-[#fee685] rounded-xl p-6 cursor-pointer relative hover:shadow-lg transition-all"
+              onClick={() => handleAddonPurchase('wins_major')}
+            >
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-yellow-600 text-white text-[12px] font-semibold px-3 py-1 rounded-full">
+                  Best Value
+                </span>
+              </div>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-yellow-200 border border-yellow-400 rounded-md flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-700" />
+                  </div>
+                  <span className="text-[24px] font-bold text-[#18181b]">$9.00</span>
+                </div>
+                <h4 className="text-[16px] font-semibold text-[#18181b] mb-2">Major Win Pack</h4>
+                <p className="text-[14px] text-[#71717a] mb-4">100 AI Wins for power users</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto bg-[#18181b] text-white rounded-md px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Purchase
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Add-Ons Marketplace Section */}
+      {/* <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-xl overflow-hidden"
+      >
         <div className="p-6 pb-0">
           <div className="flex flex-col gap-1">
             <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
@@ -2060,11 +2386,8 @@ function PlansTabContent() {
           </div>
         </div>
 
-        {/* Add-Ons Grid */}
         <div className="p-6 space-y-4">
-          {/* First Row */}
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Design Studio Pro */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2104,7 +2427,6 @@ function PlansTabContent() {
               </div>
             </motion.div>
 
-            {/* Strategist+ */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2145,9 +2467,7 @@ function PlansTabContent() {
             </motion.div>
           </div>
 
-          {/* Second Row */}
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Additional AI Wins */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2187,7 +2507,6 @@ function PlansTabContent() {
               </div>
             </motion.div>
 
-            {/* Storage Upgrade */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2228,7 +2547,7 @@ function PlansTabContent() {
             </motion.div>
           </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Add Team Members Section */}
       <motion.div
@@ -2252,6 +2571,7 @@ function PlansTabContent() {
             </div>
           </div>
           <motion.button
+            onClick={() => handleAddonPurchase('team_member')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="bg-white text-[#18181b] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
