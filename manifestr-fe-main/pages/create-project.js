@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import StepperHeader from '../components/create-project/StepperHeader'
 import ToolCard from '../components/create-project/ToolCard'
@@ -18,142 +18,9 @@ import ContextSidebar from '../components/create-project/ContextSidebar'
 import Button from '../components/ui/Button'
 import LogoFooter from '../components/home/LogoFooter'
 import { useToast } from '../components/ui/Toast'
+import { getToolsForPage, CREATE_PROJECT_TOOL_ORDER } from '../data/toolkitTools'
 
-// Tools ordered to match Figma layout:
-// Row 1: THE strategist, THE briefcase, THE analyser, DESIGN studio
-// Row 2: WORDSMITH, THE deck, THE huddle, COST CTRL
-const tools = [
-  // Row 1
-  {
-    id: 'strategist',
-    title: 'THE strategist',
-    subtitle: 'Strategic Planning • Corporate Vision',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
-    outputType: 'presentation',
-    description: {
-      title: 'Strategic Planning Studio',
-      content: `Purpose: Align stakeholders with high-level strategic narratives.
-
-Best For: Quarterly Business Reviews • Corporate Strategy • Vision Decks
-
-Outputs: Comprehensive strategy presentations`,
-      quickTip: 'Upload your strategic pillars - STRATEGIST visualizes them instantly.',
-    },
-  },
-  {
-    id: 'analyser',
-    title: 'THE analyser',
-    subtitle: 'Data Analysis • Insights',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
-    outputType: 'chart',
-    description: {
-      title: 'Data Insight Engine',
-      content: `Purpose: Transform raw data into actionable insights.
-
-Best For: Market Analysis • Performance Tracking • Data Modeling
-
-Outputs: Interactive charts and data visualizations`,
-      quickTip: 'Provide your dataset - ANALYSER builds the model.',
-    },
-  },
-  {
-    id: 'briefcase',
-    title: 'THE briefcase',
-    subtitle: 'Business Reports • Executive Briefs',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
-    outputType: 'document',
-    description: {
-      title: 'Executive Documentation Center',
-      content: `Purpose: Professionalize your business documentation.
-
-Best For: Annual Reports • White Papers • Executive Summaries
-
-Outputs: Structured, professional documents`,
-      quickTip: 'Outline your key points - BRIEFCASE drafts the full report.',
-    },
-  },
-  {
-    id: 'design-studio',
-    title: 'DESIGN studio',
-    subtitle: 'AI Image Generation • Visual Creation',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
-    outputType: 'image',
-    description: {
-      title: 'AI-Powered Image Studio',
-      content: `Purpose: Generate stunning AI images from text descriptions.
-
-Best For: Marketing Visuals • Social Media • Creative Concepts • Product Mockups
-
-Outputs: High-quality AI-generated images ready for editing`,
-      quickTip: 'Describe your vision - DESIGN STUDIO creates it visually.',
-    },
-  },
-  // Row 2
-  {
-    id: 'wordsmith',
-    title: 'WORDSMITH',
-    subtitle: 'Copywriting • Editorial Content',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
-    outputType: 'document',
-    description: {
-      title: 'Editorial Content Creator',
-      content: `Purpose: Craft compelling written content.
-
-Best For: Blog Posts • Articles • Marketing Copy • Newsletters
-
-Outputs: Engaging, well-written articles and posts`,
-      quickTip: 'Give a topic - WORDSMITH writes the article.',
-    },
-  },
-  {
-    id: 'deck',
-    title: 'THE deck',
-    subtitle: 'Pitch Decks • Sales Presentations',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
-    outputType: 'presentation',
-    description: {
-      title: 'Pitch Perfector',
-      content: `Purpose: Win deals and investment.
-
-Best For: Startup Pitches • Sales Decks • Investor Updates
-
-Outputs: Persuasive, high-impact decks`,
-      quickTip: 'Describe your product - THE DECK builds the pitch.',
-    },
-  },
-  {
-    id: 'huddle',
-    title: 'THE huddle',
-    subtitle: 'Meeting Notes • Team Agendas',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
-    outputType: 'document',
-    description: {
-      title: 'Team Collaboration Hub',
-      content: `Purpose: Streamline team communication.
-
-Best For: Meeting Minutes • Project Agendas • Internal Memos
-
-Outputs: Clear, organized team documents`,
-      quickTip: 'Record your meeting - HUDDLE transcribes and summarizes.',
-    },
-  },
-  {
-    id: 'cost-ctrl',
-    title: 'COST CTRL',
-    subtitle: 'Budgets • Financial Planning',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
-    outputType: 'spreadsheet',
-    description: {
-      title: 'Financial Control Center',
-      content: `Purpose: Master your finances with precision.
-
-Best For: Budgeting • Expense Tracking • Financial Forecasting
-
-Outputs: Detailed financial spreadsheets`,
-      quickTip: 'List your expenses - COST CTRL organizes the budget.',
-    },
-  },
-]
+const tools = getToolsForPage(CREATE_PROJECT_TOOL_ORDER)
 
 function getOutputTypeForSelection(selectedTool, selectedDocument) {
   const fallback = selectedTool?.outputType || 'presentation'
@@ -180,6 +47,8 @@ export default function CreateProject() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationId, setGenerationId] = useState(null)
   const [uploadedFiles, setUploadedFiles] = useState([])
+  const toolkitEntryApplied = useRef(false)
+
   const [projectData, setProjectData] = useState({
     // Brief Me Data
     documentName: '',
@@ -224,6 +93,23 @@ export default function CreateProject() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }, [currentStep])
+
+  // Toolkit → Start Now passes ?tool=…; skip duplicate tool-selection step.
+  useEffect(() => {
+    if (!router.isReady || toolkitEntryApplied.current) return
+
+    const rawTool = router.query.tool
+    const toolId = Array.isArray(rawTool) ? rawTool[0] : rawTool
+    if (!toolId || typeof toolId !== 'string') return
+
+    const toolExists = tools.some((t) => t.id === toolId)
+    if (!toolExists) return
+
+    toolkitEntryApplied.current = true
+    setSelectedToolId(toolId)
+    setCurrentStep(2)
+    router.replace('/create-project', undefined, { shallow: true })
+  }, [router.isReady, router.query.tool, router])
 
   useEffect(() => {
     const handleGlobalClick = (e) => {

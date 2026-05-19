@@ -544,7 +544,16 @@ export default function Vault() {
         // =========================
         //  MAP VAULT FILES
         // =========================
-        const vaultItems = (vaultRes?.data || []).map((item) => {
+        const aiJobIds = new Set(aiItems.map((item) => item.id));
+
+        const vaultItems = (vaultRes?.data || [])
+          .filter((item) => {
+            const jobId = item.meta?.generationJobId;
+            // Auto-saved generation copies already appear in recent-generations.
+            if (jobId && aiJobIds.has(jobId)) return false;
+            return true;
+          })
+          .map((item) => {
           let thumbnailUrl = item.thumbnail_url;
 
           if (
@@ -565,11 +574,13 @@ export default function Vault() {
               thumbnailUrl ||
               "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop",
             collaborators: [],
-            lastEdited: item.createdAt
-              ? new Date(item.createdAt).toLocaleDateString()
+            lastEdited: item.created_at
+              ? timeAgo(new Date(item.created_at))
               : "Just now",
             type: item.type,
             isVault: true,
+            generationJobId: item.meta?.generationJobId,
+            rawData: item,
           };
         });
 
@@ -610,11 +621,22 @@ export default function Vault() {
     return "Document";
   };
 
+  const resolveGenerationJob = (card) => {
+    if (!card?.isVault) return card?.rawData;
+    const jobId = card.generationJobId || card.rawData?.meta?.generationJobId;
+    if (!jobId) return null;
+    const outputType =
+      card.rawData?.meta?.outputType || card.type || "document";
+    return { id: jobId, type: outputType };
+  };
+
   // Handle project click - route to appropriate editor
   const handleProjectClick = (card) => {
     if (card?.isDummy) return;
 
-    const project = card.rawData;
+    const project = resolveGenerationJob(card) || card.rawData;
+    if (!project?.id) return;
+
     const type = project?.type ? project.type.toLowerCase() : "document";
 
     console.log("🔍 Opening project:", project.id, "Type:", type);
@@ -1206,13 +1228,7 @@ export default function Vault() {
             <VaultGrid
               cards={documentCards}
               viewMode={viewMode}
-              onCardClick={
-                documentCards.length > 0 &&
-                documentCards[0].hasOwnProperty('isVault') &&
-                documentCards[0].isVault === true
-                  ? undefined
-                  : handleProjectClick
-              }
+              onCardClick={handleProjectClick}
               onPin={handlePin}
               onUpdate={handleUpdate}
             />

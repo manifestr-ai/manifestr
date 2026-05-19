@@ -48,7 +48,7 @@ function EditableField({
                     </div>
                     <button
                         onClick={() => handleEdit(fieldKey, currentValue)}
-                        className="ml-4 p-2 hover:bg-base-muted rounded-md transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className="ml-4 p-2 hover:bg-base-muted rounded-md transition-colors cursor-pointer"
                     >
                         <Pencil className="w-4 h-4 text-base-muted-foreground" />
                     </button>
@@ -69,14 +69,24 @@ function EditableField({
                     </div>
                     <div className="flex gap-2 items-center">
                         <button
-                            onClick={() => handleSave(fieldKey)}
+                            type="button"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleSave(fieldKey)
+                            }}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-[#18181b] text-white rounded-md hover:opacity-90 transition-opacity text-[12px] leading-[18px] font-medium cursor-pointer"
                         >
                             <Check className="w-3.5 h-3.5" />
                             Save
                         </button>
                         <button
-                            onClick={handleCancel}
+                            type="button"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleCancel()
+                            }}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e4e4e7] text-base-foreground rounded-md hover:bg-base-muted transition-colors text-[12px] leading-[18px] font-medium cursor-pointer"
                         >
                             <X className="w-3.5 h-3.5" />
@@ -85,6 +95,27 @@ function EditableField({
                     </div>
                 </div>
             )}
+        </motion.div>
+    )
+}
+
+function ReadOnlyField({ label, value, placeholder = 'Not specified' }) {
+    const displayValue = value || placeholder
+
+    return (
+        <motion.div className="flex items-center px-4 py-4 bg-white border border-[#e4e4e7] rounded-lg">
+            <div className="flex flex-col gap-1 flex-1">
+                <p className="text-[14px] leading-[20px] text-base-muted-foreground+">
+                    {label}
+                </p>
+                <p
+                    className={`text-[14px] leading-[24px] font-medium ${
+                        value ? 'text-base-foreground' : 'text-base-muted-foreground'
+                    }`}
+                >
+                    {displayValue}
+                </p>
+            </div>
         </motion.div>
     )
 }
@@ -170,26 +201,6 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
 
     const data = projectData || {}
 
-    const fieldToSection = {
-        documentName: 'documentOverview',
-        projectBrandName: 'documentOverview',
-        websiteUrl: 'documentOverview',
-        primaryObjective: 'purposeObjectives',
-        keyMessage: 'keyMessage',
-        primaryAudience: 'audienceImpact',
-        think: 'audienceImpact',
-        feel: 'audienceImpact',
-        do: 'audienceImpact',
-        successDefinition: 'kpisSuccess',
-        structure: 'structureOutput',
-        tone: 'structureOutput',
-        dependencies: 'evidenceBenchmarks',
-        approvers: 'evidenceBenchmarks',
-        deliverables: 'deliverablesTimeline',
-        timeline: 'deliverablesTimeline',
-        budget: 'deliverablesTimeline',
-    }
-
     const editingContainerRef = useRef(null)
 
     const toggleSection = (section) => {
@@ -219,13 +230,8 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
     useEffect(() => {
         if (!editingField) return
         const onDocClick = (e) => {
-            if (editingContainerRef.current && editingContainerRef.current.contains(e.target)) return
-            const current = editingField
-            const sectionKey = fieldToSection[current]
-            handleSave(current)
-            if (sectionKey) {
-                setExpandedSections((prev) => ({ ...prev, [sectionKey]: false }))
-            }
+            if (editingContainerRef.current?.contains(e.target)) return
+            handleSave(editingField)
         }
         document.addEventListener('mousedown', onDocClick)
         return () => document.removeEventListener('mousedown', onDocClick)
@@ -248,6 +254,8 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
     }
 
     const toolTitle = selectedTool?.title || 'Project'
+    const documentType =
+        data.selectedDocumentType || data.voiceDocumentType || ''
 
     return (
         <div className="w-full max-w-[1268px] mx-auto px-10 py-10">
@@ -350,6 +358,10 @@ export default function Step5Clarify({ onSkip, projectData, updateProjectData, s
                             fieldKey="documentName"
                             value={data.documentName}
                             {...editableFieldProps}
+                        />
+                        <ReadOnlyField
+                            label="Document Type"
+                            value={documentType}
                         />
                         <EditableField
                             label="Project / Brand Name"
