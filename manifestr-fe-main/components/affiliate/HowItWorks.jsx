@@ -25,6 +25,7 @@ const mobileGradientNum = {
 
 export default function HowItWorks() {
   return (
+    <section className="relative w-full overflow-hidden bg-[#eeede9]">
     <section className="relative w-full overflow-hidden bg-[#f2f2f1] md:bg-[#eeede9]">
       {/* === DESKTOP (md+) — full-width people below a reserved top band (gap above heads); 1440 artboard for UI === */}
       <div className="relative hidden h-[1186px] w-full md:block">
@@ -39,6 +40,7 @@ export default function HowItWorks() {
               className="h-full w-full min-w-full object-cover object-[center_72%]"
             />
           </div>
+
         </div>
 
         <div className="relative z-10 mx-auto h-full w-full max-w-[1440px] overflow-hidden">
@@ -209,7 +211,7 @@ export default function HowItWorks() {
       {/* === MOBILE === */}
       <div className="relative min-h-[1500px] overflow-hidden bg-[#f2f2f1] md:hidden">
         {/* People — full width; start lower so intro + steps keep space above heads */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[36%] z-0 min-h-[360px] overflow-hidden">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[36%] z-0 overflow-hidden min-h-[360px]">
           <CldImage
             alt=""
             src={PEOPLE_IMG_MOBILE}
@@ -220,6 +222,15 @@ export default function HowItWorks() {
           <div
             aria-hidden
             className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#f2f2f1] to-transparent"
+          />
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center bg-[#f2f2f1] px-6 py-[48px]">
+          />
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center px-6 py-[48px]">
+
           />
         </div>
 

@@ -97,7 +97,7 @@ export default function ToolsGrid() {
 
   return (
     <section className="relative w-full min-w-0 overflow-hidden bg-[#e9e9ea]">
-      {/* Desktop hero image — left column behind the tools grid */}
+      {/* Desktop hero image */}
       <div
         aria-hidden="true"
         className="hidden lg:block absolute inset-y-0 left-0 w-full max-w-[720px] overflow-hidden pointer-events-none "

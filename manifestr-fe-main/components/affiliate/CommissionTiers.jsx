@@ -78,9 +78,10 @@ export default function CommissionTiers() {
       <div className="absolute inset-0">
         <CldImage src={MARBLE_BG} alt="" className="h-full w-full object-cover opacity-[0.39]" />
       </div>
+      
+      <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px]">
+        {/* Heading */}
 
-      <div className="relative mx-auto max-w-[1440px] px-6 md:px-[80px]">
-        {/* Figma 12075:28036 — mobile heading gap 12px, cards gap 40px below */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -100,8 +101,12 @@ export default function CommissionTiers() {
           </p>
         </motion.div>
 
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 md:items-stretch gap-[16px] md:gap-[20px]">
+
         {/* Figma 12075:28043 — cards 342×191, gap 16px */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-stretch md:gap-5">
+
           {TIERS.map((tier, i) => (
             <motion.div
               key={tier.badge}
@@ -109,6 +114,55 @@ export default function CommissionTiers() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.5 }}
+              className="flex h-full min-h-0 flex-col bg-white border border-[#e4e4e7] rounded-[14px] md:rounded-[12px] p-[25px] md:p-[43px] shadow-sm"
+            >
+              {/* Badge */}
+              <div
+                className="flex h-[40px] shrink-0 items-center justify-center self-start rounded-full bg-black px-[16px] text-white md:h-[44px] md:px-[32px]"
+              >
+                <span
+                  className="text-[16px] leading-none md:text-[24px]"
+                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+                >
+                  <span className="md:hidden">{tier.label}</span>
+                  <span className="hidden md:inline">{tier.badge}</span>
+                </span>
+              </div>
+
+              {/* Spacer so commission row + range sit at same vertical band across cards (md+) */}
+              <div className="min-h-[17px] flex-1 md:min-h-[30px]" aria-hidden />
+
+              {/* One line: 40 % Commissions — never wrap (narrow cards were stacking “Commissions”) */}
+              <div className="flex min-w-0 flex-col gap-0">
+                <div className="flex flex-nowrap items-baseline whitespace-nowrap">
+                  <span className="inline-flex shrink-0 items-baseline">
+                    <span
+                      className="text-[48px] leading-none tracking-[-0.96px] text-black md:text-[72px] md:tracking-[-1.44px]"
+                      style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+                    >
+                      {tier.pct}
+                    </span>
+                    <span
+                      className="text-[24px] leading-none tracking-[-0.48px] text-black md:text-[32px] md:tracking-[-0.64px]"
+                      style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+                    >
+                      %
+                    </span>
+                  </span>
+                  <span
+                    className="ml-[10px] shrink-0 text-[18px] leading-none text-black md:ml-[10px] md:text-[24px]"
+                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
+                  >
+                    Commissions
+                  </span>
+                </div>
+
+                <p
+                  className="mt-4 text-[16px] leading-[20px] text-[#18181b] md:mt-5 md:text-[18px] md:leading-[18px]"
+                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+                >
+                  {tier.range}
+                </p>
               className="flex h-[191px] flex-col border border-[#e4e4e7] bg-white p-[25px] shadow-sm rounded-[14px] md:h-auto md:min-h-0 md:rounded-[12px] md:p-[43px]"
             >
               {/* Figma 12075:28071 — badge + content gap 17px */}

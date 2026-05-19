@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 export default function WhoWeAre() {
@@ -16,7 +16,7 @@ export default function WhoWeAre() {
           WHO WE ARE
         </motion.p>
 
-        {/* Figma 12072:50381 — two lines: title case; IvyPresto italic on “Professional” */}
+
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

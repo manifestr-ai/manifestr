@@ -159,6 +159,10 @@ export default function Glossary() {
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <CldImage src={HERO_BG} alt="" className="absolute h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/20" />
+      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+          <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/30" />
         </div>
 
         <motion.div
@@ -215,6 +219,14 @@ export default function Glossary() {
               Enter MANIFESTR
             </Link>
           </div>
+          </div>
+          <Link
+            href="/signup"
+            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Enter MANIFESTR
+          </Link>
         </motion.div>
       </section>
 

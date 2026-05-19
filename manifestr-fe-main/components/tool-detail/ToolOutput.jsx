@@ -1,11 +1,9 @@
-import { useCallback, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CldImage from '../ui/ToolkitCldImage'
 
 /**
- * Reference: see_the_calibre_section PNG + Figma 12468:22109/22110 (desktop).
- * Mobile: Figma 13643:24890.
+ * Reference: see_the_calibre_section PNG + Figma 12468:22109/22110.
+ * Fixed tile widths (px) per row — sums + 3×COL_GAP = GRID_W for each row.
  */
 const COL_GAP = 18
 const ROW_GAP = 18
@@ -14,6 +12,7 @@ const GRID_H = 608
 const TILE_RADIUS = 4
 /** Middle row shifts left (toward copy) after parent -rotate-30 */
 const MIDDLE_ROW_SHIFT_X = -104
+const MIDDLE_ROW_SHIFT_X_MOBILE = -40
 
 const IMAGE_ROWS = [
   [
@@ -40,7 +39,8 @@ const IMAGE_ROWS = [
 const OUTPUT_SECTION_BY_SLUG = {
   strategist: {
     middleLine: 'The Strategist',
-    body: 'Forget generic strategy outputs. Strategy, held to a higher standard. The Strategist creates structured, decision-ready documents designed for real execution. Every insight is refined, defensible, and built to perform under scrutiny. Curious? See it in action.',
+    body:
+      'Forget generic strategy outputs. This is a higher standard of strategic work. The Strategist produces structured, decision-ready documents designed for real execution. Every insight is clear, refined, and built to hold up under scrutiny. Curious? Explore the work.',
   },
   deck: {
     middleLine: 'The Deck',
@@ -105,6 +105,133 @@ const ivyCalibre = {
 }
 const inter = { fontFamily: 'Inter, sans-serif' }
 
+/** Figma 12468:22111 — copy stack (left inset tightened vs Figma 74px) */
+const COPY = {
+  leftPx: 32,
+  /** Wide enough for line 2: "{tool} delivers" on one physical line */
+  columnMaxPx: 720,
+  /** Line 1: "The Calibre of Output" */
+  titleLine1MaxPx: 555,
+  /** Figma body width */
+  bodyWidthPx: 513,
+  /** gap between title / body / button row */
+  stackGapPx: 24,
+}
+
+/**
+ * Figma 12468:22110 — rotated collage; absolute frame clips off viewport edges.
+ */
+function OutputImageGrid() {
+  return (
+    <div
+      className="pointer-events-none absolute hidden md:flex items-center justify-center"
+      style={{
+        width: '1260px',
+        height: '1080px',
+        right: '-380px',
+        top: '-348px',
+      }}
+      aria-hidden
+    >
+      <div
+        className="-rotate-30 flex-none"
+        style={{ width: `${GRID_W}px`, height: `${GRID_H}px` }}
+      >
+        <div
+          className="flex h-full w-full flex-col"
+          style={{ gap: `${ROW_GAP}px` }}
+        >
+          {IMAGE_ROWS.map((row, ri) => (
+            <div
+              key={ri}
+              className={`flex min-h-0 flex-1 flex-row ${ri === 1 ? 'relative z-10' : 'relative z-0'}`}
+              style={{
+                gap: `${COL_GAP}px`,
+                transform: ri === 1 ? `translateX(${MIDDLE_ROW_SHIFT_X}px)` : undefined,
+              }}
+            >
+              {row.map((tile, ci) => (
+                <div
+                  key={`${ri}-${ci}`}
+                  className="min-h-0 shrink-0 overflow-hidden"
+                  style={{
+                    width: `${tile.w}px`,
+                    height: '100%',
+                    borderRadius: `${TILE_RADIUS}px`,
+                  }}
+                >
+                  <CldImage
+                    src={tile.src}
+                    alt=""
+                    className="size-full object-cover"
+                    style={{ filter: 'grayscale(100%)' }}
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Mobile: proportional scale of the same grid math */
+function OutputImageGridMobile() {
+  const scale = 0.52
+  const mw = Math.round(GRID_W * scale)
+  const mh = Math.round(GRID_H * scale)
+  const gx = Math.round(COL_GAP * scale)
+  const gy = Math.round(ROW_GAP * scale)
+  const r = Math.max(2, Math.round(TILE_RADIUS * scale))
+
+  return (
+    <div
+      className="relative mx-[-16px] h-[220px] overflow-hidden md:hidden"
+      aria-hidden
+    >
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          className="-rotate-30 flex-none"
+          style={{ width: `${mw}px`, height: `${mh}px` }}
+        >
+          <div className="flex h-full w-full flex-col" style={{ gap: `${gy}px` }}>
+            {IMAGE_ROWS.map((row, ri) => (
+              <div
+                key={ri}
+                className={`flex min-h-0 flex-1 flex-row ${ri === 1 ? 'relative z-10' : 'relative z-0'}`}
+                style={{
+                  gap: `${gx}px`,
+                  transform:
+                    ri === 1 ? `translateX(${MIDDLE_ROW_SHIFT_X_MOBILE}px)` : undefined,
+                }}
+              >
+                {row.map((tile, ci) => (
+                  <div
+                    key={`${ri}-${ci}`}
+                    className="min-h-0 shrink-0 overflow-hidden"
+                    style={{
+                      width: `${Math.round(tile.w * scale)}px`,
+                      height: '100%',
+                      borderRadius: `${r}px`,
+                    }}
+                  >
+                    <CldImage
+                      src={tile.src}
+                      alt=""
+                      className="size-full object-cover"
+                      style={{ filter: 'grayscale(100%)' }}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+=======
 /** Figma 12468:22111 — copy stack (left inset tightened vs Figma 74px) */
 const COPY = {
   leftPx: 32,
@@ -355,6 +482,52 @@ export default function ToolOutput({ tool }) {
               </em>
               <span style={hk700}> of Output</span>
             </span>
+    <section className="w-full overflow-hidden bg-[#f4f4f5]">
+      <div
+        className="relative mx-auto min-h-[400px] w-full max-w-[1440px] md:min-h-[680px]"
+      >
+        <OutputImageGrid />
+
+        <div className="relative z-10 px-5 py-14 sm:px-8 md:px-0 md:py-0">
+          <div
+            className="hidden md:flex md:flex-col"
+            style={{
+              position: 'absolute',
+              left: `${COPY.leftPx}px`,
+              top: '50%',
+              transform: 'translateY(50%)',
+              maxWidth: `${COPY.columnMaxPx}px`,
+              gap: `${COPY.stackGapPx}px`,
+            }}
+          >
+            <h2 className="shrink-0 text-[60px] leading-[62px] tracking-[-1.2px] text-black" style={hk700}>
+              <span className="block" style={{ maxWidth: `${COPY.titleLine1MaxPx}px` }}>
+                <span style={hk700}>The </span>
+                <em className="not-italic" style={ivyCalibre}>
+                  Calibre
+                </em>
+                <span style={hk700}> of Output</span>
+              </span>
+              <span className="block whitespace-nowrap" style={hk700}>
+                {middleLine} delivers
+              </span>
+            </h2>
+
+            <p
+              className={`shrink-0 text-[18px] font-normal leading-[28px] text-[#52525b] ${body.includes('\n') ? 'whitespace-pre-line' : ''}`}
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                width: `${COPY.bodyWidthPx}px`,
+                maxWidth: '100%',
+              }}
+            >
+              {body}
+            </p>
+
+            <Link
+              href="/signup"
+              className="inline-flex h-11 w-fit shrink-0 items-center justify-start rounded-md bg-[#18181b] px-5 text-left text-[14px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a] whitespace-nowrap"
+              style={{ fontFamily: 'Inter, sans-serif' }}
             <span className="block" style={hk700}>
               {line2}
             </span>

@@ -18,35 +18,33 @@ export default function HeroSection() {
         />
       </div>
 
-      {/* ── Mobile text — centred stack over the image ── */}
-      <div className="md:hidden absolute inset-0 flex flex-col items-center justify-center pt-[60px]">
-        <motion.p
+      {/* ── Mobile text — Figma 12622:22980; tight stack (no oversized line-box gaps) ── */}
+      <div className="md:hidden absolute inset-0 flex items-center justify-center pt-[60px]">
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="text-white font-bold uppercase text-[48px] leading-[60px] tracking-[-0.96px]"
-          style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
+          className="flex flex-col items-center text-center text-white"
         >
-          ELEVATE
-        </motion.p>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.12 }}
-          className="text-white italic text-[62px] leading-[75px] tracking-[-1.23px]"
-          style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
-        >
-          your
-        </motion.p>
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          className="text-white font-bold uppercase text-[69px] leading-[50px] tracking-[5.48px]"
-          style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
-        >
-          GAME
-        </motion.p>
+          <span
+            className="font-bold uppercase text-[48px] leading-none tracking-[-0.96px]"
+            style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
+          >
+            ELEVATE
+          </span>
+          <span
+            className="-mt-1 italic text-[62px] leading-none tracking-[-1.23px]"
+            style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600 }}
+          >
+            your
+          </span>
+          <span
+            className="-mt-0.5 font-bold uppercase text-[69px] leading-none tracking-[5.48px]"
+            style={{ fontFamily: "'Hanken Grotesk', sans-serif" }}
+          >
+            GAME
+          </span>
+        </motion.h1>
       </div>
 
       {/* ── Desktop text — positioned around the image ── */}

@@ -7,6 +7,9 @@ const SAND_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351370/S
 const SUBCOPY =
   'Pick the plan that fits your needs and start boosting your productivity today. No risk, just results.'
 
+const SUBCOPY =
+  'Pick the plan that fits your needs and start boosting your productivity today. No risk, just results.'
+
 export default function AffiliateGetStarted() {
   return (
     <section className="relative min-h-[414px] w-full overflow-hidden" aria-label="Get started">
