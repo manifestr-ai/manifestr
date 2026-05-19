@@ -72,99 +72,109 @@ export default function VaultCard({
   };
 
   const statusBgColors = {
-    "In Progress": "bg-[#dbeafe]",
-    "In Review": "bg-[#fef3c7]",
-    Final: "bg-[#d1fae5]",
-    Draft: "bg-[#f4f4f5]",
+    "In Progress": "bg-[#dbeafe] border-[#bfdbfe]",
+    "In Review": "bg-[#fef3c7] border-[#fde68a]",
+    Final: "bg-[#dcfce7] border-[#bbf7d0]",
+    Draft: "bg-[#f4f4f5] border-[#e4e4e7]",
+    Archived: "bg-[#f3e8ff] border-[#e9d4ff]",
   };
 
   const statusTextColors = {
     "In Progress": "text-[#1e40af]",
     "In Review": "text-[#92400e]",
-    Final: "text-[#065f46]",
+    Final: "text-[#166534]",
     Draft: "text-[#71717a]",
+    Archived: "text-[#8200db]",
   };
 
   // Default image from the description - woman working on laptop
   const defaultImage =
     "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=430&h=246&fit=crop";
   const cardImage = card.thumbnail || defaultImage;
-  const ActionBtn = ({ icon, onClick }) => (
+  const ListActionBtn = ({ icon, onClick }) => (
     <button
-      onClick={onClick}
-      className="w-10 h-10 rounded-xl bg-white border border-[#e4e4e7] flex items-center justify-center shadow-sm hover:bg-[#f4f4f5] transition"
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+      }}
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/95 shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_0px_rgba(0,0,0,0.1)] transition-colors hover:bg-white"
     >
       {icon}
     </button>
   );
+
+  const projectLabel = card.project?.startsWith("Project:")
+    ? card.project
+    : `Project: ${card.project || "Unassigned"}`;
+
   if (viewMode === "list") {
+    const statusLabel = card.collaboratorName || card.status;
     return (
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, delay: index * 0.04 }}
         onClick={onClick}
-        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 rounded-2xl bg-[#ffffff] transition-all cursor-pointer mb-4 hover:shadow-lg w-full"
+        className="group flex w-full cursor-pointer items-stretch"
       >
-        {/* IMAGE */}
-        <div className="relative w-full sm:w-[240px] h-[180px] sm:h-[120px] rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none overflow-hidden shrink-0">
+        {/* Thumbnail — Figma node 10137:15573 */}
+        <div className="relative min-h-[104px] w-[225px] shrink-0 self-stretch overflow-hidden rounded-l-xl">
           {!imageError ? (
             <img
               src={cardImage}
               alt={card.title}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#f4f4f5] to-[#e4e4e7]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#f4f4f5] to-[#e4e4e7]" />
           )}
 
-          {/* STATUS BADGE */}
-          {card.status && (
-            <div className="absolute bottom-3 left-3">
+          {statusLabel && (
+            <div className="absolute bottom-2 left-2">
               <span
-                className={`px-3 py-1 rounded-full text-[12px] font-medium shadow-sm ${
-                  card.status === "Final"
-                    ? "bg-[#dcfce7] text-[#166534]"
-                    : "bg-[#e4e4e7] text-[#52525b]"
+                className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-[11px] font-semibold leading-[16.5px] tracking-[0.0645px] ${
+                  card.collaboratorName
+                    ? `${getCollaboratorBadgeColor(card.collaboratorName)} ${getCollaboratorTextColor(card.collaboratorName)} border-transparent`
+                    : `${statusBgColors[card.status] || "bg-[#dcfce7] border-[#bbf7d0]"} ${statusTextColors[card.status] || "text-[#166534]"}`
                 }`}
               >
-                {card.status}
+                {statusLabel}
               </span>
             </div>
           )}
         </div>
 
-        {/* CONTENT */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center px-3 py-2">
-          <h3 className="text-[16px] sm:text-[18px] font-semibold text-[#18181b] leading-[22px] sm:leading-[24px] mb-1 line-clamp-2 break-words mb-2">
-            {card.title}
-          </h3>
+        {/* Content panel — Figma node 10137:15576 */}
+        <div className="flex min-w-0 flex-1 flex-col gap-3 rounded-r-xl bg-white p-4 shadow-[0px_8px_8px_rgba(22,34,51,0.08)] transition-shadow group-hover:shadow-[0px_8px_16px_rgba(22,34,51,0.12)]">
+          <div className="flex w-full items-center justify-between gap-4">
+            <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold leading-[22.5px] tracking-[-0.2344px] text-[#09090b]">
+              {card.title}
+            </h3>
 
-          <p className="text-[13px] sm:text-[14px] text-[#3f3f46] mb-2 line-clamp-1 break-words mb-2">
-            Project: {card.project}
+            <div className="flex shrink-0 items-center gap-1">
+              <ListActionBtn icon={<FileText className="h-4 w-4 text-[#18181b]" />} />
+              <ListActionBtn icon={<Pencil className="h-4 w-4 text-[#18181b]" />} />
+              <ListActionBtn icon={<Share2 className="h-4 w-4 text-[#18181b]" />} />
+              <ListActionBtn icon={<Download className="h-4 w-4 text-[#18181b]" />} />
+              <ListActionBtn
+                icon={<MoreVertical className="h-4 w-4 text-[#18181b]" />}
+                onClick={() => setShowActionsModal(true)}
+              />
+            </div>
+          </div>
+
+          <p className="text-[12px] font-normal leading-[18px] text-[#18181b]">
+            {projectLabel}
           </p>
 
           {card.lastEdited && (
-            <p className="text-[12px] sm:text-[13px] text-[#a1a1aa] italic">
-              Last edited: {card.lastEdited}
+            <p className="text-[10px] font-normal italic leading-[18px] text-[#71717b]">
+              <span>Last edited: </span>
+              <span className="tracking-[-0.0762px]">{card.lastEdited}</span>
             </p>
           )}
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex items-center gap-2 px-3 sm:pr-2 mt-2 mb-2 sm:mt-4 sm:mr-2 self-end sm:self-start">
-          <ActionBtn icon={<FileText className="w-4 h-4" />} />
-          <ActionBtn icon={<Pencil className="w-4 h-4" />} />
-          <ActionBtn icon={<Share2 className="w-4 h-4" />} />
-          <ActionBtn icon={<Download className="w-4 h-4" />} />
-          <ActionBtn
-            icon={<MoreVertical className="w-4 h-4" />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowActionsModal(true);
-            }}
-          />
         </div>
 
         <DocumentActionsModal

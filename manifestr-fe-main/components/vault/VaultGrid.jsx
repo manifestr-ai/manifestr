@@ -55,7 +55,7 @@ export default function VaultGrid({ cards, showTitle = true, title = 'All Docume
 <div
   className={
     viewMode === "list"
-      ? "flex flex-col gap-0 mb-6 overflow-hidden"
+      ? "mb-6 flex flex-col gap-4"
       : "grid gap-6 mb-6 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]"
   }
 >

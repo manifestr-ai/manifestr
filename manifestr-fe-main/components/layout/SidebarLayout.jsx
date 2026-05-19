@@ -20,7 +20,7 @@ export default function SidebarLayout({ children }) {
             animate={{ width: 273, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden hidden md:block" // Hide on mobile, use overlay if needed later or assume it's hidden
+            className="hidden md:block shrink-0 self-start sticky top-[72px] z-30 h-[calc(100vh-72px)]"
           >
             <CollabHubSidebar />
           </motion.div>
@@ -35,7 +35,7 @@ export default function SidebarLayout({ children }) {
             animate={{ width: 273, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden hidden md:block"
+            className="hidden md:block shrink-0 self-start sticky top-[72px] z-30 h-[calc(100vh-72px)]"
           >
             <VaultSidebar />
           </motion.div>
@@ -52,7 +52,7 @@ export default function SidebarLayout({ children }) {
               animate={{ width: 240, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="hidden md:block relative z-20"
+              className="hidden md:block shrink-0 self-start sticky top-[72px] z-20 h-[calc(100vh-72px)]"
             >
               <CollabsFolderSidebar />
             </motion.div>

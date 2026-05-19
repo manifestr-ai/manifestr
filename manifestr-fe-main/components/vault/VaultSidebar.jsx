@@ -148,7 +148,7 @@ export default function VaultSidebar() {
   };
 
   return (
-    <div className="w-[273px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
+    <motion.div className="w-[273px] bg-white border-r border-[#e4e4e7] h-full max-h-[calc(100vh-72px)] flex flex-col overflow-y-auto">
       <div className="p-3">
         {/* The Vault Dropdown */}
         <motion.div
@@ -301,6 +301,6 @@ export default function VaultSidebar() {
           })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

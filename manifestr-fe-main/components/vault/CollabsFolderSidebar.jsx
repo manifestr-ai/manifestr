@@ -89,7 +89,7 @@ export default function CollabsFolderSidebar() {
   return (
     <>
       <div className="relative w-[240px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
-        <div className="fixed h-full w-[240px] bg-white border-r border-[#e4e4e7] flex flex-col z-40">
+        <motion.div className="h-full w-[240px] bg-white border-r border-[#e4e4e7] flex flex-col overflow-y-auto">
    
           <button
             type="button"
@@ -155,7 +155,7 @@ export default function CollabsFolderSidebar() {
               New Folder
             </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {showModal && (

@@ -43,7 +43,7 @@ export default function CollabHubSidebar() {
   }
 
   return (
-    <div className="w-[273px] bg-white border-r border-[#e4e4e7] h-full flex flex-col">
+    <div className="w-[273px] bg-white border-r border-[#e4e4e7] h-full flex flex-col overflow-y-auto">
       <div className="p-3">
         {/* THE VAULT Dropdown */}
         <motion.div
