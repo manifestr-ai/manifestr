@@ -78,6 +78,7 @@ interface ChartEditorProps {
   onStoreReady?: (store: any) => void;
   onActiveToolChange?: (tool: string | null) => void;
   onDownloadReady?: (downloadFn: () => void) => void;
+  onActiveUsersChange?: (users: any[]) => void;
 }
 
 type TextAlign = "left" | "center" | "right";
@@ -127,6 +128,7 @@ export default function ChartEditor({
   onStoreReady,
   onActiveToolChange,
   onDownloadReady,
+  onActiveUsersChange,
 }: ChartEditorProps) {
   const router = useRouter();
   const chartRef = useRef<any>(null);
@@ -1362,6 +1364,10 @@ export default function ChartEditor({
     return () => clearInterval(interval);
   }, [generationId]);
 
+  useEffect(() => {
+    onActiveUsersChange?.(activeUsers);
+  }, [activeUsers, onActiveUsersChange]);
+
   // Y.js provider setup
   useEffect(() => {
     if (!generationId || !currentUser?.id) return;
@@ -2417,44 +2423,8 @@ export default function ChartEditor({
         </div>
       )}
 
-      {/* Active Users Bar */}
-      {activeUsers.length > 0 && (
-        <div className="absolute top-0 left-0 right-0 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between z-50">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-blue-900">
-              {activeUsers.length} editing now:
-            </span>
-            <div className="flex -space-x-2">
-              {activeUsers.map((user) => (
-                <div
-                  key={user.user_id}
-                  className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-white shadow-sm"
-                  style={{ backgroundColor: user.user_color || "#3b82f6" }}
-                  title={
-                    user.users
-                      ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                        user.users.email
-                      : "User"
-                  }
-                >
-                  {(user.users
-                    ? `${user.users.first_name || ""} ${user.users.last_name || ""}`.trim() ||
-                      user.users.email
-                    : user.users?.email || "U")[0].toUpperCase()}
-                </div>
-              ))}
-            </div>
-          </div>
-          <span className="text-xs text-blue-700">
-            Changes sync automatically
-          </span>
-        </div>
-      )}
-
       {/* Main Chart Canvas Area */}
-      <div
-        className={`flex-1 flex items-center justify-center bg-[#e7e7e7] overflow-hidden ${activeUsers.length > 0 ? "pt-12" : ""}`}
-      >
+      <div className="flex-1 flex items-center justify-center bg-[#e7e7e7] overflow-hidden">
         <div className="w-full h-full max-w-6xl p-8">
           <div
             className="bg-white rounded-2xl shadow-lg p-10 h-full flex flex-col"

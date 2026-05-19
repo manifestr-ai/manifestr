@@ -15,6 +15,7 @@ import DeleteAccountModal from '../components/ui/DeleteAccountModal'
 import LogoutModal from '../components/ui/LogoutModal'
 import { normalizeUrl } from '../utils/url'
 import { trackAiStyleSettingSelected } from '../lib/productAnalytics'
+import api from '../lib/api'
 
 const tabs = ['General', 'Profile', 'Team', 'Plans', 'Billings', 'Security']
 
@@ -24,6 +25,17 @@ export default function Settings() {
   const { refreshProfile } = useAuth()
   const [activeTab, setActiveTab] = useState('General')
   const [workspaceSubTab, setWorkspaceSubTab] = useState('Notifications')
+
+  // Handle tab from URL query parameter
+  useEffect(() => {
+    if (router.query.tab) {
+      const tabFromQuery = router.query.tab
+      // Check if the tab is valid
+      if (tabs.includes(tabFromQuery)) {
+        setActiveTab(tabFromQuery)
+      }
+    }
+  }, [router.query.tab])
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -886,9 +898,11 @@ const INITIAL_TEAM_MEMBERS = [
 
 // Team Tab Component
 function TeamTabContent() {
+  const { success, error: showError } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedUsers, setSelectedUsers] = useState(['phoenix'])
-  const [members, setMembers] = useState(() => INITIAL_TEAM_MEMBERS.map((m) => ({ ...m })))
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [members, setMembers] = useState([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(true)
   const [bulkAssignRole, setBulkAssignRole] = useState('Editor')
   const [showBulkRoleDropdown, setShowBulkRoleDropdown] = useState(false)
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
@@ -902,12 +916,124 @@ function TeamTabContent() {
   const [showRoleModalDropdown, setShowRoleModalDropdown] = useState(false)
   const [selectedCollabs, setSelectedCollabs] = useState(['collab1', 'collab4'])
   const [emailInput, setEmailInput] = useState('')
+  
+  // New states for action modals
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false)
+  const [showViewDetailsModal, setShowViewDetailsModal] = useState(false)
+  const [showRemoveModal, setShowRemoveModal] = useState(false)
+  const [selectedMember, setSelectedMember] = useState(null)
+
+  // Seat usage state
+  const [seatUsage, setSeatUsage] = useState({
+    seatsUsed: 0,
+    seatsTotal: 0,
+    percentage: 0,
+    giftedSeats: 0,
+    pendingInvites: 0
+  })
 
   const bulkRoleDropdownRef = useRef(null)
   const roleDropdownRef = useRef(null)
   const statusDropdownRef = useRef(null)
   const roleModalDropdownRef = useRef(null)
   const modalRef = useRef(null)
+
+  // Fetch team members and seat usage on mount
+  useEffect(() => {
+    fetchTeamData()
+  }, [])
+
+  const fetchTeamData = async () => {
+    try {
+      setIsLoadingMembers(true)
+
+      console.log('🔍 Fetching team data...')
+
+      // Fetch both seat usage and team members in parallel
+      const [seatUsageRes, teamMembersRes] = await Promise.all([
+        api.get('/api/subscriptions/seat-usage'),
+        api.get('/api/subscriptions/team-members')
+      ])
+
+      console.log('✅ Seat usage response:', seatUsageRes.data)
+      console.log('✅ Team members response:', teamMembersRes.data)
+
+      // Update seat usage
+      if (seatUsageRes.data?.status === 'success') {
+        const data = seatUsageRes.data.data
+        setSeatUsage({
+          seatsUsed: data.seatsUsed || 0,
+          seatsTotal: data.seatsTotal || 0,
+          percentage: data.percentage || 0,
+          giftedSeats: 0, // Can be extended if needed
+          pendingInvites: 0 // Will be calculated from members
+        })
+      }
+
+      // Update team members
+      if (teamMembersRes.data?.status === 'success') {
+        const teamData = teamMembersRes.data.data
+        console.log('📊 Raw team data:', teamData)
+        console.log('📊 Members array:', teamData.members)
+        
+        const formattedMembers = teamData.members.map(member => {
+          console.log('📊 Formatting member:', member)
+          return {
+            id: member.id,
+            name: member.name || member.email,
+            email: member.email,
+            role: capitalizeRole(member.role),
+            status: member.status === 'pending' ? 'Pending' : 'Active',
+            collabs: member.collabs || 0,
+            lastActive: formatLastActive(member.lastActive),
+            avatar: member.avatar || '/assets/dummy/avatar.png'
+          }
+        })
+        
+        console.log('✅ Formatted members:', formattedMembers)
+        setMembers(formattedMembers)
+
+        // Update pending invites count
+        setSeatUsage(prev => ({
+          ...prev,
+          pendingInvites: teamData.summary?.pendingInvites || 0,
+          giftedSeats: teamData.summary?.giftedSeats || 0
+        }))
+      } else {
+        console.log('❌ Team members response not successful:', teamMembersRes.data)
+      }
+
+    } catch (err) {
+      console.error('❌ Error fetching team data:', err)
+      console.error('❌ Error response:', err.response?.data)
+      console.error('❌ Error status:', err.response?.status)
+      showError('Failed to load team data')
+    } finally {
+      setIsLoadingMembers(false)
+    }
+  }
+
+  const capitalizeRole = (role) => {
+    if (!role) return 'Viewer'
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+  }
+
+  const formatLastActive = (lastActive) => {
+    if (!lastActive) return 'Never'
+
+    const date = new Date(lastActive)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) return `${diffMins} mins ago`
+    if (diffHours < 24) return `${diffHours} hours ago`
+    if (diffDays < 7) return `${diffDays} days ago`
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
 
   const filteredMembers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
@@ -917,9 +1043,9 @@ function TeamTabContent() {
         m.name.toLowerCase().includes(q) ||
         m.email.toLowerCase().includes(q)
       const matchesRole =
-        selectedRoleFilter === 'All roles' || m.role === selectedRoleFilter
+        selectedRoleFilter === 'All Roles' || m.role === selectedRoleFilter
       const matchesStatus =
-        selectedStatusFilter === 'All statuses' || m.status === selectedStatusFilter
+        selectedStatusFilter === 'Status' || m.status === selectedStatusFilter
       return matchesSearch && matchesRole && matchesStatus
     })
   }, [members, searchQuery, selectedRoleFilter, selectedStatusFilter])
@@ -941,6 +1067,57 @@ function TeamTabContent() {
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     )
+  }
+
+  const handleEditRole = (member) => {
+    setSelectedMember(member)
+    setSelectedRole(member.role)
+    setShowEditRoleModal(true)
+    setShowActionsMenu(null)
+  }
+
+  const handleViewDetails = (member) => {
+    setSelectedMember(member)
+    setShowViewDetailsModal(true)
+    setShowActionsMenu(null)
+  }
+
+  const handleRemove = (member) => {
+    setSelectedMember(member)
+    setShowRemoveModal(true)
+    setShowActionsMenu(null)
+  }
+
+  const confirmRemove = async () => {
+    try {
+      // TODO: Add API call to remove member
+      // await api.delete(`/api/subscriptions/team-members/${selectedMember.id}`)
+      
+      setMembers(prev => prev.filter(m => m.id !== selectedMember.id))
+      success('Team member removed successfully')
+      setShowRemoveModal(false)
+      setSelectedMember(null)
+    } catch (err) {
+      console.error('Error removing member:', err)
+      showError('Failed to remove team member')
+    }
+  }
+
+  const updateMemberRole = async () => {
+    try {
+      // TODO: Add API call to update role
+      // await api.put(`/api/subscriptions/team-members/${selectedMember.id}/role`, { role: selectedRole })
+      
+      setMembers(prev => prev.map(m => 
+        m.id === selectedMember.id ? { ...m, role: selectedRole } : m
+      ))
+      success('Member role updated successfully')
+      setShowEditRoleModal(false)
+      setSelectedMember(null)
+    } catch (err) {
+      console.error('Error updating role:', err)
+      showError('Failed to update member role')
+    }
   }
 
   useEffect(() => {
@@ -1040,7 +1217,7 @@ function TeamTabContent() {
                   Seat Usage
                 </span>
                 <span className="text-[20px] font-semibold leading-[30px] text-[#18181b]">
-                  8 of 10 seats
+                  {seatUsage.seatsUsed} of {seatUsage.seatsTotal} seats
                 </span>
               </div>
 
@@ -1063,7 +1240,7 @@ function TeamTabContent() {
                       strokeDasharray={`${Math.PI * 32} ${2 * Math.PI * 32}`}
                       strokeDashoffset={0}
                     />
-                    {/* Used half-circle (80%) */}
+                    {/* Used half-circle */}
                     <circle
                       cx="40"
                       cy="40"
@@ -1073,7 +1250,7 @@ function TeamTabContent() {
                       strokeWidth="8"
                       strokeLinecap="round"
                       strokeDasharray={`${Math.PI * 32} ${2 * Math.PI * 32}`}
-                      strokeDashoffset={Math.PI * 32 * (1 - 0.8)}
+                      strokeDashoffset={Math.PI * 32 * (1 - seatUsage.percentage / 100)}
                     />
                   </svg>
                   <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex flex-col items-center">
@@ -1081,7 +1258,7 @@ function TeamTabContent() {
                       USED
                     </span>
                     <span className="text-[24px] leading-[32px] font-semibold text-[#18181b]">
-                      80%
+                      {Math.round(seatUsage.percentage)}%
                     </span>
                   </div>
                 </div>
@@ -1098,7 +1275,7 @@ function TeamTabContent() {
                         Gifted Seats
                       </span>
                       <span className="text-[18px] leading-[24px] font-semibold text-[#18181b]">
-                        2
+                        {seatUsage.giftedSeats}
                       </span>
                     </div>
                   </div>
@@ -1113,7 +1290,7 @@ function TeamTabContent() {
                         Pending Invites
                       </span>
                       <span className="text-[18px] leading-[24px] font-semibold text-[#18181b]">
-                        1
+                        {seatUsage.pendingInvites}
                       </span>
                     </div>
                   </div>
@@ -1221,7 +1398,7 @@ function TeamTabContent() {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
                   >
-                    {['All roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
+                    {['All Roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
                       <motion.button
                         key={role}
                         type="button"
@@ -1284,7 +1461,7 @@ function TeamTabContent() {
             </div>
 
             {/* Invite User Button */}
-            <motion.button
+            {/* <motion.button
               onClick={() => setShowInviteModal(true)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -1292,7 +1469,7 @@ function TeamTabContent() {
             >
               <UserPlus className="w-4 h-4" />
               <span className="text-[14px] font-medium leading-[20px]">Invite user</span>
-            </motion.button>
+            </motion.button> */}
           </div>
         </div>
 
@@ -1311,144 +1488,159 @@ function TeamTabContent() {
 
             {/* Table Rows */}
             <AnimatePresence>
-              {filteredMembers.map((member, index) => {
-                const isSelected = selectedUsers.includes(member.id)
-                return (
-                  <motion.div
-                    key={member.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 transition-colors ${isSelected ? 'bg-[#f4f4f5]' : 'bg-white hover:bg-[#fafafa]'
-                      }`}
-                  >
-                    {/* User Name */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleUserSelection(member.id)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-colors ${isSelected
-                          ? 'bg-[#22c55e] border-[#22c55e]'
-                          : 'bg-white border-[#e4e4e7]'
-                          }`}
-                      >
-                        {isSelected && (
-                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                        )}
-                      </button>
-                      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
-                        <Image
-                          src={member.avatar}
-                          alt={member.name}
-                          width={32}
-                          height={32}
-                          className="w-full h-full object-cover"
-                        />
+              {isLoadingMembers ? (
+                <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
+                  <Loader className="w-5 h-5 animate-spin mx-auto mb-2" />
+                  Loading team members...
+                </div>
+              ) : filteredMembers.length === 0 ? (
+                <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
+                  No team members match your search or filters.
+                </div>
+              ) : (
+                filteredMembers.map((member, index) => {
+                  const isSelected = selectedUsers.includes(member.id)
+                  return (
+                    <motion.div
+                      key={member.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 transition-colors ${isSelected ? 'bg-[#f4f4f5]' : 'bg-white hover:bg-[#fafafa]'
+                        }`}
+                    >
+                      {/* User Name */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleUserSelection(member.id)}
+                          className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-colors ${isSelected
+                            ? 'bg-[#22c55e] border-[#22c55e]'
+                            : 'bg-white border-[#e4e4e7]'
+                            }`}
+                        >
+                          {isSelected && (
+                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                          )}
+                        </button>
+                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                          <Image
+                            src={member.avatar}
+                            alt={member.name}
+                            width={32}
+                            height={32}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
+                            {member.name}
+                          </p>
+                          <p className="text-[12px] leading-[16px] text-[#71717a]">
+                            {member.email}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
-                          {member.name}
-                        </p>
-                        <p className="text-[12px] leading-[16px] text-[#71717a]">
-                          {member.email}
-                        </p>
+
+                      {/* Role */}
+                      <div className="flex items-center">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#e4e4e7] text-[12px] font-medium leading-[16px] text-[#18181b]">
+                          {member.role === 'Owner' && (
+                            <Crown className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          {member.role === 'Admin' && (
+                            <UserCog className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          {member.role === 'Editor' && (
+                            <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          {member.role === 'Viewer' && (
+                            <Eye className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          <span>{member.role}</span>
+                        </span>
                       </div>
-                    </div>
 
-                    {/* Role */}
-                    <div className="flex items-center">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#e4e4e7] text-[12px] font-medium leading-[16px] text-[#18181b]">
-                        {member.role === 'Owner' && (
-                          <Crown className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        {member.role === 'Admin' && (
-                          <UserCog className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        {member.role === 'Editor' && (
-                          <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        {member.role === 'Viewer' && (
-                          <Eye className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        <span>{member.role}</span>
-                      </span>
-                    </div>
+                      {/* Status */}
+                      <div className="flex items-center">
+                        <span className="px-3 py-1 rounded-full border border-[#e4e4e7] bg-white text-[12px] font-medium leading-[16px] text-[#3f3f46]">
+                          {member.status}
+                        </span>
+                      </div>
 
-                    {/* Status */}
-                    <div className="flex items-center">
-                      <span className="px-3 py-1 rounded-full border border-[#e4e4e7] bg-white text-[12px] font-medium leading-[16px] text-[#3f3f46]">
-                        {member.status}
-                      </span>
-                    </div>
+                      {/* Collabs */}
+                      <div className="flex items-center">
+                        <span className="text-[14px] leading-[20px] text-[#18181b]">
+                          {member.collabs}
+                        </span>
+                      </div>
 
-                    {/* Collabs */}
-                    <div className="flex items-center">
-                      <span className="text-[14px] leading-[20px] text-[#18181b]">
-                        {member.collabs}
-                      </span>
-                    </div>
+                      {/* Last Active */}
+                      <div className="flex items-center">
+                        <span className="text-[14px] leading-[20px] text-[#71717a]">
+                          {member.lastActive}
+                        </span>
+                      </div>
 
-                    {/* Last Active */}
-                    <div className="flex items-center">
-                      <span className="text-[14px] leading-[20px] text-[#71717a]">
-                        {member.lastActive}
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-end relative actions-menu">
-                      <motion.button
-                        onClick={() =>
-                          setShowActionsMenu(showActionsMenu === member.id ? null : member.id)
-                        }
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="p-1 hover:bg-[#f4f4f5] rounded transition-colors"
-                      >
-                        <MoreVertical className="w-4 h-4 text-[#71717a]" />
-                      </motion.button>
-                      <AnimatePresence>
-                        {showActionsMenu === member.id && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                            className="absolute right-0 top-full mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[160px]"
-                          >
-                            <motion.button
-                              whileHover={{ backgroundColor: '#f4f4f5' }}
-                              className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
+                      {/* Actions */}
+                      <div className="flex items-center justify-end relative actions-menu">
+                        <motion.button
+                          onClick={() =>
+                            setShowActionsMenu(showActionsMenu === member.id ? null : member.id)
+                          }
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-1 hover:bg-[#f4f4f5] rounded transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-[#71717a]" />
+                        </motion.button>
+                        <AnimatePresence>
+                          {showActionsMenu === member.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                              className="absolute right-0 top-full mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[160px]"
                             >
-                              Edit Role
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ backgroundColor: '#f4f4f5' }}
-                              className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
-                            >
-                              View Details
-                            </motion.button>
-                            <div className="border-t border-[#e4e4e7] my-1" />
-                            <motion.button
-                              whileHover={{ backgroundColor: '#fee2e2' }}
-                              className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#e52f2f] flex items-center gap-2"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Remove
-                            </motion.button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                )
-              })}
+                              {member.role !== 'Owner' && (
+                                <motion.button
+                                  onClick={() => handleEditRole(member)}
+                                  whileHover={{ backgroundColor: '#f4f4f5' }}
+                                  className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
+                                >
+                                  Edit Role
+                                </motion.button>
+                              )}
+                              <motion.button
+                                onClick={() => handleViewDetails(member)}
+                                whileHover={{ backgroundColor: '#f4f4f5' }}
+                                className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
+                              >
+                                View Details
+                              </motion.button>
+                              {member.role !== 'Owner' && (
+                                <>
+                                  <div className="border-t border-[#e4e4e7] my-1" />
+                                  <motion.button
+                                    onClick={() => handleRemove(member)}
+                                    whileHover={{ backgroundColor: '#fee2e2' }}
+                                    className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#e52f2f] flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Remove
+                                  </motion.button>
+                                </>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )
+                })
+              )}
             </AnimatePresence>
-            {filteredMembers.length === 0 && (
-              <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
-                No team members match your search or filters.
-              </div>
-            )}
           </div>
 
           {/* Selected Row Actions */}
@@ -1830,14 +2022,260 @@ function TeamTabContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Edit Role Modal */}
+      <AnimatePresence>
+        {showEditRoleModal && selectedMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowEditRoleModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg w-full max-w-md p-6"
+            >
+              <h3 className="text-[20px] font-semibold mb-4">Edit Member Role</h3>
+              <p className="text-[14px] text-[#71717a] mb-6">
+                Change role for {selectedMember.name}
+              </p>
+              <div className="space-y-3 mb-6">
+                {['Admin', 'Editor', 'Viewer'].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => setSelectedRole(role)}
+                    className={`w-full px-4 py-3 rounded-lg border text-left transition-colors ${
+                      selectedRole === role
+                        ? 'border-[#18181b] bg-[#f4f4f5]'
+                        : 'border-[#e4e4e7] hover:border-[#18181b]'
+                    }`}
+                  >
+                    <span className="font-medium">{role}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowEditRoleModal(false)}
+                  className="px-4 py-2 rounded-md border border-[#e4e4e7] hover:bg-[#f4f4f5] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateMemberRole}
+                  className="px-4 py-2 rounded-md bg-[#18181b] text-white hover:opacity-90 transition-opacity"
+                >
+                  Update Role
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* View Details Modal */}
+      <AnimatePresence>
+        {showViewDetailsModal && selectedMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowViewDetailsModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg w-full max-w-md p-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[20px] font-semibold">Member Details</h3>
+                <button
+                  onClick={() => setShowViewDetailsModal(false)}
+                  className="p-1 hover:bg-[#f4f4f5] rounded transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Name</p>
+                  <p className="text-[16px] font-medium">{selectedMember.name}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Email</p>
+                  <p className="text-[16px] font-medium">{selectedMember.email}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Role</p>
+                  <p className="text-[16px] font-medium">{selectedMember.role}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Status</p>
+                  <p className="text-[16px] font-medium">{selectedMember.status}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Collabs</p>
+                  <p className="text-[16px] font-medium">{selectedMember.collabs}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Last Active</p>
+                  <p className="text-[16px] font-medium">{selectedMember.lastActive}</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Remove Confirmation Modal */}
+      <AnimatePresence>
+        {showRemoveModal && selectedMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowRemoveModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg w-full max-w-md p-6"
+            >
+              <h3 className="text-[20px] font-semibold mb-2">Remove Team Member</h3>
+              <p className="text-[14px] text-[#71717a] mb-6">
+                Are you sure you want to remove <span className="font-medium text-[#18181b]">{selectedMember.name}</span> from your team? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowRemoveModal(false)}
+                  className="px-4 py-2 rounded-md border border-[#e4e4e7] hover:bg-[#f4f4f5] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRemove}
+                  className="px-4 py-2 rounded-md bg-[#e52f2f] text-white hover:opacity-90 transition-opacity"
+                >
+                  Remove Member
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
 
 // Plans Tab Component
 function PlansTabContent() {
+  const router = useRouter()
+  const { success, error: showError, info } = useToast()
   const [isAnnual, setIsAnnual] = useState(true)
   const [addedAddOns, setAddedAddOns] = useState(['strategist'])
+  const [loading, setLoading] = useState(true)
+
+  // Real data from API
+  const [seatData, setSeatData] = useState({
+    seatsUsed: 0,
+    seatsTotal: 5,
+    percentage: 0,
+    extraSeats: 0 // 🆕 Track purchased extra seats
+  })
+  const [subscriptionData, setSubscriptionData] = useState(null)
+
+  useEffect(() => {
+    const handleAddonSuccess = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const addonSuccess = urlParams.get('addon_success')
+      const addonType = urlParams.get('type')
+      const sessionId = urlParams.get('session_id')
+
+      console.log('🔍 Checking for addon purchase:', { addonSuccess, addonType, sessionId })
+
+      if (addonSuccess === 'true' && addonType && sessionId) {
+        console.log('🎁 Processing addon purchase...', { addonType, sessionId })
+
+        try {
+          // 🎁 Process the successful purchase
+          info('Processing your purchase...')
+
+          console.log('📡 Calling process-success API...')
+          const response = await api.get(`/api/addons/process-success?session_id=${sessionId}`)
+
+          console.log('✅ API Response:', response.data)
+
+          if (response.data.status === 'success') {
+            // Show success message
+            if (addonType.includes('wins')) {
+              const winsMap = {
+                wins_quick: '25 wins',
+                wins_big: '50 wins',
+                wins_major: '100 wins'
+              }
+              success(`🎉 ${winsMap[addonType] || 'Wins'} added to your balance!`)
+            } else if (addonType === 'team_member') {
+              success('🎉 Extra team member seat added!')
+            }
+
+            // Refresh data
+            console.log('🔄 Refreshing plans data...')
+            fetchPlansData()
+          } else {
+            console.error('❌ API returned error:', response.data)
+            showError('Failed to process purchase. Please contact support.')
+          }
+        } catch (error) {
+          console.error('❌ Error processing purchase:', error)
+          console.error('Error details:', error.response?.data || error.message)
+          showError('Failed to process purchase. Please contact support.')
+        }
+
+        // Clean up URL
+        console.log('🧹 Cleaning up URL...')
+        window.history.replaceState({}, '', '/settings?tab=Plans')
+      } else {
+        console.log('ℹ️  No addon purchase to process')
+      }
+    }
+
+    fetchPlansData()
+    handleAddonSuccess()
+  }, [])
+
+  const fetchPlansData = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch seat usage and subscription status in parallel
+      const [seatResponse, subscriptionResponse] = await Promise.all([
+        api.get('/api/subscriptions/seat-usage'),
+        api.get('/api/subscriptions/status')
+      ])
+
+      if (seatResponse.data.status === 'success') {
+        setSeatData(seatResponse.data.data)
+      }
+
+      if (subscriptionResponse.data.status === 'success') {
+        setSubscriptionData(subscriptionResponse.data.data)
+      }
+
+    } catch (error) {
+      console.error('Failed to fetch plans data:', error)
+      showError('Failed to load subscription data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const toggleAddOn = (addOnId) => {
     setAddedAddOns(prev =>
@@ -1845,6 +2283,77 @@ function PlansTabContent() {
         ? prev.filter(id => id !== addOnId)
         : [...prev, addOnId]
     )
+  }
+
+  // 🚀 UPGRADE BUTTON HANDLER
+  const handleUpgrade = async () => {
+    try {
+      // Get current tier
+      const currentTier = subscriptionData?.tier?.toLowerCase()
+
+      // Determine next tier
+      const tierMap = {
+        'backstage': 'starter',
+        'free': 'starter',
+        'starter': 'pro',
+        'pro': 'elite',
+        'elite': null
+      }
+
+      const nextTier = tierMap[currentTier]
+
+      // If already on highest plan
+      if (!nextTier) {
+        success("You're already on the highest plan! 🎉")
+        return
+      }
+
+      // Show loading
+      const upgrading = info(`Preparing upgrade to ${nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}...`)
+
+      // Get current billing interval (default to monthly)
+      const interval = subscriptionData?.billingInterval || 'monthly'
+
+      // Create UPGRADE checkout session
+      const response = await api.post('/api/subscriptions/create-upgrade-checkout-session', {
+        tier: nextTier,
+        interval: interval
+      })
+
+      if (response.data.status === 'success' && response.data.data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.data.url
+      } else {
+        showError('Failed to create checkout session. Please try again.')
+      }
+
+    } catch (error) {
+      console.error('Upgrade error:', error)
+      showError('Failed to initiate upgrade. Please try again.')
+    }
+  }
+
+  // 🎁 ADDON PURCHASE HANDLER
+  const handleAddonPurchase = async (addonId) => {
+    try {
+      info(`Preparing ${addonId.includes('wins') ? 'wins purchase' : 'team member addon'}...`)
+
+      // Create addon checkout session
+      const response = await api.post('/api/addons/create-checkout-session', {
+        addon_id: addonId
+      })
+
+      if (response.data.status === 'success' && response.data.data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.data.url
+      } else {
+        showError('Failed to create checkout session. Please try again.')
+      }
+
+    } catch (error) {
+      console.error('Addon purchase error:', error)
+      showError('Failed to initiate purchase. Please try again.')
+    }
   }
 
   return (
@@ -1868,7 +2377,7 @@ function PlansTabContent() {
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
-                  You're on Pro
+                  You're on {subscriptionData?.tier ? subscriptionData.tier.charAt(0).toUpperCase() + subscriptionData.tier.slice(1) : 'Pro'}
                 </h3>
                 <div className="bg-white border border-[#71717A] rounded-2xl px-2 py-0.5 flex items-center gap-1">
                   <Crown className="w-3 h-3 text-[#71717A]" />
@@ -1878,10 +2387,14 @@ function PlansTabContent() {
                 </div>
               </div>
               <p className="text-[14px] leading-[20px] text-[#71717a]">
-                Next billing: August 1, 2026
+                {subscriptionData?.currentPeriodEnd ? (
+                  <>Next billing: {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</>
+                ) : (
+                  <>Next billing: --</>
+                )}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <p className="text-[14px] font-medium leading-[20px] text-[#18181b]">
                 Monthly
               </p>
@@ -1897,7 +2410,7 @@ function PlansTabContent() {
                   Save 20%
                 </p>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -1915,19 +2428,33 @@ function PlansTabContent() {
               <p className="text-[16px] font-semibold leading-[24px] text-[#52525b] mb-2">
                 Seats Used
               </p>
-              <div className="flex flex-col gap-2 items-end">
-                <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 1, delay: 0.4 }}
-                    className="h-full bg-[#18181b] rounded-full"
-                  />
+              {loading ? (
+                <div className="flex items-center justify-center h-10">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#18181b]"></div>
                 </div>
-                <p className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  5/5
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${seatData.percentage}%` }}
+                      transition={{ duration: 1, delay: 0.4 }}
+                      className={`h-full rounded-full ${seatData.percentage >= 100
+                        ? 'bg-red-600'
+                        : seatData.percentage >= 80
+                          ? 'bg-yellow-600'
+                          : 'bg-[#18181b]'
+                        }`}
+                    />
+                  </div>
+                  <p className={`text-[14px] font-medium leading-[20px] ${seatData.seatsUsed >= seatData.seatsTotal
+                    ? 'text-red-600'
+                    : 'text-[#52525b]'
+                    }`}>
+                    {seatData.seatsUsed}/{seatData.seatsTotal}
+                  </p>
+                </div>
+              )}
             </motion.div>
 
             {/* AI Wins Card */}
@@ -1940,19 +2467,37 @@ function PlansTabContent() {
               <p className="text-[16px] font-semibold leading-[24px] text-[#52525b] mb-2">
                 AI Wins
               </p>
-              <div className="flex flex-col gap-2 items-end">
-                <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                    className="h-full bg-[#18181b] rounded-full"
-                  />
+              {loading ? (
+                <div className="flex items-center justify-center h-10">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#18181b]"></div>
                 </div>
-                <p className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  2000/2000
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: subscriptionData?.currentWinsBalance && subscriptionData?.winsPerMonth
+                          ? `${(subscriptionData.currentWinsBalance / subscriptionData.winsPerMonth) * 100}%`
+                          : '0%'
+                      }}
+                      transition={{ duration: 1, delay: 0.5 }}
+                      className={`h-full rounded-full ${subscriptionData?.currentWinsBalance <= 100
+                        ? 'bg-red-600'
+                        : subscriptionData?.currentWinsBalance <= (subscriptionData?.winsPerMonth * 0.2)
+                          ? 'bg-yellow-600'
+                          : 'bg-[#18181b]'
+                        }`}
+                    />
+                  </div>
+                  <p className={`text-[14px] font-medium leading-[20px] ${subscriptionData?.currentWinsBalance <= 100
+                    ? 'text-red-600'
+                    : 'text-[#52525b]'
+                    }`}>
+                    {subscriptionData?.currentWinsBalance || 0}/{subscriptionData?.winsPerMonth || 0}
+                  </p>
+                </div>
+              )}
             </motion.div>
           </div>
 
@@ -2000,19 +2545,37 @@ function PlansTabContent() {
               <p className="text-[16px] font-semibold leading-[24px] text-[#52525b] mb-2">
                 Brand Guides
               </p>
-              <div className="flex flex-col gap-2 items-end">
-                <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '50%' }}
-                    transition={{ duration: 1, delay: 0.6 }}
-                    className="h-full bg-[#18181b] rounded-l-full"
-                  />
+              {loading ? (
+                <div className="flex items-center justify-center h-10">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#18181b]"></div>
                 </div>
-                <p className="text-[14px] font-medium leading-[20px] text-[#52525b]">
-                  2/4
-                </p>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-2 items-end">
+                  <div className="w-full h-2 bg-[#f4f4f5] rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: subscriptionData?.styleGuideCount && subscriptionData?.styleGuideLimit
+                          ? `${(subscriptionData.styleGuideCount / subscriptionData.styleGuideLimit) * 100}%`
+                          : '0%'
+                      }}
+                      transition={{ duration: 1, delay: 0.6 }}
+                      className={`h-full rounded-l-full ${subscriptionData?.styleGuideCount >= subscriptionData?.styleGuideLimit
+                        ? 'bg-red-600'
+                        : subscriptionData?.styleGuideCount >= (subscriptionData?.styleGuideLimit * 0.8)
+                          ? 'bg-yellow-600'
+                          : 'bg-[#18181b]'
+                        }`}
+                    />
+                  </div>
+                  <p className={`text-[14px] font-medium leading-[20px] ${subscriptionData?.styleGuideCount >= subscriptionData?.styleGuideLimit
+                    ? 'text-red-600'
+                    : 'text-[#52525b]'
+                    }`}>
+                    {subscriptionData?.styleGuideCount || 0}/{subscriptionData?.styleGuideLimit || 4}
+                  </p>
+                </div>
+              )}
             </motion.div>
           </div>
         </div>
@@ -2020,6 +2583,7 @@ function PlansTabContent() {
         {/* Footer */}
         <div className="border-t border-[#e4e4e7] p-4 flex items-center justify-end">
           <motion.button
+            onClick={handleUpgrade}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="bg-[#18181b] text-white rounded-md px-4 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
@@ -2029,14 +2593,117 @@ function PlansTabContent() {
         </div>
       </motion.div>
 
-      {/* Add-Ons Marketplace Section */}
+      {/* 🎁 WINS TOP-UP SECTION */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
         className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-xl overflow-hidden"
       >
-        {/* Section Header */}
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Zap className="w-5 h-5 text-[#18181b]" />
+            <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
+              Top Up Your Wins
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Quick Win Pack */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white border border-[#e4e4e7] rounded-xl p-6 cursor-pointer hover:border-[#18181b] transition-all"
+              onClick={() => handleAddonPurchase('wins_quick')}
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-yellow-100 border border-[#fee685] rounded-md flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <span className="text-[24px] font-bold text-[#18181b]">$4.99</span>
+                </div>
+                <h4 className="text-[16px] font-semibold text-[#18181b] mb-2">Quick Win Pack</h4>
+                <p className="text-[14px] text-[#71717a] mb-4">25 AI Wins to power your content</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto bg-[#18181b] text-white rounded-md px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Purchase
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Big Win Pack */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-white border-2 border-[#18181b] rounded-xl p-6 cursor-pointer relative hover:shadow-lg transition-all"
+              onClick={() => handleAddonPurchase('wins_big')}
+            >
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-[#18181b] text-white text-[12px] font-semibold px-3 py-1 rounded-full">
+                  Popular
+                </span>
+              </div>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-yellow-100 border border-[#fee685] rounded-md flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <span className="text-[24px] font-bold text-[#18181b]">$5.99</span>
+                </div>
+                <h4 className="text-[16px] font-semibold text-[#18181b] mb-2">Big Win Pack</h4>
+                <p className="text-[14px] text-[#71717a] mb-4">50 AI Wins for more creations</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto bg-[#18181b] text-white rounded-md px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Purchase
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Major Win Pack */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-br from-[#fef3c7] to-[#fde68a] border border-[#fee685] rounded-xl p-6 cursor-pointer relative hover:shadow-lg transition-all"
+              onClick={() => handleAddonPurchase('wins_major')}
+            >
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-yellow-600 text-white text-[12px] font-semibold px-3 py-1 rounded-full">
+                  Best Value
+                </span>
+              </div>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-yellow-200 border border-yellow-400 rounded-md flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-700" />
+                  </div>
+                  <span className="text-[24px] font-bold text-[#18181b]">$9.00</span>
+                </div>
+                <h4 className="text-[16px] font-semibold text-[#18181b] mb-2">Major Win Pack</h4>
+                <p className="text-[14px] text-[#71717a] mb-4">100 AI Wins for power users</p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="mt-auto bg-[#18181b] text-white rounded-md px-4 py-2 text-[14px] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Purchase
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Add-Ons Marketplace Section */}
+      {/* <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-xl overflow-hidden"
+      >
         <div className="p-6 pb-0">
           <div className="flex flex-col gap-1">
             <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
@@ -2048,11 +2715,8 @@ function PlansTabContent() {
           </div>
         </div>
 
-        {/* Add-Ons Grid */}
         <div className="p-6 space-y-4">
-          {/* First Row */}
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Design Studio Pro */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2092,7 +2756,6 @@ function PlansTabContent() {
               </div>
             </motion.div>
 
-            {/* Strategist+ */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2133,9 +2796,7 @@ function PlansTabContent() {
             </motion.div>
           </div>
 
-          {/* Second Row */}
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Additional AI Wins */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2175,7 +2836,6 @@ function PlansTabContent() {
               </div>
             </motion.div>
 
-            {/* Storage Upgrade */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2216,7 +2876,7 @@ function PlansTabContent() {
             </motion.div>
           </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Add Team Members Section */}
       <motion.div
@@ -2240,6 +2900,7 @@ function PlansTabContent() {
             </div>
           </div>
           <motion.button
+            onClick={() => handleAddonPurchase('team_member')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="bg-white text-[#18181b] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
@@ -2255,25 +2916,170 @@ function PlansTabContent() {
 
 // Billings Tab Component
 function BillingsTabContent() {
-  const [billingEmail, setBillingEmail] = useState('umar@company.com')
-  const [companyName, setCompanyName] = useState('Manifestr LLC')
+  const { user } = useAuth()
+  const [billingEmail, setBillingEmail] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [promoCode, setPromoCode] = useState('')
+  const [billingDetails, setBillingDetails] = useState(null)
+  const [invoices, setInvoices] = useState([])
+  const [paymentMethods, setPaymentMethods] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState(false)
+  const [downloading, setDownloading] = useState({})
+  const [applyingPromo, setApplyingPromo] = useState(false)
+  const [promoError, setPromoError] = useState('')
+  const [promoSuccess, setPromoSuccess] = useState('')
 
-  const invoices = [
-    { id: 'INV-2024-001', date: '1/1/2024', description: 'Pro Plan - Annual', amount: '$69.00', status: 'Paid' },
-    { id: 'INV-2023-012', date: '12/1/2023', description: 'Strategist+ Add-...', amount: '$29.00', status: 'Paid' },
-    { id: 'INV-2023-011', date: '11/1/2023', description: 'Pro Plan - Month...', amount: '$69.00', status: 'Paid' },
-    { id: 'INV-2023-010', date: '10/1/2023', description: 'Pro Plan - Month...', amount: '$69.00', status: 'Paid' },
-    { id: 'INV-2023-010', date: '1/1/2023', description: 'Pro Plan - Annual', amount: '$399.00', status: 'Failed' },
-  ]
+  // Fetch billing data on mount
+  useEffect(() => {
+    fetchBillingData()
+  }, [])
+
+  const fetchBillingData = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch billing details, invoices, and payment methods in parallel
+      const [billingRes, invoicesRes, paymentMethodsRes] = await Promise.all([
+        api.get('/api/subscriptions/billing-details'),
+        api.get('/api/subscriptions/invoices'),
+        api.get('/api/subscriptions/payment-methods'),
+      ])
+
+      const billing = billingRes.data?.data || {}
+      setBillingDetails(billing)
+      setBillingEmail(billing.billingEmail || user?.email || '')
+      setCompanyName(billing.companyName || '')
+
+      const invoicesList = invoicesRes.data?.data?.invoices || []
+      setInvoices(invoicesList)
+
+      const pmList = paymentMethodsRes.data?.data?.paymentMethods || []
+      setPaymentMethods(pmList)
+
+    } catch (error) {
+      console.error('Error fetching billing data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateBillingContact = async () => {
+    try {
+      setUpdating(true)
+      await api.post('/api/subscriptions/update-billing-contact', {
+        billingEmail,
+        companyName,
+      })
+      success('Billing contact updated successfully!')
+    } catch (error) {
+      console.error('Error updating billing contact:', error)
+      showError('Failed to update billing contact')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim()) {
+      setPromoError('Please enter a promo code')
+      return
+    }
+
+    setApplyingPromo(true)
+    setPromoError('')
+    setPromoSuccess('')
+
+    try {
+      const response = await api.post('/api/subscriptions/apply-promo-code', {
+        promoCode: promoCode.trim(),
+      })
+
+      if (response.data.status === 'success') {
+        setPromoSuccess(response.data.message)
+        setPromoCode('')
+        setTimeout(() => {
+          fetchBillingData()
+        }, 1000)
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || 'PROMO CODE NOT VALID'
+      setPromoError(errorMessage)
+    } finally {
+      setApplyingPromo(false)
+    }
+  }
+
+  const handleDownloadInvoice = async (invoiceId) => {
+    try {
+      setDownloading(prev => ({ ...prev, [invoiceId]: true }))
+      const response = await api.get(`/api/subscriptions/download-invoice/${invoiceId}`)
+      const pdfUrl = response.data?.data?.pdfUrl
+      if (pdfUrl) {
+        window.open(pdfUrl, '_blank')
+      }
+    } catch (error) {
+      console.error('Error downloading invoice:', error)
+      showError('Failed to download invoice')
+    } finally {
+      setDownloading(prev => ({ ...prev, [invoiceId]: false }))
+    }
+  }
+
+  const handleExportAll = async () => {
+    try {
+      for (const invoice of invoices) {
+        if (invoice.pdfUrl) {
+          window.open(invoice.pdfUrl, '_blank')
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
+    } catch (error) {
+      console.error('Error exporting invoices:', error)
+    }
+  }
 
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'Paid': return 'bg-[#d1fae5] text-[#065f46]'
       case 'Failed': return 'bg-[#fee2e2] text-[#991b1b]'
+      case 'Open': return 'bg-[#fef3c7] text-[#92400e]'
       default: return 'bg-[#f4f4f5] text-[#71717a]'
     }
   }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A'
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  }
+
+  const getTierDisplayName = (tier) => {
+    const tierMap = {
+      'starter': 'Starter',
+      'pro': 'Pro',
+      'elite': 'Elite',
+      'free': 'Free',
+    }
+    return tierMap[tier?.toLowerCase()] || tier
+  }
+
+  const getBillingIntervalDisplay = (interval) => {
+    return interval === 'annual' ? 'Annual' : 'Monthly'
+  }
+
+  if (loading) {
+    return (
+      <div className="w-full flex items-center justify-center py-24">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading billing information...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const defaultPaymentMethod = paymentMethods.find(pm => pm.isDefault) || paymentMethods[0]
 
   return (
     <motion.div
@@ -2284,9 +3090,7 @@ function BillingsTabContent() {
       className="w-full pb-24 space-y-6"
     >
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* Left Column */}
         <div className="flex-1 space-y-6">
-          {/* Plan Overview Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2304,59 +3108,61 @@ function BillingsTabContent() {
               </div>
             </div>
             <div className="p-6 pt-0 space-y-4">
-              {/* Current Plan Card */}
               <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
                 <p className="text-[14px] leading-[20px] text-[#71717a]">Current Plan</p>
                 <div className="flex items-center gap-2">
                   <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                    Pro - Annual
+                    {billingDetails?.hasSubscription
+                      ? `${getTierDisplayName(billingDetails.currentPlan?.tier)} - ${getBillingIntervalDisplay(billingDetails.currentPlan?.billingInterval)}`
+                      : 'Free Plan'}
                   </p>
-                  <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-2xl pl-1.5 pr-2 py-0.5 flex items-center gap-1">
-                    <Crown className="w-3 h-3 text-[#E68A00]" />
-                    <span className="text-[12px] font-medium leading-[18px] text-[#E68A00]">
-                      Founding member
-                    </span>
+                  {billingDetails?.currentPlan?.isFoundingMember && (
+                    <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-2xl pl-1.5 pr-2 py-0.5 flex items-center gap-1">
+                      <Crown className="w-3 h-3 text-[#E68A00]" />
+                      <span className="text-[12px] font-medium leading-[18px] text-[#E68A00]">
+                        Founding member
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {billingDetails?.hasSubscription && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
+                    <p className="text-[14px] leading-[20px] text-[#71717a]">Next Billing</p>
+                    <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
+                      {billingDetails.nextBillingDate ? formatDate(billingDetails.nextBillingDate) : 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
+                    <p className="text-[14px] leading-[20px] text-[#71717a]">Estimated Next Charge</p>
+                    <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
+                      {billingDetails.nextCharge ? `$${billingDetails.nextCharge.toFixed(2)}` : 'N/A'}
+                    </p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Grid for Billing info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Next Billing Card */}
-                <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
-                  <p className="text-[14px] leading-[20px] text-[#71717a]">Next Billing</p>
-                  <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                    August 1, 2026
-                  </p>
+              {billingDetails?.foundingMemberDiscount?.active && (
+                <div className="bg-white border border-[#e4e4e7] rounded-lg p-4 flex items-start gap-3">
+                  <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">
+                    <Gift className="w-5 h-5 text-[#18181b]" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[14px] font-semibold leading-[20px] text-[#18181b] mb-1">
+                      Founding Member Discount Active
+                    </p>
+                    <p className="text-[14px] leading-[20px] text-[#71717a]">
+                      You're saving ${billingDetails.foundingMemberDiscount.monthlySavings}/month with your founding member pricing.
+                    </p>
+                  </div>
                 </div>
-
-                {/* Estimated Next Charge Card */}
-                <div className="bg-white border border-[#e4e4e7] rounded-xl p-4 space-y-2">
-                  <p className="text-[14px] leading-[20px] text-[#71717a]">Estimated Next Charge</p>
-                  <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                    $58.00
-                  </p>
-                </div>
-              </div>
-
-              {/* Founding Member Discount Alert */}
-              <div className="bg-white border border-[#e4e4e7] rounded-lg p-4 flex items-start gap-3">
-                <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">
-                  <Gift className="w-5 h-5 text-[#18181b]" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[14px] font-semibold leading-[20px] text-[#18181b] mb-1">
-                    Founding Member Discount Active
-                  </p>
-                  <p className="text-[14px] leading-[20px] text-[#71717a]">
-                    You're saving $11/month with your founding member pricing.
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </motion.div>
 
-          {/* Payment Method Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2373,41 +3179,57 @@ function BillingsTabContent() {
                 </p>
               </div>
 
-              {/* Credit Card Info */}
-              <div className="bg-white border border-[#e2e4e9] rounded-xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shrink-0">
-                    <CreditCard className="w-4 h-4 text-[#18181b]" />
+              {defaultPaymentMethod ? (
+                <div className="bg-white border border-[#e2e4e9] rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-10 h-10 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center shrink-0">
+                      <CreditCard className="w-4 h-4 text-[#18181b]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
+                        **** **** **** {defaultPaymentMethod.last4}
+                      </p>
+                      <p className="text-[14px] leading-[20px] text-[#71717a]">
+                        Expires {defaultPaymentMethod.expMonth}/{defaultPaymentMethod.expYear}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[16px] font-semibold leading-[24px] text-[#18181b]">
-                      **** **** **** 4242
-                    </p>
-                    <p className="text-[14px] leading-[20px] text-[#71717a]">
-                      Expires 12/2025
-                    </p>
-                  </div>
+                  {/* <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => window.open('/api/subscriptions/portal', '_blank')}
+                    className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors shrink-0"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Edit
+                  </motion.button> */}
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-white border border-[#e4e4e7] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] text-[#18181b] hover:bg-[#f4f4f5] transition-colors shrink-0"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Edit
-                </motion.button>
-              </div>
+              ) : (
+                <div className="bg-white border border-[#e2e4e9] rounded-xl p-4 text-center py-8">
+                  <p className="text-[14px] text-[#71717a]">No payment method on file</p>
+                </div>
+              )}
             </div>
 
             {/* Footer with Add New Button */}
             <div className="px-6 py-4 border-t border-[#e8e8e9] flex justify-end">
-              <motion.button
+              {/* <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={async () => {
+                  try {
+                    const response = await api.post('/api/subscriptions/portal')
+                    if (response.data?.details?.url) {
+                      window.open(response.data.details.url, '_blank')
+                    }
+                  } catch (error) {
+                    console.error('Error opening portal:', error)
+                  }
+                }}
                 className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
               >
                 Add new
-              </motion.button>
+              </motion.button> */}
             </div>
           </motion.div>
 
@@ -2435,7 +3257,9 @@ function BillingsTabContent() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white border border-[#e4e4e7] text-[#18181b] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#fafafa] transition-colors"
+                  onClick={handleExportAll}
+                  disabled={invoices.length === 0}
+                  className="bg-white border border-[#e4e4e7] text-[#18181b] rounded-md px-4 py-2 h-[40px] flex items-center gap-2 text-[14px] font-medium leading-[20px] hover:bg-[#fafafa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download className="w-4 h-4 text-[#18181b]" />
                   Export all
@@ -2456,60 +3280,75 @@ function BillingsTabContent() {
 
                 {/* Table Rows */}
                 <AnimatePresence>
-                  {invoices.map((invoice, index) => (
-                    <motion.div
-                      key={invoice.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="grid grid-cols-[129px_102px_154px_93px_91px_118px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 bg-white hover:bg-[#fafafa] transition-colors"
-                    >
-                      <div className="flex items-center">
-                        <span className="text-[14px] leading-[20px] text-[#18181b]">
-                          {invoice.id}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-[14px] leading-[20px] text-[#18181b]">
-                          {invoice.date}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-[14px] leading-[20px] text-[#18181b]">
-                          {invoice.description}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-[14px] leading-[20px] text-[#18181b]">
-                          {invoice.amount}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <span className={`px-3 py-1.5 rounded-md text-[12px] font-medium leading-[18px] ${getStatusBadgeColor(invoice.status)}`}>
-                          {invoice.status}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 justify-end">
-                        {invoice.status === 'Failed' && (
+                  {invoices.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <p className="text-[14px] text-[#71717a]">No invoices found</p>
+                    </div>
+                  ) : (
+                    invoices.map((invoice, index) => (
+                      <motion.div
+                        key={invoice.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className="grid grid-cols-[129px_102px_154px_93px_91px_118px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 bg-white hover:bg-[#fafafa] transition-colors"
+                      >
+                        <div className="flex items-center">
+                          <span className="text-[14px] leading-[20px] text-[#18181b] truncate" title={invoice.invoiceNumber}>
+                            {invoice.invoiceNumber}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-[14px] leading-[20px] text-[#18181b]">
+                            {invoice.date}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-[14px] leading-[20px] text-[#18181b] truncate" title={invoice.description}>
+                            {invoice.description}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-[14px] leading-[20px] text-[#18181b]">
+                            {invoice.amount}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <span className={`px-3 py-1.5 rounded-md text-[12px] font-medium leading-[18px] ${getStatusBadgeColor(invoice.status)}`}>
+                            {invoice.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 justify-end">
+                          {invoice.status === 'Failed' && (
+                            <motion.button
+                              whileHover={{ scale: 1.1, borderColor: '#18181b' }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => invoice.hostedUrl && window.open(invoice.hostedUrl, '_blank')}
+                              className="w-10 h-10 flex items-center justify-center bg-white border border-[#e4e4e7] rounded-lg transition-colors shadow-sm"
+                              title="Retry payment"
+                            >
+                              <RefreshCw className="w-4 h-4 text-[#18181b]" />
+                            </motion.button>
+                          )}
                           <motion.button
                             whileHover={{ scale: 1.1, borderColor: '#18181b' }}
                             whileTap={{ scale: 0.9 }}
-                            className="w-10 h-10 flex items-center justify-center bg-white border border-[#e4e4e7] rounded-lg transition-colors shadow-sm"
+                            onClick={() => handleDownloadInvoice(invoice.id)}
+                            disabled={downloading[invoice.id]}
+                            className="w-10 h-10 flex items-center justify-center bg-white border border-[#e4e4e7] rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                            title="Download invoice"
                           >
-                            <RefreshCw className="w-4 h-4 text-[#18181b]" />
+                            {downloading[invoice.id] ? (
+                              <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Download className="w-4 h-4 text-[#18181b]" />
+                            )}
                           </motion.button>
-                        )}
-                        <motion.button
-                          whileHover={{ scale: 1.1, borderColor: '#18181b' }}
-                          whileTap={{ scale: 0.9 }}
-                          className="w-10 h-10 flex items-center justify-center bg-white border border-[#e4e4e7] rounded-lg transition-colors shadow-sm"
-                        >
-                          <Download className="w-4 h-4 text-[#18181b]" />
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  ))}
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
                 </AnimatePresence>
               </div>
             </div>
@@ -2539,10 +3378,44 @@ function BillingsTabContent() {
                 <input
                   type="text"
                   value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
+                  onChange={(e) => {
+                    setPromoCode(e.target.value)
+                    setPromoError('')
+                    setPromoSuccess('')
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleApplyPromoCode()
+                    }
+                  }}
                   placeholder="Enter promo code"
-                  className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors placeholder:text-[#71717a]"
+                  disabled={applyingPromo}
+                  className="w-full bg-white border border-[#e4e4e7] rounded-md px-3 py-2 h-[40px] text-[16px] leading-[24px] text-[#18181b] outline-none focus:border-[#18181b] transition-colors placeholder:text-[#71717a] disabled:opacity-50 disabled:cursor-not-allowed"
                 />
+
+                {/* Error Message */}
+                {promoError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 text-[#dc2626] text-[14px] leading-[20px] font-medium"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {promoError}
+                  </motion.div>
+                )}
+
+                {/* Success Message */}
+                {promoSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 text-[#16a34a] text-[14px] leading-[20px] font-medium"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {promoSuccess}
+                  </motion.div>
+                )}
               </div>
             </div>
 
@@ -2551,9 +3424,11 @@ function BillingsTabContent() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-[#18181b] text-white rounded-md px-8 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity whitespace-nowrap"
+                onClick={handleApplyPromoCode}
+                disabled={applyingPromo || !promoCode.trim()}
+                className="bg-[#18181b] text-white rounded-md px-8 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Apply
+                {applyingPromo ? 'Applying...' : 'Apply'}
               </motion.button>
             </div>
           </motion.div>
@@ -2611,9 +3486,11 @@ function BillingsTabContent() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity"
+            onClick={handleUpdateBillingContact}
+            disabled={updating}
+            className="bg-[#18181b] text-white rounded-md px-6 py-2 h-[40px] text-[14px] font-medium leading-[20px] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Update Billing Info
+            {updating ? 'Updating...' : 'Update Billing Info'}
           </motion.button>
         </div>
       </motion.div>
@@ -3475,9 +4352,9 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
                           onClick={() => {
-                          setToneOfVoice(tone.id)
-                          trackAiStyleSettingSelected('tone', tone.id, tone.title)
-                        }}
+                            setToneOfVoice(tone.id)
+                            trackAiStyleSettingSelected('tone', tone.id, tone.title)
+                          }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -3525,9 +4402,9 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
                           onClick={() => {
-                          setToneOfVoice(tone.id)
-                          trackAiStyleSettingSelected('tone', tone.id, tone.title)
-                        }}
+                            setToneOfVoice(tone.id)
+                            trackAiStyleSettingSelected('tone', tone.id, tone.title)
+                          }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -3630,9 +4507,9 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
                           onClick={() => {
-                          setPersonalityOverlay(personality.id)
-                          trackAiStyleSettingSelected('personality', personality.id, personality.title)
-                        }}
+                            setPersonalityOverlay(personality.id)
+                            trackAiStyleSettingSelected('personality', personality.id, personality.title)
+                          }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -3680,9 +4557,9 @@ function PersonalizationTabContent({ personalizationSubTab, setPersonalizationSu
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
                           onClick={() => {
-                          setPersonalityOverlay(personality.id)
-                          trackAiStyleSettingSelected('personality', personality.id, personality.title)
-                        }}
+                            setPersonalityOverlay(personality.id)
+                            trackAiStyleSettingSelected('personality', personality.id, personality.title)
+                          }}
                           className={`basis-0 grow bg-white border flex gap-2 items-center min-h-0 min-w-0 px-3 py-2 rounded-md cursor-pointer transition-all ${isSelected
                             ? 'border-[#18181b]'
                             : 'border-[#e4e4e7] hover:border-[#18181b]'
@@ -5433,10 +6310,10 @@ function SecurityTabContent() {
                 />
                 {newPassword.length > 0 &&
                   (!requirements.every((r) => r.met) || passwordReuseError) && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#ef4444]">
-                    <AlertCircle className="w-4 h-4" />
-                  </div>
-                )}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#ef4444]">
+                      <AlertCircle className="w-4 h-4" />
+                    </div>
+                  )}
               </div>
               {passwordReuseError && (
                 <p className="text-[12px] text-[#ef4444] leading-[16px]">
@@ -5659,93 +6536,93 @@ function SecurityTabContent() {
       {/* Active Sessions Table — hidden when session list UI is turned off */}
       {activeSessionsEnabled && (
         <div className="bg-[#f4f4f4] border border-[#e4e4e7] rounded-lg overflow-hidden">
-        <div className="pt-6 px-6 pb-0">
-          <div className="h-[52px] flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
-                Active Sessions
-              </h3>
-              <p className="text-[14px] leading-[20px] text-[#71717a]">
-                Manage devices logged into your account
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="bg-white border border-[#e4e4e7] rounded-md overflow-hidden overflow-x-auto">
-            {/* Table Header */}
-            <div className="grid grid-cols-[292px_292px_292px_292px] border-b border-[#e4e4e7]">
-              <div className="p-4">
-                <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
-                  Device
-                </p>
-              </div>
-              <div className="p-4">
-                <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
-                  Location
-                </p>
-              </div>
-              <div className="p-4">
-                <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
-                  Last Active
-                </p>
-              </div>
-              <div className="p-4">
-                <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
-                  Actions
+          <div className="pt-6 px-6 pb-0">
+            <div className="h-[52px] flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-[20px] font-semibold leading-[28px] text-[#18181b]">
+                  Active Sessions
+                </h3>
+                <p className="text-[14px] leading-[20px] text-[#71717a]">
+                  Manage devices logged into your account
                 </p>
               </div>
             </div>
-
-            {/* Table Rows */}
-            {isLoadingSessions ? (
-              <div className="p-8 flex items-center justify-center">
-                <p className="text-[14px] leading-[20px] text-[#71717a]">Loading sessions...</p>
-              </div>
-            ) : activeSessions.length === 0 ? (
-              <div className="p-8 flex items-center justify-center">
-                <p className="text-[14px] leading-[20px] text-[#71717a]">No active sessions found</p>
-              </div>
-            ) : (
-              activeSessions.map((session, index) => (
-                <motion.div
-                  key={session.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                  className="grid grid-cols-[292px_292px_292px_292px] border-b border-[#e4e4e7] last:border-b-0 hover:bg-[#f4f4f5] transition-colors"
-                >
-                  <div className="p-4 flex items-center">
-                    <p className="text-[14px] leading-[20px] text-[#18181b]">
-                      {session.device}
-                    </p>
-                  </div>
-                  <div className="p-4 flex items-center">
-                    <p className="text-[14px] leading-[20px] text-[#18181b]">
-                      {session.location}
-                    </p>
-                  </div>
-                  <div className="p-4 flex items-center">
-                    <p className="text-[14px] leading-[20px] text-[#18181b]">
-                      {new Date(session.lastActive).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="p-4 flex items-center gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleRevokeSession(session.id)}
-                      className="w-10 h-10 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-                    >
-                      <LogOut className="w-4 h-4 text-[#18181b]" />
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))
-            )}
           </div>
-        </div>
+
+          <div className="p-6">
+            <div className="bg-white border border-[#e4e4e7] rounded-md overflow-hidden overflow-x-auto">
+              {/* Table Header */}
+              <div className="grid grid-cols-[292px_292px_292px_292px] border-b border-[#e4e4e7]">
+                <div className="p-4">
+                  <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
+                    Device
+                  </p>
+                </div>
+                <div className="p-4">
+                  <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
+                    Location
+                  </p>
+                </div>
+                <div className="p-4">
+                  <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
+                    Last Active
+                  </p>
+                </div>
+                <div className="p-4">
+                  <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
+                    Actions
+                  </p>
+                </div>
+              </div>
+
+              {/* Table Rows */}
+              {isLoadingSessions ? (
+                <div className="p-8 flex items-center justify-center">
+                  <p className="text-[14px] leading-[20px] text-[#71717a]">Loading sessions...</p>
+                </div>
+              ) : activeSessions.length === 0 ? (
+                <div className="p-8 flex items-center justify-center">
+                  <p className="text-[14px] leading-[20px] text-[#71717a]">No active sessions found</p>
+                </div>
+              ) : (
+                activeSessions.map((session, index) => (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                    className="grid grid-cols-[292px_292px_292px_292px] border-b border-[#e4e4e7] last:border-b-0 hover:bg-[#f4f4f5] transition-colors"
+                  >
+                    <div className="p-4 flex items-center">
+                      <p className="text-[14px] leading-[20px] text-[#18181b]">
+                        {session.device}
+                      </p>
+                    </div>
+                    <div className="p-4 flex items-center">
+                      <p className="text-[14px] leading-[20px] text-[#18181b]">
+                        {session.location}
+                      </p>
+                    </div>
+                    <div className="p-4 flex items-center">
+                      <p className="text-[14px] leading-[20px] text-[#18181b]">
+                        {new Date(session.lastActive).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-4 flex items-center gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleRevokeSession(session.id)}
+                        className="w-10 h-10 bg-white border border-[#e4e4e7] rounded-md flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+                      >
+                        <LogOut className="w-4 h-4 text-[#18181b]" />
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 

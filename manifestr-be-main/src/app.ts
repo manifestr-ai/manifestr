@@ -26,6 +26,8 @@ import { UserStatsController } from './controllers/user.stats.controller';
 import { AnalyticsApiController } from './controllers/analytics.controller';
 import { SubscriptionController } from './controllers/subscription.controller';
 import { NotificationController } from './controllers/notification.controller';
+import { SearchController } from './controllers/search.controller';
+import { AddonController } from './controllers/addon.controller';
 
 const serverStartedAt = new Date();
 
@@ -91,6 +93,17 @@ class App {
 
         // Explicit OPTIONS handler for preflight requests
         this.app.options('*', cors());
+
+        // ⚠️ CRITICAL: Stripe webhook needs RAW body for signature verification
+        // Must be before express.json() middleware
+        this.app.post(
+            '/api/subscriptions/webhook',
+            express.raw({ type: 'application/json' }),
+            (req, res, next) => {
+                console.log('🎯 Webhook request received with raw body');
+                next();
+            }
+        );
 
         // Increase body size limits for large base64 images
         this.app.use(express.json({ limit: '100mb' }));
@@ -165,6 +178,8 @@ class App {
             new AnalyticsApiController(), // Client analytics (/analytics/track)
             new SubscriptionController(), // Stripe subscription management
             new NotificationController(), // In-app notification system
+            new SearchController(), // Global search (vault, projects, collabs)
+            new AddonController(), // Addon purchases (wins & team members)
         ];
 
         controllers.forEach((controller) => {

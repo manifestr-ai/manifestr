@@ -186,7 +186,7 @@ const Sidebar = ({
   onZoomOut?: () => void;
   onZoomReset?: () => void;
 }) => (
-  <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40">
+  <div className="relative z-40">
     <div className="bg-[#3A3A3A] rounded-[16px] w-[50px] py-4 flex flex-col items-center gap-3 border border-[rgba(0,0,0,0.30)] shadow-[0_20px_25px_-5px_rgba(0,0,0,0.10),0_8px_10px_-6px_rgba(0,0,0,0.10)]">
       <button
         type="button"

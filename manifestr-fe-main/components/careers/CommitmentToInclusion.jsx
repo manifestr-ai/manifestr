@@ -4,9 +4,9 @@ import { ArrowUpRight } from 'lucide-react'
 import CldImage from '../ui/CldImage'
 
 /** Desktop Figma 12483:22388 — 1440×414 sand strip */
-const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351370/Sand_Banner_c5rnyq.webp'
 /** Mobile Figma 12091:54445 */
-const CTA_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775223352/Rectangle_8_1_jmywwu.png'
+const CTA_BG_MOBILE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351370/Sand_Banner_c5rnyq.webp'
 
 const DESKTOP_BODY_P1 =
   "At MANIFESTR, diversity is not a checkbox, it's a strength. We believe the future of work is shaped by bringing together different perspectives, experiences, and ways of thinking."

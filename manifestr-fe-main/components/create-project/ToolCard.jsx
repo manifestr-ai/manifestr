@@ -159,23 +159,41 @@ export default function ToolCard({
                 </div>
               </div>
 
-              {/* Description Content */}
+              {/* Description — Figma 9978:11498 */}
               {description && (
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-                  {description.title && (
-                    <p className="font-bold text-[14px] leading-[20px] mb-1.5 text-black shrink-0">
-                      {description.title}
+                  {description.role && (
+                    <p className="mb-[14px] shrink-0 text-[14px] font-bold leading-5 text-black">
+                      {description.role}
                     </p>
                   )}
-                  {description.content && (
-                    <div className="text-[14px] leading-[20px] text-black mb-1.5 line-clamp-4">
-                      {description.content}
-                    </div>
+                  {(description.purpose || description.useItFor || description.outputs) && (
+                    <p className="mb-[14px] whitespace-pre-wrap text-[14px] font-normal leading-5 text-black">
+                      {description.purpose && (
+                        <>
+                          <span className="font-bold">Purpose: </span>
+                          <span>{description.purpose}</span>
+                          <br />
+                        </>
+                      )}
+                      {description.useItFor && (
+                        <>
+                          <span className="font-bold">Use it for: </span>
+                          <span>{description.useItFor}</span>
+                          <br />
+                        </>
+                      )}
+                      {description.outputs && (
+                        <>
+                          <span className="font-bold">Outputs:</span>
+                          <span> {description.outputs}</span>
+                        </>
+                      )}
+                    </p>
                   )}
                   {description.quickTip && (
-                    <p className="text-[14px] leading-[20px] text-black shrink-0 line-clamp-2">
-                      <span className="font-bold">Quick Tip:</span>{' '}
-                      {description.quickTip}
+                    <p className="text-[14px] font-normal leading-5 text-black">
+                      <span className="font-bold">Quick Tip:</span> {description.quickTip}
                     </p>
                   )}
                 </div>

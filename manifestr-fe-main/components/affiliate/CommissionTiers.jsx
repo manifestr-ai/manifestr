@@ -78,15 +78,10 @@ export default function CommissionTiers() {
       <div className="absolute inset-0">
         <CldImage src={MARBLE_BG} alt="" className="h-full w-full object-cover opacity-[0.39]" />
       </div>
-<<<<<<< Updated upstream
-
-      <div className="relative mx-auto max-w-[1440px] px-6 md:px-[80px]">
-        {/* Figma 12075:28036 — mobile heading gap 12px, cards gap 40px below */}
-=======
       
       <div className="relative max-w-[1440px] mx-auto px-6 md:px-[80px]">
         {/* Heading */}
->>>>>>> Stashed changes
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -106,13 +101,12 @@ export default function CommissionTiers() {
           </p>
         </motion.div>
 
-<<<<<<< Updated upstream
-        {/* Figma 12075:28043 — cards 342×191, gap 16px */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-stretch md:gap-5">
-=======
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 md:items-stretch gap-[16px] md:gap-[20px]">
->>>>>>> Stashed changes
+
+        {/* Figma 12075:28043 — cards 342×191, gap 16px */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-stretch md:gap-5">
+
           {TIERS.map((tier, i) => (
             <motion.div
               key={tier.badge}
@@ -120,38 +114,6 @@ export default function CommissionTiers() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.5 }}
-<<<<<<< Updated upstream
-              className="flex h-[191px] flex-col border border-[#e4e4e7] bg-white p-[25px] shadow-sm rounded-[14px] md:h-auto md:min-h-0 md:rounded-[12px] md:p-[43px]"
-            >
-              {/* Figma 12075:28071 — badge + content gap 17px */}
-              <div className="flex h-full min-h-0 flex-col gap-[17px] md:gap-0 md:h-full">
-                <div
-                  className="flex h-[40px] shrink-0 items-center justify-center self-start rounded-full bg-black px-4 md:h-[44px] md:px-8"
-                >
-                  <span
-                    className="text-[16px] leading-6 text-white md:text-[24px] md:leading-none"
-                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
-                  >
-                    <span className="md:hidden">{tier.label}</span>
-                    <span className="hidden md:inline">{tier.badge}</span>
-                  </span>
-                </div>
-
-                <div className="flex h-[84px] min-h-0 flex-col gap-2 md:h-auto md:flex-1 md:gap-0">
-                  <div aria-hidden className="hidden min-h-[30px] flex-1 md:block" />
-                  <div className="flex min-h-0 flex-col gap-2 md:gap-0">
-                    <CommissionRateRow pct={tier.pct} />
-                    <CommissionRateRowDesktop pct={tier.pct} />
-
-                    <p
-                      className="shrink-0 text-[16px] leading-5 text-[#18181b] md:mt-5 md:text-[18px] md:leading-[18px]"
-                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
-                    >
-                      {tier.range}
-                    </p>
-                  </div>
-                </div>
-=======
               className="flex h-full min-h-0 flex-col bg-white border border-[#e4e4e7] rounded-[14px] md:rounded-[12px] p-[25px] md:p-[43px] shadow-sm"
             >
               {/* Badge */}
@@ -201,7 +163,36 @@ export default function CommissionTiers() {
                 >
                   {tier.range}
                 </p>
->>>>>>> Stashed changes
+              className="flex h-[191px] flex-col border border-[#e4e4e7] bg-white p-[25px] shadow-sm rounded-[14px] md:h-auto md:min-h-0 md:rounded-[12px] md:p-[43px]"
+            >
+              {/* Figma 12075:28071 — badge + content gap 17px */}
+              <div className="flex h-full min-h-0 flex-col gap-[17px] md:gap-0 md:h-full">
+                <div
+                  className="flex h-[40px] shrink-0 items-center justify-center self-start rounded-full bg-black px-4 md:h-[44px] md:px-8"
+                >
+                  <span
+                    className="text-[16px] leading-6 text-white md:text-[24px] md:leading-none"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+                  >
+                    <span className="md:hidden">{tier.label}</span>
+                    <span className="hidden md:inline">{tier.badge}</span>
+                  </span>
+                </div>
+
+                <div className="flex h-[84px] min-h-0 flex-col gap-2 md:h-auto md:flex-1 md:gap-0">
+                  <div aria-hidden className="hidden min-h-[30px] flex-1 md:block" />
+                  <div className="flex min-h-0 flex-col gap-2 md:gap-0">
+                    <CommissionRateRow pct={tier.pct} />
+                    <CommissionRateRowDesktop pct={tier.pct} />
+
+                    <p
+                      className="shrink-0 text-[16px] leading-5 text-[#18181b] md:mt-5 md:text-[18px] md:leading-[18px]"
+                      style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                    >
+                      {tier.range}
+                    </p>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}

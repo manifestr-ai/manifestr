@@ -3,7 +3,7 @@ import {
   Scissors, Copy, Clipboard, Eraser, ChevronDown, Bold, Italic, Underline,
   Palette, Highlighter, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   List, ListOrdered, IndentDecrease, IndentIncrease, Space, Strikethrough,
-  Subscript, Superscript
+  Subscript, Superscript, ChevronLeft, ChevronRight
 } from "lucide-react";
 
 interface FormatPanelProps {
@@ -16,6 +16,7 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
   const [font, setFont] = useState("Inter");
   const [fontSize, setFontSize] = useState("12pt");
   const [textColor, setTextColor] = useState("#000000");
+  const [toolbarPage, setToolbarPage] = useState<"primary" | "secondary">("primary");
   const textColorInputRef = useRef<HTMLInputElement | null>(null);
   const [showHighlightMenu, setShowHighlightMenu] = useState(false);
   const highlightMenuAnchorRef = useRef<HTMLButtonElement | null>(null);
@@ -281,7 +282,9 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
   };
 
   return (
-    <div className="bg-white border-t border-[#e4e4e7] flex items-center gap-5 h-[89px] overflow-x-auto px-6">
+    <div className="bg-white border-t border-[#e4e4e7] flex items-center gap-5 h-[89px] overflow-hidden px-6">
+      {toolbarPage === "primary" ? (
+        <>
       {/* Quick Actions */}
       <div className="h-[54px] flex flex-col gap-2 shrink-0">
         <p className="font-inter font-normal leading-4 text-[#6a7282] text-xs text-center">
@@ -624,8 +627,25 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="bg-[#d1d5dc] h-14 w-px shrink-0" />
+      <button
+        type="button"
+        onClick={() => setToolbarPage("secondary")}
+        className="ml-auto flex h-[64px] w-[44px] shrink-0 items-center justify-center rounded-[14px] text-[#c4cad4] transition hover:bg-gray-50 hover:text-[#4A5565]"
+        aria-label="Show more formatting tools"
+      >
+        <ChevronRight className="size-9" strokeWidth={1.5} />
+      </button>
+        </>
+      ) : (
+        <>
+      <button
+        type="button"
+        onClick={() => setToolbarPage("primary")}
+        className="mr-3 flex h-[64px] w-[44px] shrink-0 items-center justify-center rounded-[14px] text-[#c4cad4] transition hover:bg-gray-50 hover:text-[#4A5565]"
+        aria-label="Show primary formatting tools"
+      >
+        <ChevronLeft className="size-9" strokeWidth={1.5} />
+      </button>
 
       {/* Lists & Spacing */}
       <div className="h-[54px] flex flex-col gap-2 shrink-0">
@@ -801,6 +821,8 @@ export default function FormatPanel({ store, editor }: FormatPanelProps) {
           </button>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

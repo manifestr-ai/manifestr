@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useId } from "react";
+import Image from "next/image";
 import {
   Sparkles,
   History,
@@ -6,12 +7,16 @@ import {
   FileUp,
   FileText,
   Send,
-  Command,
   Upload,
   Search,
   Loader2,
   AlertCircle,
   X,
+  CloudUpload,
+  Plus,
+  ImageIcon,
+  Video,
+  Trash2,
 } from "lucide-react";
 import useAiPrompter, {
   PromptHistoryItem,
@@ -24,6 +29,16 @@ interface AiPrompterPanelProps {
   editorType?: "image" | "document" | "spreadsheet" | "presentation" | "chart";
   onClose?: () => void;
   generationId?: string;
+}
+
+type DropzoneFileKind = "image" | "video" | "document";
+
+interface DropzoneFileItem {
+  id: string;
+  name: string;
+  kind: DropzoneFileKind;
+  file: File;
+  extractedText?: string;
 }
 
 export default function AiPrompterPanel({
@@ -52,6 +67,32 @@ export default function AiPrompterPanel({
     presentation: "",
     constraints: "",
   });
+  const [briefToneTags, setBriefToneTags] = useState<string[]>([]);
+  const [briefGoalTags, setBriefGoalTags] = useState<string[]>([]);
+
+  const BRIEF_TONE_TAGS = [
+    "Stronger",
+    "More concise",
+    "Persuasive",
+    "Confident",
+    "Professional",
+  ] as const;
+  const BRIEF_GOAL_TAGS = [
+    "Clarity",
+    "Shorten",
+    "Strengthen",
+    "Polish",
+    "Restructure",
+  ] as const;
+
+  const toggleBriefTag = (
+    tag: string,
+    setSelected: React.Dispatch<React.SetStateAction<string[]>>,
+  ) => {
+    setSelected((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    );
+  };
 
   // Voice recording state
   const recognitionRef = useRef<any>(null);
@@ -60,9 +101,11 @@ export default function AiPrompterPanel({
   // File upload ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Dropzone document preview state
-  const [extractedDocText, setExtractedDocText] = useState("");
-  const [uploadedFileName, setUploadedFileName] = useState("");
+  // Dropzone state
+  const [dropzoneFiles, setDropzoneFiles] = useState<DropzoneFileItem[]>([]);
+  const [dropzoneGeneratingPrompt, setDropzoneGeneratingPrompt] = useState<
+    string | null
+  >(null);
   const [isDropzoneDragging, setIsDropzoneDragging] = useState(false);
 
   // AI Prompter hook
@@ -781,31 +824,99 @@ export default function AiPrompterPanel({
       reader.readAsText(file);
     });
 
-  // Process a single file (used by both <input> change and drag-and-drop).
-  const processFile = async (file: File | null | undefined) => {
-    if (!file) return;
-
-    clearError();
-    const isDocument =
+  const getDropzoneFileKind = (file: File): DropzoneFileKind | null => {
+    if (file.type.startsWith("image/")) return "image";
+    if (file.type.startsWith("video/")) return "video";
+    if (
       [
         "text/plain",
         "application/msword",
         "application/vnd.ms-word",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ].includes(file.type) || /\.(txt|doc|docx)$/i.test(file.name);
+      ].includes(file.type) ||
+      /\.(txt|doc|docx)$/i.test(file.name)
+    ) {
+      return "document";
+    }
+    return null;
+  };
 
-    const maxSize = isDocument ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error(`File size must be less than ${isDocument ? "10" : "5"} MB`);
+  const addDropzoneFile = (item: DropzoneFileItem) => {
+    setDropzoneFiles((prev) => {
+      if (prev.some((f) => f.name === item.name && f.file.size === item.file.size)) {
+        return prev;
+      }
+      return [...prev, item];
+    });
+    setDropzoneGeneratingPrompt(null);
+  };
+
+  const removeDropzoneFile = (id: string) => {
+    setDropzoneFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const buildDropzonePrompt = (files: DropzoneFileItem[]) =>
+    files
+      .map((f) => {
+        if (f.kind === "document" && f.extractedText?.trim()) {
+          return `Content from ${f.name}:\n${f.extractedText.trim()}`;
+        }
+        return `Use the attached ${f.kind} file "${f.name}" as context for the requested changes.`;
+      })
+      .join("\n\n");
+
+  // Process a single file (used by both <input> change and drag-and-drop).
+  const processFile = async (file: File | null | undefined) => {
+    if (!file) return;
+
+    clearError();
+    const kind = getDropzoneFileKind(file);
+    if (!kind) {
+      toast.error(
+        "Unsupported file type. Upload images, videos, or documents (.txt, .doc, .docx).",
+      );
       return;
     }
 
-    // Documents: txt/doc/docx → show editable extracted text in the dropzone
-    if (isDocument) {
+    const maxSize =
+      kind === "video"
+        ? 30 * 1024 * 1024
+        : kind === "image"
+          ? 2 * 1024 * 1024
+          : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const limitLabel =
+        kind === "video" ? "30" : kind === "image" ? "2" : "10";
+      toast.error(`File size must be less than ${limitLabel} MB`);
+      return;
+    }
+
+    if (editorType === "image" && kind === "video") {
+      toast.error("Please upload an image or document for the image editor.");
+      return;
+    }
+
+    if (
+      editorType === "spreadsheet" &&
+      kind !== "document" &&
+      ![
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ].includes(file.type)
+    ) {
+      toast.error(
+        "Please upload a CSV, Excel file, or document (.txt, .doc, .docx).",
+      );
+      return;
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    if (kind === "document") {
       const isPlainText =
         file.type === "text/plain" || /\.txt$/i.test(file.name);
 
-      // Plain text: extract entirely client-side (no backend dependency).
       if (isPlainText) {
         try {
           const text = await readPlainTextFile(file);
@@ -813,9 +924,8 @@ export default function AiPrompterPanel({
             toast.error("This text file appears to be empty.");
             return;
           }
-          setExtractedDocText(text);
-          setUploadedFileName(file.name);
-          toast.success(`"${file.name}" loaded. Review the text below, then tap Send Prompt.`);
+          addDropzoneFile({ id, name: file.name, kind, file, extractedText: text });
+          toast.success(`"${file.name}" added. Tap Generate Prompt when ready.`);
           return;
         } catch (error) {
           console.error("❌ Failed to read text file:", error);
@@ -824,13 +934,10 @@ export default function AiPrompterPanel({
         }
       }
 
-      // .doc/.docx: still tries the server extractor, but never crashes the UI on failure.
       try {
         const formData = new FormData();
         formData.append("file", file);
-
         const response = await api.post("/api/uploads/extract-text", formData);
-
         const extractedText = response?.data?.data?.extractedText || "";
         if (!extractedText.trim()) {
           toast.error(
@@ -838,47 +945,31 @@ export default function AiPrompterPanel({
           );
           return;
         }
-
-        setExtractedDocText(extractedText);
-        setUploadedFileName(file.name);
-        toast.success(`"${file.name}" loaded. Review the text below, then tap Send Prompt.`);
-        return;
+        addDropzoneFile({
+          id,
+          name: file.name,
+          kind,
+          file,
+          extractedText,
+        });
+        toast.success(`"${file.name}" added. Tap Generate Prompt when ready.`);
       } catch (error: any) {
         console.error("❌ Document text extraction failed:", error);
         toast.error(
           "Couldn't extract text from this document. As a workaround, save the file as .txt and drop it here.",
         );
-        return;
       }
-    }
-
-    // Validate file type based on editor type (for non-document files)
-    if (editorType === "image" && !file.type.startsWith("image/")) {
-      toast.error("Please upload an image file or a document (.txt, .doc, .docx)");
       return;
     }
 
-    if (
-      editorType === "spreadsheet" &&
-      ![
-        "text/csv",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ].includes(file.type)
-    ) {
-      toast.error(
-        "Please upload a CSV or Excel file, or a document (.txt, .doc, .docx)",
-      );
-      return;
-    }
+    addDropzoneFile({ id, name: file.name, kind, file });
+    toast.success(`"${file.name}" added. Tap Generate Prompt when ready.`);
+  };
 
-    const currentData = getCurrentEditorData();
-
-    try {
-      await processUploadedFile(file, currentData || undefined);
-      toast.success(`"${file.name}" uploaded successfully.`);
-    } catch (error) {
-      // Error is already surfaced by the hook (toast inside useAiPrompter).
+  const processFiles = async (files: FileList | File[] | null | undefined) => {
+    if (!files?.length) return;
+    for (const file of Array.from(files)) {
+      await processFile(file);
     }
   };
 
@@ -886,9 +977,8 @@ export default function AiPrompterPanel({
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const file = event.target.files?.[0];
     try {
-      await processFile(file);
+      await processFiles(event.target.files);
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -921,47 +1011,68 @@ export default function AiPrompterPanel({
     e.preventDefault();
     e.stopPropagation();
     setIsDropzoneDragging(false);
-    const file = e.dataTransfer?.files?.[0];
-    await processFile(file);
+    await processFiles(e.dataTransfer?.files);
   };
 
-  // Handle sending extracted document text as prompt
-  const handleSendExtractedText = async () => {
-    if (!extractedDocText.trim()) return;
+  const handleDropzoneGeneratePrompt = async () => {
+    if (dropzoneFiles.length === 0 || isProcessing) return;
+
+    const prompt = buildDropzonePrompt(dropzoneFiles);
+    setDropzoneGeneratingPrompt(prompt);
 
     const currentData = getCurrentEditorData();
+    const mediaFiles = dropzoneFiles.filter(
+      (f) => f.kind === "image" || f.kind === "video",
+    );
+    const hasDocumentText = dropzoneFiles.some(
+      (f) => f.kind === "document" && f.extractedText?.trim(),
+    );
 
     try {
-      if (currentData) {
-        await modifyContent(extractedDocText, currentData, "Dropzone");
-      } else {
-        await generateContent(extractedDocText, "Dropzone");
+      for (const item of mediaFiles) {
+        await processUploadedFile(item.file, currentData || undefined);
       }
 
-      // Clear extracted text after sending
-      setExtractedDocText("");
-      setUploadedFileName("");
+      if (hasDocumentText || (mediaFiles.length === 0 && prompt.trim())) {
+        if (currentData) {
+          await modifyContent(prompt, currentData, "Dropzone");
+        } else {
+          await generateContent(prompt, "Dropzone");
+        }
+      }
+
+      setDropzoneFiles([]);
+      setDropzoneGeneratingPrompt(null);
     } catch (error) {
-      // Error is already handled by the hook
-      console.error("Failed to process extracted text:", error);
+      console.error("Failed to generate prompt from dropzone:", error);
     }
   };
 
   // Handle Brief Me submission
   const handleBriefSubmit = async () => {
-    // Validate that at least one field is filled
-    const hasContent = Object.values(briefData).some((val) => val.trim());
+    const hasContent =
+      briefData.whatToDo.trim() ||
+      briefData.style.trim() ||
+      briefToneTags.length > 0 ||
+      briefGoalTags.length > 0;
+
     if (!hasContent) {
       toast.error("Please fill in at least one field");
       return;
     }
 
     const currentData = getCurrentEditorData();
+    const payload = {
+      whatToDo: briefData.whatToDo,
+      focusArea: "",
+      style: briefData.style,
+      presentation: briefGoalTags.join(", "),
+      constraints: briefToneTags.join(", "),
+    };
 
     try {
-      await processBrief(briefData, currentData || undefined);
+      await processBrief(payload, currentData || undefined);
 
-      // Clear form on success
       setBriefData({
         whatToDo: "",
         focusArea: "",
@@ -969,6 +1080,8 @@ export default function AiPrompterPanel({
         presentation: "",
         constraints: "",
       });
+      setBriefToneTags([]);
+      setBriefGoalTags([]);
     } catch (error) {
       // Error is already handled by the hook
     }
@@ -1006,6 +1119,14 @@ export default function AiPrompterPanel({
     return true;
   });
 
+  const talkToMeMicIdleSrc =
+    "https://res.cloudinary.com/dlifgfg6m/image/upload/v1779166774/Group_1577709164_eiwl3o.png";
+  const talkToMeMicRecordingSrc =
+    "https://res.cloudinary.com/dlifgfg6m/image/upload/v1779166798/Group_1577709164_1_gauha2.png";
+  const talkToMeWatermarkSrc =
+    "https://res.cloudinary.com/dlifgfg6m/image/upload/v1779166955/YOUR_WORK_YOUR_WAY_juempq.png";
+  const talkToMeMicSizePx = 108;
+
   const prompterTabs = [
     { name: "Freestyle", icon: Sparkles },
     { name: "Talk To Me", icon: Mic },
@@ -1013,58 +1134,53 @@ export default function AiPrompterPanel({
     { name: "Brief Me", icon: FileText },
   ];
 
-  // Helper function to get icon and color for history item type
-  const getHistoryItemStyle = (type: PromptHistoryItem["type"]) => {
-    switch (type) {
-      case "Freestyle":
-        return {
-          icon: Sparkles,
-          color:
-            "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white",
-        };
-      case "Talk To Me":
-        return {
-          icon: Mic,
-          color:
-            "bg-[linear-gradient(135deg,_#51A2FF_0%,_#155DFC_100%)] text-white",
-        };
-      case "Brief Me":
-        return {
-          icon: FileText,
-          color:
-            "bg-[linear-gradient(135deg,_#FFB900_0%,_#E17100_100%)] text-white",
-        };
-      case "Dropzone":
-        return {
-          icon: Upload,
-          color:
-            "bg-[linear-gradient(135deg,_#05DF72_0%,_#00A63E_100%)] text-white",
-        };
-      default:
-        return {
-          icon: Sparkles,
-          color:
-            "bg-[linear-gradient(135deg,_#C27AFF_0%,_#9810FA_100%)] text-white",
-        };
+  const noFocusRing =
+    "outline-none focus:outline-none focus:ring-0 focus:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none";
+
+  const historyFilterButtonClass = (isActive: boolean) =>
+    `flex h-10 shrink-0 items-center gap-2 rounded-md px-3 text-sm font-medium transition-all ${noFocusRing} ${
+      isActive
+        ? "bg-black text-white"
+        : "bg-[#f4f4f4] text-[#0a0a0a] hover:bg-[#ebebeb]"
+    }`;
+
+  const handleHistoryItemClick = (item: PromptHistoryItem) => {
+    setActiveTab(item.type);
+    setMode("Prompt Mode");
+    if (item.type === "Freestyle") {
+      setFreestylePrompt(item.prompt);
     }
   };
 
   return (
     <div
-      className="w-full border-t border-[#D1D5DB]/30 relative"
-      style={{
-        background:
-          "linear-gradient(135deg, #E2E8F0 0%, #F3F4F6 50%, #E4E4E7 100%)",
-      }}
+      className={`w-full relative overflow-hidden border border-[#dcdfe5] bg-white shadow-[0_-1px_2px_rgba(0,0,0,0.25)] ${noFocusRing} [&_button]:outline-none [&_button]:focus:outline-none [&_button]:focus:ring-0 [&_button]:focus-visible:outline-none [&_button]:focus-visible:ring-0 [&_input]:outline-none [&_input]:focus:outline-none [&_input]:focus:ring-0 [&_input]:focus-visible:outline-none [&_input]:focus-visible:ring-0 [&_textarea]:outline-none [&_textarea]:focus:outline-none [&_textarea]:focus:ring-0 [&_textarea]:focus-visible:outline-none [&_textarea]:focus-visible:ring-0 [&_button]:focus:shadow-none [&_input]:focus:shadow-none [&_textarea]:focus:shadow-none`}
     >
+      {/* Background watermark (hidden on Talk To Me & Dropzone — those tabs have their own) */}
+      {activeTab !== "Talk To Me" &&
+        activeTab !== "Dropzone" &&
+        mode !== "History" && (
+        <p
+          className="pointer-events-none absolute right-6 top-2 z-0 hidden text-center text-[48px] leading-none text-black opacity-[0.05] sm:block lg:right-10"
+          style={{
+            fontFamily: "'IvyPresto Headline', serif",
+            fontWeight: 600,
+            fontStyle: "italic",
+          }}
+          aria-hidden
+        >
+          YOUR WORK, YOUR WAY
+        </p>
+      )}
+
       {/* Close Button - Top Right */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white border border-[#E2E8F0] shadow-sm hover:shadow-md transition-all group"
+          className={`absolute top-3 right-3 z-50 flex h-8 w-8 items-center justify-center rounded-md border border-[#dcdfe5] bg-white shadow-sm transition-all hover:bg-[#f4f4f4] group ${noFocusRing}`}
           title="Close AI Prompter"
         >
-          <X className="w-4 h-4 text-[#6B7280] group-hover:text-[#1F2937]" />
+          <X className="h-4 w-4 text-[#71717a] group-hover:text-[#18181b]" />
         </button>
       )}
 
@@ -1085,54 +1201,127 @@ export default function AiPrompterPanel({
         </div>
       )}
 
-      <div className="p-4 sm:p-6 space-y-6 mx-auto max-w-full">
-        {/* Row 1: Toggles */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-          <div
-            className="
-              flex gap-1
-              p-1
-              w-full sm:w-[323.383px]
-              h-[46px]
-              rounded-[16777200px]
-              border
-              border-white/80
-              bg-white/50
-              shadow-[0_20px_25px_-5px_rgba(0,0,0,0.10),0_8px_10px_-6px_rgba(0,0,0,0.10)]
-            "
-          >
-            {["Prompt Mode", "History"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setMode(t)}
-                className={`flex items-center gap-[8.4px] pl-[15px] sm:pl-[25.2px] w-1/2 sm:w-[167.475px] h-[37.8px] rounded-[16777200px] text-[13px] font-semibold transition-all
-                  ${
-                    mode === t
-                      ? "bg-gradient-to-r from-[#90A1B9] to-[#6A7282] text-white shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)]"
-                      : "text-[#64748B] hover:text-[#334155] bg-white/50 border border-white/80"
-                  }
-                `}
-                style={{
-                  background:
-                    mode === t
-                      ? "linear-gradient(90deg, #90A1B9 0%, #6A7282 100%)"
-                      : undefined,
-                }}
-              >
-                {t === "Prompt Mode" ? (
-                  <Sparkles className="w-3.5 h-3.5" />
-                ) : (
-                  <History className="w-3.5 h-3.5" />
-                )}
-                {t}
-                {t === "History" && (
-                  <span className="bg-[#BDC5D0] text-[#475569] px-1.5 rounded-md text-[10px] font-bold">
-                    {history.length}
-                  </span>
-                )}
-              </button>
-            ))}
+      <div className="mx-auto max-w-full space-y-5 px-6 py-5 sm:px-10 sm:py-6">
+        {/* Row 1: Mode toggle + divider + prompt tabs */}
+        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-0">
+          <div className="flex h-10 shrink-0 items-center rounded-md bg-black p-1">
+            {["Prompt Mode", "History"].map((t) => {
+              const isActive = mode === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setMode(t)}
+                  className={`flex h-8 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-all ${
+                    isActive
+                      ? "border border-[#ededed] bg-white text-[#0a0a0a] shadow-[0_1px_1px_rgba(0,0,0,0.05)]"
+                      : "text-white hover:text-white/90"
+                  }`}
+                >
+                  {t === "Prompt Mode" ? (
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <History className="h-4 w-4 shrink-0" />
+                  )}
+                  <span>{t}</span>
+                  {t === "History" && (
+                    <span className="rounded-full bg-[#f1f5f9] px-1.5 py-0.5 text-xs font-semibold text-[#65758b]">
+                      {history.length}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
+
+          {mode === "Prompt Mode" && (
+            <>
+              <div
+                className="hidden h-7 w-px shrink-0 bg-[#dcdfe5] lg:mx-5 lg:block"
+                aria-hidden
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                {prompterTabs.map((tab) => {
+                  const isActive = activeTab === tab.name;
+                  return (
+                    <button
+                      key={tab.name}
+                      type="button"
+                      onClick={() => setActiveTab(tab.name)}
+                      disabled={isProcessing}
+                      className={`flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                        isActive
+                          ? "bg-black text-white"
+                          : "bg-[#f4f4f4] text-[#0a0a0a] hover:bg-[#ebebeb]"
+                      }`}
+                    >
+                      <tab.icon className="h-4 w-4 shrink-0" />
+                      <span>{tab.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {mode === "History" && (
+            <>
+              <div
+                className="hidden h-7 w-px shrink-0 bg-[#dcdfe5] lg:mx-5 lg:block"
+                aria-hidden
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHistoryFilter("All")}
+                  className={historyFilterButtonClass(historyFilter === "All")}
+                >
+                  All
+                </button>
+                {prompterTabs.map((tab) => (
+                  <button
+                    key={tab.name}
+                    type="button"
+                    onClick={() => setHistoryFilter(tab.name)}
+                    className={historyFilterButtonClass(
+                      historyFilter === tab.name,
+                    )}
+                  >
+                    <tab.icon className="h-4 w-4 shrink-0" />
+                    <span>{tab.name}</span>
+                  </button>
+                ))}
+              </div>
+              <div
+                className="hidden h-7 w-px shrink-0 bg-[#dcdfe5] lg:mx-5 lg:block"
+                aria-hidden
+              />
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:justify-end">
+                <div className="relative min-w-[200px] flex-1 lg:max-w-md">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#71717a]" />
+                  <input
+                    type="text"
+                    placeholder="Search your prompt history..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`h-10 w-full rounded-md border border-[#e1e7ef] bg-[#f5f5f5] py-2 pl-9 pr-3 text-sm text-[#0a0a0a] placeholder:text-[#71717a] focus:border-[#e1e7ef] ${noFocusRing}`}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearHistory();
+                    setSearchQuery("");
+                  }}
+                  disabled={history.length === 0}
+                  className="flex h-10 shrink-0 items-center gap-2 rounded-md px-2 text-sm font-semibold text-[#0a0a0a] transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear All
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Processing Status */}
@@ -1162,89 +1351,13 @@ export default function AiPrompterPanel({
         )}
 
         {mode === "Prompt Mode" && (
-          <div>
-            {/* Row 2: Tabs */}
-            <div className="flex flex-wrap items-center h-auto sm:h-10 gap-2 sm:gap-0">
-              {prompterTabs.map((tab, idx) => (
-                <div key={tab.name} className="flex items-center">
-                  <button
-                    onClick={() => setActiveTab(tab.name)}
-                    disabled={isProcessing}
-                    className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      activeTab === tab.name
-                        ? "bg-white text-[#1E293B] shadow-sm border border-[#E2E8F0]"
-                        : "text-[#64748B] hover:bg-slate-200/50"
-                    } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <tab.icon
-                      className={`w-4 h-4 ${activeTab === tab.name ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
-                    />
-                    <span
-                      className="text-[#314158] font-inter text-[14px] not-italic font-normal leading-[20px] tracking-[-0.15px]"
-                      style={{
-                        color: "#314158",
-                        fontFamily: "Inter, sans-serif",
-                        fontSize: "14px",
-                        fontStyle: "normal",
-                        fontWeight: 400,
-                        lineHeight: "20px",
-                        letterSpacing: "-0.15px",
-                      }}
-                    >
-                      {tab.name}
-                    </span>
-                  </button>
-                  {idx < prompterTabs.length - 1 && (
-                    <div className="hidden sm:block w-[1px] h-4 bg-[#CBD5E1] mx-4" />
-                  )}
-                </div>
-              ))}
-            </div>
-            <hr
-              style={{
-                border: "none",
-                borderTop: "1px solid #CAD5E2",
-                margin: "20px 0",
-              }}
-            />
-
-            {/* Row 3: Freestyle */}
+          <div className="overflow-visible">
+            {/* Freestyle tab content */}
             {activeTab === "Freestyle" && (
-              <div
-                className="self-stretch rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-4 sm:p-6 space-y-5"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
-                }}
-              >
-                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-4">
-                  <div
-                    className="flex justify-center items-center rounded-[16px] w-10 h-10 mb-2 sm:mb-0"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
-                      boxShadow:
-                        "0 20px 25px -5px rgba(98, 116, 142, 0.40), 0 8px 10px -6px rgba(98, 116, 142, 0.40)",
-                    }}
-                  >
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-
-                  <h2
-                    className="font-inter text-base sm:text-lg"
-                    style={{
-                      color: "#0A0A0A",
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "16px",
-                      fontStyle: "normal",
-                      fontWeight: 500,
-                      lineHeight: "24px",
-                      letterSpacing: "-0.312px",
-                    }}
-                  >
-                    What would you like to change?
-                  </h2>
-                </div>
+              <div className="space-y-3">
+                <h2 className="text-base font-semibold leading-7 text-[#18181b]">
+                  Type your thoughts - we will turn it into a prompt
+                </h2>
 
                 <div className="relative">
                   <textarea
@@ -1252,278 +1365,168 @@ export default function AiPrompterPanel({
                     onChange={(e) => setFreestylePrompt(e.target.value)}
                     disabled={isProcessing}
                     placeholder="Describe what you'd like to modify... For example: 'Change the header to navy blue, make the buttons larger, and add spacing between sections.'"
-                    className="
-                      flex
-                      w-full
-                      h-[110px] sm:h-[140px]
-                      p-2
-                      px-3
-                      items-start
-                      flex-shrink-0
-                      self-stretch
-                      rounded-[16px]
-                      border
-                      border-white/80
-                      bg-white/50
-                      shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                      text-[#374151]
-                      resize-none
-                      text-[15px]
-                      leading-relaxed
-                      placeholder:text-[#94A3B8]
-                      font-medium
-                      focus:ring-0
-                      border-solid
-                      disabled:opacity-50
-                      disabled:cursor-not-allowed
-                    "
+                    className={`h-[113px] w-full resize-none rounded-md border border-[#e1e7ef] bg-[#f4f4f4] p-3 pb-14 text-[15px] leading-6 text-[#18181b] placeholder:text-[#71717a] focus:border-[#e1e7ef] disabled:cursor-not-allowed disabled:opacity-50 ${noFocusRing}`}
                   />
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-[#E5E7EB] gap-3 sm:gap-0">
-                  <div className="flex items-center gap-3 sm:gap-4 text-[#6B7280] font-medium mb-2 sm:mb-0">
-                    <span
-                      className="bg-white/80 px-3 py-1 rounded-full border border-[#E5E7EB] shadow-sm text-[#0A0A0A] text-xs sm:text-sm"
-                      style={{
-                        fontFamily: "Inter, sans-serif",
-                        fontSize: "14px",
-                        fontStyle: "normal",
-                        fontWeight: 400,
-                      }}
-                    >
-                      {freestylePrompt.length} characters
-                    </span>
-                    <div className="flex items-center gap-2 px-3 py-1">
-                      <span className="text-[12px] sm:text-[14px]">Press</span>
-                      <div className="flex items-center gap-1 border border-[#D1D5DB] rounded-md px-1.5 py-0.5 min-w-[20px] justify-center bg-[#F9FAFB] shadow-[0_1px_0_#9CA3AF]">
-                        <Command className="w-3 h-3" />
-                      </div>
-                      <span className="text-[#9CA3AF]">+</span>
-                      <div className="flex items-center gap-1 border border-[#D1D5DB] rounded-md px-2 py-0.5 bg-[#F9FAFB] shadow-[0_1px_0_#9CA3AF]">
-                        <span className="text-[10px] font-bold">Enter</span>
-                      </div>
-                    </div>
-                  </div>
 
                   <button
+                    type="button"
                     onClick={handleFreestyleSubmit}
                     disabled={isProcessing || !freestylePrompt.trim()}
-                    className="
-                      flex
-                      justify-center
-                      items-center
-                      gap-2
-                      rounded-[16px]
-                      border
-                      border-white/40
-                      shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
-                      transition-all
-                      active:scale-95
-                      bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                      px-[10px] sm:px-[12.93px]
-                      py-[8px] sm:py-[8.5px]
-                      disabled:opacity-50
-                      disabled:cursor-not-allowed
-                      disabled:active:scale-100
-                    "
-                    style={{
-                      color: "#FFF",
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: 500,
-                      lineHeight: "20px",
-                      letterSpacing: "-0.15px",
-                    }}
+                    className="absolute bottom-3 right-3 flex h-[42px] items-center justify-center gap-2 rounded-md bg-black px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isProcessing ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         <span>Processing...</span>
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4" />
                         <span>Send Prompt</span>
+                        <Send className="h-4 w-4" />
                       </>
                     )}
                   </button>
                 </div>
               </div>
             )}
-            {/* Row 3: Talk To Me */}
+            {/* Talk To Me */}
             {activeTab === "Talk To Me" && (
-              <div
-                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] max-h-[70vh] overflow-y-auto"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
-                  overscrollBehavior: "contain",
-                }}
-              >
-                <div className="flex flex-col items-center gap-1 p-6 sm:p-10 w-full">
-                  <div className="flex flex-col items-center gap-2 mb-8 sm:mb-10">
-                    <div className="flex items-center gap-3">
-                      <div
-                        style={{
-                          display: "flex",
-                          width: "40px",
-                          height: "40px",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          borderRadius: "16px",
-                          background:
-                            "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
-                          boxShadow:
-                            "0 20px 25px -5px rgba(98, 116, 142, 0.40), 0 8px 10px -6px rgba(98, 116, 142, 0.40)",
-                          color: "#fff",
-                        }}
-                      >
-                        <Mic className="w-5 h-5" />
-                      </div>
-
-                      <h2
-                        className="text-lg sm:text-2xl"
-                        style={{
-                          color: "#0A0A0A",
-                          textAlign: "center",
-                          fontFamily: "Inter, sans-serif",
-                          fontSize: "24px",
-                          fontStyle: "normal",
-                          fontWeight: 400,
-                          lineHeight: "32px",
-                          letterSpacing: "0.07px",
-                        }}
-                      >
-                        Talk To Me
-                      </h2>
-                    </div>
-                    <p
-                      style={{
-                        color: "#45556C",
-                        textAlign: "center",
-                        fontFamily: "Inter, sans-serif",
-                        fontSize: "14px",
-                        fontStyle: "normal",
-                        fontWeight: 400,
-                        lineHeight: "20px",
-                        letterSpacing: "-0.15px",
-                      }}
-                      className="mt-2"
-                    >
-                      Click the microphone to start recording your prompt
-                    </p>
-                  </div>
-                  <div className="relative">
-                    {isRecording && (
-                      <div className="absolute inset-0 bg-[#7C8797] rounded-full opacity-70 animate-pulse" />
-                    )}
+              <div className="relative overflow-hidden bg-white">
+                <div className="relative z-10 flex min-h-[180px] flex-col sm:flex-row sm:items-center">
+                  {/* Left: mic + status */}
+                  <div className="flex shrink-0 flex-col items-center justify-center px-6 py-6 sm:w-[280px]">
                     <button
+                      type="button"
                       onClick={toggleRecording}
                       disabled={isProcessing && !isRecording}
-                      className={`relative z-10 w-20 h-20 sm:w-32 sm:h-32 flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                      className="relative flex shrink-0 items-center justify-center transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50"
                       style={{
-                        borderRadius: "16777200px",
-                        background:
-                          "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
-                        boxShadow: "0 25px 50px -12px rgba(98, 116, 142, 0.40)",
-                        transform: isRecording ? "scale(1.10)" : "scale(1)",
+                        width: talkToMeMicSizePx,
+                        height: talkToMeMicSizePx,
                       }}
+                      aria-label={
+                        isRecording ? "Stop recording" : "Start recording"
+                      }
                     >
                       {isProcessing && !isRecording ? (
-                        <Loader2 className="w-8 h-8 sm:w-12 sm:h-12 text-white animate-spin" />
+                        <span
+                          className="flex items-center justify-center"
+                          style={{
+                            width: talkToMeMicSizePx,
+                            height: talkToMeMicSizePx,
+                          }}
+                        >
+                          <Loader2 className="h-10 w-10 animate-spin text-[#71717a]" />
+                        </span>
                       ) : (
-                        <Mic
-                          className={`w-8 h-8 sm:w-12 sm:h-12 text-white transition-all ${isRecording ? "animate-pulse" : ""}`}
+                        <img
+                          src={
+                            isRecording
+                              ? talkToMeMicRecordingSrc
+                              : talkToMeMicIdleSrc
+                          }
+                          alt=""
+                          width={talkToMeMicSizePx}
+                          height={talkToMeMicSizePx}
+                          className="object-contain"
+                          style={{
+                            width: talkToMeMicSizePx,
+                            height: talkToMeMicSizePx,
+                          }}
                         />
                       )}
                     </button>
+
+                    <div className="mt-4 inline-flex flex-row items-center gap-2 whitespace-nowrap">
+                      <span
+                        className={`h-3 w-3 shrink-0 rounded-full ${
+                          isRecording
+                            ? "bg-[#f51010] opacity-85"
+                            : "bg-black opacity-85"
+                        }`}
+                      />
+                      <span className="text-base font-semibold leading-none tracking-[-0.16px] text-[#0a0a0a]">
+                        {isProcessing && !isRecording
+                          ? "Processing..."
+                          : isRecording
+                            ? "Recording... Click to stop"
+                            : "Click to Start Recording"}
+                      </span>
+                    </div>
                   </div>
 
-                  <p
-                    style={{
-                      color: "#45556C",
-                      textAlign: "center",
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: 400,
-                      lineHeight: "20px",
-                      letterSpacing: "-0.15px",
-                    }}
-                    className="mt-8 sm:mt-10"
-                  >
-                    {isProcessing && !isRecording
-                      ? "Processing..."
-                      : isRecording
-                        ? "Listening... Click 'Send Prompt' when ready"
-                        : "Ready to record"}
-                  </p>
+                  <div
+                    className="mx-0 h-px w-full shrink-0 bg-[#dcdfe5] sm:h-[93px] sm:w-px"
+                    aria-hidden
+                  />
 
-                  {/* Show transcript while recording (scrollable so long transcripts
-                      never push the Send Prompt button off-screen) */}
-                  {isRecording && voiceTranscript && (
-                    <div className="mt-4 w-full max-w-md mx-auto px-6 py-3 bg-white/80 rounded-xl border border-[#E2E8F0]">
-                      <p className="text-sm text-[#45556C] font-medium mb-1">
-                        Transcript:
+                  {/* Right: transcript panel */}
+                  <div className="relative z-10 flex flex-1 flex-col border-t border-[#dcdfe5] p-5 pb-16 sm:border-t-0 sm:p-6 sm:pb-16">
+                    <span className="absolute right-5 top-5 rounded-full border border-white/70 bg-white/60 px-3 py-0.5 text-[11px] leading-none text-[#0a0a0a] shadow-sm sm:right-6 sm:top-6">
+                      {voiceTranscript.length} characters
+                    </span>
+
+                    <div className="flex min-h-0 flex-1 flex-col gap-1 pr-28">
+                      <p className="text-[13px] font-semibold leading-[18px] text-[#0a0a0a]">
+                        Transcript
                       </p>
-                      <div
-                        className="text-sm text-[#1E293B] max-h-[180px] overflow-y-auto pr-1"
-                        style={{ overscrollBehavior: "contain" }}
-                      >
-                        <p className="whitespace-pre-wrap break-words">
-                          {voiceTranscript}
-                        </p>
+
+                      <h3 className="text-base font-medium leading-6 text-black">
+                        {isRecording
+                          ? "I'm Listening... What changes do you want to make?"
+                          : "What changes do you want to make?"}
+                      </h3>
+
+                      <div className="min-h-[48px] flex-1 overflow-y-auto">
+                        {voiceTranscript ? (
+                          <p className="whitespace-pre-wrap text-sm leading-5 text-[#71717a]">
+                            {voiceTranscript}
+                          </p>
+                        ) : (
+                          <p className="text-sm leading-5 text-[#71717a]">
+                            <span className="font-bold">Pro tip:</span> Be
+                            specific with your requests. Include colors,
+                            sizes, spacing, and any other details to get the
+                            best results.
+                          </p>
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Send Prompt Button - Shows when recording */}
-                  {isRecording && (
+                    <img
+                      src={talkToMeWatermarkSrc}
+                      alt=""
+                      className="pointer-events-none absolute  left-34 top-30 z-0 h-auto max-h-[72px] w-auto object-contain object-left-bottom "
+                      aria-hidden
+                    />
                     <button
+                      type="button"
                       onClick={() => {
-                        stopRecording();
+                        if (isRecording) stopRecording();
                         if (voiceTranscript.trim()) {
                           handleVoiceTranscript(voiceTranscript);
                         }
                       }}
-                      disabled={!voiceTranscript.trim()}
-                      className="
-                        mt-6
-                        flex
-                        justify-center
-                        items-center
-                        gap-2
-                        rounded-[16px]
-                        border
-                        border-white/40
-                        shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
-                        transition-all
-                        active:scale-95
-                        bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                        px-6
-                        py-3
-                        disabled:opacity-50
-                        disabled:cursor-not-allowed
-                        disabled:active:scale-100
-                      "
-                      style={{
-                        color: "#FFF",
-                        fontFamily: "Inter, sans-serif",
-                        fontSize: "14px",
-                        fontStyle: "normal",
-                        fontWeight: 500,
-                        lineHeight: "20px",
-                        letterSpacing: "-0.15px",
-                      }}
+                      disabled={isProcessing || !voiceTranscript.trim()}
+                      className="absolute bottom-5 right-5 z-10 flex h-[42px] items-center justify-center gap-2 rounded-md bg-black px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:bottom-6 sm:right-6"
                     >
-                      <Send className="w-4 h-4" />
-                      <span>Send Prompt</span>
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send Prompt</span>
+                          <Send className="h-4 w-4" />
+                        </>
+                      )}
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
+
             {/* Row 3: Dropzone */}
             {activeTab === "Dropzone" && (
               <div
@@ -1531,307 +1534,189 @@ export default function AiPrompterPanel({
                 onDragEnter={handleDropzoneDragOver}
                 onDragLeave={handleDropzoneDragLeave}
                 onDrop={handleDropzoneDrop}
-                className={`flex flex-col items-center justify-center rounded-[24px] border shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] transition-colors ${
-                  isDropzoneDragging
-                    ? "border-2 border-dashed border-[#62748E] bg-[rgba(98,116,142,0.06)]"
-                    : "border-white/90"
+                className={`relative w-full overflow-hidden rounded-[10px] bg-[#f4f4f4] transition-colors ${
+                  isDropzoneDragging ? "ring-2 ring-dashed ring-[#62748E]" : ""
+                } ${
+                  dropzoneGeneratingPrompt ||
+                  (isProcessing && dropzoneFiles.length > 0)
+                    ? "min-h-[254px] p-4"
+                    : dropzoneFiles.length > 0
+                      ? "min-h-[254px] px-4 pb-4 pt-4"
+                      : "min-h-[254px] px-6 py-10 sm:px-12 sm:py-12"
                 }`}
-                style={
-                  isDropzoneDragging
-                    ? undefined
-                    : {
-                        background:
-                          "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
-                      }
-                }
               >
-                <div className="flex flex-col items-center gap-2 sm:gap-4 p-6 sm:p-10 w-full">
-                  {/* Show extracted text preview if available */}
-                  {extractedDocText ? (
-                    <div className="w-full space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          style={{
-                            display: "flex",
-                            width: "40px",
-                            height: "40px",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            borderRadius: "16px",
-                            background:
-                              "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
-                            boxShadow:
-                              "0 20px 25px -5px rgba(98, 116, 142, 0.40), 0 8px 10px -6px rgba(98, 116, 142, 0.40)",
-                            color: "#fff",
-                          }}
-                        >
-                          <FileText className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                          <h3
-                            className="text-lg font-medium"
-                            style={{
-                              color: "#0A0A0A",
-                              fontFamily: "Inter, sans-serif",
-                            }}
+                <img
+                  src={talkToMeWatermarkSrc}
+                  alt=""
+                  className="pointer-events-none absolute bottom-2 left-1/2 z-0 h-auto max-h-[72px] w-full max-w-[1100px] -translate-x-1/2 object-contain opacity-[0.06] sm:bottom-3"
+                  aria-hidden
+                />
+
+                {dropzoneGeneratingPrompt ||
+                (isProcessing && dropzoneFiles.length > 0) ? (
+                  <div className="relative z-10 flex min-h-[200px] flex-col gap-6 sm:flex-row sm:items-stretch sm:gap-0">
+                    <div className="flex flex-1 flex-col justify-between gap-6 sm:pr-4">
+                      <div className="flex flex-wrap gap-4">
+                        {dropzoneFiles.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex h-[58px] min-w-[200px] max-w-full items-center gap-3.5 rounded-md border border-[#e4e4e7] bg-white pl-6 pr-3 sm:min-w-[231px]"
                           >
-                            Extracted Text from {uploadedFileName}
-                          </h3>
-                          <p className="text-sm text-[#64748B]">
-                            {extractedDocText.length} characters
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setExtractedDocText("");
-                            setUploadedFileName("");
-                          }}
-                          className="p-2 hover:bg-gray-100 rounded-full transition"
-                        >
-                          <X className="w-4 h-4 text-[#64748B]" />
-                        </button>
+                            {item.kind === "image" ? (
+                              <ImageIcon className="h-5 w-5 shrink-0 text-[#18181b]" />
+                            ) : item.kind === "video" ? (
+                              <Video className="h-5 w-5 shrink-0 text-[#18181b]" />
+                            ) : (
+                              <FileText className="h-5 w-5 shrink-0 text-[#18181b]" />
+                            )}
+                            <span className="truncate text-base font-medium leading-5 text-[#18181b]">
+                              {item.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeDropzoneFile(item.id)}
+                              disabled={isProcessing}
+                              className="ml-auto shrink-0 rounded p-1 hover:bg-[#f4f4f4] disabled:opacity-50"
+                              aria-label={`Remove ${item.name}`}
+                            >
+                              <X className="h-4 w-4 text-[#71717a]" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-
-                      {/* Text Preview */}
-                      <div className="relative">
-                        <textarea
-                          value={extractedDocText}
-                          onChange={(e) => setExtractedDocText(e.target.value)}
-                          className="
-                            w-full
-                            h-[200px]
-                            p-4
-                            rounded-[16px]
-                            border
-                            border-white/80
-                            bg-white/50
-                            shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                            text-[#374151]
-                            resize-none
-                            text-[14px]
-                            leading-relaxed
-                            font-medium
-                            focus:ring-2
-                            focus:ring-[#90A1B9]
-                            focus:outline-none
-                          "
-                        />
-                      </div>
-
-                      {/* Send Prompt Button */}
                       <button
-                        onClick={handleSendExtractedText}
-                        disabled={isProcessing || !extractedDocText.trim()}
-                        className="
-                          w-full
-                          flex
-                          justify-center
-                          items-center
-                          gap-2
-                          rounded-[16px]
-                          border
-                          border-white/40
-                          shadow-[0_25px_50px_-12px_rgba(98,116,142,0.50)]
-                          transition-all
-                          active:scale-95
-                          bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                          px-6
-                          py-3
-                          disabled:opacity-50
-                          disabled:cursor-not-allowed
-                          disabled:active:scale-100
-                        "
-                        style={{
-                          color: "#FFF",
-                          fontFamily: "Inter, sans-serif",
-                          fontSize: "14px",
-                          fontStyle: "normal",
-                          fontWeight: 500,
-                          lineHeight: "20px",
-                          letterSpacing: "-0.15px",
-                        }}
+                        type="button"
+                        onClick={handleDropzoneGeneratePrompt}
+                        disabled={isProcessing || dropzoneFiles.length === 0}
+                        className="flex h-9 w-fit items-center gap-2 rounded-md bg-black px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isProcessing ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Processing...</span>
-                          </>
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            <span>Send Prompt</span>
-                          </>
+                          <Sparkles className="h-4 w-4" />
                         )}
+                        Generate Prompt
                       </button>
                     </div>
-                  ) : (
-                    /* Upload UI */
-                    <div className="flex flex-col items-center justify-center w-full">
-                      <div className="flex flex-col items-center justify-center mb-4 sm:mb-6">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="relative flex items-center justify-center w-12 h-12 sm:w-[56px] sm:h-[56px] mb-2 sm:mb-3 ">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="48"
-                              height="48"
-                              viewBox="0 0 48 48"
-                              fill="none"
-                            >
-                              <path
-                                d="M24 6V30"
-                                stroke="#45556C"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M34 16L24 6L14 16"
-                                stroke="#45556C"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M42 30V38C42 39.0609 41.5786 40.0783 40.8284 40.8284C40.0783 41.5786 39.0609 42 38 42H10C8.93913 42 7.92172 41.5786 7.17157 40.8284C6.42143 40.0783 6 39.0609 6 38V30"
-                                stroke="#45556C"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <span
-                            className="text-[#1D293D] text-center font-inter text-[16px] not-italic font-normal leading-6 tracking-[-0.312px] mb-1 w-full block"
-                            style={{
-                              color: "#1D293D",
-                              textAlign: "center",
-                              fontFamily: "Inter, sans-serif",
-                              fontSize: "16px",
-                              fontStyle: "normal",
-                              fontWeight: 400,
-                              lineHeight: "24px",
-                              letterSpacing: "-0.312px",
-                            }}
-                          >
-                            Upload File or Document
-                          </span>
-                        </div>
-                        <span className="text-[#64748B] text-xs sm:text-sm mt-1 text-center">
-                          Upload images, or documents with prompts{" "}
-                          <span className="font-medium text-[#4B5563]">(.txt, .doc, .docx)</span>
-                          <br />
-                          <span className="text-[10px]">Images: 5 MB max | Documents: 10 MB max</span>
-                        </span>
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full">
-                        <button
-                          type="button"
-                          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-[14px] border border-[rgba(202,213,226,0.80)] bg-[rgba(255,255,255,0.80)] hover:bg-[#F3F4F6] text-[#0A0A0A] font-medium transition focus:outline-none shadow-[0_1px_3px_0_rgba(0,0,0,0.10),0_1px_2px_-1px_rgba(0,0,0,0.10)] w-full sm:w-auto justify-center"
-                        >
-                          <span className="text-xl leading-none">+</span>
-                          Import from drive
-                        </button>
-                        <label
-                          htmlFor={dropzoneFileInputId}
-                          className={`
-                            flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-[14px]
-                            border border-white/40
-                            bg-gradient-to-r from-[#62748E] to-[#4A5565]
-                            shadow-[0_10px_15px_-3px_rgba(98,116,142,0.30),0_4px_6px_-4px_rgba(98,116,142,0.30)]
-                            text-white font-medium
-                            cursor-pointer transition hover:from-[#4A5565] hover:to-[#334155]
-                            w-full sm:w-auto
-                            ${isProcessing ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
-                          `}
-                          tabIndex={0}
-                        >
-                          {isProcessing ? (
-                            <>
-                              <Loader2 className="w-4 h-4 text-white animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="w-4 h-4 text-white" />
-                              Click to upload
-                            </>
-                          )}
-                          <input
-                            ref={fileInputRef}
-                            id={dropzoneFileInputId}
-                            name="dropzone-file-upload"
-                            type="file"
-                            className="hidden"
-                            accept="image/*,.txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            onChange={handleFileUpload}
-                            disabled={isProcessing}
-                          />
-                        </label>
-                      </div>
+                    <div
+                      className="hidden w-px shrink-0 bg-[#dcdfe5] sm:mx-4 sm:block sm:self-stretch"
+                      aria-hidden
+                    />
+                    <div className="flex flex-1 flex-col gap-2 sm:pl-2">
+                      <p className="text-base font-semibold text-black">
+                        Generating Prompt....
+                      </p>
+                      <p className="max-h-[120px] overflow-y-auto whitespace-pre-wrap text-sm leading-5 text-[#71717a]">
+                        {dropzoneGeneratingPrompt}
+                      </p>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : dropzoneFiles.length > 0 ? (
+                  <div className="relative z-10 flex min-h-[180px] flex-col justify-between gap-10">
+                    <div className="flex flex-wrap gap-4">
+                      {dropzoneFiles.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex h-[58px] min-w-[200px] max-w-full items-center gap-3.5 rounded-md border border-[#e4e4e7] bg-white pl-6 pr-3 sm:min-w-[231px]"
+                        >
+                          {item.kind === "image" ? (
+                            <ImageIcon className="h-5 w-5 shrink-0 text-[#18181b]" />
+                          ) : item.kind === "video" ? (
+                            <Video className="h-5 w-5 shrink-0 text-[#18181b]" />
+                          ) : (
+                            <FileText className="h-5 w-5 shrink-0 text-[#18181b]" />
+                          )}
+                          <span className="truncate text-base font-medium leading-5 text-[#18181b]">
+                            {item.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeDropzoneFile(item.id)}
+                            disabled={isProcessing}
+                            className="ml-auto shrink-0 rounded p-1 hover:bg-[#f4f4f4] disabled:opacity-50"
+                            aria-label={`Remove ${item.name}`}
+                          >
+                            <X className="h-4 w-4 text-[#71717a]" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDropzoneGeneratePrompt}
+                      disabled={isProcessing}
+                      className="flex h-9 w-fit items-center gap-2 rounded-md bg-black px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Generate Prompt
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative z-10 flex flex-col items-center justify-center gap-3">
+                    <div className="relative flex h-[40px] w-[29px] items-center justify-center">
+                      <Image
+                        src="/assets/icons/upload-logo.svg"
+                        alt=""
+                        width={29}
+                        height={40}
+                        className="object-contain"
+                      />
+                    </div>
+                    <p className="text-[10px] font-bold leading-[14px] text-[#18181b]">
+                      Upload File
+                    </p>
+                    <p className="max-w-[468px] text-center text-xs leading-[18px] text-[#71717a]">
+                      Videos must be less than{" "}
+                      <span className="font-bold">30 MB</span> and photos must be
+                      less than <span className="font-bold">2 MB</span> in size
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                      <label
+                        htmlFor={dropzoneFileInputId}
+                        className={`flex h-9 cursor-pointer items-center gap-2 rounded-md border border-[#e4e4e7] bg-white px-3 text-sm font-medium text-[#18181b] transition hover:bg-[#fafafa] ${
+                          isProcessing
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }`}
+                      >
+                        <CloudUpload className="h-4 w-4" />
+                        Click to upload
+                      </label>
+                      <button
+                        type="button"
+                        disabled
+                        className="flex h-9 items-center gap-2 rounded-md border border-[#e4e4e7] bg-white px-3 text-sm font-medium text-[#18181b] opacity-60"
+                        title="Coming soon"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Import from drive
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  id={dropzoneFileInputId}
+                  name="dropzone-file-upload"
+                  type="file"
+                  className="hidden"
+                  multiple
+                  accept="image/*,video/*,.txt,.doc,.docx,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileUpload}
+                  disabled={isProcessing}
+                />
               </div>
             )}
+
             {/* Row 3: Brief Me */}
             {activeTab === "Brief Me" && (
-              <div
-                className="flex flex-col items-center justify-center rounded-[24px] border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgba(144, 161, 185, 0.10) 0%, rgba(0, 0, 0, 0.00) 50%, rgba(159, 159, 169, 0.10) 100%)",
-                }}
-              >
-                <div className="w-full px-3 py-4 sm:p-8 sm:pt-5">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-4">
-                    <div
-                      style={{
-                        display: "flex",
-                        width: "40px",
-                        height: "40px",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        borderRadius: "16px",
-                        background:
-                          "linear-gradient(135deg, #90A1B9 0%, #6A7282 100%)",
-                        boxShadow:
-                          "0 20px 25px -5px rgba(98, 116, 142, 0.40), 0 8px 10px -6px rgba(98, 116, 142, 0.40)",
-                        color: "#fff",
-                      }}
-                    >
-                      <FileText className="w-5 h-5" />
-                    </div>
-
-                    <h2
-                      className="text-lg sm:text-2xl"
-                      style={{
-                        color: "#0A0A0A",
-                        textAlign: "center",
-                        fontFamily: "Inter, sans-serif",
-                        fontSize: "24px",
-                        fontStyle: "normal",
-                        fontWeight: 400,
-                        lineHeight: "32px",
-                        letterSpacing: "0.07px",
-                      }}
-                    >
-                      Brief Me
-                    </h2>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <label
-                        className="mb-1"
-                        style={{
-                          color: "#314158",
-                          fontFamily: "Inter",
-                          fontSize: "12px",
-                          fontStyle: "normal",
-                          fontWeight: 500,
-                          lineHeight: "16px",
-                        }}
-                      >
-                        What do you want to do?
+              <div className="relative w-full overflow-visible">
+                <div className="relative z-10 space-y-3">
+                  <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:gap-4">
+                    <div className="min-w-0">
+                      <label className="mb-1 block text-sm font-semibold leading-5 text-[#18181b]">
+                        Remove / Adjust
                       </label>
                       <input
                         type="text"
@@ -1843,83 +1728,19 @@ export default function AiPrompterPanel({
                           })
                         }
                         disabled={isProcessing}
-                        className="
-                          flex
-                          h-[45px]
-                          p-[8px_12px]
-                          items-start
-                          flex-shrink-0
-                          self-stretch
-                          rounded-[14px]
-                          border border-white/80
-                          bg-white/50
-                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                          text-sm
-                          placeholder-[#717182]
-                          focus:outline-none
-                          disabled:opacity-50
-                          disabled:cursor-not-allowed
-                        "
                         placeholder="Describe what you want to create or modify..."
+                        className={`box-border h-9 w-full min-w-0 rounded-md border border-[#e1e7ef] bg-[#f4f4f4] px-3 text-sm leading-5 text-[#18181b] placeholder:text-[#71717a] shadow-none focus:border-[#e1e7ef] disabled:cursor-not-allowed disabled:opacity-50 ${noFocusRing}`}
                       />
                     </div>
-                    <div className="flex flex-col">
-                      <label
-                        className="mb-1"
-                        style={{
-                          color: "#314158",
-                          fontFamily: "Inter",
-                          fontSize: "12px",
-                          fontStyle: "normal",
-                          fontWeight: 500,
-                          lineHeight: "16px",
-                        }}
-                      >
-                        Which part should I focus on?
-                      </label>
-                      <input
-                        type="text"
-                        value={briefData.focusArea}
-                        onChange={(e) =>
-                          setBriefData({
-                            ...briefData,
-                            focusArea: e.target.value,
-                          })
-                        }
-                        disabled={isProcessing}
-                        className="
-                          flex
-                          h-[45px]
-                          p-[8px_12px]
-                          items-start
-                          flex-shrink-0
-                          self-stretch
-                          rounded-[14px]
-                          border border-white/80
-                          bg-white/50
-                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                          text-sm
-                          focus:outline-none
-                          placeholder-[#717182]
-                          disabled:opacity-50
-                          disabled:cursor-not-allowed
-                        "
-                        placeholder="Specify the area or component..."
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        className="mb-1"
-                        style={{
-                          color: "#314158",
-                          fontFamily: "Inter",
-                          fontSize: "12px",
-                          fontStyle: "normal",
-                          fontWeight: 500,
-                          lineHeight: "16px",
-                        }}
-                      >
-                        How should it sound or look?
+
+                    <div
+                      className="hidden w-px shrink-0 bg-[#dcdfe5] lg:block lg:min-h-[36px] lg:self-stretch"
+                      aria-hidden
+                    />
+
+                    <div className="min-w-0">
+                      <label className="mb-1 block text-sm font-semibold leading-5 text-[#18181b]">
+                        Add / Enhance
                       </label>
                       <input
                         type="text"
@@ -1928,182 +1749,101 @@ export default function AiPrompterPanel({
                           setBriefData({ ...briefData, style: e.target.value })
                         }
                         disabled={isProcessing}
-                        className="
-                          flex
-                          h-[45px]
-                          p-[8px_12px]
-                          items-start
-                          flex-shrink-0
-                          self-stretch
-                          rounded-[14px]
-                          border border-white/80
-                          bg-white/50
-                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                          text-sm
-                          placeholder-[#717182]
-                          focus:outline-none
-                          disabled:opacity-50
-                          disabled:cursor-not-allowed
-                        "
                         placeholder="Describe the style, tone, or aesthetic..."
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        className="mb-1"
-                        style={{
-                          color: "#314158",
-                          fontFamily: "Inter",
-                          fontSize: "12px",
-                          fontStyle: "normal",
-                          fontWeight: 500,
-                          lineHeight: "16px",
-                        }}
-                      >
-                        How do you want it presented?
-                      </label>
-                      <input
-                        type="text"
-                        value={briefData.presentation}
-                        onChange={(e) =>
-                          setBriefData({
-                            ...briefData,
-                            presentation: e.target.value,
-                          })
-                        }
-                        disabled={isProcessing}
-                        className="
-                          flex
-                          h-[45px]
-                          p-[8px_12px]
-                          items-start
-                          flex-shrink-0
-                          self-stretch
-                          rounded-[14px]
-                          border border-white/80
-                          bg-white/50
-                          shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                          text-sm
-                          placeholder-[#717182]
-                          focus:outline-none
-                          disabled:opacity-50
-                          disabled:cursor-not-allowed
-                        "
-                        placeholder="Specify the format or presentation..."
+                        className={`box-border h-9 w-full min-w-0 rounded-md border border-[#e1e7ef] bg-[#f4f4f4] px-3 text-sm leading-5 text-[#18181b] placeholder:text-[#71717a] shadow-none focus:border-[#e1e7ef] disabled:cursor-not-allowed disabled:opacity-50 ${noFocusRing}`}
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col mt-2 sm:mt-4">
-                    <label
-                      className="mb-1"
-                      style={{
-                        color: "#314158",
-                        fontFamily: "Inter",
-                        fontSize: "12px",
-                        fontStyle: "normal",
-                        fontWeight: 500,
-                        lineHeight: "16px",
-                      }}
-                    >
-                      Anything specific you want to include or avoid?
-                    </label>
-                    <input
-                      type="text"
-                      value={briefData.constraints}
-                      onChange={(e) =>
-                        setBriefData({
-                          ...briefData,
-                          constraints: e.target.value,
-                        })
-                      }
-                      disabled={isProcessing}
-                      className="
-                        flex
-                        h-[45px]
-                        p-[8px_12px]
-                        items-start
-                        flex-shrink-0
-                        self-stretch
-                        rounded-[14px]
-                        border border-white/80
-                        bg-white/50
-                        shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.05)]
-                        text-sm
-                        placeholder-[#717182]
-                        focus:outline-none
-                        disabled:opacity-50
-                        disabled:cursor-not-allowed
-                      "
-                      placeholder="List any specific requirements or constraints..."
+
+                  <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:gap-4">
+                    <div className="min-w-0">
+                      <p className="mb-1.5 text-sm font-semibold leading-5 text-[#18181b]">
+                        Tone / Direction
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BRIEF_TONE_TAGS.map((tag) => {
+                          const selected = briefToneTags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              disabled={isProcessing}
+                              onClick={() =>
+                                toggleBriefTag(tag, setBriefToneTags)
+                              }
+                              className={`h-8 rounded-full border px-3 text-sm leading-5 transition-colors outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                selected
+                                  ? "border-black bg-black text-white"
+                                  : "border-black/10 bg-white text-[#0a0a0a] hover:bg-[#fafafa]"
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div
+                      className="hidden w-px shrink-0 bg-[#dcdfe5] lg:block lg:min-h-[32px] lg:self-stretch"
+                      aria-hidden
                     />
+
+                    <div className="min-w-0">
+                      <p className="mb-1.5 text-sm font-semibold leading-5 text-[#18181b]">
+                        Main Goal
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BRIEF_GOAL_TAGS.map((tag) => {
+                          const selected = briefGoalTags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              disabled={isProcessing}
+                              onClick={() =>
+                                toggleBriefTag(tag, setBriefGoalTags)
+                              }
+                              className={`h-8 rounded-full border px-3 text-sm font-medium leading-5 transition-colors outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                selected
+                                  ? "border-black bg-black text-white"
+                                  : "border-black/10 bg-white text-[#0a0a0a] hover:bg-[#fafafa]"
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleBriefSubmit}
-                    disabled={
-                      isProcessing ||
-                      !Object.values(briefData).some((val) => val.trim())
-                    }
-                    className="
-                      w-full mt-4 sm:mt-8
-                      flex items-center justify-center
-                      text-white
-                      font-semibold
-                      text-base
-                      py-2
-                      transition
-                      hover:bg-[#475569]
-                      disabled:bg-[#CBD5E1]
-                      disabled:cursor-not-allowed
-                    "
-                    style={{
-                      borderRadius: "16px",
-                      border: "1px solid rgba(255, 255, 255, 0.40)",
-                      background:
-                        "linear-gradient(90deg, #62748E 0%, #4A5565 100%)",
-                      boxShadow: "0 25px 50px -12px rgba(98, 116, 142, 0.50)",
-                    }}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="ml-2">Processing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                        >
-                          <g clipPath="url(#clip0_10665_105076)">
-                            <path
-                              d="M9.68924 14.4572C9.71456 14.5203 9.75859 14.5742 9.81542 14.6116C9.87224 14.6489 9.93914 14.668 10.0071 14.6663C10.0751 14.6646 10.141 14.6421 10.1958 14.6018C10.2506 14.5616 10.2918 14.5055 10.3139 14.4412L14.6472 1.77454C14.6686 1.71547 14.6726 1.65154 14.659 1.59024C14.6453 1.52894 14.6145 1.4728 14.57 1.42839C14.5256 1.38398 14.4695 1.35314 14.4082 1.33947C14.3469 1.3258 14.283 1.32987 14.2239 1.35121L1.55723 5.68454C1.4929 5.7066 1.43685 5.74782 1.39662 5.80266C1.35638 5.85749 1.33388 5.92332 1.33214 5.99131C1.3304 6.05931 1.3495 6.1262 1.38687 6.18303C1.42425 6.23985 1.47811 6.28388 1.54123 6.30921L6.8279 8.42921C6.99503 8.49612 7.14687 8.59618 7.27428 8.72336C7.40169 8.85054 7.50202 9.0022 7.56924 9.16921L9.68924 14.4572Z"
-                              stroke="white"
-                              strokeWidth="1.33333"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M14.5707 1.43115L7.27734 8.72382"
-                              stroke="white"
-                              strokeWidth="1.33333"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_10665_105076">
-                              <rect width="16" height="16" fill="white" />
-                            </clipPath>
-                          </defs>
-                        </svg>
-                        <span className="ml-2">Generate</span>
-                      </>
-                    )}
-                  </button>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleBriefSubmit}
+                      disabled={
+                        isProcessing ||
+                        (!briefData.whatToDo.trim() &&
+                          !briefData.style.trim() &&
+                          briefToneTags.length === 0 &&
+                          briefGoalTags.length === 0)
+                      }
+                      className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-black px-3 text-sm font-medium tracking-[-0.15px] text-white transition-opacity hover:opacity-90 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Refine Document</span>
+                          <Send className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -2262,182 +2002,45 @@ export default function AiPrompterPanel({
                   </button>
                 </div>
               </div>
+            ) : filteredHistory.length === 0 ? (
+              <p className="py-10 text-center text-sm text-[#71717a]">
+                No prompts match your search.
+              </p>
             ) : (
-              <div className="space-y-6">
-                {/* Search Bar */}
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-3 sm:left-5 flex items-center pointer-events-none">
-                    <div
-                      className="flex justify-center items-center text-white"
-                      style={{
-                        width: "28px",
-                        height: "28px",
-                        borderRadius: "10px",
-                        background:
-                          "linear-gradient(135deg, #90A1B9 0%, #99A1AF 50%, #62748E 100%)",
-                        boxShadow:
-                          "0 0 0 2px rgba(255, 255, 255, 0.60), 0 10px 15px -3px rgba(0, 0, 0, 0.10), 0 4px 6px -4px rgba(0, 0, 0, 0.10)",
-                      }}
-                    >
-                      <Search className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search your prompt history..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full h-12 sm:h-14 pl-12 sm:pl-16 pr-2 sm:pr-6 outline-none transition-all"
-                    style={{
-                      borderRadius: "16px",
-                      border: "2px solid rgba(255, 255, 255, 0.90)",
-                      background:
-                        "linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.90) 50%, rgba(255, 255, 255, 0.95) 100%)",
-                      boxShadow: "0 4px 20px -2px rgba(0, 0, 0, 0.12)",
-                      color: "#90A1B9",
-                      fontFamily: "Inter, sans-serif",
-                      fontSize: "14px",
-                      fontStyle: "normal",
-                      fontWeight: 400,
-                      lineHeight: "normal",
-                      letterSpacing: "-0.15px",
-                    }}
-                  />
-                </div>
-
-                {/* History Filters */}
-                <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div className="flex max-h-[320px] flex-col gap-2 overflow-y-auto">
+                {filteredHistory.map((item) => (
                   <button
-                    onClick={() => setHistoryFilter("All")}
-                    className={`flex justify-center items-center text-white text-[13px] font-semibold transition-all whitespace-nowrap`}
-                    style={{
-                      padding: "4px",
-                      borderRadius: "8px",
-                      background:
-                        historyFilter === "All"
-                          ? "linear-gradient(90deg, #62748E 0%, #4A5565 100%)"
-                          : "rgba(255, 255, 255, 0.70)",
-                      boxShadow:
-                        historyFilter === "All"
-                          ? "0 0 0 1px rgba(255, 255, 255, 0.20), 0 2px 8px -1px rgba(0, 0, 0, 0.30)"
-                          : undefined,
-                      color: historyFilter === "All" ? "#fff" : "#64748B",
-                    }}
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleHistoryItemClick(item)}
+                    className="flex h-9 w-full min-w-0 items-center gap-3 rounded-xl border border-[#e1e7ef] bg-white px-3 text-left transition-colors hover:bg-[#fafafa]"
                   >
-                    All
-                  </button>
-                  {prompterTabs.map((tab) => (
-                    <button
-                      key={tab.name}
-                      onClick={() => setHistoryFilter(tab.name)}
-                      className={`flex justify-center items-center gap-2 text-[13px] font-semibold transition-all whitespace-nowrap`}
-                      style={{
-                        padding: "4px",
-                        borderRadius: "8px",
-                        background:
-                          historyFilter === tab.name
-                            ? "linear-gradient(90deg, #62748E 0%, #4A5565 100%)"
-                            : "rgba(255, 255, 255, 0.70)",
-                        boxShadow:
-                          historyFilter === tab.name
-                            ? "0 0 0 1px rgba(255, 255, 255, 0.20), 0 2px 8px -1px rgba(0, 0, 0, 0.30)"
-                            : undefined,
-                        color: historyFilter === tab.name ? "#fff" : "#64748B",
-                      }}
-                    >
-                      <tab.icon className="w-3.5 h-3.5" />
-                      {tab.name}
-                    </button>
-                  ))}
-                </div>
-
-                {/* List of History Items */}
-                <div
-                  className="space-y-3 overflow-y-auto"
-                  style={{
-                    maxHeight: "280px",
-                  }}
-                >
-                  {filteredHistory.map((item) => {
-                    const itemStyle = getHistoryItemStyle(item.type);
-                    const ItemIcon = itemStyle.icon;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 flex gap-2 sm:gap-4 items-start shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                        onClick={() => {
-                          // Optionally, allow re-running a prompt from history
-                          setActiveTab(item.type);
-                          setMode("Prompt Mode");
-                          if (item.type === "Freestyle") {
-                            setFreestylePrompt(item.prompt);
-                          }
-                        }}
-                      >
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${itemStyle.color} mt-2`}
-                          style={{
-                            boxShadow:
-                              "0 0 0 1px rgba(255, 255, 255, 0.40), 0 2px 8px -1px rgba(0, 0, 0, 0.30)",
-                          }}
-                        >
-                          <ItemIcon className="w-4 h-4" />
-                        </div>
-                        <div className="space-y-1.5 min-w-0">
-                          <div className="flex items-center gap-1 sm:gap-2 text-[11px] font-bold">
-                            <span
-                              className="bg-[#F8FAFC] px-2 py-0.5"
-                              style={{
-                                borderRadius: "8px",
-                                border: "1px solid rgba(10, 10, 10, 0.20)",
-                                color: "#0A0A0A",
-                                fontFamily: "Inter",
-                                fontSize: "10px",
-                                fontStyle: "normal",
-                                fontWeight: 400,
-                                lineHeight: "15px",
-                                letterSpacing: "0.117px",
-                              }}
-                            >
-                              {item.type}
-                            </span>
-                            <span
-                              style={{
-                                color: "#62748E",
-                                fontFamily: "Inter",
-                                fontSize: "9px",
-                                fontStyle: "normal",
-                                fontWeight: 400,
-                                lineHeight: "13.5px",
-                                letterSpacing: "0.167px",
-                              }}
-                            >
-                              • {item.timestamp}
-                            </span>
-                          </div>
-                          <p
-                            style={{
-                              color: "rgba(49, 65, 88, 0.90)",
-                              fontFamily: "Inter",
-                              fontSize: "14px",
-                              fontStyle: "normal",
-                              fontWeight: 400,
-                              lineHeight: "15px",
-                            }}
-                            className="line-clamp-2"
-                          >
-                            {item.prompt}
-                          </p>
-                        </div>
+                    <div className="relative h-[30px] w-[30px] shrink-0 rounded-full border border-[#e4e4e7] p-0.5 shadow-sm">
+                      <div className="flex h-full w-full items-center justify-center rounded-full bg-[#18181b]">
+                        <Image
+                          src="/assets/icons/manifestr-icon.svg"
+                          alt=""
+                          width={12}
+                          height={12}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                    <span className="shrink-0 rounded-md bg-black px-2 py-0.5 text-xs font-medium text-white">
+                      {item.type}
+                    </span>
+                    <span className="shrink-0 text-xs text-[#71717a]">
+                      {item.timestamp}
+                    </span>
+                    <p className="min-w-0 flex-1 truncate text-sm text-[#71717a]">
+                      {item.prompt}
+                    </p>
+                  </button>
+                ))}
               </div>
             )}
           </div>
         )}
+
       </div>
     </div>
   );

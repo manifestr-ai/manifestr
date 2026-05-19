@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gem, AlertCircle, Settings, ChevronDown, GemIcon } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import api from "../../lib/api";
+import { useToast } from "../ui/Toast";
 
 export default function WinsDropdown() {
+  const { user } = useAuth();
+  const { success, error: showError, info } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [autoTopUp, setAutoTopUp] = useState(false);
   const [industry, setIndustry] = useState("");
@@ -17,7 +22,45 @@ export default function WinsDropdown() {
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const dropdownRef = useRef(null);
   const currencyRef = useRef(null);
-  const currentBalance = 272; // This could come from props or context
+  const currentBalance = user?.wins_balance || 0; // Get real wins balance from user context
+
+  // 🎁 HANDLE WINS PURCHASE
+  const handleWinsPurchase = async (packName) => {
+    try {
+      // Map pack names to addon IDs
+      const packMap = {
+        "Quick Win Pack": "wins_quick",
+        "Big Win Pack": "wins_big",
+        "Major Win Pack": "wins_major"
+      };
+
+      const addonId = packMap[packName];
+      
+      if (!addonId) {
+        showError("Invalid win pack selected");
+        return;
+      }
+
+      info(`Preparing ${packName} purchase...`);
+      setIsOpen(false); // Close dropdown
+      
+      // Create addon checkout session
+      const response = await api.post('/api/addons/create-checkout-session', {
+        addon_id: addonId
+      });
+      
+      if (response.data.status === 'success' && response.data.data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.data.url;
+      } else {
+        showError('Failed to create checkout session. Please try again.');
+      }
+      
+    } catch (error) {
+      console.error('Wins purchase error:', error);
+      showError('Failed to initiate purchase. Please try again.');
+    }
+  };
 
   const currencies = [
     { code: "USD", symbol: "$", name: "US Dollar" },
@@ -49,6 +92,50 @@ export default function WinsDropdown() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
+
+  // 🎁 Handle addon purchase success redirect
+  useEffect(() => {
+    const handleWinsPurchaseSuccess = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const addonSuccess = urlParams.get('addon_success');
+      const addonType = urlParams.get('type');
+      const sessionId = urlParams.get('session_id');
+      
+      if (addonSuccess === 'true' && addonType && addonType.includes('wins') && sessionId) {
+        try {
+          // Process the purchase
+          info('Processing your wins purchase...');
+          
+          const response = await api.get(`/api/addons/process-success?session_id=${sessionId}`);
+          
+          if (response.data.status === 'success') {
+            const winsMap = {
+              wins_quick: '25 wins',
+              wins_big: '50 wins',
+              wins_major: '100 wins'
+            };
+            
+            success(`🎉 ${winsMap[addonType] || 'Wins'} added to your balance!`);
+            
+            // Refresh the page to update wins balance
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            showError('Failed to process purchase. Please contact support.');
+          }
+        } catch (error) {
+          console.error('Error processing wins purchase:', error);
+          showError('Failed to process purchase. Please contact support.');
+        }
+        
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    };
+    
+    handleWinsPurchaseSuccess();
+  }, []);
 
   const isLowBalance = currentBalance < 300;
 
@@ -270,6 +357,7 @@ export default function WinsDropdown() {
                           name={pack.name}
                           wins={pack.wins}
                           price={pack.price}
+                          onClick={() => handleWinsPurchase(pack.name)}
                         />
                       </motion.div>
                     ))}
@@ -560,9 +648,10 @@ function CheckboxOption({ label, checked, onChange }) {
 }
 
 // Win Pack Component
-function WinPack({ name, wins, price }) {
+function WinPack({ name, wins, price, onClick }) {
   return (
     <motion.div
+      onClick={onClick}
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       className="bg-white border border-[#e4e4e7] rounded-xl p-3 flex items-center justify-between hover:border-[#18181b] transition-colors cursor-pointer"

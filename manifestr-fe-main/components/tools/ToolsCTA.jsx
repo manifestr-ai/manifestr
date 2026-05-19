@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/ToolkitCldImage'
 
-const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
+const CTA_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351370/Sand_Banner_c5rnyq.webp'
 
 export default function ToolsCTA() {
   return (

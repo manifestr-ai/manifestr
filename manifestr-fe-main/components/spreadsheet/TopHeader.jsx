@@ -2,14 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import {
-    Home,
     ChevronDown,
     Undo2,
     Redo2,
-    History,
-    Share,
     Plus,
-    Download
+    Download,
+    CloudCheck,
+    Share2,
 } from 'lucide-react';
 import pptxgen from "pptxgenjs";
 import { Button, Menu, MenuItem, Popover, Position } from "@blueprintjs/core";
@@ -59,7 +58,15 @@ const downloadPPTX = async (store) => {
   }
 };
 
-export default function TopHeader({ onDownload = () => { }, store = null, editorType = 'spreadsheet', documentId = null, documentTitle = 'Untitled document', enableCollaboration = false }) {
+export default function TopHeader({
+    onDownload = () => { },
+    store = null,
+    editorType = 'spreadsheet',
+    documentId = null,
+    documentTitle = 'Untitled document',
+    enableCollaboration = false,
+    activeUsers = [],
+}) {
     const router = useRouter();
     const [status, setStatus] = useState('In Progress');
     const [mode, setMode] = useState('Editing');
@@ -94,6 +101,7 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
 
     const statuses = ['In Progress', 'Draft', 'Final', 'Archived'];
     const modes = ['Editing', 'Suggesting', 'Viewing'];
+    const collabAvatarSlice = activeUsers.slice(0, 5);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -111,7 +119,8 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
     }, []);
 
     return (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+        <>
+        <div className="flex items-center justify-between border-b border-[#e4e4e7] bg-white px-8 py-3">
             {/* Left: Logo & Title */}
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleLogoClick}>
@@ -191,19 +200,61 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                 </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3">
-                {/* <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
-                    <History size={18} />
-                </button> */}
-                {/* <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
+            {/* Right: Figma 10478:187727 — cloud sync, avatars + invite, Share & Export */}
+            <div className="flex shrink-0 items-center gap-4">
+                {enableCollaboration && documentId && (
+                    <div className="flex items-center gap-4">
+                        <button
+                            type="button"
+                            className="flex size-10 shrink-0 items-center justify-center rounded-md text-[#18181b] transition hover:bg-gray-50"
+                            title="Changes sync automatically"
+                            aria-label="Changes sync automatically"
+                        >
+                            <CloudCheck className="size-4" strokeWidth={2} aria-hidden />
+                        </button>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center -space-x-1">
+                                {collabAvatarSlice.map((user, idx) => (
+                                    <div
+                                        key={user.user_id ?? idx}
+                                        className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/[0.08] text-xs font-semibold text-white ring-2 ring-white"
+                                        style={{
+                                            backgroundColor: user.user_color || '#3b82f6',
+                                            zIndex: collabAvatarSlice.length - idx,
+                                        }}
+                                        title={
+                                            user.users
+                                                ? `${user.users.first_name || ''} ${user.users.last_name || ''}`.trim() ||
+                                                  user.users.email
+                                                : 'Collaborator'
+                                        }
+                                    >
+                                        {(user.users
+                                            ? `${user.users.first_name || ''} ${user.users.last_name || ''}`.trim() ||
+                                              user.users.email
+                                            : user.users?.email || 'U')[0]?.toUpperCase() ?? 'U'}
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowShareModal(true)}
+                                    className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border border-[#e4e4e7] bg-white text-[#18181b] transition hover:bg-gray-50"
+                                    aria-label="Invite collaborators"
+                                >
+                                    <Plus size={16} strokeWidth={2} aria-hidden />
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowShareModal(true)}
+                                className="flex h-10 shrink-0 items-center gap-2 rounded-md bg-[#18181b] px-4 text-sm font-medium leading-5 text-white transition hover:bg-zinc-800"
+                            >
+                                <Share2 className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+                                Share &amp; Export
+                            </button>
+                        </div>
                     </div>
-                    <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50">
-                        <Plus size={16} className="text-gray-600" />
-                    </button>
-                </div> */}
+                )}
                 {/* Download Button - Only for document editor */}
                 {editorType === 'document' && onDownload && (
                     <button 
@@ -345,6 +396,8 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                     )}
             </div>
 
+        </div>
+
             {/* Share Modal - Only render if collaboration enabled */}
             {enableCollaboration && documentId && (
                 <ShareModal
@@ -354,6 +407,6 @@ export default function TopHeader({ onDownload = () => { }, store = null, editor
                     documentTitle={documentTitle}
                 />
             )}
-        </div>
+        </>
     );
 }

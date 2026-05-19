@@ -12,10 +12,9 @@ import {
   Play,
   MessageSquare,
   Share2,
-  Target,
   ZoomIn,
   ZoomOut,
-  Maximize2
+  RotateCcw
 } from 'lucide-react'
 
 export default function EditorToolbar({ activeTab = 'style', onTabChange, onAction }) {
@@ -63,20 +62,67 @@ export default function EditorToolbar({ activeTab = 'style', onTabChange, onActi
 
 export function CollaborationToolbar({ position = 'right' }) {
   return (
-    <div className={`absolute ${position === 'right' ? 'right-4' : 'left-4'} top-[282px] bg-[#3a3a3a] border border-[rgba(0,0,0,0.3)] rounded-2xl w-[50px] p-2 flex flex-col items-center gap-2`}>
-      <div className="relative">
-        <MessageSquare className="w-5 h-5 text-white" />
-        <span className="absolute -top-1 -right-1 bg-[#fb2c36] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+    <div
+      className={`fixed ${position === 'right' ? 'right-24' : 'left-6'} top-[282px] bg-[#3a3a3a] border border-[rgba(0,0,0,0.3)] rounded-[16px] w-[50px] h-[272px] drop-shadow-[0px_20px_12.5px_rgba(0,0,0,0.1),0px_8px_5px_rgba(0,0,0,0.1)]`}
+    >
+      {/* Badge */}
+      <div className="absolute top-[12px] right-[5px] bg-[#fb2c36] rounded-[8px] size-[16px] flex items-center justify-center overflow-hidden">
+        <span className="text-white text-[10px] leading-[15px] font-medium tracking-[0.1172px]">
           1
         </span>
       </div>
-      <div className="w-full h-px bg-[rgba(74,85,101,0.5)]" />
-      <Share2 className="w-5 h-5 text-white" />
-      <Target className="w-5 h-5 text-white" />
-      <div className="w-full h-px bg-[rgba(74,85,101,0.5)]" />
-      <ZoomIn className="w-5 h-5 text-white" />
-      <ZoomOut className="w-5 h-5 text-white" />
-      <Maximize2 className="w-5 h-5 text-white" />
+
+      {/* Top icon (comment) */}
+      <button
+        type="button"
+        className="absolute left-[6px] top-[9px] size-[36px] rounded-[10px] flex items-center justify-center text-[#d1d5dc] hover:text-white"
+        aria-label="Comments"
+      >
+        <MessageSquare className="w-5 h-5" />
+      </button>
+
+      {/* Separators */}
+      <div className="absolute left-[12px] top-[52px] w-[24px] h-px bg-[rgba(74,85,101,0.5)]" />
+      <div className="absolute left-[12px] top-[181px] w-[24px] h-px bg-[rgba(74,85,101,0.5)]" />
+
+      {/* Middle icons */}
+      <button
+        type="button"
+        className="absolute left-[6px] top-[59px] size-[36px] rounded-[10px] flex items-center justify-center text-[#d1d5dc] hover:text-white"
+        aria-label="Share"
+      >
+        <Share2 className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        className="absolute left-[6px] top-[99px] size-[36px] rounded-[10px] flex items-center justify-center text-[#d1d5dc] hover:text-white"
+        aria-label="Highlights"
+      >
+        <Sparkles className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        className="absolute left-[6px] top-[139px] size-[36px] rounded-[10px] flex items-center justify-center text-[#d1d5dc] hover:text-white"
+        aria-label="Sync"
+      >
+        <RotateCcw className="w-5 h-5" />
+      </button>
+
+      {/* Zoom controls */}
+      <button
+        type="button"
+        className="absolute left-[6px] top-[188px] size-[36px] rounded-[10px] flex items-center justify-center text-[#d1d5dc] hover:text-white"
+        aria-label="Zoom in"
+      >
+        <ZoomIn className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        className="absolute left-[6px] top-[228px] size-[36px] rounded-[10px] flex items-center justify-center text-[#d1d5dc] hover:text-white"
+        aria-label="Zoom out"
+      >
+        <ZoomOut className="w-5 h-5" />
+      </button>
     </div>
   )
 }

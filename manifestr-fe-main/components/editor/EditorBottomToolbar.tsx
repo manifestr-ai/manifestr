@@ -1317,9 +1317,11 @@ export default function EditorBottomToolbar({
           (tool) =>
             Array.isArray(tool.editor_for) &&
             tool.editor_for.includes(editorType) &&
-            // Spreadsheet editor now exposes theme selection in the Style tab.
-            // Remove Insert Theme from the bottom toolbar to avoid duplication.
-            !(editorType === "spreadsheet" && tool.key === "insert_theme"),
+            // Spreadsheet / image editors expose theme in the top chrome row.
+            !(
+              (editorType === "spreadsheet" || editorType === "image") &&
+              tool.key === "insert_theme"
+            ),
         )
         .map((tool) => {
           const isActive = activeTool === tool.key;

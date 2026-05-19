@@ -5,6 +5,7 @@ import { supabaseAdmin } from '../lib/supabase';
 import axios from 'axios';
 import { generateJSON } from '../lib/claude';
 import { authenticateToken, AuthRequest } from '../middleware/auth.middleware';
+import { WinsService, WINS_COSTS } from '../services/wins.service';
 
 interface GenerateImageRequest {
     prompt: string;
@@ -56,6 +57,20 @@ export class ImageGeneratorController extends BaseController {
 
             console.log(`🎨 Generating image for user ${jobUserId}...`);
             console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
+
+            // 💎 CHECK WINS BEFORE STARTING IMAGE GENERATION
+            const requiredWins = WINS_COSTS.image_generation;
+            const hasSufficient = await WinsService.hasSufficientWins(jobUserId, requiredWins);
+            
+            if (!hasSufficient) {
+                const currentBalance = await WinsService.getBalance(jobUserId);
+                return res.status(402).json({ 
+                    error: 'Insufficient wins',
+                    message: `Image generation requires ${requiredWins} wins. You have ${currentBalance} wins.`,
+                    required: requiredWins,
+                    available: currentBalance
+                });
+            }
 
             // 1. Create job in database FIRST
             const job = await SupabaseDB.createGenerationJob(jobUserId, {
@@ -245,6 +260,22 @@ export class ImageGeneratorController extends BaseController {
                 progress: 100,
                 final_url: jsonUrl
             });
+
+            // 💎 DEDUCT WINS FOR SUCCESSFUL IMAGE GENERATION
+            const winsCost = WINS_COSTS.image_generation;
+            const deductionResult = await WinsService.deduct(
+                jobUserId,
+                winsCost,
+                'image_generation',
+                `Generated image: ${prompt.substring(0, 60)}`,
+                job.id
+            );
+
+            if (!deductionResult.success) {
+                console.error(`⚠️ Failed to deduct ${winsCost} wins for image generation:`, deductionResult.error);
+            } else {
+                console.log(`💎 Deducted ${winsCost} wins for image generation. New balance: ${deductionResult.newBalance}`);
+            }
 
             // 9. Create vault item with Supabase URL for thumbnail
             await SupabaseDB.createVaultItem(jobUserId, {

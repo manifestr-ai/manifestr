@@ -56,21 +56,25 @@ body,
   width: 100%;
   height: 100%;
   overflow: auto;
+  padding: 32px 16px 48px;
 }
 
 .simple-editor-content {
-  max-width: 648px;
+  /* "Paper" surface that sits above the editor background */
+  max-width: 816px;
   width: 100%;
   margin: 0 auto;
-  height: 100%;
   display: flex;
   flex-direction: column;
   flex: 1;
+  background: #ffffff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .simple-editor-content .tiptap.ProseMirror.simple-editor {
   flex: 1;
-  padding: 3rem 3rem 30vh;
+  /* Comfortable page margins (matches tidy “paper” layout) */
+  padding: 72px 80px 30vh 80px;
 
   /* ========================
      HEADINGS - Professional Blue Theme
@@ -392,7 +396,7 @@ body,
 
 @media screen and (max-width: 480px) {
   .simple-editor-content .tiptap.ProseMirror.simple-editor {
-    padding: 1rem 1.5rem 30vh;
+    padding: 1.5rem 1.25rem 25vh 1.25rem;
 
     h1 {
       font-size: 1.75rem;

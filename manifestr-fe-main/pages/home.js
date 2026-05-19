@@ -237,8 +237,7 @@ export default function Home() {
                     user = JSON.parse(localStorage.getItem("user"));
                   } catch {}
                   const name = user
-                    ? `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() ||
-                      user.email
+                    ? (user.first_name?.trim() || user.email || "User")
                     : "User";
                   return <>Welcome Back, {name}</>;
                 })()}

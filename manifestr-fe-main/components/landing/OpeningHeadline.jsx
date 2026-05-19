@@ -17,13 +17,13 @@ const FIGMA_ASSETS = {
   imageLeft:
     'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458800/Homepage_Woman_x2_bedzbo.webp',
   imageRight:
-    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046086/Placeholder_Image-1_ldgb49.png',
+    'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779019658/Homepage_Man_x2_y8zo9q.webp',
 }
 
 const IMG_LEFT =
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777458800/Homepage_Woman_x2_bedzbo.webp'
 const IMG_RIGHT =
-  'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046086/Placeholder_Image-1_ldgb49.png'
+  'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779019658/Homepage_Man_x2_y8zo9q.webp'
 const LOGOMARK_FALLBACK = '/assets/logos/M.logo.svg'
 const IMG_CIRCLE =
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775046160/Group_jbs8sb.svg'

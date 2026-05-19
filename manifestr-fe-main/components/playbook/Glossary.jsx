@@ -155,17 +155,14 @@ export default function Glossary() {
       </div>
 
       {/* ─── Hero ─── */}
-<<<<<<< Updated upstream
       <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <CldImage src={HERO_BG} alt="" className="absolute h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/20" />
-=======
       <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/30" />
->>>>>>> Stashed changes
         </div>
 
         <motion.div
@@ -188,11 +185,11 @@ export default function Glossary() {
           </div>
 
           <div className="flex w-full max-w-[449px] flex-col items-center gap-5 md:gap-6">
-          <form
-            onSubmit={applySearch}
-            className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5 md:py-2.5"
-          >
-            <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <form
+              onSubmit={applySearch}
+              className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5 md:py-2.5"
+            >
+              <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -214,15 +211,6 @@ export default function Glossary() {
             </button>
           </form>
 
-<<<<<<< Updated upstream
-          <div className="flex flex-col items-center gap-[16px] w-full">
-            <a
-              href="#glossary-alphabet"
-              className="text-[14px] leading-[20px] text-white/90 underline underline-offset-4 hover:text-white transition-colors"
-              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
-            >
-              Browse by letter
-            </a>
             <Link
               href="/signup"
               className="hidden md:inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] md:w-auto"
@@ -232,7 +220,6 @@ export default function Glossary() {
             </Link>
           </div>
           </div>
-=======
           <Link
             href="/signup"
             className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
@@ -240,7 +227,6 @@ export default function Glossary() {
           >
             Enter MANIFESTR
           </Link>
->>>>>>> Stashed changes
         </motion.div>
       </section>
 

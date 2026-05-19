@@ -234,7 +234,11 @@ export default observer(function SlideShowPanel({ store }: SlideShowPanelProps) 
     }
   };
 
-  const close = () => {
+  const close = async () => {
+    const d: any = typeof document !== "undefined" ? document : null;
+    if (d?.fullscreenElement) {
+      await d.exitFullscreen?.().catch?.(() => {});
+    }
     setIsOpen(false);
     setPrevUrl(null);
     setCurrUrl(null);
@@ -381,6 +385,16 @@ export default observer(function SlideShowPanel({ store }: SlideShowPanelProps) 
             className="w-full h-full flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              type="button"
+              className="fixed right-5 top-5 z-[10000] flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-[#18181b] shadow-lg transition hover:bg-white/90"
+              onClick={close}
+              aria-label="Exit slide show"
+            >
+              <span aria-hidden="true" className="text-[18px] leading-none">×</span>
+              Exit Slide Show
+            </button>
+
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
                 <div className="text-white text-[13px]">
@@ -414,10 +428,10 @@ export default observer(function SlideShowPanel({ store }: SlideShowPanelProps) 
                 </button>
                 <button
                   type="button"
-                  className="px-3 py-1.5 rounded-md bg-white/10 text-white text-[12px] hover:bg-white/15"
+                  className="px-3 py-1.5 rounded-md bg-white text-[#18181b] text-[12px] font-medium hover:bg-white/90"
                   onClick={close}
                 >
-                  Close
+                  Exit
                 </button>
               </div>
             </div>
@@ -446,6 +460,57 @@ export default observer(function SlideShowPanel({ store }: SlideShowPanelProps) 
                     </div>
                   </div>
                 )}
+
+                <div
+                  className="absolute bottom-8 left-1/2 z-[10001] flex max-w-[calc(100%-24px)] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/15 bg-black/75 px-3 py-2 shadow-2xl backdrop-blur-md sm:bottom-12 sm:max-w-[calc(100%-32px)] sm:flex-nowrap sm:gap-3 sm:rounded-full sm:px-4 md:bottom-16"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    className="rounded-full bg-white/10 px-2.5 py-1.5 text-[11px] font-medium text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-[12px]"
+                    onClick={prev}
+                    disabled={!settings.loop && slideIndex === 0}
+                  >
+                    Prev
+                  </button>
+
+                  <div className="flex max-w-[42vw] items-center gap-1.5 overflow-x-auto no-scrollbar sm:max-w-[50vw]">
+                    {pages.map((slide, index) => (
+                      <button
+                        key={slide?.id || index}
+                        type="button"
+                        aria-label={`Go to slide ${index + 1}`}
+                        onClick={() => goTo(index, index >= slideIndex ? "forward" : "backward")}
+                        className={`h-2 rounded-full transition-all ${
+                          index === slideIndex
+                            ? "w-6 bg-white"
+                            : "w-2 bg-white/40 hover:bg-white/70"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <span className="min-w-[44px] text-center text-[12px] font-medium text-white/80">
+                    {slideIndex + 1}/{pages.length}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="rounded-full bg-white/10 px-2.5 py-1.5 text-[11px] font-medium text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-[12px]"
+                    onClick={next}
+                    disabled={!settings.loop && slideIndex === pages.length - 1}
+                  >
+                    Next
+                  </button>
+
+                  <button
+                    type="button"
+                    className="rounded-full bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#18181b] transition hover:bg-white/90 sm:px-3 sm:text-[12px]"
+                    onClick={close}
+                  >
+                    Exit
+                  </button>
+                </div>
               </div>
 
               {mode === "presenter" && (

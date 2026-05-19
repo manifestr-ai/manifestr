@@ -271,7 +271,84 @@ export class AuthController extends BaseController {
         return this.sendResponse(res, 400, "error", "Missing required fields");
       }
 
+      // 🔒 STEP 1: Check if subscription exists for this email
+      console.log(`🔍 Checking for subscription with email: ${email}`);
+      
+      const { data: subscription, error: subError } = await supabaseAdmin
+        .from('subscriptions')
+        .select('id, stripe_customer_id, tier, status, stripe_subscription_id')
+        .is('user_id', null) // Only guest subscriptions (not yet linked)
+        .eq('status', 'active') // Only active subscriptions
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (subError) {
+        console.error('❌ Error querying subscriptions:', subError);
+        return this.sendResponse(
+          res,
+          500,
+          "error",
+          "Database error checking email",
+          subError.message
+        );
+      }
+
+      // Check if subscription exists by fetching the Stripe customer email
+      let foundSubscription = null;
+      if (subscription && subscription.length > 0) {
+        // We need to verify the Stripe customer email matches
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        for (const sub of subscription) {
+          try {
+            const customer = await stripe.customers.retrieve(sub.stripe_customer_id);
+            if ('email' in customer && customer.email === email) {
+              foundSubscription = sub;
+              console.log(`✅ Found subscription ${sub.id} for email ${email}`);
+              break;
+            }
+          } catch (err) {
+            console.error('Error retrieving Stripe customer:', err);
+          }
+        }
+      }
+
+      if (!foundSubscription) {
+        console.log(`❌ No active subscription found for ${email}`);
+        return this.sendResponse(
+          res, 
+          403, 
+          "error", 
+          "You must subscribe to a plan before creating an account. Please visit our pricing page."
+        );
+      }
+
+      console.log(`✅ Subscription verified - proceeding with account creation`);
+
+      // 🔍 FIRST: Check if user already exists in auth.users
+      console.log(`🔍 Checking if user already exists in auth.users...`);
+      try {
+        const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+        if (listError) {
+          console.error(`❌ Error listing users:`, JSON.stringify(listError, null, 2));
+        } else {
+          const existingUser = existingUsers?.users?.find((u: any) => u.email === email);
+          if (existingUser) {
+            console.log(`⚠️  User already exists in auth.users:`, JSON.stringify(existingUser, null, 2));
+            return this.sendResponse(res, 409, "error", "User already exists in auth.users. Please contact support.");
+          }
+          console.log(`✅ No existing user found in auth.users`);
+        }
+      } catch (checkError) {
+        console.error(`❌ Exception checking existing users:`, checkError);
+      }
+
       // Use admin.createUser with email_confirm: true to skip verification!
+      console.log(`📝 Creating Supabase auth user with payload:`, {
+        email,
+        email_confirm: true,
+        user_metadata: { first_name, last_name, dob, country, gender, promotional_emails }
+      });
+      
       const { data: authData, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
@@ -286,6 +363,17 @@ export class AuthController extends BaseController {
             promotional_emails,
           },
         });
+
+      if (authError) {
+        console.error(`❌ Supabase auth error - FULL DETAILS:`);
+        console.error(`   - Message: ${authError.message}`);
+        console.error(`   - Status: ${authError.status}`);
+        console.error(`   - Code: ${(authError as any).code}`);
+        console.error(`   - Full error object:`, JSON.stringify(authError, null, 2));
+        console.error(`   - Error stack:`, authError.stack);
+      } else {
+        console.log(`✅ Supabase auth user created: ${authData?.user?.id}`);
+      }
 
       // const { data: authData, error: authError } = await supabase.auth.signUp({
       //     email,
@@ -314,20 +402,111 @@ export class AuthController extends BaseController {
       }
 
       if (!authData.user) {
+        console.error(`❌ No user returned from Supabase auth`);
         return this.sendResponse(res, 400, "error", "Failed to create user");
       }
 
       // Create user record in our database using Supabase
-      const user = await SupabaseDB.createUser({
-        id: authData.user.id,
-        email,
-        first_name,
-        last_name,
-        dob,
-        country,
-        gender,
-        promotional_emails,
-      });
+      console.log(`📝 Creating user record in public.users table...`);
+      let user: any;
+      try {
+        user = await SupabaseDB.createUser({
+          id: authData.user.id,
+          email,
+          first_name,
+          last_name,
+          dob,
+          country,
+          gender,
+          promotional_emails,
+        });
+        console.log(`✅ User record created in database`);
+
+        // Update user with tier and Stripe customer ID from subscription
+        console.log(`📝 Updating user with tier and Stripe customer ID...`);
+        await SupabaseDB.updateUser(authData.user.id, {
+          tier: foundSubscription.tier,
+          stripe_customer_id: foundSubscription.stripe_customer_id,
+        });
+        console.log(`✅ User tier updated: ${foundSubscription.tier}`);
+
+        // Update user object for response
+        user.tier = foundSubscription.tier;
+        user.stripe_customer_id = foundSubscription.stripe_customer_id;
+
+        // 🔗 STEP 2: Link the subscription to the new user
+        console.log(`🔗 Linking subscription ${foundSubscription.id} to user ${authData.user.id}`);
+        
+        const { error: linkError } = await supabaseAdmin
+          .from('subscriptions')
+          .update({ 
+            user_id: authData.user.id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', foundSubscription.id);
+
+        if (linkError) {
+          console.error(`❌ Failed to link subscription:`, linkError);
+          throw new Error(`Failed to link subscription: ${linkError.message}`);
+        }
+        console.log(`✅ Subscription linked successfully`);
+
+        // 🏆 STEP 3: Grant wins based on tier
+        console.log(`🏆 Granting wins for tier: ${foundSubscription.tier}`);
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const { getTierConfig } = require('../lib/stripe');
+        const tierConfig = getTierConfig(foundSubscription.tier);
+        
+        if (tierConfig) {
+          console.log(`💰 Granting ${tierConfig.winsPerMonth} wins for ${foundSubscription.tier} tier`);
+          
+          const { error: winsUpdateError } = await supabaseAdmin
+            .from('users')
+            .update({
+              wins_balance: tierConfig.winsPerMonth,
+            })
+            .eq('id', authData.user.id);
+
+          if (winsUpdateError) {
+            console.error(`❌ Failed to update wins balance:`, winsUpdateError);
+            throw new Error(`Failed to update wins: ${winsUpdateError.message}`);
+          }
+
+          // Log wins transaction
+          const { error: winsTransactionError } = await supabaseAdmin
+            .from('wins_transactions')
+            .insert({
+              user_id: authData.user.id,
+              amount: tierConfig.winsPerMonth,
+              balance_after: tierConfig.winsPerMonth,
+              transaction_type: 'subscription_linked',
+              description: `Subscription linked: ${foundSubscription.tier} tier (${tierConfig.winsPerMonth} wins)`,
+            });
+
+          if (winsTransactionError) {
+            console.error(`❌ Failed to log wins transaction:`, winsTransactionError);
+            // Don't throw - this is non-critical
+          } else {
+            console.log(`✅ Wins granted and logged successfully`);
+          }
+        } else {
+          console.log(`⚠️ No tier config found for ${foundSubscription.tier}`);
+        }
+      } catch (dbError: any) {
+        console.error('❌ Database error during user creation/subscription linking:', dbError);
+        console.error('   Error message:', dbError.message);
+        console.error('   Error code:', dbError.code);
+        if (dbError.details) console.error('   Error details:', dbError.details);
+        return this.sendResponse(
+          res,
+          500,
+          "error",
+          "Database error during account creation",
+          dbError.message
+        );
+      }
+
+      console.log(` User created and subscription linked successfully`);
 
       // Track user signup in Mixpanel
       trackEvent(MixpanelEvents.USER_SIGNED_UP, authData.user.id, {
@@ -336,6 +515,8 @@ export class AuthController extends BaseController {
         last_name,
         country,
         promotional_emails,
+        tier: foundSubscription.tier,
+        subscription_linked: true,
       });
 
       // Set user profile in Mixpanel
@@ -345,6 +526,7 @@ export class AuthController extends BaseController {
         $created: new Date().toISOString(),
         country,
         promotional_emails,
+        tier: foundSubscription.tier,
       });
 
       // Now sign them in to get tokens
@@ -381,6 +563,7 @@ export class AuthController extends BaseController {
         },
       );
     } catch (error) {
+      console.error('Signup error:', error);
       return this.sendResponse(
         res,
         500,
@@ -448,10 +631,16 @@ export class AuthController extends BaseController {
         login_method: 'email_password',
       });
 
+      // Log admin login
+      if (user.is_admin) {
+        console.log(`👑 ADMIN LOGIN: ${user.email} (ID: ${user.id})`);
+      }
+
       return this.sendResponse(res, 200, "success", "Login successful", {
         user: this.sanitizeUser(user),
         accessToken: data.session.access_token,
         refreshToken: data.session.refresh_token,
+        isAdmin: user.is_admin || false, // Explicitly include admin flag
       });
     } catch (error) {
       return this.sendResponse(
