@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const TOOL_IMAGES = {
   strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
@@ -72,8 +72,8 @@ export const TOOLS = [
     slug: 'design-studio',
     image: TOOL_IMAGES.designStudio,
     titleParts: [
-      { text: 'DESIGN ', font: 'hk', size: 30 },
-      { text: ' studio', font: 'ivy', size: 40 },
+      { text: 'Design ', font: 'hk', size: 30 },
+      { text: 'studio', font: 'ivy', size: 40 },
     ],
     tags: ['Images', 'Visuals', 'Moodboards'],
     description: {

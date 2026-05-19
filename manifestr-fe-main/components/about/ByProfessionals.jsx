@@ -50,19 +50,20 @@ export default function ByProfessionals() {
           </p>
         </motion.div>
 
-        {/* Two screenshots */}
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-[16px] md:gap-[52px] mb-[48px] md:mb-[64px]">
+        {/* Two screenshots — full image (no crop), same row height on md+ (grid stretch to taller shot) */}
+        <div className="grid grid-cols-1 gap-[16px] md:grid-cols-2 md:items-stretch md:gap-[52px] mb-[48px] md:mb-[64px]">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="rounded-[10px] md:rounded-[6px] mt-6 overflow-hidden h-[263px] md:h-auto"
+            className="flex min-h-0 w-full items-center justify-center overflow-hidden rounded-[10px] md:rounded-[6px]"
           >
             <CldImage
               src={SCREENSHOT_1}
               alt="MANIFESTR platform screenshot"
-              className="w-full h-full object-cover"
+              className="block h-auto w-full object-contain"
+              sizes="(max-width: 767px) 100vw, 540px"
             />
           </motion.div>
           <motion.div
@@ -70,12 +71,13 @@ export default function ByProfessionals() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="rounded-[10px] md:rounded-[6px] overflow-hidden h-[263px] md:h-auto"
+            className="flex min-h-0 w-full items-center justify-center overflow-hidden rounded-[10px] md:rounded-[6px]"
           >
             <CldImage
               src={SCREENSHOT_2}
               alt="MANIFESTR platform screenshot"
-              className="w-full h-full object-cover"
+              className="block h-auto w-full object-contain"
+              sizes="(max-width: 767px) 100vw, 540px"
             />
           </motion.div>
         </div>

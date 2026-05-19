@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const HERO_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777466273/The_Toolkit_Banner_1441x804_x2_nksfjd.webp'
 

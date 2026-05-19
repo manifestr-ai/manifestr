@@ -5,6 +5,10 @@ import CldImage from '../ui/CldImage'
 
 const AFFILIATE_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775027959/Rectangle_34624854_ga3xmx.png'
 
+/** Desktop “Compare all features” table: fixed label column + 3 equal plan columns */
+const PRICING_COMPARE_GRID =
+  'grid w-full min-w-[900px] grid-cols-[334px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]'
+
 const PLANS = [
   {
     name: 'Starter',
@@ -466,20 +470,28 @@ export default function PricingContent() {
         </h3>
 
         <div className="max-w-[1314px] mx-auto overflow-x-auto">
-          <div className="relative min-w-[900px] pt-[40px]">
-            <div
-              className="absolute top-0 z-10 flex items-center justify-center bg-[#18181b] rounded-t-[16px] h-[40px] px-[32px]"
-              style={{
-                left: 'calc(334px + (100% - 334px) / 3)',
-                width: 'calc((100% - 334px) / 3)',
-              }}
-            >
-              <span
-                className="text-white text-[16px] tracking-[1.28px] uppercase"
-                style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
-              >
-                Most Popular Plan
-              </span>
+          <div className="relative min-w-[900px] ">
+            {/* Same column grid as table — Pro column (3rd cell) is perfectly centered for the label */}
+            <div className={`${PRICING_COMPARE_GRID} h-10`}>
+              <div className="min-w-0" aria-hidden />
+              <div className="min-w-0" aria-hidden />
+              <div className="flex h-full min-w-0 items-center justify-center rounded-t-[16px] bg-[#18181b] px-2">
+                <span
+                  className="max-w-full whitespace-nowrap text-[16px] uppercase text-white"
+                  style={{
+                    fontFamily: "'IvyPresto Headline', serif",
+                    fontWeight: 600,
+                    fontStyle: 'italic',
+                    letterSpacing: '1.28px',
+                    /* Letter-spacing adds space after each glyph; pad-start balances optical center for centered caps */
+                    paddingLeft: '1.28px',
+                    paddingTop: '3.58px',
+                  }}
+                >
+                  Most Popular Plan
+                </span>
+              </div>
+              <div className="min-w-0" aria-hidden />
             </div>
 
             <div className="relative border border-[#eaecf0] rounded-[12px] overflow-hidden">
@@ -492,8 +504,8 @@ export default function PricingContent() {
               />
 
               {/* Table Header Row */}
-              <div className="flex border-b border-[#eaecf0]">
-                <div className="w-[334px] shrink-0 bg-white p-[24px] flex flex-col items-center justify-center gap-[16px] border-r border-[#eaecf0]">
+              <div className={`${PRICING_COMPARE_GRID} border-b border-[#eaecf0]`}>
+                <div className="flex min-w-0 flex-col items-center justify-center gap-[16px] border-r border-[#eaecf0] bg-white p-[24px]">
                   <h4
                     className="text-[24px] leading-[32px] text-black"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
@@ -501,7 +513,7 @@ export default function PricingContent() {
                     Choose your plan
                   </h4>
                   <BillingToggle isAnnual={isAnnual} setIsAnnual={setIsAnnual} />
-                  <p className="text-[12px] leading-[18px] text-[#18181b] text-center max-w-[204px]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="max-w-[204px] text-center text-[12px] leading-[18px] text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Cancel anytime - full access until your billing cycle ends
                   </p>
                 </div>
@@ -509,7 +521,7 @@ export default function PricingContent() {
                 {PLANS.map((plan) => (
                   <div
                     key={plan.name}
-                    className="flex-1 border-r last:border-r-0 border-[#eaecf0] flex flex-col relative"
+                    className="relative flex min-w-0 flex-col border-r border-[#eaecf0] last:border-r-0"
                   >
                     <div className="px-[24px] pt-[32px] pb-[24px] flex flex-col gap-[32px] flex-1">
                       <div className="flex flex-col gap-[24px]">
@@ -581,47 +593,45 @@ export default function PricingContent() {
               {/* Feature comparison rows */}
               {FEATURE_GROUPS.map((group) => (
                 <div key={group.title}>
-                  <div className="flex bg-[#e7e7e7] border-b border-[#e2e3e4]">
-                    <div className="w-[334px] shrink-0 px-[24px] py-[16px] border-r border-[#e2e3e4]">
-                      <span className="text-[18px] leading-[28px] font-semibold text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <div className={`${PRICING_COMPARE_GRID} border-b border-[#e2e3e4] bg-[#e7e7e7]`}>
+                    <div className="min-w-0 border-r border-[#e2e3e4] px-[24px] py-[16px]">
+                      <span className="text-[18px] font-semibold leading-[28px] text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {group.title}
                       </span>
                     </div>
-                    <div className="flex-1" />
+                    <div className="col-span-3 min-w-0" aria-hidden />
                   </div>
 
                   {group.features.map((feature, fIdx) => (
                     <div
                       key={`${group.title}-${fIdx}`}
-                      className="flex border-b border-[#eaecf0] last:border-b-0"
+                      className={`${PRICING_COMPARE_GRID} border-b border-[#eaecf0] last:border-b-0`}
                     >
-                      <div className="w-[334px] shrink-0 pl-[60px] pr-[24px] py-[16px] border-r border-[#eaecf0]">
-                        <span className="text-[14px] leading-[20px] font-medium text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <div className="min-w-0 border-r border-[#eaecf0] py-[16px] pl-[60px] pr-[24px]">
+                        <span className="text-[14px] font-medium leading-[20px] text-[#18181b]" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {feature.name}
                         </span>
                       </div>
-                      <div className="flex-1 flex">
-                        {['starter', 'pro', 'elite'].map((planKey) => (
-                          <div
-                            key={planKey}
-                            className="flex-1 px-[24px] py-[16px] border-r last:border-r-0 border-[#eaecf0] flex items-center"
-                          >
-                            <CellValue value={feature[planKey]} filled={planKey === 'pro'} />
-                          </div>
-                        ))}
-                      </div>
+                      {['starter', 'pro', 'elite'].map((planKey) => (
+                        <div
+                          key={planKey}
+                          className="flex min-w-0 items-center border-r border-[#eaecf0] px-[24px] py-[16px] last:border-r-0"
+                        >
+                          <CellValue value={feature[planKey]} filled={planKey === 'pro'} />
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
               ))}
 
               {/* Bottom CTA row */}
-              <div className="flex border-t border-[#eaecf0]">
-                <div className="w-[334px] shrink-0 border-r border-[#eaecf0]" />
+              <div className={`${PRICING_COMPARE_GRID} border-t border-[#eaecf0]`}>
+                <div className="min-w-0 border-r border-[#eaecf0]" aria-hidden />
                 {PLANS.map((plan) => (
                   <div
                     key={plan.name}
-                    className="flex-1 px-[24px] py-[16px] border-r last:border-r-0 border-[#eaecf0]"
+                    className="min-w-0 border-r border-[#eaecf0] px-[24px] py-[16px] last:border-r-0"
                   >
                     <button
                       className="h-[44px] w-full rounded-[6px] bg-[#18181b] text-white text-[14px] leading-[20px] font-medium hover:bg-[#27272a] transition-colors"

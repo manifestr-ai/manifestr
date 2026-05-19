@@ -155,10 +155,17 @@ export default function Glossary() {
       </div>
 
       {/* ─── Hero ─── */}
+<<<<<<< Updated upstream
       <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
           <CldImage src={HERO_BG} alt="" className="absolute h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/20" />
+=======
+      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+          <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/30" />
+>>>>>>> Stashed changes
         </div>
 
         <motion.div
@@ -207,6 +214,7 @@ export default function Glossary() {
             </button>
           </form>
 
+<<<<<<< Updated upstream
           <div className="flex flex-col items-center gap-[16px] w-full">
             <a
               href="#glossary-alphabet"
@@ -224,6 +232,15 @@ export default function Glossary() {
             </Link>
           </div>
           </div>
+=======
+          <Link
+            href="/signup"
+            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Enter MANIFESTR
+          </Link>
+>>>>>>> Stashed changes
         </motion.div>
       </section>
 

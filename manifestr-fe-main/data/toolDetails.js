@@ -28,7 +28,8 @@ const TOOL_DETAILS = {
       { text: 'that guides every move.', style: 'normal' },
     ],
     heroCol1: 'Analyze your market, competitors, and opportunities to uncover insights that shape clear strategic direction.',
-    heroCol2: 'Generate strategy plans, roadmaps, positioning frameworks, and documents that turn insight into action.',
+    heroCol2:
+      'Generate strategy plans, roadmaps, positioning frameworks,\nand documents that turn insight into action.',
     darkBannerText: 'Good strategy solves problems; great strategy rewrites the game.',
     heroCtaPrimary:   { label: 'Discover MANIFESTR Today', href: '/signup' },
     heroCtaSecondary: { label: 'Explore All Tools',        href: '/tools' },

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 import { TOOLS, MOBILE_TOOL_ORDER, MobileToolAccordion } from './toolkitMobileShared'
 
 const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944466/37_modern-founder_model-07-shot-02b_2_wj98bv.svg'
@@ -120,7 +120,7 @@ export default function ToolsGrid() {
           fontFamily: "'IvyPresto Headline', serif",
           fontWeight: 600,
           fontStyle: 'italic',
-          color: '#a3a3a3',
+          color: '#A3A3A3',
         }}
       >
         ELEVATE

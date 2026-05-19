@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 const DOC_BG_IMAGE =
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777351581/Laptop_Rock_Desktop_1441x915_x2__Light_vw1azu.webp'
@@ -41,11 +41,27 @@ export default function ToolDocuments({ tool }) {
     )
   }
 
+<<<<<<< Updated upstream
   /* Desktop only — hidden on mobile tool detail pages (md+). */
   const desktopChecklist = documentChecklist || []
 
   return (
     <section className="relative hidden w-full overflow-x-hidden bg-white md:block">
+=======
+  /* ─────────────────────────────────────────────
+     DESKTOP  — Figma 12469:22812
+     bg-white, absolute image bleed, content col
+  ───────────────────────────────────────────── */
+  const desktopChecklist = documentChecklist || []
+  // Figma: items start top:318, each +44px. Button top:603.
+  // Content col starts top:110. Title h≈72, gap:24, desc h≈84 → col bottom ≈ 290.
+  // Normal flow in a max-width column so variable-length content never overflows the viewport.
+
+  return (
+    <>
+      {/* ── DESKTOP ── */}
+      <section className="relative hidden w-full overflow-x-hidden bg-white md:block">
+>>>>>>> Stashed changes
         {/* Figma frame: content ~657px tall → 720px min-height; clip bleed like other tool sections */}
         <div
           className="relative w-full min-w-0"
@@ -130,7 +146,104 @@ export default function ToolDocuments({ tool }) {
             </div>
             </div>
           </div>
+<<<<<<< Updated upstream
         </div>
       </section>
+=======
+        </div>
+      </section>
+
+      {/* ── MOBILE — original dark layout, unchanged ── */}
+      <section className="relative w-full overflow-hidden bg-zinc-950 md:hidden md:min-h-[660px]">
+        <CldImage
+          src={DOC_BG_IMAGE}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-right pointer-events-none"
+        />
+        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 py-[48px] sm:px-6">
+          <div className={`w-full max-w-[960px] ${shiftDocumentsLeft ? 'ml-0' : ''}`}>
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="mb-[16px] text-[32px] leading-[39px] tracking-[-0.64px] text-white"
+            >
+              {holdIdx >= 0 ? (
+                <>
+                  <span style={hk700}>{titleBeforeHold}</span>
+                  <br />
+                  <span style={hk700}>{titleFromHold} </span>
+                  <em className="text-white" style={ivy}>{lastWord}</em>
+                </>
+              ) : (
+                <>
+                  <span style={hk700}>{titleStart} </span>
+                  <em className="text-white" style={ivy}>{lastWord}</em>
+                </>
+              )}
+            </motion.h2>
+
+            {documentDescription && (
+              <motion.p
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.05 }}
+                className="mb-[32px] max-w-[min(100%,48rem)] text-[16px] leading-[28px] text-white/90"
+                style={inter}
+              >
+                {documentDescription}
+              </motion.p>
+            )}
+
+            {documentChecklist && documentChecklist.length > 0 && (
+              <div className="mb-[40px] flex flex-col gap-[20px]">
+                {documentChecklist.map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.1 + i * 0.05, duration: 0.3 }}
+                    className="flex items-center gap-[12px]"
+                  >
+                    <CldImage
+                      src={CHECK_ICON}
+                      alt=""
+                      className="h-[20px] w-[20px] shrink-0 brightness-0 invert"
+                    />
+                    <span
+                      className="text-left text-[16px] leading-[24px] text-white/90"
+                      style={inter}
+                    >
+                      {item}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Link
+                href="/signup"
+                className="inline-flex h-[54px] items-center justify-center rounded-[6px] bg-white px-[24px] text-[16px] font-medium leading-[20px] text-[#18181b] transition-colors hover:bg-zinc-100 whitespace-nowrap"
+                style={inter}
+              >
+                Explore MANIFESTR
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+    </>
+>>>>>>> Stashed changes
   )
 }

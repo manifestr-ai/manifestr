@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import CldImage from '../ui/CldImage'
+import CldImage from '../ui/ToolkitCldImage'
 
 export default function ToolFeatures({ tool }) {
   const { prefix, name, howItWorks, featureHeading, featureImages } = tool
@@ -51,10 +51,10 @@ export default function ToolFeatures({ tool }) {
                 transition={{ delay: i * 0.08, duration: 0.5 }}
                 className={`flex flex-col ${imageLeft ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center justify-center gap-[16px] lg:gap-[64px]`}
               >
-                {/* Text block — mobile: order-1 (top), desktop: natural DOM order */}
-                <div className="order-1 lg:order-0 flex flex-1 min-w-0 flex-col items-center lg:items-stretch w-full text-center lg:text-left gap-[12px] lg:gap-3">
+                {/* Text block — mobile: order-1; desktop: grid so body lines up with title after number */}
+                <div className="order-1 lg:order-0 flex flex-1 min-w-0 flex-col items-center lg:items-stretch w-full text-center lg:text-left gap-[12px] lg:gap-0">
 
-                  {/* Number — mobile only: large 48px centered above title */}
+                  {/* Number — mobile only */}
                   <p
                     className="lg:hidden text-[48px] leading-[38px] text-black text-center"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
@@ -62,15 +62,41 @@ export default function ToolFeatures({ tool }) {
                     {item.number}
                   </p>
 
-                  {/* Title — mobile: wrapping + centered; desktop: nowrap + number inline */}
-                  <div className="hidden lg:block w-full min-w-0 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
-                    <h3
-                      className="w-max min-w-0 text-black text-[30px] leading-[38px] text-left whitespace-nowrap"
-                      style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
-                    >
-                      {item.number} {item.title}
-                    </h3>
+                  {/* Desktop: title row (number + title), then body aligned with title start */}
+                  <div className="hidden lg:flex lg:flex-col w-full min-w-0 gap-3">
+                    <div className="flex flex-row gap-x-3 items-baseline min-w-0">
+                      <span
+                        className="shrink-0 text-black text-[30px] leading-[38px]"
+                        style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                      >
+                        {item.number}
+                      </span>
+                      <div className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
+                        <h3
+                          className="w-max min-w-0 text-black text-[30px] leading-[38px] text-left whitespace-nowrap"
+                          style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                        >
+                          {item.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="flex flex-row gap-x-3 min-w-0">
+                      <span
+                        aria-hidden
+                        className="invisible shrink-0 select-none text-[30px] leading-[38px] pointer-events-none"
+                        style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+                      >
+                        {item.number}
+                      </span>
+                      <p
+                        className="min-w-0 max-w-[529px] text-[#52525b] text-[18px] leading-[26px] tracking-normal"
+                        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+                      >
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
+
                   <h3
                     className="lg:hidden text-black text-[30px] leading-[38px] text-center w-full"
                     style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
@@ -78,10 +104,9 @@ export default function ToolFeatures({ tool }) {
                     {item.title}
                   </h3>
 
-                  {/* Description — 16px on mobile, 26px on desktop */}
                   <p
-                    className="text-[#52525b] text-[16px] leading-[24px] lg:text-[26px] lg:leading-[34px] w-full max-w-2xl lg:max-w-3xl"
-                    style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400 }}
+                    className="lg:hidden text-[#52525b] text-[18px] leading-[26px] tracking-normal w-full max-w-[520px] mx-auto"
+                    style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
                   >
                     {item.description}
                   </p>

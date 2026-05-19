@@ -72,10 +72,10 @@ export default function IncidentReporting() {
           </nav>
 
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
-            <div className="flex flex-col gap-[16px] w-full lg:w-[592px] shrink-0">
+            <div className="flex flex-col gap-[10px] w-full lg:w-[592px] shrink-0">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-                className="text-[36px] leading-[1.1] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.12] md:tracking-[-1.44px]"
+                className="text-[36px] leading-[1.02] tracking-[-0.72px] text-black md:text-[72px] md:leading-[1.04] md:tracking-[-1.44px]"
                 style={headingFont}
               >
                 Transparency <br />in action.

@@ -16,7 +16,11 @@ export default function WhoWeAre() {
           WHO WE ARE
         </motion.p>
 
+<<<<<<< Updated upstream
         {/* Figma 12072:50381 ΓÇö two lines: title case; IvyPresto italic on ΓÇ£ProfessionalΓÇ¥ */}
+=======
+        {/* Figma 12072:50381 — two lines: title case; IvyPresto italic on “Professional” */}
+>>>>>>> Stashed changes
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -27,8 +31,12 @@ export default function WhoWeAre() {
         >
           <span className="block">Shaped by Experience and Pressure.</span>
           <span className="block">
+<<<<<<< Updated upstream
             Designed To Raise
             <br className="md:hidden" /> The Standard Of{' '}
+=======
+            Designed To Raise The Standard Of{' '}
+>>>>>>> Stashed changes
             <em
               className="not-italic"
               style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}

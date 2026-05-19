@@ -4,56 +4,56 @@ import CldImage from '../ui/CldImage'
 
 const SAND_BG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774941574/Rectangle_8_ymxlxb.jpg'
 
+const SUBCOPY =
+  'Pick the plan that fits your needs and start boosting your productivity today. No risk, just results.'
+
 export default function AffiliateGetStarted() {
   return (
-    <section className="relative w-full overflow-hidden min-h-[414px]">
-      {/* Sandy texture background */}
-      <div className="absolute inset-0">
-        <CldImage src={SAND_BG} alt="" className="w-full h-full object-cover" />
+    <section className="relative min-h-[414px] w-full overflow-hidden" aria-label="Get started">
+      <div className="absolute inset-0" aria-hidden>
+        <CldImage src={SAND_BG} alt="" className="h-full w-full object-cover object-center" />
       </div>
 
-      <div className="relative max-w-[1440px] mx-auto px-6 py-[48px] md:py-[92px] flex flex-col items-center text-center gap-[24px] md:gap-[32px]">
-        {/* Heading */}
+      <div className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-center gap-6 px-6 py-12 text-center md:gap-8 md:py-[92px]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col gap-[12px] items-center"
+          className="flex w-full max-w-[720px] flex-col items-center"
         >
-          <h2
-            className="text-[32px] md:text-[60px] leading-[48px] md:leading-[72px] tracking-[-0.8px] md:tracking-[-1.2px] text-black"
-          >
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 500 }}>Ready to </span>
-            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Get Started?</span>
+          {/* Same headline treatment as ToolDetailMarketingCTA — Hanken 700 + Ivy italic */}
+          <h2 className="mx-auto max-w-[920px] text-balance text-center text-[32px] leading-[1.12] tracking-[-0.64px] text-black md:text-[44px] md:leading-[1.1] md:tracking-[-0.88px] lg:text-[52px] lg:tracking-[-1.04px] xl:text-[60px] xl:leading-[1.08] xl:tracking-[-1.2px]">
+            <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>Ready to </span>
+            <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>Get Started?</span>
           </h2>
+
           <p
-            className="text-[16px] md:text-[18px] leading-[24px] md:leading-[26px] text-black max-w-[316px] md:max-w-[552px]"
-            style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+            className="mt-5 max-w-[560px] text-pretty text-[15px] leading-[24px] text-[#18181b] md:mt-6 md:text-[16px] md:leading-[26px] lg:mt-8 lg:max-w-[600px] lg:text-[18px] lg:leading-[28px]"
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
           >
-            Pick the plan that fits your needs and start boosting your productivity today. No risk, just results.
+            {SUBCOPY}
           </p>
         </motion.div>
 
-        {/* Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 0.4 }}
-          className="flex flex-col md:flex-row items-center gap-[12px] w-full md:w-auto md:justify-center"
+          className="flex w-full max-w-[420px] flex-col items-stretch justify-center gap-3 sm:max-w-none sm:flex-row sm:items-center sm:gap-4"
         >
           <Link
             href="/pricing"
-            className="bg-white border border-[#e4e4e7] text-[#18181b] text-[14px] md:text-[18px] leading-[20px] font-medium h-[36px] md:h-[54px] px-[12px] md:px-[32px] rounded-[6px] flex items-center justify-center hover:bg-[#f4f4f5] transition-colors duration-200 w-full md:w-auto"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            className="inline-flex h-12 min-h-[48px] w-full items-center justify-center rounded-[8px] border border-[#e4e4e7] bg-white px-6 text-[15px] font-medium leading-5 text-[#18181b] shadow-sm transition-colors hover:bg-[#fafafa] sm:h-12 sm:w-auto sm:min-w-[180px]"
+            style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Explore Pricing
           </Link>
           <Link
             href="/signup"
-            className="bg-[#18181b] text-white text-[14px] md:text-[18px] leading-[20px] font-medium h-[36px] md:h-[54px] px-[12px] md:px-[32px] rounded-[6px] flex items-center justify-center hover:bg-[#333] transition-colors duration-200 w-full md:w-auto"
-            style={{ fontFamily: "Inter, sans-serif" }}
+            className="inline-flex h-12 min-h-[48px] w-full items-center justify-center rounded-[8px] bg-[#18181b] px-6 text-[15px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a] sm:h-12 sm:w-auto sm:min-w-[180px]"
+            style={{ fontFamily: 'Inter, sans-serif' }}
           >
             Get Started Now
           </Link>

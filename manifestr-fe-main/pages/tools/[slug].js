@@ -11,9 +11,9 @@ import ToolOutput         from '../../components/tool-detail/ToolOutput'
 import ToolElevated       from '../../components/tool-detail/ToolElevated'
 import ToolWhyManifest    from '../../components/tool-detail/ToolWhyManifest'
 import ToolConnectedSystem from '../../components/tool-detail/ToolConnectedSystem'
-import ToolDiscover       from '../../components/tool-detail/ToolDiscover'
-import ToolCTA            from '../../components/tool-detail/ToolCTA'
-import ToolCTA2           from '../../components/tool-detail/ToolCTA2'
+import ToolDiscover            from '../../components/tool-detail/ToolDiscover'
+import ToolDetailMarketingCTA  from '../../components/tool-detail/ToolDetailMarketingCTA'
+import ToolCTA                 from '../../components/tool-detail/ToolCTA'
 
 export async function getStaticPaths() {
   return {
@@ -42,7 +42,7 @@ export default function ToolDetailPage({ tool }) {
       <div className="min-h-screen flex flex-col bg-white">
         <Header />
 
-        <main className="flex-1 pt-[76px]">
+        <main className="flex-1 min-w-0 overflow-x-hidden pt-[76px]">
           <ToolHero tool={tool} />
 
           <ToolFeatures tool={tool} />
@@ -61,9 +61,10 @@ export default function ToolDetailPage({ tool }) {
 
           <ToolDiscover />
 
-          <ToolCTA />
+          {/* Figma 12468:22416 */}
+          <ToolDetailMarketingCTA />
 
-          {/* <ToolCTA2 /> */}
+          {/* <ToolCTA /> */}
         </main>
 
         <Footer />

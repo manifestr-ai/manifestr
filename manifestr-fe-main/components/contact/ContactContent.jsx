@@ -350,14 +350,7 @@ export default function ContactContent() {
             ))}
           </div>
 
-          <a
-            href="#"
-            className="flex items-center gap-[8px] px-[16px] py-[4px] text-[14px] leading-[20px] font-medium text-[#2563eb] hover:underline"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            Submit Feedback
-            <ArrowUpRightIcon />
-          </a>
+        
         </div>
       </section>
     </>

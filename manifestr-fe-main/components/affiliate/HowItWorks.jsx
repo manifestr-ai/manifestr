@@ -25,6 +25,7 @@ const mobileGradientNum = {
 
 export default function HowItWorks() {
   return (
+<<<<<<< Updated upstream
     <section className="relative w-full overflow-hidden bg-[#f2f2f1] md:bg-[#eeede9]">
       {/* === DESKTOP (md+) — pixel-faithful to Figma === */}
       <div className="hidden md:block relative w-full max-w-full mx-auto" style={{ height: 1186 }}>
@@ -35,15 +36,32 @@ export default function HowItWorks() {
             alt=""
             className="w-full h-auto object-center"
           />
+=======
+    <section className="relative w-full overflow-hidden bg-[#eeede9]">
+      {/* === DESKTOP (md+) — full-width people below a reserved top band (gap above heads); 1440 artboard for UI === */}
+      <div className="relative hidden h-[1186px] w-full md:block">
+        {/* People: edge-to-edge width; only lower zone so headline/steps keep clear space above heads */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 z-0 overflow-hidden">
+          <div className="absolute inset-x-0 bottom-0 top-[min(10%,480px)]">
+            <CldImage
+              src={PEOPLE_IMG}
+              alt=""
+              preserveCloudinaryUrl
+              sizes="100vw"
+              className="h-full w-full min-w-full object-cover object-[center_72%]"
+            />
+          </div>
+>>>>>>> Stashed changes
         </div>
 
+        <div className="relative z-10 mx-auto h-full w-full max-w-[1440px] overflow-hidden">
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="absolute text-center"
+          className="absolute z-10 text-center"
           style={{ left: 79, top: 81, width: 1280, height: 144 }}
         >
           <h2
@@ -60,26 +78,31 @@ export default function HowItWorks() {
           </p>
         </motion.div>
 
-        {/* Curved connecting line */}
+        {/* Curved connecting line — native <img> SVG (no rasterization); no subpixel rotation */}
         <div
-          className="absolute flex items-center justify-center pointer-events-none"
+          className="pointer-events-none absolute z-10 flex items-center justify-center"
           style={{ left: 59, top: -50, width: 1296, height: 788 }}
         >
-          <motion.div
+          <motion.img
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            style={{ transform: 'rotate(0.36deg)' }}
-          >
-            <CldImage src={CURVE_LINE} alt="" style={{ width: 1232, height: 402 }} />
-          </motion.div>
+            src={CURVE_LINE}
+            alt=""
+            width={1232}
+            height={402}
+            decoding="sync"
+            draggable={false}
+            className="block shrink-0"
+            style={{ width: 1232, height: 402 }}
+          />
         </div>
 
         {/* === Step 01 === */}
         {/* Number */}
         <p
-          className="absolute text-[200px] leading-[200px] tracking-[-4px] uppercase font-bold opacity-50 whitespace-nowrap text-center -translate-x-1/2 select-none"
+          className="absolute z-10 text-[200px] leading-[200px] tracking-[-4px] uppercase font-bold opacity-50 whitespace-nowrap text-center -translate-x-1/2 select-none"
           style={{ ...gradientNum, fontFamily: "'Hanken Grotesk', sans-serif", left: 346.5, top: 269 }}
         >
           01
@@ -90,7 +113,7 @@ export default function HowItWorks() {
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3, type: 'spring', stiffness: 300 }}
-          className="absolute"
+          className="absolute z-10"
           style={{ left: 130, top: 287, width: 53, height: 53 }}
         >
           <CldImage src={DOT_ICON_1} alt="" className="w-full h-full object-contain" />
@@ -101,7 +124,7 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.15, duration: 0.5 }}
-          className="absolute text-[36px] leading-[44px] text-black -translate-y-1/2"
+          className="absolute z-10 text-[36px] leading-[44px] text-black -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, left: 130, top: 487, width: 320 }}
         >
           Sign Up &amp; Get Your Unique Link
@@ -112,7 +135,7 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.25, duration: 0.5 }}
-          className="absolute text-[18px] leading-[24px] text-[#52525b] -translate-y-1/2"
+          className="absolute z-10 text-[18px] leading-[24px] text-[#52525b] -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400, left: 130, top: 563 }}
         >
           Quick, free, and easy.
@@ -120,7 +143,7 @@ export default function HowItWorks() {
 
         {/* === Step 02 === */}
         <p
-          className="absolute text-[200px] leading-[200px] tracking-[-4px] uppercase font-bold opacity-50 whitespace-nowrap text-center -translate-x-1/2 select-none"
+          className="absolute z-10 text-[200px] leading-[200px] tracking-[-4px] uppercase font-bold opacity-50 whitespace-nowrap text-center -translate-x-1/2 select-none"
           style={{ ...gradientNum, fontFamily: "'Hanken Grotesk', sans-serif", left: 763.5, top: 236 }}
         >
           02
@@ -130,7 +153,7 @@ export default function HowItWorks() {
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5, type: 'spring', stiffness: 300 }}
-          className="absolute"
+          className="absolute z-10"
           style={{ left: 523, top: 308, width: 52, height: 52 }}
         >
           <CldImage src={DOT_ICON_2} alt="" className="w-full h-full object-contain" />
@@ -140,7 +163,7 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.35, duration: 0.5 }}
-          className="absolute text-[36px] leading-[44px] text-black whitespace-nowrap -translate-y-1/2"
+          className="absolute z-10 text-[36px] leading-[44px] text-black whitespace-nowrap -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, left: 523, top: 470 }}
         >
           Share MANIFESTR
@@ -150,7 +173,7 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="absolute text-[18px] leading-[26px] text-[#52525b] -translate-y-1/2"
+          className="absolute z-10 text-[18px] leading-[26px] text-[#52525b] -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400, left: 523, top: 548, width: 320 }}
         >
           Promote to your audience, network, or clients using your personalized marketing assets.
@@ -158,7 +181,7 @@ export default function HowItWorks() {
 
         {/* === Step 03 === */}
         <p
-          className="absolute text-[200px] leading-[200px] tracking-[-4px] uppercase font-bold opacity-50 whitespace-nowrap text-center -translate-x-1/2 select-none"
+          className="absolute z-10 text-[200px] leading-[200px] tracking-[-4px] uppercase font-bold opacity-50 whitespace-nowrap text-center -translate-x-1/2 select-none"
           style={{ ...gradientNum, fontFamily: "'Hanken Grotesk', sans-serif", left: 1196.5, top: 269 }}
         >
           03
@@ -168,7 +191,7 @@ export default function HowItWorks() {
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.7, type: 'spring', stiffness: 300 }}
-          className="absolute"
+          className="absolute z-10"
           style={{ left: 968, top: 335, width: 52, height: 52 }}
         >
           <CldImage src={DOT_ICON_2} alt="" className="w-full h-full object-contain" />
@@ -178,7 +201,7 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.55, duration: 0.5 }}
-          className="absolute text-[36px] leading-[44px] text-black -translate-y-1/2"
+          className="absolute z-10 text-[36px] leading-[44px] text-black -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, left: 968, top: 490, width: 320 }}
         >
           Earn Recurring Commissions
@@ -188,23 +211,29 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.65, duration: 0.5 }}
-          className="absolute text-[18px] leading-[24px] text-[#52525b] -translate-y-1/2"
+          className="absolute z-10 text-[18px] leading-[24px] text-[#52525b] -translate-y-1/2"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400, left: 968, top: 590, width: 364 }}
         >
           Get paid monthly as long as your referrals remain active, tracked automatically in your affiliate dashboard.
         </motion.p>
+        </div>
       </div>
 
       {/* === MOBILE === */}
       <div className="relative min-h-[1500px] overflow-hidden bg-[#f2f2f1] md:hidden">
         {/* People — full width; start lower so intro + steps keep space above heads */}
+<<<<<<< Updated upstream
         <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[36%] z-0 min-h-[360px] overflow-hidden">
+=======
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[36%] z-0 overflow-hidden min-h-[360px]">
+>>>>>>> Stashed changes
           <CldImage
             alt=""
             src={PEOPLE_IMG_MOBILE}
             preserveCloudinaryUrl
             sizes="100vw"
             className="h-full w-full min-w-full object-cover object-[center_70%]"
+<<<<<<< Updated upstream
           />
           <div
             aria-hidden
@@ -213,6 +242,12 @@ export default function HowItWorks() {
         </div>
 
         <div className="relative z-10 flex flex-col items-center bg-[#f2f2f1] px-6 py-[48px]">
+=======
+          />
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center px-6 py-[48px]">
+>>>>>>> Stashed changes
           <div className="text-center mb-[16px] w-full">
             <h2 className="text-[30px] leading-[normal] tracking-[-0.6px] text-black">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>How it Works</span>

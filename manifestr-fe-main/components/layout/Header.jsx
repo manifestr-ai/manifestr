@@ -26,12 +26,13 @@ const COMPANY_LINKS = [
 
 const SUPPORT_LINKS = [
   { label: 'The Playbook', href: '/playbook' },
+  { label: 'FAQs', href: '/playbook/faqs' },
   { label: 'Contact Us', href: '/contact' },
 ]
 
 // Routes that count as "active" for each top-level nav item
 const COMPANY_ROUTES = ['/about', '/careers', '/affiliates']
-const SUPPORT_ROUTES = ['/playbook', '/contact']
+const SUPPORT_ROUTES = ['/playbook', '/playbook/faqs', '/contact']
 
 /** Desktop nav: full Figma spacing from xl (1280px); lg–xl (1024–1279) uses tighter gaps so the bar fits. */
 
@@ -172,7 +173,7 @@ export default function Header() {
             <div className="hidden lg:flex items-center flex-1 min-w-0 gap-[22px] xl:gap-[44px]">
               <Link href="/" className={navLink('/')}>Home</Link>
               <NavDropdown
-                label="Toolkit"
+                label="The Toolkit"
                 href="/tools"
                 links={TOOLKIT_LINKS}
                 isActive={isToolkitActive}
