@@ -322,7 +322,7 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
   }
 
   return (
-    <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: '#F4F4F5' }}>
+    <div className="pb-[61px]" style={{ backgroundColor: '#F4F4F5' }}>
       {/* Left sidebar — Figma 9509:11698 (MCP): 256px wide, px-16 pt-32, item gap 8px, 40px rows, 16/Semibold/24 */}
       <div className="hidden lg:flex lg:flex-col lg:items-start fixed top-[72px] left-0 w-[256px] h-[calc(100vh-72px)] box-border bg-[var(--base-background,#FFF)] border-r border-[color:var(--base-border,#E4E4E7)] z-40">
         <div className="w-full flex flex-col items-start px-4 pt-8 pb-8 shrink-0">
@@ -356,8 +356,8 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
 
       {/* Main Content */}
       <div className="pl-0 lg:pl-[256px]">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 pb-8">
-          <div className="mb-8 pt-[51px]">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+          <div className="mb-6 pt-[51px]">
             <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-0">
               <div>
                 <h1 className="self-stretch text-[30px] leading-[38px] font-bold not-italic text-[color:var(--base-foreground,#18181B)] font-hero mb-2">
@@ -392,7 +392,7 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
           </div>
 
           {/* Color Cards */}
-          <div className="mt-16">
+          <div>
             <ColorCard
               title={primaryTitle}
               category="primary"
@@ -416,36 +416,32 @@ export default function StyleGuideStep3Color({ data, updateData, onBack, onNext,
 
       {/* Footer */}
       <div
-        className="fixed bottom-0 left-0 lg:left-[256px] right-0 px-4 md:px-8 py-4 z-50"
-        style={{ backgroundColor: '#F4F4F5' }}
+        className="fixed bottom-0 left-0 lg:left-[256px] right-0 z-50 h-[61px] border-t border-[#e4e4e7] bg-[#F4F4F5]"
       >
-        <div className="max-w-[1280px] mx-auto">
-          <div className="h-px bg-[#e4e4e7] mx-[5px] mb-4" />
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
-            <div className="text-[14px] leading-[20px] text-[#71717a]">
-              Step 3 of 6 — Next up: Style
-            </div>
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={onBack}
-                className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
-              >
-                Skip
-              </Button>
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={onBack}
-                className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
-              >
-                Back
-              </Button>
-              <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
-                Continue <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
-              </Button>
-            </div>
+        <div className="max-w-[1280px] mx-auto h-full px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="text-[14px] leading-[24px] text-[#71717a] shrink-0">
+            Step 3 of 6 — Next up: Style
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onBack}
+              className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
+            >
+              Skip
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onBack}
+              className="flex-1 md:flex-none justify-center !bg-[#FFFFFF] !text-[#000000] border-[#e4e4e7] hover:!bg-[#FFFFFF] hover:!text-[#000000]"
+            >
+              Back
+            </Button>
+            <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
+              Continue <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
+            </Button>
           </div>
         </div>
       </div>

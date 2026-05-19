@@ -75,7 +75,7 @@ export default function AppHeader({ showRightActions = true }) {
               {/* Desktop Nav */}
               <nav className="hidden md:flex items-center gap-4">
                 <NavItem href="/home" label="Home" isActive={isActive('/home')} />
-                <NavItem href="/toolkit" label="Toolkit" isActive={isActive('/toolkit')} />
+                <NavItem href="/toolkit" label="The Toolkit" isActive={isActive('/toolkit')} />
                 <NavItem href="/vault" label="The Vault" isActive={isActive('/vault')} />
                 <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} />
                 <NavItem href="/style-guide" label="Style Guide" isActive={isActive('/style-guide')} />
@@ -165,7 +165,7 @@ export default function AppHeader({ showRightActions = true }) {
 
               <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-2 px-4">
                 <NavItem href="/home" label="Home" isActive={isActive('/home')} />
-                <NavItem href="/toolkit" label="Toolkit" isActive={isActive('/toolkit')} />
+                <NavItem href="/toolkit" label="The Toolkit" isActive={isActive('/toolkit')} />
                 <NavItem href="/vault" label="The Vault" isActive={isActive('/vault')} />
                 <NavItem href="/collab-hub" label="Collab Hub" isActive={isActive('/collab-hub')} />
                 <NavItem href="/style-guide" label="Style Guide" isActive={isActive('/style-guide')} />

@@ -6,138 +6,13 @@ import { ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import AppHeader from '../components/layout/AppHeader'
 import ToolCard from '../components/create-project/ToolCard'
+import { getToolsForPage, TOOLKIT_PAGE_ORDER } from '../data/toolkitTools'
 
 /** Toolkit hero strip — same fixed height as grey banner; your Cloudinary artwork */
 const TOOLKIT_BANNER_IMG =
   'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777750618/ToolKit_lbwo3b.png'
 
-// Tools ordered to match Figma layout:
-// Row 1: THE strategist, THE briefcase, THE analyser, DESIGN studio
-// Row 2: WORDSMITH, THE deck, THE huddle, COST CTRL
-const tools = [
-  // Row 1
-  {
-    id: 'strategist',
-    title: 'THE strategist',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  {
-    id: 'briefcase',
-    title: 'THE briefcase',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  {
-    id: 'analyser',
-    title: 'THE analyser',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  {
-    id: 'design-studio',
-    title: 'DESIGN studio',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  // Row 2
-  {
-    id: 'wordsmith',
-    title: 'WORDSMITH',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  {
-    id: 'deck',
-    title: 'THE deck',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  {
-    id: 'huddle',
-    title: 'THE huddle',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-  {
-    id: 'cost-ctrl',
-    title: 'COST CTRL',
-    subtitle: 'Sales Decks • Presentations • Pitches',
-    imageSrc: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
-    description: {
-      title: 'Strategy & Insights Studio',
-      content: `Purpose: Turn objectives into clear, data-driven strategies.
-
-Best For: Campaigns • Market entry • Pitches • Brand or business plans
-
-Outputs: Strategy decks, roadmaps, and messaging frameworks`,
-      quickTip: 'Upload a brief - STRATEGIST builds insights and goals in minutes.',
-    },
-  },
-]
+const tools = getToolsForPage(TOOLKIT_PAGE_ORDER)
 
 export default function Toolkit() {
   const router = useRouter()
@@ -182,7 +57,7 @@ export default function Toolkit() {
               sizes="100vw"
               className="object-cover object-[50%_52%]"
             />
-          </div>
+          </motion.div>
 
           <div className="relative z-10 w-full pb-20 pt-[51px]">
             <motion.div
@@ -280,4 +155,3 @@ export default function Toolkit() {
     </>
   )
 }
-

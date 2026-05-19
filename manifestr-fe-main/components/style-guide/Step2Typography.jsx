@@ -145,7 +145,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
   }
 
   return (
-    <div className="min-h-[calc(100vh-72px)] pb-24" style={{ backgroundColor: '#F4F4F5' }}>
+    <div className="pb-[61px]" style={{ backgroundColor: '#F4F4F5' }}>
       {/* Left sidebar — Figma 9509:11698 (MCP): 256px wide, px-16 pt-32, item gap 8px, 40px rows, 16/Semibold/24 */}
       <div className="hidden lg:flex lg:flex-col lg:items-start fixed top-[72px] left-0 w-[256px] h-[calc(100vh-72px)] box-border bg-[var(--base-background,#FFF)] border-r border-[color:var(--base-border,#E4E4E7)] z-40">
         <div className="w-full flex flex-col items-start px-4 pt-8 pb-8 shrink-0">
@@ -179,7 +179,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
 
       {/* Main Content */}
       <div className="pl-0 lg:pl-[256px]">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 pb-8">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8">
           <div className="mb-8 pt-[51px]">
             <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-0">
               <div>
@@ -217,7 +217,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
           </div>
 
           {/* Typography Table Card (Figma: 1120px, r=16, shadow) */}
-          <div className="w-full flex justify-center mb-12">
+          <div className="w-full flex justify-center mb-6">
             <div className="w-full max-w-[1120px]">
               <div className="bg-white rounded-[16px] shadow-[0px_4px_30px_rgba(26,28,33,0.05)] overflow-visible">
                 {/* Top action row */}
@@ -451,7 +451,7 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
                   <div className="text-[18px] font-semibold leading-[28px] text-[#18181b]">
                     Add a font style
                   </div>
-                  <div className="text-[14px] leading-[20px] text-[#71717a]">
+          <div className="text-[14px] leading-[24px] text-[#71717a] shrink-0">
                     Create a new row in your typography hierarchy.
                   </div>
                 </div>
@@ -565,16 +565,13 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
 
       {/* Footer */}
       <div
-        className="fixed bottom-0 left-0 lg:left-[256px] right-0 px-4 md:px-8 py-4 z-50"
-        style={{ backgroundColor: '#F4F4F5' }}
+        className="fixed bottom-0 left-0 lg:left-[256px] right-0 z-50 h-[61px] border-t border-[#e4e4e7] bg-[#F4F4F5]"
       >
-        <div className="max-w-[1280px] mx-auto">
-          <div className="h-px bg-[#e4e4e7] mx-[5px] mb-4" />
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
-          <div className="text-[14px] leading-[20px] text-[#71717a]">
+        <div className="max-w-[1280px] mx-auto h-full px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="text-[14px] leading-[24px] text-[#71717a] shrink-0">
             Step 2 of 6 — Next up: Color
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
             <Button
               variant="secondary"
               size="md"
@@ -594,7 +591,6 @@ export default function StyleGuideStep2Typography({ data, updateData, onBack, on
             <Button variant="primary" size="md" onClick={onNext} className="flex-1 md:flex-none justify-center">
               Continue <ArrowRight className="w-4 h-4 ml-1 hidden md:inline" />
             </Button>
-          </div>
           </div>
         </div>
       </div>
