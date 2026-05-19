@@ -898,9 +898,11 @@ const INITIAL_TEAM_MEMBERS = [
 
 // Team Tab Component
 function TeamTabContent() {
+  const { success, error: showError } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedUsers, setSelectedUsers] = useState(['phoenix'])
-  const [members, setMembers] = useState(() => INITIAL_TEAM_MEMBERS.map((m) => ({ ...m })))
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [members, setMembers] = useState([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(true)
   const [bulkAssignRole, setBulkAssignRole] = useState('Editor')
   const [showBulkRoleDropdown, setShowBulkRoleDropdown] = useState(false)
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
@@ -914,12 +916,124 @@ function TeamTabContent() {
   const [showRoleModalDropdown, setShowRoleModalDropdown] = useState(false)
   const [selectedCollabs, setSelectedCollabs] = useState(['collab1', 'collab4'])
   const [emailInput, setEmailInput] = useState('')
+  
+  // New states for action modals
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false)
+  const [showViewDetailsModal, setShowViewDetailsModal] = useState(false)
+  const [showRemoveModal, setShowRemoveModal] = useState(false)
+  const [selectedMember, setSelectedMember] = useState(null)
+
+  // Seat usage state
+  const [seatUsage, setSeatUsage] = useState({
+    seatsUsed: 0,
+    seatsTotal: 0,
+    percentage: 0,
+    giftedSeats: 0,
+    pendingInvites: 0
+  })
 
   const bulkRoleDropdownRef = useRef(null)
   const roleDropdownRef = useRef(null)
   const statusDropdownRef = useRef(null)
   const roleModalDropdownRef = useRef(null)
   const modalRef = useRef(null)
+
+  // Fetch team members and seat usage on mount
+  useEffect(() => {
+    fetchTeamData()
+  }, [])
+
+  const fetchTeamData = async () => {
+    try {
+      setIsLoadingMembers(true)
+
+      console.log('🔍 Fetching team data...')
+
+      // Fetch both seat usage and team members in parallel
+      const [seatUsageRes, teamMembersRes] = await Promise.all([
+        api.get('/api/subscriptions/seat-usage'),
+        api.get('/api/subscriptions/team-members')
+      ])
+
+      console.log('✅ Seat usage response:', seatUsageRes.data)
+      console.log('✅ Team members response:', teamMembersRes.data)
+
+      // Update seat usage
+      if (seatUsageRes.data?.status === 'success') {
+        const data = seatUsageRes.data.data
+        setSeatUsage({
+          seatsUsed: data.seatsUsed || 0,
+          seatsTotal: data.seatsTotal || 0,
+          percentage: data.percentage || 0,
+          giftedSeats: 0, // Can be extended if needed
+          pendingInvites: 0 // Will be calculated from members
+        })
+      }
+
+      // Update team members
+      if (teamMembersRes.data?.status === 'success') {
+        const teamData = teamMembersRes.data.data
+        console.log('📊 Raw team data:', teamData)
+        console.log('📊 Members array:', teamData.members)
+        
+        const formattedMembers = teamData.members.map(member => {
+          console.log('📊 Formatting member:', member)
+          return {
+            id: member.id,
+            name: member.name || member.email,
+            email: member.email,
+            role: capitalizeRole(member.role),
+            status: member.status === 'pending' ? 'Pending' : 'Active',
+            collabs: member.collabs || 0,
+            lastActive: formatLastActive(member.lastActive),
+            avatar: member.avatar || '/assets/dummy/avatar.png'
+          }
+        })
+        
+        console.log('✅ Formatted members:', formattedMembers)
+        setMembers(formattedMembers)
+
+        // Update pending invites count
+        setSeatUsage(prev => ({
+          ...prev,
+          pendingInvites: teamData.summary?.pendingInvites || 0,
+          giftedSeats: teamData.summary?.giftedSeats || 0
+        }))
+      } else {
+        console.log('❌ Team members response not successful:', teamMembersRes.data)
+      }
+
+    } catch (err) {
+      console.error('❌ Error fetching team data:', err)
+      console.error('❌ Error response:', err.response?.data)
+      console.error('❌ Error status:', err.response?.status)
+      showError('Failed to load team data')
+    } finally {
+      setIsLoadingMembers(false)
+    }
+  }
+
+  const capitalizeRole = (role) => {
+    if (!role) return 'Viewer'
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+  }
+
+  const formatLastActive = (lastActive) => {
+    if (!lastActive) return 'Never'
+
+    const date = new Date(lastActive)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) return `${diffMins} mins ago`
+    if (diffHours < 24) return `${diffHours} hours ago`
+    if (diffDays < 7) return `${diffDays} days ago`
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
 
   const filteredMembers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
@@ -929,9 +1043,9 @@ function TeamTabContent() {
         m.name.toLowerCase().includes(q) ||
         m.email.toLowerCase().includes(q)
       const matchesRole =
-        selectedRoleFilter === 'All roles' || m.role === selectedRoleFilter
+        selectedRoleFilter === 'All Roles' || m.role === selectedRoleFilter
       const matchesStatus =
-        selectedStatusFilter === 'All statuses' || m.status === selectedStatusFilter
+        selectedStatusFilter === 'Status' || m.status === selectedStatusFilter
       return matchesSearch && matchesRole && matchesStatus
     })
   }, [members, searchQuery, selectedRoleFilter, selectedStatusFilter])
@@ -953,6 +1067,57 @@ function TeamTabContent() {
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     )
+  }
+
+  const handleEditRole = (member) => {
+    setSelectedMember(member)
+    setSelectedRole(member.role)
+    setShowEditRoleModal(true)
+    setShowActionsMenu(null)
+  }
+
+  const handleViewDetails = (member) => {
+    setSelectedMember(member)
+    setShowViewDetailsModal(true)
+    setShowActionsMenu(null)
+  }
+
+  const handleRemove = (member) => {
+    setSelectedMember(member)
+    setShowRemoveModal(true)
+    setShowActionsMenu(null)
+  }
+
+  const confirmRemove = async () => {
+    try {
+      // TODO: Add API call to remove member
+      // await api.delete(`/api/subscriptions/team-members/${selectedMember.id}`)
+      
+      setMembers(prev => prev.filter(m => m.id !== selectedMember.id))
+      success('Team member removed successfully')
+      setShowRemoveModal(false)
+      setSelectedMember(null)
+    } catch (err) {
+      console.error('Error removing member:', err)
+      showError('Failed to remove team member')
+    }
+  }
+
+  const updateMemberRole = async () => {
+    try {
+      // TODO: Add API call to update role
+      // await api.put(`/api/subscriptions/team-members/${selectedMember.id}/role`, { role: selectedRole })
+      
+      setMembers(prev => prev.map(m => 
+        m.id === selectedMember.id ? { ...m, role: selectedRole } : m
+      ))
+      success('Member role updated successfully')
+      setShowEditRoleModal(false)
+      setSelectedMember(null)
+    } catch (err) {
+      console.error('Error updating role:', err)
+      showError('Failed to update member role')
+    }
   }
 
   useEffect(() => {
@@ -1052,7 +1217,7 @@ function TeamTabContent() {
                   Seat Usage
                 </span>
                 <span className="text-[20px] font-semibold leading-[30px] text-[#18181b]">
-                  8 of 10 seats
+                  {seatUsage.seatsUsed} of {seatUsage.seatsTotal} seats
                 </span>
               </div>
 
@@ -1075,7 +1240,7 @@ function TeamTabContent() {
                       strokeDasharray={`${Math.PI * 32} ${2 * Math.PI * 32}`}
                       strokeDashoffset={0}
                     />
-                    {/* Used half-circle (80%) */}
+                    {/* Used half-circle */}
                     <circle
                       cx="40"
                       cy="40"
@@ -1085,7 +1250,7 @@ function TeamTabContent() {
                       strokeWidth="8"
                       strokeLinecap="round"
                       strokeDasharray={`${Math.PI * 32} ${2 * Math.PI * 32}`}
-                      strokeDashoffset={Math.PI * 32 * (1 - 0.8)}
+                      strokeDashoffset={Math.PI * 32 * (1 - seatUsage.percentage / 100)}
                     />
                   </svg>
                   <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex flex-col items-center">
@@ -1093,7 +1258,7 @@ function TeamTabContent() {
                       USED
                     </span>
                     <span className="text-[24px] leading-[32px] font-semibold text-[#18181b]">
-                      80%
+                      {Math.round(seatUsage.percentage)}%
                     </span>
                   </div>
                 </div>
@@ -1110,7 +1275,7 @@ function TeamTabContent() {
                         Gifted Seats
                       </span>
                       <span className="text-[18px] leading-[24px] font-semibold text-[#18181b]">
-                        2
+                        {seatUsage.giftedSeats}
                       </span>
                     </div>
                   </div>
@@ -1125,7 +1290,7 @@ function TeamTabContent() {
                         Pending Invites
                       </span>
                       <span className="text-[18px] leading-[24px] font-semibold text-[#18181b]">
-                        1
+                        {seatUsage.pendingInvites}
                       </span>
                     </div>
                   </div>
@@ -1233,7 +1398,7 @@ function TeamTabContent() {
                     exit={{ opacity: 0, y: -10 }}
                     className="absolute top-full right-0 mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-10 min-w-[140px]"
                   >
-                    {['All roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
+                    {['All Roles', 'Owner', 'Admin', 'Editor', 'Viewer'].map((role) => (
                       <motion.button
                         key={role}
                         type="button"
@@ -1296,7 +1461,7 @@ function TeamTabContent() {
             </div>
 
             {/* Invite User Button */}
-            <motion.button
+            {/* <motion.button
               onClick={() => setShowInviteModal(true)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -1304,7 +1469,7 @@ function TeamTabContent() {
             >
               <UserPlus className="w-4 h-4" />
               <span className="text-[14px] font-medium leading-[20px]">Invite user</span>
-            </motion.button>
+            </motion.button> */}
           </div>
         </div>
 
@@ -1323,144 +1488,159 @@ function TeamTabContent() {
 
             {/* Table Rows */}
             <AnimatePresence>
-              {filteredMembers.map((member, index) => {
-                const isSelected = selectedUsers.includes(member.id)
-                return (
-                  <motion.div
-                    key={member.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 transition-colors ${isSelected ? 'bg-[#f4f4f5]' : 'bg-white hover:bg-[#fafafa]'
-                      }`}
-                  >
-                    {/* User Name */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleUserSelection(member.id)}
-                        className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-colors ${isSelected
-                          ? 'bg-[#22c55e] border-[#22c55e]'
-                          : 'bg-white border-[#e4e4e7]'
-                          }`}
-                      >
-                        {isSelected && (
-                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                        )}
-                      </button>
-                      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
-                        <Image
-                          src={member.avatar}
-                          alt={member.name}
-                          width={32}
-                          height={32}
-                          className="w-full h-full object-cover"
-                        />
+              {isLoadingMembers ? (
+                <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
+                  <Loader className="w-5 h-5 animate-spin mx-auto mb-2" />
+                  Loading team members...
+                </div>
+              ) : filteredMembers.length === 0 ? (
+                <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
+                  No team members match your search or filters.
+                </div>
+              ) : (
+                filteredMembers.map((member, index) => {
+                  const isSelected = selectedUsers.includes(member.id)
+                  return (
+                    <motion.div
+                      key={member.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr_80px] gap-4 px-4 py-3 border-b border-[#e4e4e7] last:border-b-0 transition-colors ${isSelected ? 'bg-[#f4f4f5]' : 'bg-white hover:bg-[#fafafa]'
+                        }`}
+                    >
+                      {/* User Name */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleUserSelection(member.id)}
+                          className={`w-4 h-4 rounded border flex items-center justify-center cursor-pointer transition-colors ${isSelected
+                            ? 'bg-[#22c55e] border-[#22c55e]'
+                            : 'bg-white border-[#e4e4e7]'
+                            }`}
+                        >
+                          {isSelected && (
+                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                          )}
+                        </button>
+                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                          <Image
+                            src={member.avatar}
+                            alt={member.name}
+                            width={32}
+                            height={32}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
+                            {member.name}
+                          </p>
+                          <p className="text-[12px] leading-[16px] text-[#71717a]">
+                            {member.email}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[14px] font-semibold leading-[20px] text-[#18181b]">
-                          {member.name}
-                        </p>
-                        <p className="text-[12px] leading-[16px] text-[#71717a]">
-                          {member.email}
-                        </p>
+
+                      {/* Role */}
+                      <div className="flex items-center">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#e4e4e7] text-[12px] font-medium leading-[16px] text-[#18181b]">
+                          {member.role === 'Owner' && (
+                            <Crown className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          {member.role === 'Admin' && (
+                            <UserCog className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          {member.role === 'Editor' && (
+                            <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          {member.role === 'Viewer' && (
+                            <Eye className="w-3.5 h-3.5 text-[#18181b]" />
+                          )}
+                          <span>{member.role}</span>
+                        </span>
                       </div>
-                    </div>
 
-                    {/* Role */}
-                    <div className="flex items-center">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#e4e4e7] text-[12px] font-medium leading-[16px] text-[#18181b]">
-                        {member.role === 'Owner' && (
-                          <Crown className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        {member.role === 'Admin' && (
-                          <UserCog className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        {member.role === 'Editor' && (
-                          <Pencil className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        {member.role === 'Viewer' && (
-                          <Eye className="w-3.5 h-3.5 text-[#18181b]" />
-                        )}
-                        <span>{member.role}</span>
-                      </span>
-                    </div>
+                      {/* Status */}
+                      <div className="flex items-center">
+                        <span className="px-3 py-1 rounded-full border border-[#e4e4e7] bg-white text-[12px] font-medium leading-[16px] text-[#3f3f46]">
+                          {member.status}
+                        </span>
+                      </div>
 
-                    {/* Status */}
-                    <div className="flex items-center">
-                      <span className="px-3 py-1 rounded-full border border-[#e4e4e7] bg-white text-[12px] font-medium leading-[16px] text-[#3f3f46]">
-                        {member.status}
-                      </span>
-                    </div>
+                      {/* Collabs */}
+                      <div className="flex items-center">
+                        <span className="text-[14px] leading-[20px] text-[#18181b]">
+                          {member.collabs}
+                        </span>
+                      </div>
 
-                    {/* Collabs */}
-                    <div className="flex items-center">
-                      <span className="text-[14px] leading-[20px] text-[#18181b]">
-                        {member.collabs}
-                      </span>
-                    </div>
+                      {/* Last Active */}
+                      <div className="flex items-center">
+                        <span className="text-[14px] leading-[20px] text-[#71717a]">
+                          {member.lastActive}
+                        </span>
+                      </div>
 
-                    {/* Last Active */}
-                    <div className="flex items-center">
-                      <span className="text-[14px] leading-[20px] text-[#71717a]">
-                        {member.lastActive}
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-end relative actions-menu">
-                      <motion.button
-                        onClick={() =>
-                          setShowActionsMenu(showActionsMenu === member.id ? null : member.id)
-                        }
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="p-1 hover:bg-[#f4f4f5] rounded transition-colors"
-                      >
-                        <MoreVertical className="w-4 h-4 text-[#71717a]" />
-                      </motion.button>
-                      <AnimatePresence>
-                        {showActionsMenu === member.id && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                            className="absolute right-0 top-full mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[160px]"
-                          >
-                            <motion.button
-                              whileHover={{ backgroundColor: '#f4f4f5' }}
-                              className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
+                      {/* Actions */}
+                      <div className="flex items-center justify-end relative actions-menu">
+                        <motion.button
+                          onClick={() =>
+                            setShowActionsMenu(showActionsMenu === member.id ? null : member.id)
+                          }
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-1 hover:bg-[#f4f4f5] rounded transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-[#71717a]" />
+                        </motion.button>
+                        <AnimatePresence>
+                          {showActionsMenu === member.id && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                              className="absolute right-0 top-full mt-1 bg-white border border-[#e4e4e7] rounded-md shadow-lg z-20 min-w-[160px]"
                             >
-                              Edit Role
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ backgroundColor: '#f4f4f5' }}
-                              className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
-                            >
-                              View Details
-                            </motion.button>
-                            <div className="border-t border-[#e4e4e7] my-1" />
-                            <motion.button
-                              whileHover={{ backgroundColor: '#fee2e2' }}
-                              className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#e52f2f] flex items-center gap-2"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Remove
-                            </motion.button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                )
-              })}
+                              {member.role !== 'Owner' && (
+                                <motion.button
+                                  onClick={() => handleEditRole(member)}
+                                  whileHover={{ backgroundColor: '#f4f4f5' }}
+                                  className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
+                                >
+                                  Edit Role
+                                </motion.button>
+                              )}
+                              <motion.button
+                                onClick={() => handleViewDetails(member)}
+                                whileHover={{ backgroundColor: '#f4f4f5' }}
+                                className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#18181b] flex items-center gap-2"
+                              >
+                                View Details
+                              </motion.button>
+                              {member.role !== 'Owner' && (
+                                <>
+                                  <div className="border-t border-[#e4e4e7] my-1" />
+                                  <motion.button
+                                    onClick={() => handleRemove(member)}
+                                    whileHover={{ backgroundColor: '#fee2e2' }}
+                                    className="w-full px-3 py-2 text-left text-[14px] leading-[20px] text-[#e52f2f] flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Remove
+                                  </motion.button>
+                                </>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )
+                })
+              )}
             </AnimatePresence>
-            {filteredMembers.length === 0 && (
-              <div className="px-4 py-10 text-center text-[14px] leading-[20px] text-[#71717a]">
-                No team members match your search or filters.
-              </div>
-            )}
           </div>
 
           {/* Selected Row Actions */}
@@ -1842,6 +2022,155 @@ function TeamTabContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Edit Role Modal */}
+      <AnimatePresence>
+        {showEditRoleModal && selectedMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowEditRoleModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg w-full max-w-md p-6"
+            >
+              <h3 className="text-[20px] font-semibold mb-4">Edit Member Role</h3>
+              <p className="text-[14px] text-[#71717a] mb-6">
+                Change role for {selectedMember.name}
+              </p>
+              <div className="space-y-3 mb-6">
+                {['Admin', 'Editor', 'Viewer'].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => setSelectedRole(role)}
+                    className={`w-full px-4 py-3 rounded-lg border text-left transition-colors ${
+                      selectedRole === role
+                        ? 'border-[#18181b] bg-[#f4f4f5]'
+                        : 'border-[#e4e4e7] hover:border-[#18181b]'
+                    }`}
+                  >
+                    <span className="font-medium">{role}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowEditRoleModal(false)}
+                  className="px-4 py-2 rounded-md border border-[#e4e4e7] hover:bg-[#f4f4f5] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateMemberRole}
+                  className="px-4 py-2 rounded-md bg-[#18181b] text-white hover:opacity-90 transition-opacity"
+                >
+                  Update Role
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* View Details Modal */}
+      <AnimatePresence>
+        {showViewDetailsModal && selectedMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowViewDetailsModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg w-full max-w-md p-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[20px] font-semibold">Member Details</h3>
+                <button
+                  onClick={() => setShowViewDetailsModal(false)}
+                  className="p-1 hover:bg-[#f4f4f5] rounded transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Name</p>
+                  <p className="text-[16px] font-medium">{selectedMember.name}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Email</p>
+                  <p className="text-[16px] font-medium">{selectedMember.email}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Role</p>
+                  <p className="text-[16px] font-medium">{selectedMember.role}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Status</p>
+                  <p className="text-[16px] font-medium">{selectedMember.status}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Collabs</p>
+                  <p className="text-[16px] font-medium">{selectedMember.collabs}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-[#71717a] mb-1">Last Active</p>
+                  <p className="text-[16px] font-medium">{selectedMember.lastActive}</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Remove Confirmation Modal */}
+      <AnimatePresence>
+        {showRemoveModal && selectedMember && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowRemoveModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-lg w-full max-w-md p-6"
+            >
+              <h3 className="text-[20px] font-semibold mb-2">Remove Team Member</h3>
+              <p className="text-[14px] text-[#71717a] mb-6">
+                Are you sure you want to remove <span className="font-medium text-[#18181b]">{selectedMember.name}</span> from your team? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowRemoveModal(false)}
+                  className="px-4 py-2 rounded-md border border-[#e4e4e7] hover:bg-[#f4f4f5] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRemove}
+                  className="px-4 py-2 rounded-md bg-[#e52f2f] text-white hover:opacity-90 transition-opacity"
+                >
+                  Remove Member
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
@@ -1869,21 +2198,21 @@ function PlansTabContent() {
       const addonSuccess = urlParams.get('addon_success')
       const addonType = urlParams.get('type')
       const sessionId = urlParams.get('session_id')
-      
+
       console.log('🔍 Checking for addon purchase:', { addonSuccess, addonType, sessionId })
-      
+
       if (addonSuccess === 'true' && addonType && sessionId) {
         console.log('🎁 Processing addon purchase...', { addonType, sessionId })
-        
+
         try {
           // 🎁 Process the successful purchase
           info('Processing your purchase...')
-          
+
           console.log('📡 Calling process-success API...')
           const response = await api.get(`/api/addons/process-success?session_id=${sessionId}`)
-          
+
           console.log('✅ API Response:', response.data)
-          
+
           if (response.data.status === 'success') {
             // Show success message
             if (addonType.includes('wins')) {
@@ -1896,7 +2225,7 @@ function PlansTabContent() {
             } else if (addonType === 'team_member') {
               success('🎉 Extra team member seat added!')
             }
-            
+
             // Refresh data
             console.log('🔄 Refreshing plans data...')
             fetchPlansData()
@@ -1909,7 +2238,7 @@ function PlansTabContent() {
           console.error('Error details:', error.response?.data || error.message)
           showError('Failed to process purchase. Please contact support.')
         }
-        
+
         // Clean up URL
         console.log('🧹 Cleaning up URL...')
         window.history.replaceState({}, '', '/settings?tab=Plans')
@@ -1917,7 +2246,7 @@ function PlansTabContent() {
         console.log('ℹ️  No addon purchase to process')
       }
     }
-    
+
     fetchPlansData()
     handleAddonSuccess()
   }, [])
@@ -1961,7 +2290,7 @@ function PlansTabContent() {
     try {
       // Get current tier
       const currentTier = subscriptionData?.tier?.toLowerCase()
-      
+
       // Determine next tier
       const tierMap = {
         'backstage': 'starter',
@@ -1970,34 +2299,34 @@ function PlansTabContent() {
         'pro': 'elite',
         'elite': null
       }
-      
+
       const nextTier = tierMap[currentTier]
-      
+
       // If already on highest plan
       if (!nextTier) {
         success("You're already on the highest plan! 🎉")
         return
       }
-      
+
       // Show loading
       const upgrading = info(`Preparing upgrade to ${nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}...`)
-      
+
       // Get current billing interval (default to monthly)
       const interval = subscriptionData?.billingInterval || 'monthly'
-      
+
       // Create UPGRADE checkout session
       const response = await api.post('/api/subscriptions/create-upgrade-checkout-session', {
         tier: nextTier,
         interval: interval
       })
-      
+
       if (response.data.status === 'success' && response.data.data.url) {
         // Redirect to Stripe checkout
         window.location.href = response.data.data.url
       } else {
         showError('Failed to create checkout session. Please try again.')
       }
-      
+
     } catch (error) {
       console.error('Upgrade error:', error)
       showError('Failed to initiate upgrade. Please try again.')
@@ -2008,19 +2337,19 @@ function PlansTabContent() {
   const handleAddonPurchase = async (addonId) => {
     try {
       info(`Preparing ${addonId.includes('wins') ? 'wins purchase' : 'team member addon'}...`)
-      
+
       // Create addon checkout session
       const response = await api.post('/api/addons/create-checkout-session', {
         addon_id: addonId
       })
-      
+
       if (response.data.status === 'success' && response.data.data.url) {
         // Redirect to Stripe checkout
         window.location.href = response.data.data.url
       } else {
         showError('Failed to create checkout session. Please try again.')
       }
-      
+
     } catch (error) {
       console.error('Addon purchase error:', error)
       showError('Failed to initiate purchase. Please try again.')
@@ -2278,7 +2607,7 @@ function PlansTabContent() {
               Top Up Your Wins
             </h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Quick Win Pack */}
             <motion.div
