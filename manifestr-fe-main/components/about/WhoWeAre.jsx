@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 export default function WhoWeAre() {
@@ -16,23 +16,27 @@ export default function WhoWeAre() {
           WHO WE ARE
         </motion.p>
 
-        {/* Figma 12072:50381 — HK Grotesk Medium 36/49, -0.72px; IvyPresto semibold italic on “Professional” */}
+        {/* Figma 12072:50381 ΓÇö two lines: title case; IvyPresto italic on ΓÇ£ProfessionalΓÇ¥ */}
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="mb-3 w-full max-w-[901px] text-center text-[30px] capitalize leading-10 tracking-[-0.6px] text-black md:mb-6 md:text-[36px] md:leading-[49px] md:tracking-[-0.72px]"
+          className="mb-3 w-full max-w-[901px] text-center text-[30px] leading-10 tracking-[-0.6px] text-black md:mb-6 md:text-[36px] md:leading-[49px] md:tracking-[-0.72px]"
           style={{ fontFamily: '"HK Grotesk", "Hanken Grotesk", sans-serif', fontWeight: 500, fontStyle: 'normal' }}
         >
-          Shaped by experience and pressure.
-          <br />
-          Designed to raise <br/>the standard of{' '}
-          <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
-            Professional
+          <span className="block">Shaped by Experience and Pressure.</span>
+          <span className="block">
+            Designed To Raise
+            <br className="md:hidden" /> The Standard Of{' '}
+            <em
+              className="not-italic"
+              style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
+            >
+              Professional
+            </em>
+            {' '}work.
           </span>
-          {' '}
-          work.
         </motion.h2>
 
         <motion.p

@@ -25,7 +25,7 @@ const mobileGradientNum = {
 
 export default function HowItWorks() {
   return (
-    <section className="relative w-full overflow-hidden bg-[#eeede9]">
+    <section className="relative w-full overflow-hidden bg-[#f2f2f1] md:bg-[#eeede9]">
       {/* === DESKTOP (md+) — pixel-faithful to Figma === */}
       <div className="hidden md:block relative w-full max-w-full mx-auto" style={{ height: 1186 }}>
         {/* People background image */}
@@ -196,20 +196,23 @@ export default function HowItWorks() {
       </div>
 
       {/* === MOBILE === */}
-      <div className="md:hidden relative bg-[#f2f2f1] overflow-hidden" style={{ minHeight: 1500 }}>
-        {/* Background people image — centered behind lower steps */}
-        <div
-          className="absolute pointer-events-none left-1/2 -translate-x-1/2 overflow-hidden"
-          style={{ top: 450, width: 1152, height: 1124 }}
-        >
+      <div className="relative min-h-[1500px] overflow-hidden bg-[#f2f2f1] md:hidden">
+        {/* People — full width; start lower so intro + steps keep space above heads */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[36%] z-0 min-h-[360px] overflow-hidden">
           <CldImage
             alt=""
             src={PEOPLE_IMG_MOBILE}
-            className="w-full h-full object-cover object-center"
+            preserveCloudinaryUrl
+            sizes="100vw"
+            className="h-full w-full min-w-full object-cover object-[center_70%]"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#f2f2f1] to-transparent"
           />
         </div>
 
-        <div className="relative px-6 py-[48px] flex flex-col items-center">
+        <div className="relative z-10 flex flex-col items-center bg-[#f2f2f1] px-6 py-[48px]">
           <div className="text-center mb-[16px] w-full">
             <h2 className="text-[30px] leading-[normal] tracking-[-0.6px] text-black">
               <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>How it Works</span>
@@ -234,15 +237,15 @@ export default function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12, duration: 0.5 }}
-                className="flex flex-col gap-0 items-center w-full"
+                className="flex w-full flex-col items-center gap-[5px]"
               >
                 <p
-                  className="mb-[16px] text-[84px] leading-[84px] tracking-[-1.68px] uppercase font-bold select-none text-center w-full"
+                  className="h-[84px] w-full overflow-hidden text-center text-[84px] font-bold uppercase leading-[84px] tracking-[-1.68px] select-none"
                   style={{ ...mobileGradientNum, fontFamily: "'Hanken Grotesk', sans-serif", opacity: 0.5 }}
                 >
                   {step.num}
                 </p>
-                <div className="flex flex-col gap-[8px] text-center items-center w-full">
+                <div className="flex w-full flex-col items-center gap-[8px] text-center">
                   <h3
                     className="text-[32px] leading-[44px] text-black"
                     style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}

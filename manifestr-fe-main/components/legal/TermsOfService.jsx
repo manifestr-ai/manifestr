@@ -75,9 +75,6 @@ export default function TermsOfService() {
           <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
             Binding Legal Agreement between you and MANIFESTR LLC
           </p>
-          <p className="text-[16px] leading-[24px] text-white/95" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Last updated: 19 March 2026
-          </p>
         </motion.div>
       </section>
 

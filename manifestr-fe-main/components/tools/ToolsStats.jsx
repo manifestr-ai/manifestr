@@ -123,35 +123,64 @@ function DeliveryCard() {
   )
 }
 
-/* ── Figma 12079:36587 — headline + body + CTA placement ── */
-function IntroColumn({ className = '' }) {
+const hk700 = { fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }
+const ivy600 = { fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }
+const interBody = { fontFamily: 'Inter, sans-serif', fontWeight: 400 }
+const interBtn = { fontFamily: 'Inter, sans-serif' }
+
+const INTRO_BODY =
+  'MANIFESTR enables teams to work with greater focus, clarity and control, delivering higher-quality output in less time.'
+
+const EXPLORE_CTA_CLASS =
+  'inline-flex h-[54px] min-h-[54px] shrink-0 items-center justify-center bg-[#18181b] rounded-[6px] text-[18px] leading-[20px] font-medium text-white hover:bg-[#27272a] transition-colors whitespace-nowrap'
+
+/* ── Figma 12079:36587 (desktop) / 12586:23028–23030 (mobile) ── */
+function IntroColumn({ className = '', variant = 'desktop' }) {
+  const isMobile = variant === 'mobile'
+
   return (
-    <div className={`flex flex-col gap-10 md:max-lg:gap-9 lg:max-xl:gap-9 xl:gap-10 items-start w-full min-w-0 ${className}`}>
-      <div className="flex flex-col gap-[18px] items-start w-full text-left">
-        <h2 className="text-[36px] sm:text-[48px] md:max-lg:text-[56px] lg:max-xl:text-[64px] xl:text-[72px] leading-[1.08] md:max-lg:leading-[1.12] lg:max-xl:leading-[1.1] xl:leading-[78px] tracking-[-1.44px] text-black w-full min-w-0 break-words [overflow-wrap:anywhere]">
-          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>How </span>
-          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>
-            high performing{' '}
-          </span>
-          <span style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}>
-            teams{' '}
-          </span>
-          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>use </span>
-          <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>MANIFESTR</span>
-        </h2>
+    <div
+      className={`flex flex-col w-full min-w-0 ${
+        isMobile ? 'items-center gap-6' : 'items-start gap-10 md:max-lg:gap-9 lg:max-xl:gap-9 xl:gap-10'
+      } ${className}`}
+    >
+      <div
+        className={`flex flex-col w-full ${
+          isMobile ? 'items-center gap-[19px] text-center' : 'items-start gap-[18px] text-left'
+        }`}
+      >
+        {isMobile ? (
+          <h2 className="text-[48px] leading-[52px] tracking-[-0.96px] text-black w-full max-w-[366px] mx-auto text-center">
+            <span style={hk700}>
+              How high performing
+              <br />
+            </span>
+            <span style={ivy600}>teams </span>
+            <span style={hk700}>use MANIFESTR</span>
+          </h2>
+        ) : (
+          <h2 className="text-[36px] sm:text-[48px] md:max-lg:text-[56px] lg:max-xl:text-[64px] xl:text-[72px] leading-[1.08] md:max-lg:leading-[1.12] lg:max-xl:leading-[1.1] xl:leading-[78px] tracking-[-1.44px] text-black w-full min-w-0 break-words [overflow-wrap:anywhere]">
+            <span style={hk700}>How </span>
+            <span style={hk700}>high performing </span>
+            <span style={ivy600}>teams </span>
+            <span style={hk700}>use </span>
+            <span style={hk700}>MANIFESTR</span>
+          </h2>
+        )}
         <p
-          className="text-[16px] leading-[24px] text-[#52525b] w-full max-w-none"
-          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400 }}
+          className={`text-[16px] leading-[24px] text-[#52525b] ${
+            isMobile ? 'max-w-[285px] mx-auto text-center' : 'w-full max-w-none'
+          }`}
+          style={interBody}
         >
-          MANIFESTR enables teams to work with greater focus, clarity and control, delivering
-          higher-quality output in less time.
+          {INTRO_BODY}
         </p>
       </div>
-      <div className="flex justify-start w-full">
+      <div className={`flex w-full ${isMobile ? 'justify-center' : 'justify-start'}`}>
         <Link
           href="/signup"
-          className="inline-flex h-[54px] min-h-[54px] shrink-0 px-8 items-center justify-center gap-2 bg-[#18181b] rounded-[6px] text-[18px] leading-[20px] font-medium text-white hover:bg-[#27272a] transition-colors w-auto"
-          style={{ fontFamily: 'Inter, sans-serif' }}
+          className={`${EXPLORE_CTA_CLASS} ${isMobile ? 'w-[237px] px-8' : 'px-8 w-auto'}`}
+          style={interBtn}
         >
           Explore MANIFESTR
         </Link>
@@ -246,16 +275,16 @@ export default function ToolsStats() {
   return (
     <section
       ref={sectionRef}
-      className="w-full overflow-x-hidden bg-white px-6 md:px-8 lg:px-[80px] pt-[64px] md:max-lg:pt-[80px] lg:pt-[96px] pb-5 md:max-lg:pb-6 lg:pb-6"
+      className="w-full overflow-x-hidden bg-white px-6 md:px-8 lg:px-[80px] pt-6 md:pt-[64px] md:max-lg:pt-[80px] lg:pt-[96px] pb-0 md:max-lg:pb-6 lg:pb-6"
       onPointerEnter={() => setIsSpread(true)}
     >
       {/* ── MOBILE ── */}
-      <div className="md:hidden flex flex-col items-stretch max-w-[440px] mx-auto text-left">
+      <div className="md:hidden flex flex-col items-center max-w-[366px] mx-auto text-center">
         <StatsReveal>
-          <IntroColumn />
+          <IntroColumn variant="mobile" />
         </StatsReveal>
 
-        <div className="flex flex-col gap-[30px] w-full mt-10">
+        <div className="flex flex-col gap-[30px] w-full mt-[29px]">
           <div className="w-full min-h-[158px] rounded-[11px] bg-[#f4f4f5] p-6 flex items-center gap-4">
             <CldImage src={ROCKET_ICON} alt="" className="w-[64px] h-[64px] shrink-0" />
             <div>
@@ -379,7 +408,7 @@ export default function ToolsStats() {
 
         <div className="w-full min-w-0 max-w-[521px] xl:flex-1 xl:min-w-0 text-left mt-10 md:max-lg:mt-11 lg:max-xl:mt-11 xl:mt-0">
           <StatsReveal>
-            <IntroColumn />
+            <IntroColumn variant="desktop" />
           </StatsReveal>
         </div>
       </div>

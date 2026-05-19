@@ -164,7 +164,7 @@ export default function Header() {
             {/* Compact screens (under 1024px): logo + hamburger */}
             <div className="lg:hidden">
               <Link href="/" className="inline-block" aria-label="Manifestr home">
-                <Logo size="sm" />
+                <Logo size="mobileNav" />
               </Link>
             </div>
 
@@ -265,7 +265,7 @@ export default function Header() {
             >
               <div className="flex justify-between items-center mb-8">
                 <Link href="/" onClick={closeMobile} className="inline-block" aria-label="Manifestr home">
-                  <Logo size="sm" />
+                  <Logo size="mobileNav" />
                 </Link>
                 <button onClick={closeMobile} className="p-2 -mr-2 text-gray-500">
                   <X className="w-6 h-6" />
@@ -281,7 +281,7 @@ export default function Header() {
                   Home
                 </Link>
                 <MobileAccordion
-                  label="Toolkit"
+                  label="The Toolkit"
                   href="/tools"
                   links={TOOLKIT_LINKS}
                   onNavigate={closeMobile}

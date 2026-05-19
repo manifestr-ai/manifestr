@@ -36,7 +36,7 @@ const OUTPUT_SECTION_BY_SLUG = {
   strategist: {
     middleLine: 'The Strategist',
     body:
-      'Forget generic strategy outputs. Strategy, held to a higher standard. The Strategist creates structured, decision-ready documents designed for real execution. Every insight is refined, defensible, and built to perform under scrutiny. Curious? See it in action.',
+      'Forget generic strategy outputs. This is a higher standard of strategic work. The Strategist produces structured, decision-ready documents designed for real execution. Every insight is clear, refined, and built to hold up under scrutiny. Curious? Explore the work.',
   },
   deck: {
     middleLine: 'The Deck',
@@ -84,33 +84,6 @@ const ivy600 = {
   fontFamily: "'IvyPresto Headline', serif",
   fontWeight: 600,
   fontStyle: 'italic',
-}
-
-/** Renders e.g. “The Wordsmith”, “Cost CTRL” — “The”/“Cost” in HK, name in Ivy (matches “Calibre” line). */
-function OutputMiddleLine({ line }) {
-  if (line.startsWith('The ')) {
-    const rest = line.slice(4)
-    return (
-      <>
-        <span style={hk700}>The </span>
-        <em className="not-italic" style={ivy600}>
-          {rest}
-        </em>
-      </>
-    )
-  }
-  if (line.startsWith('Cost ')) {
-    const rest = line.slice(5)
-    return (
-      <>
-        <span style={hk700}>Cost </span>
-        <em className="not-italic" style={ivy600}>
-          {rest}
-        </em>
-      </>
-    )
-  }
-  return <span style={hk700}>{line}</span>
 }
 
 function MarqueeRow({ images, direction = 'left', duration = 35 }) {
@@ -238,29 +211,25 @@ export default function ToolOutput({ tool }) {
       {/* Figma-style split: copy + imagery each ~50% width on md+, stacked on small screens */}
       <div className="flex flex-col md:flex-row md:items-stretch w-full max-w-[min(100%,1440px)] mx-auto min-h-[400px] md:min-h-[min(720px,85vh)] min-w-0">
         {/* Left half — typography & CTA (opaque bg + z-index so nothing from the right column paints here) */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center px-4 sm:px-6 md:px-8 lg:px-10 xl:pl-12 xl:pr-10 py-12 md:py-[80px] lg:py-[106px] text-center md:text-left shrink-0 min-w-0 relative z-10 bg-[#f4f4f5]">
+        <div className="w-full md:w-1/2 flex flex-col justify-center px-6 sm:px-8 md:px-8 lg:px-10 xl:pl-12 xl:pr-10 py-14 md:py-[80px] lg:py-[106px] text-center md:text-left shrink-0 min-w-0 relative z-10 bg-[#f4f4f5]">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-[32px] md:text-[52px] lg:text-[60px] leading-tight tracking-[-0.64px] md:tracking-[-1.2px] text-[#18181b] mb-6"
-            style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
+            className="mb-6 text-[32px] leading-[39px] tracking-[-0.64px] text-[#18181b] md:text-[52px] md:leading-tight md:tracking-[-1.2px] lg:text-[60px] lg:tracking-[-1.2px]"
+            style={hk700}
           >
             <span className="block">
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}>The </span>
-              <em
-                className="not-italic"
-                style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic' }}
-              >
+              <span style={hk700}>The </span>
+              <em className="not-italic" style={ivy600}>
                 Calibre
               </em>
-              <span style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}> of Output</span>
+              <span style={hk700}> of Output</span>
             </span>
-            <span className="block">
-              <OutputMiddleLine line={middleLine} />
+            <span className="block md:whitespace-nowrap" style={hk700}>
+              {middleLine} delivers
             </span>
-            <span className="block">delivers</span>
           </motion.h2>
 
           <motion.p
@@ -268,7 +237,7 @@ export default function ToolOutput({ tool }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className={`text-[18px] leading-[28px] text-[#52525b] font-normal tracking-[0] mb-6 w-full max-w-[500px] mx-auto md:mx-0 ${body.includes('\n') ? 'md:whitespace-pre-line' : ''}`}
+            className={`mb-6 w-full max-w-[326px] mx-auto text-[16px] leading-[24px] text-[#52525b] font-normal md:max-w-[500px] md:mx-0 md:text-[18px] md:leading-[28px] ${body.includes('\n') ? 'md:whitespace-pre-line' : ''}`}
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
             {body}

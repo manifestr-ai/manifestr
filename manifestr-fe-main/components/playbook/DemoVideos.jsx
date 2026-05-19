@@ -142,7 +142,7 @@ export default function DemoVideos() {
 
             <Link
               href="/signup"
-              className="inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] sm:w-auto"
+              className="hidden md:inline-flex h-11 w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-6 text-[14px] font-medium leading-5 text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] md:w-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Enter MANIFESTR
@@ -214,7 +214,7 @@ export default function DemoVideos() {
       {/* ─── All Tutorials ─── */}
       <section
         id="tutorials"
-        className="w-full scroll-mt-[100px] bg-[#f4f4f5] px-6 pb-[40px] pt-[20px] md:px-[80px] md:pb-[80px] md:pt-[24px]"
+        className="w-full scroll-mt-[100px] bg-[#f4f4f5] px-6 pb-[40px] pt-[20px] mt-[12px] md:mt-0 md:px-[80px] md:pb-[80px] md:pt-[24px]"
       >
         <div className="flex flex-col gap-5 md:gap-8">
           <motion.h2

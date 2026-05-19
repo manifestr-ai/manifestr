@@ -186,18 +186,18 @@ export default function ContinuousMonitoring() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#deddda] px-6 md:px-[80px] py-[36px] md:py-[64px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
+      <section className="w-full bg-[#deddda] px-6 md:px-[80px] py-6 md:py-10">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-2 md:gap-2.5 items-center text-center">
           <motion.h2
             {...fadeUp}
-            className="text-black text-[30px] md:text-[48px] leading-[38px] md:leading-[60px] tracking-[-0.72px] md:tracking-[-0.96px]"
+            className="text-black text-[28px] md:text-[44px] leading-[34px] md:leading-[54px] tracking-[-0.72px] md:tracking-[-0.96px]"
             style={headingFont}
           >
             Legal Disclaimer
           </motion.h2>
           <motion.p
             {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[#52525b] text-[16px] leading-[24px] max-w-[1120px]" style={font}
+            className="max-w-[1120px] text-[#52525b] text-[15px] leading-[22px] md:text-[15px] md:leading-[23px]" style={font}
           >
             This page is provided for informational purposes only and does not constitute legal advice.
             MANIFESTR&apos;s monitoring, penetration testing, training, and patch management programs are designed

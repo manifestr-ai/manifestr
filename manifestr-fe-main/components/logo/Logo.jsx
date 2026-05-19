@@ -4,6 +4,8 @@ export default function Logo({ size = 'md', className = '', onClick }) {
   const sizes = {
     xs: { width: 100, height: 14 },
     sm: { width: 120, height: 18 },
+    /** Marketing site mobile header — larger than `sm`, smaller than `md` */
+    mobileNav: { width: 168, height: 25 },
     md: { width: 214.5, height: 24 },
     lg: { width: 286, height: 32 },
     xl: { width: 429, height: 48 },

@@ -638,7 +638,7 @@ export default function PricingContent() {
       </section>
 
       {/* Affiliate Program Banner — full-width on mobile like careers; inset + max width from md */}
-      <section className="w-full py-[32px] px-0 md:px-6">
+      <section className="w-full pt-[32px] pb-[16px] px-0 md:px-6 md:py-[32px]">
         <div className="relative w-full md:max-w-[1280px] md:mx-auto rounded-none md:rounded-[12px] overflow-hidden h-[180px] sm:h-[220px] md:h-[310px]">
           <CldImage src={AFFILIATE_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="relative z-10 h-full flex flex-col justify-center px-[20px] sm:px-[32px] md:px-[80px]">

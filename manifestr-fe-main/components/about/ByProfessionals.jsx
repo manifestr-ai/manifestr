@@ -7,7 +7,7 @@ const SCREENSHOT_2 = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041
 
 export default function ByProfessionals() {
   return (
-    <section className="w-full bg-white overflow-hidden py-[48px] md:pt-[120px] md:pb-[48px]">
+    <section className="w-full bg-white overflow-hidden py-[48px] md:pt-[120px] md:pb-[28px]">
       <div className="max-w-[1280px] mx-auto px-6 md:px-[80px]">
 
         {/* Label */}
@@ -15,7 +15,7 @@ export default function ByProfessionals() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="text-left md:text-center text-[18px] md:text-[24px] leading-[normal] md:leading-[24px] tracking-[-0.36px] md:tracking-[0.48px] uppercase text-black mb-[24px] md:mb-[20px]"
+          className="text-center text-[18px] md:text-[24px] leading-[normal] md:leading-[24px] tracking-[-0.36px] md:tracking-[0.48px] uppercase text-black mb-[24px] md:mb-[20px]"
           style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 700 }}
         >
           BY PROFESSIONAL. FOR PROFESSIONALS.

@@ -15,7 +15,8 @@ export default function WhyChoose() {
   return (
     <section className="relative w-full bg-white overflow-hidden">
       <div
-        className="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col min-w-0 px-6 py-8 gap-8
+        className="relative z-10 mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-8 px-6 py-8
+                       max-md:px-[24px]
                        md:flex-row md:max-lg:items-start md:max-lg:px-6 md:max-lg:py-12 md:max-lg:gap-6
                        lg:max-xl:px-10 lg:max-xl:py-16 lg:max-xl:gap-6
                        xl:px-[210px] xl:py-[87px] xl:gap-0"
@@ -74,13 +75,15 @@ export default function WhyChoose() {
                      lg:max-xl:flex-1 lg:max-xl:min-w-0 lg:max-xl:max-w-none
                      xl:max-w-[605px] xl:flex-none"
         >
+          {/* Figma 12091:54135 */}
           <div
-            className="text-[14px] leading-[24px] text-[#52525b] mb-8 md:max-lg:text-[15px] md:max-lg:leading-[24px] md:max-lg:mb-8
-                       lg:max-xl:text-[17px] lg:max-xl:leading-[27px] lg:max-xl:mb-10
-                       xl:text-[18px] xl:leading-[28px] xl:mb-[40px]"
+            className="mb-8 w-full max-w-[335px] mx-auto text-pretty text-[14px] leading-[28px] text-[#52525b]
+                       md:mx-0 md:max-w-none md:max-lg:mb-8 md:max-lg:text-[15px] md:max-lg:leading-[24px]
+                       lg:max-xl:mb-10 lg:max-xl:text-[17px] lg:max-xl:leading-[27px]
+                       xl:mb-[40px] xl:text-[18px] xl:leading-[28px]"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
-            <p className="mb-4 md:mb-[18px]">
+            <p className="mb-[18px]">
               Forget business as usual. This is the new era of work. We are not here to play by old rules. Every company has values. Ours are different. They don&rsquo;t sit on posters, they shape everything we build. Curious? Take a look.
             </p>
             <p>

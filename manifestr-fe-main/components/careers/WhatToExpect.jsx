@@ -27,7 +27,7 @@ const STEPS = [
 export default function WhatToExpect() {
   return (
     <section className="w-full bg-white pt-8 pb-[48px] md:pt-12 md:pb-[96px]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-[24px] px-6 md:gap-[60px] md:px-[80px]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-[24px] px-8 md:gap-[60px] md:px-[80px]">
 
         {/* Heading first, then intro (what to expect + empowering context) */}
         <div className="flex w-full max-w-[720px] flex-col items-center gap-[12px] text-center md:max-w-[860px]">
@@ -44,7 +44,7 @@ export default function WhatToExpect() {
         </div>
 
         {/* Mobile steps — centered text blocks */}
-        <div className="md:hidden flex flex-col gap-[24px] w-full">
+        <div className="flex w-full max-w-[342px] flex-col gap-[24px] px-2 md:hidden">
           {STEPS.map((step, i) => (
             <motion.div
               key={step.num}

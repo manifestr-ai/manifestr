@@ -379,11 +379,11 @@ export default function ComplianceCertifications() {
       </section>
 
       {/* ─── Legal Disclaimer ─── */}
-      <section className="w-full bg-[#e4e3e1] md:bg-[#deddda] px-6 md:px-[80px] py-[36px] md:py-[64px]">
-        <div className="max-w-[1280px] mx-auto flex flex-col gap-[12px] items-center text-center">
+      <section className="w-full bg-[#e4e3e1] md:bg-[#deddda] px-6 md:px-[80px] py-6 md:py-10">
+        <div className="max-w-[1280px] mx-auto flex flex-col gap-2 md:gap-2.5 items-center text-center">
           <motion.h2
             {...fadeUp}
-            className="text-black text-[30px] md:text-[60px] leading-[38px] md:leading-[72px] tracking-[-0.72px] md:tracking-[-1.2px]"
+            className="text-black text-[28px] md:text-[54px] leading-[34px] md:leading-[66px] tracking-[-0.72px] md:tracking-[-1.2px]"
             style={headingFont}
           >
             Legal Disclaimer
@@ -391,7 +391,7 @@ export default function ComplianceCertifications() {
           <motion.p
             {...fadeUp}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-[#52525b] text-[16px] md:text-[18px] leading-[24px] md:leading-[28px] max-w-[1120px]"
+            className="max-w-[1120px] text-[#52525b] text-[15px] md:text-[17px] leading-[22px] md:leading-[26px]"
             style={font}
           >
             This page is provided for informational purposes only and does not constitute legal advice. While

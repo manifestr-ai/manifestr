@@ -96,7 +96,7 @@ export default function ToolsGrid() {
   const mobileTools = MOBILE_TOOL_ORDER.map((slug) => TOOLS.find((t) => t.slug === slug)).filter(Boolean)
 
   return (
-    <section className="relative w-full min-w-0 bg-[#e9e9ea]">
+    <section className="relative w-full min-w-0 overflow-hidden bg-[#e9e9ea]">
       {/* Desktop hero image */}
       <div
         aria-hidden="true"
@@ -115,7 +115,7 @@ export default function ToolsGrid() {
       {/* ELEVATE watermark */}
       <span
         aria-hidden="true"
-        className="absolute bottom-0 translate-y-[23%] text-[91px] md:text-[200px] lg:text-[300px] opacity-[0.32] pointer-events-none select-none whitespace-nowrap leading-none left-[21px] md:left-auto lg:left-[18%] xl:left-[12%] 2xl:left-[20%]"
+        className="absolute bottom-0 translate-y-[10%] md:translate-y-[23%] text-[91px] md:text-[200px] lg:text-[300px] opacity-[0.32] pointer-events-none select-none whitespace-nowrap leading-none left-[21px] md:left-auto lg:left-[18%] xl:left-[12%] 2xl:left-[20%]"
         style={{
           fontFamily: "'IvyPresto Headline', serif",
           fontWeight: 600,
@@ -127,7 +127,7 @@ export default function ToolsGrid() {
       </span>
 
       {/* ── MOBILE ── */}
-      <div className="md:hidden relative z-10 px-6 pt-10 pb-24">
+      <div className="md:hidden relative z-10 px-6 pt-10 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

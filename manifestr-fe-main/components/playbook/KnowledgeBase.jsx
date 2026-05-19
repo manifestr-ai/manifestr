@@ -144,7 +144,7 @@ export default function KnowledgeBase() {
 
             <Link
               href="/signup"
-              className="inline-flex h-[44px] w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-[24px] text-[14px] leading-[20px] font-medium text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] sm:w-auto"
+              className="hidden md:inline-flex h-[44px] w-full max-w-[449px] items-center justify-center rounded-[6px] bg-white px-[24px] text-[14px] leading-[20px] font-medium text-[#0d0d0d] transition-colors hover:bg-[#f4f4f5] md:w-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Enter MANIFESTR

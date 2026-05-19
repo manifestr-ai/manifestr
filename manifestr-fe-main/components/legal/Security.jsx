@@ -134,14 +134,17 @@ export default function Security() {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[24px] w-full"
           >
             {STATS.map((stat) => (
-              <div key={stat.value} className="bg-[#f4f4f5] rounded-[12px] p-[24px] flex flex-col gap-[8px] justify-center min-h-[160px]">
+              <div
+                key={stat.value}
+                className="flex min-h-[160px] flex-col items-center justify-center gap-[8px] rounded-[12px] bg-[#f4f4f5] p-[24px] text-center"
+              >
                 <span
                   className="text-[#18181b] tracking-[-0.88px]"
                   style={{ fontFamily: "'IvyPresto Headline', serif", fontWeight: 600, fontStyle: 'italic', fontSize: '44px', lineHeight: '55px' }}
                 >
                   {stat.value}
                 </span>
-                <span className="text-[#52525b] text-[16px] leading-[24px]" style={font}>
+                <span className="text-[16px] leading-[24px] text-[#52525b]" style={font}>
                   {stat.label}
                 </span>
               </div>
@@ -194,8 +197,12 @@ export default function Security() {
           <div className="relative w-full">
             <div
               ref={frameworkScrollRef}
-              className="-mx-6 w-full overflow-x-auto px-6 pb-14 scrollbar-hide md:mx-0 md:overflow-visible md:px-0 md:pb-0"
-              style={{ WebkitOverflowScrolling: 'touch' }}
+              className="no-scrollbar -mx-6 w-full overflow-x-auto overflow-y-hidden overscroll-x-contain px-6 pb-16 md:mx-0 md:overflow-visible md:px-0 md:pb-0"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
             >
               <div className="flex w-max gap-[24px] md:grid md:w-full md:grid-cols-2 lg:grid-cols-3">
               {FRAMEWORK_CARDS.map((card, i) => (
@@ -228,7 +235,7 @@ export default function Security() {
               ))}
               </div>
             </div>
-            <div className="pointer-events-none absolute bottom-0 right-6 z-10 flex items-center gap-2 md:hidden">
+            <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 translate-y-4 items-center gap-2 md:hidden">
               <span className="pointer-events-auto">
                 <FrameworkScrollArrow
                   dir="left"
