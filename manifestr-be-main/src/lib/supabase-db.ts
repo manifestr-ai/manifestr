@@ -5498,6 +5498,251 @@ export class SupabaseDB {
       failuresAlerts: { alerts: failuresAlerts },
     };
   }
+
+  // ===== REVENUE & MRR =====
+  
+  /**
+   * Get Monthly Recurring Revenue (MRR) from active subscriptions
+   */
+  static async getMRR() {
+    try {
+      const { data: subscriptions, error } = await supabaseAdmin
+        .from('subscriptions')
+        .select('amount_cents, billing_interval, status')
+        .in('status', ['active', 'trialing']);
+
+      if (error) throw error;
+
+      let mrr = 0;
+      if (subscriptions) {
+        subscriptions.forEach((sub: any) => {
+          const amount = sub.amount_cents || 0;
+          // Convert annual subscriptions to monthly
+          if (sub.billing_interval === 'annual') {
+            mrr += amount / 12;
+          } else {
+            mrr += amount;
+          }
+        });
+      }
+
+      // Convert cents to dollars
+      return mrr / 100;
+    } catch (error) {
+      console.error('Error calculating MRR:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get MRR for previous period (for comparison)
+   */
+  static async getPreviousMRR(days: number = 30) {
+    try {
+      const sinceDate = new Date();
+      sinceDate.setDate(sinceDate.getDate() - days);
+      
+      const { data: subscriptions, error } = await supabaseAdmin
+        .from('subscriptions')
+        .select('amount_cents, billing_interval, status, created_at')
+        .in('status', ['active', 'trialing', 'canceled'])
+        .lte('created_at', sinceDate.toISOString());
+
+      if (error) throw error;
+
+      let mrr = 0;
+      if (subscriptions) {
+        subscriptions.forEach((sub: any) => {
+          const amount = sub.amount_cents || 0;
+          if (sub.billing_interval === 'annual') {
+            mrr += amount / 12;
+          } else {
+            mrr += amount;
+          }
+        });
+      }
+
+      return mrr / 100;
+    } catch (error) {
+      console.error('Error calculating previous MRR:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get revenue for current month
+   */
+  static async getRevenueThisMonth() {
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Get subscription revenue (new subscriptions this month)
+      const { data: subscriptions, error: subError } = await supabaseAdmin
+        .from('subscriptions')
+        .select('amount_cents')
+        .gte('created_at', startOfMonth.toISOString())
+        .in('status', ['active', 'trialing']);
+
+      // Get addon purchases this month
+      const { data: addons, error: addonError } = await supabaseAdmin
+        .from('addon_purchases')
+        .select('amount_paid')
+        .gte('created_at', startOfMonth.toISOString())
+        .eq('status', 'completed');
+
+      if (subError && addonError) {
+        throw new Error('Failed to fetch revenue data');
+      }
+
+      let revenue = 0;
+
+      // Add subscription revenue (convert cents to dollars)
+      if (subscriptions) {
+        revenue += subscriptions.reduce((sum: number, sub: any) => {
+          return sum + (sub.amount_cents || 0) / 100;
+        }, 0);
+      }
+
+      // Add addon revenue (already in dollars)
+      if (addons) {
+        revenue += addons.reduce((sum: number, addon: any) => {
+          return sum + (addon.amount_paid || 0);
+        }, 0);
+      }
+
+      return revenue;
+    } catch (error) {
+      console.error('Error calculating revenue this month:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get revenue for previous month (for comparison)
+   */
+  static async getRevenuePreviousMonth() {
+    try {
+      const now = new Date();
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+      // Get subscription revenue
+      const { data: subscriptions, error: subError } = await supabaseAdmin
+        .from('subscriptions')
+        .select('amount_cents')
+        .gte('created_at', startOfLastMonth.toISOString())
+        .lte('created_at', endOfLastMonth.toISOString())
+        .in('status', ['active', 'trialing', 'canceled']);
+
+      // Get addon purchases
+      const { data: addons, error: addonError } = await supabaseAdmin
+        .from('addon_purchases')
+        .select('amount_paid')
+        .gte('created_at', startOfLastMonth.toISOString())
+        .lte('created_at', endOfLastMonth.toISOString())
+        .eq('status', 'completed');
+
+      if (subError && addonError) {
+        throw new Error('Failed to fetch previous revenue data');
+      }
+
+      let revenue = 0;
+
+      if (subscriptions) {
+        revenue += subscriptions.reduce((sum: number, sub: any) => {
+          return sum + (sub.amount_cents || 0) / 100;
+        }, 0);
+      }
+
+      if (addons) {
+        revenue += addons.reduce((sum: number, addon: any) => {
+          return sum + (addon.amount_paid || 0);
+        }, 0);
+      }
+
+      return revenue;
+    } catch (error) {
+      console.error('Error calculating previous month revenue:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get monthly revenue trend for the last 12 months
+   */
+  static async getMonthlyRevenueTrend() {
+    try {
+      const months: string[] = [];
+      const mrrData: number[] = [];
+      const arrData: number[] = [];
+
+      const now = new Date();
+
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+        const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+
+        // Get month label (e.g., "Jan", "Feb")
+        months.push(date.toLocaleString('en-US', { month: 'short' }));
+
+        // Get subscriptions created in this month
+        const { data: subscriptions } = await supabaseAdmin
+          .from('subscriptions')
+          .select('amount_cents, billing_interval')
+          .gte('created_at', monthStart.toISOString())
+          .lte('created_at', monthEnd.toISOString())
+          .in('status', ['active', 'trialing', 'canceled']);
+
+        // Get addon purchases in this month
+        const { data: addons } = await supabaseAdmin
+          .from('addon_purchases')
+          .select('amount_paid')
+          .gte('created_at', monthStart.toISOString())
+          .lte('created_at', monthEnd.toISOString())
+          .eq('status', 'completed');
+
+        let monthlyMRR = 0;
+        let annualRevenue = 0;
+
+        if (subscriptions) {
+          subscriptions.forEach((sub: any) => {
+            const amount = (sub.amount_cents || 0) / 100;
+            if (sub.billing_interval === 'annual') {
+              monthlyMRR += amount / 12;
+              annualRevenue += amount;
+            } else {
+              monthlyMRR += amount;
+            }
+          });
+        }
+
+        if (addons) {
+          const addonRevenue = addons.reduce((sum: number, addon: any) => {
+            return sum + (addon.amount_paid || 0);
+          }, 0);
+          monthlyMRR += addonRevenue;
+        }
+
+        mrrData.push(monthlyMRR);
+        arrData.push(annualRevenue);
+      }
+
+      return {
+        months,
+        mrrData,
+        arrData,
+      };
+    } catch (error) {
+      console.error('Error calculating revenue trend:', error);
+      return {
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        mrrData: Array(12).fill(0),
+        arrData: Array(12).fill(0),
+      };
+    }
+  }
 }
 
 export default SupabaseDB;

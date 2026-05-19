@@ -150,6 +150,11 @@ export class AdminController extends BaseController {
         totalJobs,
         failedJobs,
         weeklyCreators,
+        currentMRR,
+        previousMRR,
+        revenueThisMonth,
+        revenuePreviousMonth,
+        revenueTrend,
       ] = await Promise.all([
         SupabaseDB.getUsersCount(since, search, audienceUserIds),
 
@@ -169,6 +174,13 @@ export class AdminController extends BaseController {
         SupabaseDB.getFailedJobsCount(since, audienceUserIds),
 
         SupabaseDB.getWeeklyActiveCreatorsComparison(audienceUserIds),
+
+        // Revenue data
+        SupabaseDB.getMRR(),
+        SupabaseDB.getPreviousMRR(days),
+        SupabaseDB.getRevenueThisMonth(),
+        SupabaseDB.getRevenuePreviousMonth(),
+        SupabaseDB.getMonthlyRevenueTrend(),
       ]);
 
       // =========================
@@ -283,6 +295,10 @@ export class AdminController extends BaseController {
       const totalUsersChange = calcChange(totalUsers, prevUsers);
       const growthChange = calcChange(newUsers, prevUsers);
 
+      // Revenue changes
+      const mrrChange = calcChange(currentMRR, previousMRR);
+      const revenueChange = calcChange(revenueThisMonth, revenuePreviousMonth);
+
       // fallback (until you track properly)
       const dauMauChange = "0%";
       const activationChange = "0%";
@@ -349,15 +365,15 @@ export class AdminController extends BaseController {
             },
             {
               title: "MRR (Monthly Recurring Revenue)",
-              value: "$0",
-              change: "0%",
-              period: "no billing data",
+              value: `$${currentMRR.toFixed(2)}`,
+              change: mrrChange,
+              period: getPeriodLabel(timeframe),
             },
             {
               title: "Revenue This Month",
-              value: "$0",
-              change: "0%",
-              period: "no billing data",
+              value: `$${revenueThisMonth.toFixed(2)}`,
+              change: revenueChange,
+              period: "vs last month",
             },
           ],
         ],
@@ -380,20 +396,31 @@ export class AdminController extends BaseController {
         },
 
         // =========================
-        // REVENUE (ZERO SAFE)
+        // REVENUE (REAL DATA)
         // =========================
         revenueTrend: {
           title: "Revenue Trend",
           filterOptions: ["Both", "MRR", "ARR"],
           selectedFilter: "Both",
-          months: defaultMonths,
-          yLabels: ["80K", "60K", "40K", "20K", "10K", "0"],
-          mrrData: Array(12).fill(0),
-          arrData: Array(12).fill(0),
-          mrrDollar: Array(12).fill("$0"),
-          arrDollar: Array(12).fill("$0"),
-          max: 0,
-          change: "0%",
+          months: revenueTrend.months,
+          yLabels: (() => {
+            const maxRevenue = Math.max(...revenueTrend.mrrData, ...revenueTrend.arrData, 1);
+            const step = Math.ceil(maxRevenue / 5);
+            return [
+              `$${(step * 5).toLocaleString()}`,
+              `$${(step * 4).toLocaleString()}`,
+              `$${(step * 3).toLocaleString()}`,
+              `$${(step * 2).toLocaleString()}`,
+              `$${step.toLocaleString()}`,
+              "$0"
+            ];
+          })(),
+          mrrData: revenueTrend.mrrData,
+          arrData: revenueTrend.arrData,
+          mrrDollar: revenueTrend.mrrData.map(v => `$${v.toFixed(0)}`),
+          arrDollar: revenueTrend.arrData.map(v => `$${v.toFixed(0)}`),
+          max: Math.max(...revenueTrend.mrrData, ...revenueTrend.arrData, 1),
+          change: mrrChange,
           period: "MoM",
         },
 
