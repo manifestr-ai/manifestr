@@ -87,6 +87,13 @@ export class SubscriptionController extends BaseController {
                 handler: this.getSeatUsage,
                 middlewares: [authenticateToken],
             },
+            // 🆕 GET TEAM MEMBERS
+            {
+                verb: 'GET',
+                path: '/team-members',
+                handler: this.getTeamMembers,
+                middlewares: [authenticateToken],
+            },
             // 🚀 UPGRADE CHECKOUT SESSION
             {
                 verb: 'POST',
@@ -1825,6 +1832,160 @@ export class SubscriptionController extends BaseController {
             return res.status(500).json({
                 status: 'error',
                 message: 'Failed to get seat usage'
+            });
+        }
+    };
+
+    // ============================================
+    // GET TEAM MEMBERS (All unique members across user's collabs)
+    // ============================================
+
+    private getTeamMembers = async (req: AuthRequest, res: Response) => {
+        try {
+            const userId = req.user!.userId;
+            
+            console.log(`📊 GET /api/subscriptions/team-members - User ID: ${userId}`);
+
+            // Get user info (owner)
+            const { data: owner, error: ownerError } = await supabaseAdmin
+                .from('users')
+                .select('id, email, first_name, last_name, created_at')
+                .eq('id', userId)
+                .single();
+
+            if (ownerError) {
+                console.log(`❌ Supabase error fetching owner:`, ownerError);
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Database error fetching user',
+                    details: ownerError.message
+                });
+            }
+
+            if (!owner) {
+                console.log(`❌ Owner not found for user ID: ${userId}`);
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'User not found'
+                });
+            }
+
+            console.log(`✅ Owner found: ${owner.email}`);
+
+            // Get all collab projects owned by this user
+            const { data: ownedProjects } = await supabaseAdmin
+                .from('collab_projects')
+                .select('id')
+                .eq('created_by', userId);
+
+            const teamMembersMap = new Map();
+
+            // Add owner first
+            teamMembersMap.set(userId, {
+                id: userId,
+                name: `${owner.first_name || ''} ${owner.last_name || ''}`.trim() || owner.email,
+                email: owner.email,
+                role: 'owner',
+                status: 'active',
+                collabs: ownedProjects?.length || 0,
+                lastActive: owner.created_at || null,
+                avatar: null,
+                isPending: false,
+                giftedSeats: 0 // Owner doesn't count as gifted
+            });
+
+            if (ownedProjects && ownedProjects.length > 0) {
+                const projectIds = ownedProjects.map(p => p.id);
+
+                // Get all members from these projects with user details
+                const { data: members } = await supabaseAdmin
+                    .from('collab_project_members')
+                    .select(`
+                        user_id,
+                        role,
+                        status,
+                        invited_at,
+                        users!collab_project_members_user_id_fkey (
+                            id,
+                            email,
+                            first_name,
+                            last_name,
+                            created_at
+                        )
+                    `)
+                    .in('collab_project_id', projectIds);
+
+                if (members) {
+                    for (const member of members) {
+                        const user: any = member.users;
+                        if (!user) continue;
+
+                        const memberId = member.user_id;
+
+                        // Count how many collabs this member is in
+                        const memberCollabCount = members.filter((m: any) => m.user_id === memberId).length;
+
+                        // If already exists, update with highest role
+                        if (teamMembersMap.has(memberId)) {
+                            const existing: any = teamMembersMap.get(memberId);
+                            
+                            // Update collabs count
+                            existing.collabs = memberCollabCount;
+                            
+                            // Keep highest role priority: owner > admin > editor > viewer
+                            const rolePriority: any = { owner: 4, admin: 3, editor: 2, viewer: 1 };
+                            if (rolePriority[member.role] > rolePriority[existing.role]) {
+                                existing.role = member.role;
+                            }
+                        } else {
+                            // Add new member
+                            const isPending = member.status === 'pending';
+                            teamMembersMap.set(memberId, {
+                                id: memberId,
+                                name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+                                email: user.email,
+                                role: member.role || 'viewer',
+                                status: isPending ? 'pending' : 'active',
+                                collabs: memberCollabCount,
+                                lastActive: user.created_at || member.invited_at || null,
+                                avatar: null,
+                                isPending: isPending,
+                                giftedSeats: 0
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Convert map to array
+            const teamMembers = Array.from(teamMembersMap.values());
+
+            // Calculate pending invites count
+            const pendingInvites = teamMembers.filter(m => m.status === 'pending').length;
+
+            // Calculate gifted seats (if you have that logic)
+            const giftedSeatsCount = teamMembers.reduce((sum, m) => sum + m.giftedSeats, 0);
+
+            console.log(`📊 Team members for user ${userId}: ${teamMembers.length} members`);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    members: teamMembers,
+                    summary: {
+                        totalMembers: teamMembers.length,
+                        activeMembers: teamMembers.filter(m => m.status === 'active').length,
+                        pendingInvites: pendingInvites,
+                        giftedSeats: giftedSeatsCount
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Error getting team members:', error);
+            return res.status(500).json({
+                status: 'error',
+                message: 'Failed to get team members'
             });
         }
     };
