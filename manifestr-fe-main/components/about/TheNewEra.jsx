@@ -2,9 +2,9 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/CldImage'
 
-const FASHION_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041143/52_modern-founder_flared-pants-dramatic-pose-01b_3_e1gwx2.png'
+const FASHION_IMG = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779161296/Footer_Woman_twwwsv.webp'
 const FOUNDER_NAME = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041647/Name_1_sw09qh.png'
-const SIGNATURE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1775041142/Signature_2_bq9bvv.png'
+const SIGNATURE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779161300/Leah_Signature_lpqd75.webp'
 
 export default function TheNewEra() {
   return (

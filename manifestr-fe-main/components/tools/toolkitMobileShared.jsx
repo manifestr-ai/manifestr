@@ -2,15 +2,15 @@ import { useRouter } from 'next/router'
 import CldImage from '../ui/ToolkitCldImage'
 
 const TOOL_IMAGES = {
-  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Strageist_oghhch.png',
-  analyser: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Anaylzer_z859cm.png',
-  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749269/Frame_2147229988_oveeki.png',
-  designStudio: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Design_Studio_r4wu94.png',
+  strategist: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163847/The_Strategist_556x486_x2_xhhgtg.webp',
+  analyser: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163848/The_Analyzer_556x486_x2_u5xbtd.webp',
+  briefcase: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163851/The_Briefcase_556x486_x2_vrc1xu.webp',
+  designStudio: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163847/Design_Studio_556x486_x2_jqbjwk.webp',
   mLogo: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944350/Manifestr_Icon_Reverse_2_rwa1j0.svg',
-  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/WordSmith_oehdl2.png',
-  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/The_Deck_osyogl.png',
-  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749408/Frame_2147229006_zbhsvs.png',
-  costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1777749876/Cost_Ctrl_vveufa.png',
+  wordsmith: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163847/The_Wordsmith_556x486_x2_fwfs94.webp',
+  deck: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163852/The_Deck_556x486_x2_wkotff.webp',
+  huddle: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163846/The_Huddle_556x486_x2_pgiime.webp',
+  costCtrl: 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779163848/Cost_CTRL_556x486_x2_jae6zx.webp',
 }
 
 /** Mobile accordion collapsed state — wide art; subject on the right. */
