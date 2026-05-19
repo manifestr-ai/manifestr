@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import CldImage from '../ui/ToolkitCldImage'
 
-const STAT_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954224/Rectangle_16_fe3wut.jpg'
+const STAT_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779164520/How_High-Performing_Teams_Work_x2_qakt9q.webp'
 const CLOCK_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954202/Vector_ggimsq.svg'
 const ROCKET_ICON = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774954202/Group_luvmcc.svg'
 

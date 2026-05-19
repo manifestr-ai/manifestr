@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import CldImage from '../ui/ToolkitCldImage'
 import { TOOLS, MOBILE_TOOL_ORDER, MobileToolAccordion } from './toolkitMobileShared'
 
-const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1774944466/37_modern-founder_model-07-shot-02b_2_wj98bv.svg'
+const HERO_IMAGE = 'https://res.cloudinary.com/dlifgfg6m/image/upload/v1779162530/Main_Woman_Light_gfjgxv.webp'
 
 export { TOOLS, MOBILE_TOOL_ORDER, MobileToolAccordion }
 
@@ -97,15 +97,15 @@ export default function ToolsGrid() {
 
   return (
     <section className="relative w-full min-w-0 overflow-hidden bg-[#e9e9ea]">
-      {/* Desktop hero image */}
+      {/* Desktop hero image — left column behind the tools grid */}
       <div
         aria-hidden="true"
-        className="hidden lg:block absolute top-0 bottom-0 overflow-hidden pointer-events-none"
+        className="hidden lg:block absolute inset-y-0 left-0 w-full max-w-[720px] overflow-hidden pointer-events-none "
       >
         <CldImage
           src={HERO_IMAGE}
           alt=""
-          className="h-[102%] w-auto max-w-none object-cover mt-[-108px] object-top"
+          className="h-[102%] w-full max-w-none object-cover object-left object-top mt-[-108px] -translate-x-[18%]"
           priority
           sizes="(max-width: 1023px) 0px, 100vw"
           fallbackWidth={2048}

@@ -37,6 +37,13 @@ export function useAiPrompter(options: UseAiPrompterOptions) {
     }
   }, [editorType]);
 
+  // Auto-dismiss error banner after 3 seconds
+  useEffect(() => {
+    if (!error) return;
+    const timer = window.setTimeout(() => setError(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [error]);
+
   // Save history to localStorage whenever it changes
   const saveHistory = useCallback((newHistory: PromptHistoryItem[]) => {
     const storageKey = `ai-prompter-history-${editorType}`;
