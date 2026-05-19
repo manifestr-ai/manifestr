@@ -57,7 +57,7 @@ export default function Toolkit() {
               sizes="100vw"
               className="object-cover object-[50%_52%]"
             />
-          </motion.div>
+          </div>
 
           <div className="relative z-10 w-full pb-20 pt-[51px]">
             <motion.div
