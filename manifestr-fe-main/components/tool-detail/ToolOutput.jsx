@@ -231,68 +231,6 @@ function OutputImageGridMobile() {
           </div>
         </div>
       </div>
-
-/** Figma 12468:22111 — copy stack (left inset tightened vs Figma 74px) */
-const COPY = {
-  leftPx: 32,
-  columnMaxPx: 720,
-  titleLine1MaxPx: 555,
-  bodyWidthPx: 513,
-  stackGapPx: 24,
-}
-
-function OutputImageGrid() {
-  return (
-    <div
-      className="pointer-events-none absolute hidden md:flex items-center justify-center"
-      style={{
-        width: '1260px',
-        height: '1080px',
-        right: '-380px',
-        top: '-348px',
-      }}
-      aria-hidden
-    >
-      <div
-        className="-rotate-30 flex-none"
-        style={{ width: `${GRID_W}px`, height: `${GRID_H}px` }}
-      >
-        <div
-          className="flex h-full w-full flex-col"
-          style={{ gap: `${ROW_GAP}px` }}
-        >
-          {IMAGE_ROWS.map((row, ri) => (
-            <div
-              key={ri}
-              className={`flex min-h-0 flex-1 flex-row ${ri === 1 ? 'relative z-10' : 'relative z-0'}`}
-              style={{
-                gap: `${COL_GAP}px`,
-                transform: ri === 1 ? `translateX(${MIDDLE_ROW_SHIFT_X}px)` : undefined,
-              }}
-            >
-              {row.map((tile, ci) => (
-                <div
-                  key={`${ri}-${ci}`}
-                  className="min-h-0 shrink-0 overflow-hidden"
-                  style={{
-                    width: `${tile.w}px`,
-                    height: '100%',
-                    borderRadius: `${TILE_RADIUS}px`,
-                  }}
-                >
-                  <CldImage
-                    src={tile.src}
-                    alt=""
-                    className="size-full object-cover"
-                    style={{ filter: 'grayscale(100%)' }}
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
@@ -482,54 +420,8 @@ export default function ToolOutput({ tool }) {
               </em>
               <span style={hk700}> of Output</span>
             </span>
-    <section className="w-full overflow-hidden bg-[#f4f4f5]">
-      <div
-        className="relative mx-auto min-h-[400px] w-full max-w-[1440px] md:min-h-[680px]"
-      >
-        <OutputImageGrid />
-
-        <div className="relative z-10 px-5 py-14 sm:px-8 md:px-0 md:py-0">
-          <div
-            className="hidden md:flex md:flex-col"
-            style={{
-              position: 'absolute',
-              left: `${COPY.leftPx}px`,
-              top: '50%',
-              transform: 'translateY(50%)',
-              maxWidth: `${COPY.columnMaxPx}px`,
-              gap: `${COPY.stackGapPx}px`,
-            }}
-          >
-            <h2 className="shrink-0 text-[60px] leading-[62px] tracking-[-1.2px] text-black" style={hk700}>
-              <span className="block" style={{ maxWidth: `${COPY.titleLine1MaxPx}px` }}>
-                <span style={hk700}>The </span>
-                <em className="not-italic" style={ivyCalibre}>
-                  Calibre
-                </em>
-                <span style={hk700}> of Output</span>
-              </span>
-              <span className="block whitespace-nowrap" style={hk700}>
-                {middleLine} delivers
-              </span>
-            </h2>
-
-            <p
-              className={`shrink-0 text-[18px] font-normal leading-[28px] text-[#52525b] ${body.includes('\n') ? 'whitespace-pre-line' : ''}`}
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                width: `${COPY.bodyWidthPx}px`,
-                maxWidth: '100%',
-              }}
-            >
-              {body}
-            </p>
-
-            <Link
-              href="/signup"
-              className="inline-flex h-11 w-fit shrink-0 items-center justify-start rounded-md bg-[#18181b] px-5 text-left text-[14px] font-medium leading-5 text-white transition-colors hover:bg-[#27272a] whitespace-nowrap"
-              style={{ fontFamily: 'Inter, sans-serif' }}
             <span className="block" style={hk700}>
-              {line2}
+              {middleLine} delivers
             </span>
           </h2>
 
