@@ -231,7 +231,7 @@ function OutputImageGridMobile() {
           </div>
         </div>
       </div>
-=======
+
 /** Figma 12468:22111 — copy stack (left inset tightened vs Figma 74px) */
 const COPY = {
   leftPx: 32,

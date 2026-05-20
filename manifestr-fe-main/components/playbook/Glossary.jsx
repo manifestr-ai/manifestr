@@ -219,7 +219,6 @@ export default function Glossary() {
               Enter MANIFESTR
             </Link>
           </div>
-          </div>
           <Link
             href="/signup"
             className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
