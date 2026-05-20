@@ -155,11 +155,7 @@ export default function Glossary() {
       </div>
 
       {/* ─── Hero ─── */}
-      <section className="relative flex h-[400px] w-full items-center justify-center overflow-hidden px-6 md:h-[518px] md:px-[80px]">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <CldImage src={HERO_BG} alt="" className="absolute h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-black/20" />
-      <section className="relative w-full h-[518px] flex items-center justify-center px-[80px] overflow-hidden">
+      <section className="relative w-full h-[518px] flex items-center justify-center px-6 md:px-[80px] overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <CldImage src={HERO_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/30" />
@@ -190,26 +186,26 @@ export default function Glossary() {
               className="flex w-full items-center gap-2 rounded-md border border-[#d5d7da] bg-white px-3 py-2.5 shadow-[0px_1px_2px_0px_rgba(10,13,18,0.05)] md:px-3.5 md:py-2.5"
             >
               <svg className="h-5 w-5 shrink-0 text-[#71717a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              name="q"
-              type="search"
-              autoComplete="off"
-              placeholder="Search terms & definitions"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            />
-            <button
-              type="submit"
-              className="shrink-0 rounded bg-[#18181b] px-2.5 py-1.5 text-[13px] font-medium text-white hover:bg-[#27272a] md:px-3"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Search
-            </button>
-          </form>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                name="q"
+                type="search"
+                autoComplete="off"
+                placeholder="Search terms & definitions"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="min-w-0 flex-1 bg-transparent text-[16px] leading-6 text-[#18181b] outline-none placeholder:text-[#71717a]"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded bg-[#18181b] px-2.5 py-1.5 text-[13px] font-medium text-white hover:bg-[#27272a] md:px-3"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Search
+              </button>
+            </form>
 
             <Link
               href="/signup"
@@ -218,15 +214,14 @@ export default function Glossary() {
             >
               Enter MANIFESTR
             </Link>
+            <Link
+              href="/signup"
+              className="md:hidden h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Enter MANIFESTR
+            </Link>
           </div>
-          </div>
-          <Link
-            href="/signup"
-            className="h-[44px] px-[24px] rounded-[6px] bg-white text-[#0d0d0d] text-[14px] leading-[20px] font-medium inline-flex items-center justify-center hover:bg-[#f4f4f5] transition-colors"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            Enter MANIFESTR
-          </Link>
         </motion.div>
       </section>
 

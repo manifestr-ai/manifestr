@@ -155,7 +155,7 @@ export default function ProfileDropdown() {
               </div>
 
               {/* Menu items — Figma 9889:11377 */}
-              <div className="flex flex-col py-1">
+              <div className="flex max-h-[500px] flex-col overflow-y-auto py-1">
                 <MenuItem
                   icon={Settings}
                   label="Settings"
@@ -264,11 +264,10 @@ function ThemeRow({ theme, onThemeChange }) {
           <button
             type="button"
             onClick={() => onThemeChange('light')}
-            className={`flex h-full items-center justify-center rounded-md px-3 transition-colors ${
-              theme === 'light'
-                ? 'border border-[#e4e4e7] bg-white'
-                : 'bg-transparent'
-            }`}
+            className={`flex h-full items-center justify-center rounded-md px-3 transition-colors ${theme === 'light'
+              ? 'border border-[#e4e4e7] bg-white'
+              : 'bg-transparent'
+              }`}
             aria-label="Light theme"
           >
             <Sun className="h-4 w-4 text-[#52525b]" strokeWidth={2} />
@@ -276,11 +275,10 @@ function ThemeRow({ theme, onThemeChange }) {
           <button
             type="button"
             onClick={() => onThemeChange('dark')}
-            className={`flex h-full items-center justify-center rounded-md px-3 transition-colors ${
-              theme === 'dark'
-                ? 'border border-[#e4e4e7] bg-white'
-                : 'bg-transparent'
-            }`}
+            className={`flex h-full items-center justify-center rounded-md px-3 transition-colors ${theme === 'dark'
+              ? 'border border-[#e4e4e7] bg-white'
+              : 'bg-transparent'
+              }`}
             aria-label="Dark theme"
           >
             <Moon className="h-4 w-4 text-[#52525b]" strokeWidth={2} />
