@@ -233,12 +233,15 @@ export default function Settings() {
     try {
       setProfileImageFile(file)
 
-      // Upload image
-      const uploadData = await getPresignedUrl(file.name, file.type, 'profile-images')
+      // Upload image via direct multipart upload
+      const formData = new FormData()
+      formData.append('file', file)
 
-      await uploadToS3(uploadData.uploadUrl, file)
+      const uploadRes = await api.post('/api/uploads/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
 
-      const imageUrl = normalizeUrl(uploadData.fileUrl)
+      const imageUrl = normalizeUrl(uploadRes.data.data.url)
       setProfileImageUrl(imageUrl)
 
       // Update profile with new image URL
@@ -916,7 +919,7 @@ function TeamTabContent() {
   const [showRoleModalDropdown, setShowRoleModalDropdown] = useState(false)
   const [selectedCollabs, setSelectedCollabs] = useState(['collab1', 'collab4'])
   const [emailInput, setEmailInput] = useState('')
-  
+
   // New states for action modals
   const [showEditRoleModal, setShowEditRoleModal] = useState(false)
   const [showViewDetailsModal, setShowViewDetailsModal] = useState(false)
@@ -975,7 +978,7 @@ function TeamTabContent() {
         const teamData = teamMembersRes.data.data
         console.log('📊 Raw team data:', teamData)
         console.log('📊 Members array:', teamData.members)
-        
+
         const formattedMembers = teamData.members.map(member => {
           console.log('📊 Formatting member:', member)
           return {
@@ -989,7 +992,7 @@ function TeamTabContent() {
             avatar: member.avatar || '/assets/dummy/avatar.png'
           }
         })
-        
+
         console.log('✅ Formatted members:', formattedMembers)
         setMembers(formattedMembers)
 
@@ -1092,7 +1095,7 @@ function TeamTabContent() {
     try {
       // TODO: Add API call to remove member
       // await api.delete(`/api/subscriptions/team-members/${selectedMember.id}`)
-      
+
       setMembers(prev => prev.filter(m => m.id !== selectedMember.id))
       success('Team member removed successfully')
       setShowRemoveModal(false)
@@ -1107,8 +1110,8 @@ function TeamTabContent() {
     try {
       // TODO: Add API call to update role
       // await api.put(`/api/subscriptions/team-members/${selectedMember.id}/role`, { role: selectedRole })
-      
-      setMembers(prev => prev.map(m => 
+
+      setMembers(prev => prev.map(m =>
         m.id === selectedMember.id ? { ...m, role: selectedRole } : m
       ))
       success('Member role updated successfully')
@@ -2048,11 +2051,10 @@ function TeamTabContent() {
                   <button
                     key={role}
                     onClick={() => setSelectedRole(role)}
-                    className={`w-full px-4 py-3 rounded-lg border text-left transition-colors ${
-                      selectedRole === role
+                    className={`w-full px-4 py-3 rounded-lg border text-left transition-colors ${selectedRole === role
                         ? 'border-[#18181b] bg-[#f4f4f5]'
                         : 'border-[#e4e4e7] hover:border-[#18181b]'
-                    }`}
+                      }`}
                   >
                     <span className="font-medium">{role}</span>
                   </button>
